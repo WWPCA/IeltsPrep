@@ -26,7 +26,7 @@
                         </div>
                         <div>
                             <h4>Login to Access Practice Tests</h4>
-                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access practice tests. Free users can access sample tests, while subscribers get unlimited access to all tests.</p>
+                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access practice tests. You'll need to purchase a subscription to take practice tests.</p>
                             <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
                             <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
                         </div>
@@ -39,8 +39,8 @@
                             <i class="fas fa-crown fa-2x"></i>
                         </div>
                         <div>
-                            <h4>Upgrade for Full Access</h4>
-                            <p>Free users can access sample tests for each section. Subscribe to unlock all practice tests.</p>
+                            <h4>Subscribe for Full Access</h4>
+                            <p>Subscribe now to unlock all practice tests. Choose from our 3, 6, or 12 test packages.</p>
                             <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
                         </div>
                     </div>
@@ -68,9 +68,9 @@
                             </ul>
                             
                             {% if sample_tests and sample_tests.listening %}
-                                <div class="alert alert-light text-center">
-                                    <p><strong>Sample Test Available:</strong><br>
-                                    {{ sample_tests.listening.title }}</p>
+                                <div class="alert alert-info text-center">
+                                    <p><strong>Available with Subscription:</strong><br>
+                                    {{ sample_tests.listening.title }} and more</p>
                                 </div>
                             {% endif %}
                         </div>
@@ -102,9 +102,9 @@
                             </ul>
                             
                             {% if sample_tests and sample_tests.reading %}
-                                <div class="alert alert-light text-center">
-                                    <p><strong>Sample Test Available:</strong><br>
-                                    {{ sample_tests.reading.title }}</p>
+                                <div class="alert alert-info text-center">
+                                    <p><strong>Available with Subscription:</strong><br>
+                                    {{ sample_tests.reading.title }} and more</p>
                                 </div>
                             {% endif %}
                         </div>
@@ -136,9 +136,9 @@
                             </ul>
                             
                             {% if sample_tests and sample_tests.writing %}
-                                <div class="alert alert-light text-center">
-                                    <p><strong>Sample Test Available:</strong><br>
-                                    {{ sample_tests.writing.title }}</p>
+                                <div class="alert alert-info text-center">
+                                    <p><strong>Available with Subscription:</strong><br>
+                                    {{ sample_tests.writing.title }} and more</p>
                                 </div>
                             {% endif %}
                         </div>

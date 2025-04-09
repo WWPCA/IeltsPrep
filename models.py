@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     region = db.Column(db.String(50), nullable=True)
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
-    subscription_status = db.Column(db.String(20), default="free")
+    subscription_status = db.Column(db.String(20), default="none")
     subscription_expiry = db.Column(db.DateTime, nullable=True)
     preferred_language = db.Column(db.String(10), default="en")
     
@@ -47,13 +47,16 @@ class User(UserMixin, db.Model):
         self._speaking_scores = json.dumps(value)
     
     def is_subscribed(self):
-        if self.subscription_status == "free":
-            return False
-        if self.subscription_expiry and self.subscription_expiry < datetime.utcnow():
-            self.subscription_status = "expired"
-            db.session.commit()
-            return False
-        return True
+        # Check if user has an active subscription
+        if self.subscription_status == "active" and self.subscription_expiry:
+            # Check if subscription has expired
+            if self.subscription_expiry < datetime.utcnow():
+                self.subscription_status = "expired"
+                db.session.commit()
+                return False
+            return True
+        
+        return False
     
     def __repr__(self):
         return f'<User {self.username}>'
