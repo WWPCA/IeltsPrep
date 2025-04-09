@@ -1,0 +1,209 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Listening</li>
+                </ol>
+            </nav>
+            
+            {% if taking_test %}
+                <!-- Timer Display -->
+                <div id="test-timer" class="timer" data-test-type="listening">30:00</div>
+                
+                <!-- Test Content -->
+                <div class="practice-test">
+                    <h1 class="mb-4">{{ test.title }}</h1>
+                    <p class="lead">{{ test.description }}</p>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Audio</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="audio-player mb-3">
+                                <audio id="listening-audio" src="{{ test.audio_url }}" preload="auto"></audio>
+                                <div class="audio-controls">
+                                    <button id="play-audio" class="btn btn-primary">
+                                        <i class="fas fa-play"></i> Play
+                                    </button>
+                                    <div class="time-display">
+                                        <span id="current-time">00:00</span> / <span id="duration">00:00</span>
+                                    </div>
+                                </div>
+                                <div class="progress mt-2">
+                                    <input type="range" id="audio-progress" min="0" max="100" value="0" class="form-range">
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span>In the real IELTS test, you will hear the audio only once. For practice purposes, you can replay it here.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="listening">
+                        <div class="questions">
+                            {% for q_id, question in test.questions.items() %}
+                                <div class="question">
+                                    <p class="question-text">{{ question }}</p>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control answer-input" 
+                                               placeholder="Your answer" data-question-id="{{ q_id }}">
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>In the real IELTS test, you will have 10 minutes at the end to transfer your answers to the answer sheet.</span>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Answers</button>
+                        </div>
+                    </form>
+                    
+                    <div id="test-results" class="mt-5"></div>
+                </div>
+                
+            {% else %}
+                <!-- Listening Test List -->
+                <h1 class="mb-4">IELTS Listening Practice Tests</h1>
+                
+                <div class="alert alert-info mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-headphones fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>About IELTS Listening</h4>
+                            <p class="mb-0">The IELTS Listening test takes approximately 30 minutes (plus 10 minutes transfer time) and consists of 40 questions. There are four sections, each with 10 questions. The recordings include everyday social contexts, monologues, academic discussions, and lectures.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if not current_user.is_subscribed() %}
+                    <div class="alert alert-warning mb-4">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-crown fa-2x"></i>
+                            </div>
+                            <div>
+                                <h4>Limited Access</h4>
+                                <p>Free users can access the sample listening test. Subscribe to unlock all practice tests.</p>
+                                <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="h4 mb-0">Tips for IELTS Listening</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h3 class="h5"><i class="fas fa-check me-2 text-success"></i> Read the questions first</h3>
+                                    <p>Take advantage of the time before the recording starts to read the questions carefully.</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h3 class="h5"><i class="fas fa-check me-2 text-success"></i> Pay attention to signpost words</h3>
+                                    <p>"First," "next," "finally," and similar words indicate transitions to new ideas.</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h3 class="h5"><i class="fas fa-check me-2 text-success"></i> Be aware of synonyms</h3>
+                                    <p>The recording often uses synonyms or paraphrases of words in the questions.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h3 class="h5"><i class="fas fa-check me-2 text-success"></i> Check spelling and grammar</h3>
+                                    <p>Spelling counts in IELTS Listening! Be careful with plurals and word forms.</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h3 class="h5"><i class="fas fa-check me-2 text-success"></i> Write answers while listening</h3>
+                                    <p>Don't wait until the end to write your answers - note them down as you hear them.</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h3 class="h5"><i class="fas fa-check me-2 text-success"></i> Keep moving forward</h3>
+                                    <p>If you miss an answer, leave it and focus on the next question.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="mb-3">Available Listening Tests</h3>
+                
+                <div class="row">
+                    {% for test in tests %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h3 class="h5 mb-0">{{ test.title }}</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ test.description }}</p>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-headphones me-2 text-primary"></i> Section {{ test.section }}</li>
+                                        <li><i class="fas fa-question-circle me-2 text-primary"></i> {{ test.questions|length }} questions</li>
+                                        <li><i class="fas fa-clock me-2 text-primary"></i> 30 minutes + 10 minutes transfer time</li>
+                                    </ul>
+                                </div>
+                                <div class="card-footer bg-white text-center">
+                                    <a href="{{ url_for('take_practice_test', test_type='listening', test_id=test.id) }}" class="btn btn-primary">
+                                        Start Test
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if tests|length == 0 %}
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <p class="mb-0">No listening tests available at the moment. Please check back later.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if not current_user.is_subscribed() and tests|length > 0 %}
+                        {% for i in range(3) %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h3 class="h5 mb-0">Premium Listening Test {{ i+1 }}</h3>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-lock fa-4x text-secondary mb-3"></i>
+                                        <p>This test is available to premium subscribers only.</p>
+                                    </div>
+                                    <div class="card-footer bg-white text-center">
+                                        <a href="{{ url_for('subscribe') }}" class="btn btn-primary">
+                                            Subscribe to Access
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

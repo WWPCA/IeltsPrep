@@ -1,0 +1,250 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">IELTS Practice Tests</h1>
+            
+            <div class="alert alert-info mb-4">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4>Practice Makes Perfect</h4>
+                        <p class="mb-0">Regular practice with authentic IELTS-style questions is key to achieving your target score. Our practice tests follow the exact format of the real IELTS exam.</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if not current_user.is_authenticated %}
+                <div class="alert alert-warning mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-user-lock fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>Login to Access Practice Tests</h4>
+                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access practice tests. Free users can access sample tests, while subscribers get unlimited access to all tests.</p>
+                            <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+                            <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
+                        </div>
+                    </div>
+                </div>
+            {% elif not current_user.is_subscribed() %}
+                <div class="alert alert-warning mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-crown fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>Upgrade for Full Access</h4>
+                            <p>Free users can access sample tests for each section. Subscribe to unlock all practice tests.</p>
+                            <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="row mt-5">
+                <!-- Listening Tests -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Listening Practice</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-headphones fa-4x text-primary"></i>
+                            </div>
+                            
+                            <h3 class="h5">IELTS Listening Test</h3>
+                            <ul>
+                                <li>4 recordings, 40 questions</li>
+                                <li>30 minutes + 10 minutes transfer time</li>
+                                <li>Conversations and monologues</li>
+                                <li>Multiple choice, matching, fill-in-the-blank questions</li>
+                            </ul>
+                            
+                            {% if sample_tests and sample_tests.listening %}
+                                <div class="alert alert-light text-center">
+                                    <p><strong>Sample Test Available:</strong><br>
+                                    {{ sample_tests.listening.title }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-primary">
+                                Start Listening Practice
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reading Tests -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Reading Practice</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-book-open fa-4x text-primary"></i>
+                            </div>
+                            
+                            <h3 class="h5">IELTS Reading Test</h3>
+                            <ul>
+                                <li>3 passages, 40 questions</li>
+                                <li>60 minutes total time</li>
+                                <li>Academic and General Training versions</li>
+                                <li>Multiple choice, matching, True/False/Not Given questions</li>
+                            </ul>
+                            
+                            {% if sample_tests and sample_tests.reading %}
+                                <div class="alert alert-light text-center">
+                                    <p><strong>Sample Test Available:</strong><br>
+                                    {{ sample_tests.reading.title }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-primary">
+                                Start Reading Practice
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Writing Tests -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Writing Practice</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-pencil-alt fa-4x text-primary"></i>
+                            </div>
+                            
+                            <h3 class="h5">IELTS Writing Test</h3>
+                            <ul>
+                                <li>Task 1: 150 words (20 minutes)</li>
+                                <li>Task 2: 250 words essay (40 minutes)</li>
+                                <li>60 minutes total time</li>
+                                <li>Academic and General Training versions</li>
+                            </ul>
+                            
+                            {% if sample_tests and sample_tests.writing %}
+                                <div class="alert alert-light text-center">
+                                    <p><strong>Sample Test Available:</strong><br>
+                                    {{ sample_tests.writing.title }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-primary">
+                                Start Writing Practice
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-5">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Practice Test Features</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-stopwatch fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Timed Tests</h3>
+                                    <p>Practice under exam conditions with our accurate timers for each section.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-check-circle fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Instant Scoring</h3>
+                                    <p>Receive immediate feedback and scores for Listening and Reading sections.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-lightbulb fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Detailed Explanations</h3>
+                                    <p>Learn from your mistakes with comprehensive answer explanations.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-chart-line fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Progress Tracking</h3>
+                                    <p>Monitor your improvement over time with detailed statistics.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-sync-alt fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Regular Updates</h3>
+                                    <p>New practice tests added regularly to keep your preparation fresh.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-wifi fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Offline Mode</h3>
+                                    <p>Practice even without internet access with our offline capabilities.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <h2 class="mb-4">Ready to start practicing?</h2>
+                <p class="lead mb-4">Choose a test type above or explore our subscription options for full access.</p>
+                
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Create an Account</a>
+                {% elif not current_user.is_subscribed() %}
+                    <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-lg">Subscribe Now</a>
+                {% else %}
+                    <p class="text-success fw-bold">You have full access to all practice tests!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success fa-5x"></i>
+                    </div>
+                    
+                    <h1 class="mb-4">Payment Successful!</h1>
+                    
+                    <p class="lead mb-4">Thank you for subscribing to IELTS AI Prep Premium.</p>
+                    
+                    {% if current_user.is_authenticated and current_user.subscription_expiry %}
+                        <div class="alert alert-success">
+                            <h3 class="h5">Subscription Details</h3>
+                            <p class="mb-0">Your subscription is valid until: <strong>{{ current_user.subscription_expiry.strftime('%B %d, %Y') }}</strong></p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <h3>What's Next?</h3>
+                        <p>You now have full access to all premium features:</p>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item">
+                                <i class="fas fa-infinity me-2 text-primary"></i> Unlimited Practice Tests
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-microphone-alt me-2 text-primary"></i> AI-Powered Speaking Assessments
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-chart-line me-2 text-primary"></i> Detailed Performance Analytics
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-wifi-slash me-2 text-primary"></i> Offline Mode Access
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p class="mb-0">A confirmation email has been sent to your registered email address.</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('practice_index') }}" class="btn btn-primary me-3">
+                            <i class="fas fa-book me-2"></i> Start Practicing
+                        </a>
+                        <a href="{{ url_for('profile') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user me-2"></i> Go to My Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-5">
+                <h3>Need Help?</h3>
+                <p>If you have any questions about your subscription, please contact our support team.</p>
+                <a href="#" class="btn btn-link">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

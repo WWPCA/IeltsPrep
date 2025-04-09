@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-danger fa-5x"></i>
+                    </div>
+                    
+                    <h1 class="mb-4">Payment Cancelled</h1>
+                    
+                    <p class="lead mb-4">Your subscription payment was cancelled.</p>
+                    
+                    <div class="alert alert-info">
+                        <h3 class="h5">What happened?</h3>
+                        <p>Your payment was not completed. This could be due to:</p>
+                        <ul class="mb-0 text-start">
+                            <li>You chose to cancel the payment</li>
+                            <li>There was an issue with your payment method</li>
+                            <li>The payment process was interrupted</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3>What's Next?</h3>
+                        <p>Don't worry, you can try again whenever you're ready.</p>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item">
+                                <i class="fas fa-credit-card me-2 text-primary"></i> Try again with a different payment method
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-lightbulb me-2 text-primary"></i> Try our free sample tests while you decide
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-question-circle me-2 text-primary"></i> Contact our support team if you encountered issues
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('subscribe') }}" class="btn btn-primary me-3">
+                            <i class="fas fa-redo me-2"></i> Try Again
+                        </a>
+                        <a href="{{ url_for('practice_index') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-book me-2"></i> Explore Free Tests
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-5">
+                <h3>Still interested in IELTS AI Prep Premium?</h3>
+                <p>Our premium subscription offers significant advantages to help you achieve your target IELTS score.</p>
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-infinity fa-3x text-primary mb-3"></i>
+                                <h4>Unlimited Practice</h4>
+                                <p>Access all practice tests with detailed explanations</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                                <h4>AI Speaking Feedback</h4>
+                                <p>Get detailed assessment of your speaking skills</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('subscribe') }}" class="btn btn-primary">View Subscription Plans</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

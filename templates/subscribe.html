@@ -1,0 +1,395 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class="mb-2">Subscribe to IELTS AI Prep</h1>
+            <p class="lead mb-5">Get unlimited access to all practice tests and AI-powered features</p>
+        </div>
+    </div>
+    
+    <div class="pricing-table">
+        <div class="pricing-card">
+            <div class="pricing-header">
+                <h3 class="pricing-name">Free</h3>
+                <div class="pricing-price">$0</div>
+                <div class="pricing-duration">forever</div>
+            </div>
+            <div class="pricing-features">
+                <ul>
+                    <li>Access to sample tests only</li>
+                    <li>1 Speaking assessment</li>
+                    <li>Limited test history</li>
+                    <li>Basic progress tracking</li>
+                    <li class="text-muted text-decoration-line-through">Full test access</li>
+                    <li class="text-muted text-decoration-line-through">Unlimited AI speaking assessments</li>
+                    <li class="text-muted text-decoration-line-through">Detailed performance analytics</li>
+                    <li class="text-muted text-decoration-line-through">Offline mode</li>
+                </ul>
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary w-100">Register Now</a>
+                {% elif current_user.is_subscribed() %}
+                    <button class="btn btn-outline-secondary w-100" disabled>Current Plan</button>
+                {% else %}
+                    <button class="btn btn-outline-secondary w-100" disabled>Current Plan</button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="pricing-card pricing-popular">
+            <div class="pricing-header">
+                <h3 class="pricing-name">Monthly</h3>
+                <div class="pricing-price">$9.99</div>
+                <div class="pricing-duration">per month</div>
+            </div>
+            <div class="pricing-features">
+                <ul>
+                    <li>Access to <strong>all</strong> practice tests</li>
+                    <li>Unlimited AI speaking assessments</li>
+                    <li>Complete test history</li>
+                    <li>Detailed performance analytics</li>
+                    <li>Offline mode for practicing anywhere</li>
+                    <li>Audio feedback on speaking assessments</li>
+                    <li>Full access to new tests as they're added</li>
+                    <li>Cancel anytime</li>
+                </ul>
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Subscribe</a>
+                {% elif current_user.is_subscribed() %}
+                    <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
+                {% else %}
+                    <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <input type="hidden" name="plan" value="monthly">
+                        <input type="hidden" name="payment_method" value="stripe">
+                        <button type="submit" class="btn btn-primary w-100">Subscribe Now</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="pricing-card">
+            <div class="pricing-header">
+                <h3 class="pricing-name">Annual</h3>
+                <div class="pricing-price">$89.99</div>
+                <div class="pricing-duration">per year</div>
+            </div>
+            <div class="pricing-features">
+                <ul>
+                    <li>All features in Monthly plan</li>
+                    <li><strong>Save 25% compared to monthly</strong></li>
+                    <li>Priority access to new features</li>
+                    <li>Email support for test questions</li>
+                    <li>Extra practice resources</li>
+                </ul>
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Subscribe</a>
+                {% elif current_user.is_subscribed() %}
+                    <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
+                {% else %}
+                    <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <input type="hidden" name="plan" value="annual">
+                        <input type="hidden" name="payment_method" value="stripe">
+                        <button type="submit" class="btn btn-primary w-100">Subscribe Now</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Methods -->
+    <div class="payment-methods mt-5">
+        <h2 class="text-center mb-4">Payment Methods</h2>
+        
+        {% if payment_methods %}
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <form method="POST" action="{{ url_for('create_checkout_session') }}" class="mb-4">
+                        <div class="form-group mb-3">
+                            <label for="payment_method" class="form-label">Select Payment Method:</label>
+                            <select id="payment_method" name="payment_method" class="form-select">
+                                {% for method in payment_methods %}
+                                    <option value="{{ method.name|lower }}">
+                                        {{ method.name }}
+                                        {% if method.region %}({{ method.region }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="plan" class="form-label">Select Plan:</label>
+                            <select id="plan" name="plan" class="form-select">
+                                <option value="monthly">Monthly ($9.99/month)</option>
+                                <option value="annual">Annual ($89.99/year) - Save 25%</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="payment-logos text-center">
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <div class="payment-logo">
+                        <i class="fab fa-cc-stripe fa-2x me-2"></i> Stripe
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="payment-logo">
+                        <i class="fab fa-cc-paypal fa-2x me-2"></i> PayPal
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="payment-logo">
+                        <i class="fab fa-google-pay fa-2x me-2"></i> Google Pay
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="payment-logo">
+                        <i class="fab fa-apple-pay fa-2x me-2"></i> Apple Pay
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-muted mt-3">We also accept various regional payment methods</p>
+        </div>
+    </div>
+    
+    <!-- Benefits Section -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">Benefits of Premium Subscription</h2>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-infinity fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Unlimited Practice Tests</h3>
+                                    <p>Access all Listening, Reading, and Writing practice tests in both Academic and General Training formats.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-robot fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">AI-Powered Speaking Assessment</h3>
+                                    <p>Get detailed feedback on your speaking skills using AWS Transcribe and Amazon Polly technology.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-chart-line fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Performance Analytics</h3>
+                                    <p>Track your progress over time with detailed statistics and performance insights.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-wifi-slash fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h3 class="h5">Offline Mode</h3>
+                                    <p>Practice even without an internet connection with our offline capabilities.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Testimonials -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">What Our Subscribers Say</h2>
+            
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card testimonial-card">
+                        <div class="card-body">
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            <p class="testimonial-text">"The AI speaking assessment was a game-changer for my preparation. I improved from band 5.5 to 7.0 in just two months!"</p>
+                            <div class="testimonial-author">
+                                <div class="testimonial-name">Amit P.</div>
+                                <div class="testimonial-location">Mumbai, India</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card testimonial-card">
+                        <div class="card-body">
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            <p class="testimonial-text">"Worth every penny! The practice tests were almost identical to the actual exam. I felt completely prepared on test day."</p>
+                            <div class="testimonial-author">
+                                <div class="testimonial-name">Fatima A.</div>
+                                <div class="testimonial-location">Dubai, UAE</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card testimonial-card">
+                        <div class="card-body">
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star-half-alt text-warning"></i>
+                            </div>
+                            <p class="testimonial-text">"The offline mode was perfect for my unreliable internet connection. I could practice anytime, anywhere!"</p>
+                            <div class="testimonial-author">
+                                <div class="testimonial-name">Priya M.</div>
+                                <div class="testimonial-location">Chennai, India</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Section -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+            
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            Can I cancel my subscription anytime?
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes, you can cancel your subscription at any time. Your access will continue until the end of your current billing period.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            How does the AI speaking assessment work?
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Our AI speaking assessment uses AWS Transcribe to convert your speech to text, then analyzes the text for fluency, coherence, vocabulary, grammar, and pronunciation. It provides detailed feedback along with an estimated IELTS band score, and uses Amazon Polly to deliver spoken feedback.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            Can I access the content on mobile devices?
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes, our platform is fully responsive and works on all modern devices including smartphones and tablets. We're also developing dedicated iOS and Android apps, which will be available soon.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            Do you offer refunds?
+                        </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We offer a 7-day money-back guarantee if you're not satisfied with our services. Please contact our support team if you have any issues with your subscription.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingFive">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                            How often do you add new practice tests?
+                        </button>
+                    </h2>
+                    <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We add new practice tests every month. Our team continuously develops fresh content based on the latest IELTS exam patterns to ensure you're well-prepared for the actual test.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-5">
+        <h2 class="mb-3">Ready to improve your IELTS score?</h2>
+        <p class="lead mb-4">Join thousands of successful test takers worldwide</p>
+        
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Create an Account</a>
+        {% elif not current_user.is_subscribed() %}
+            <form method="POST" action="{{ url_for('create_checkout_session') }}" class="d-inline">
+                <input type="hidden" name="plan" value="monthly">
+                <input type="hidden" name="payment_method" value="stripe">
+                <button type="submit" class="btn btn-primary btn-lg">Subscribe Now</button>
+            </form>
+        {% else %}
+            <p class="text-success fw-bold">You already have a premium subscription!</p>
+            <a href="{{ url_for('practice_index') }}" class="btn btn-primary btn-lg">Go to Practice Tests</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

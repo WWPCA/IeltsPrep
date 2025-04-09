@@ -1,0 +1,264 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('test_structure') }}">Test Structure</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">IELTS Life Skills</li>
+                </ol>
+            </nav>
+            
+            <div class="test-structure-content">
+                <h1 class="mb-4">IELTS Life Skills</h1>
+                
+                <div class="alert alert-primary mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-id-card-alt fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>Purpose</h4>
+                            <p class="mb-0">IELTS Life Skills is specifically designed for UK visa applications in the 'family of a settled person' and 'settlement' categories. It assesses speaking and listening skills only.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Test Overview</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p>IELTS Life Skills is different from other IELTS tests because:</p>
+                        <ul>
+                            <li>It tests <strong>speaking and listening only</strong></li>
+                            <li>It is available at two levels: <strong>A1</strong> and <strong>B1</strong></li>
+                            <li>You take the test with another candidate</li>
+                            <li>The test is shorter (16-22 minutes)</li>
+                            <li>It focuses on everyday communication skills</li>
+                            <li>It has a pass/fail result rather than a band score</li>
+                        </ul>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> IELTS Life Skills is a Secure English Language Test (SELT) approved by UK Visas and Immigration (UKVI).
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Test Formats</h2>
+                <p>IELTS Life Skills is available at two CEFR levels:</p>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="h5 mb-0">IELTS Life Skills - A1</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Purpose:</strong> For those applying for a 'family of a settled person' visa.</p>
+                        <p><strong>Duration:</strong> 16-18 minutes</p>
+                        <p><strong>Skills Tested:</strong> Basic speaking and listening skills needed for everyday life.</p>
+                        <p>At this level, you should be able to:</p>
+                        <ul>
+                            <li>Understand and use basic phrases and expressions</li>
+                            <li>Introduce yourself and ask/answer simple questions</li>
+                            <li>Interact in a simple way if the other person speaks slowly and clearly</li>
+                            <li>Understand simple instructions and directions</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="h5 mb-0">IELTS Life Skills - B1</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Purpose:</strong> For those applying for indefinite leave to remain (settlement) or British citizenship.</p>
+                        <p><strong>Duration:</strong> 20-22 minutes</p>
+                        <p><strong>Skills Tested:</strong> Independent speaking and listening skills needed for everyday life.</p>
+                        <p>At this level, you should be able to:</p>
+                        <ul>
+                            <li>Express opinions and explain advantages/disadvantages</li>
+                            <li>Start, maintain and close simple face-to-face conversations</li>
+                            <li>Understand and extract specific information from speech</li>
+                            <li>Communicate in familiar contexts and briefly give reasons and explanations</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Test Format and Tasks</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p>The IELTS Life Skills test has a practical focus and is conducted with two candidates and one examiner. It consists of three parts:</p>
+                        
+                        <div class="mb-4">
+                            <h4 class="h5">Part 1: Interview and Short Discussion</h4>
+                            <ul>
+                                <li>The examiner will ask you and the other candidate to introduce yourselves</li>
+                                <li>You will answer simple questions about yourselves</li>
+                                <li>You will have a short discussion on an everyday topic</li>
+                                <li>For A1 level, the questions will be very simple</li>
+                                <li>For B1 level, you'll need to express and justify opinions</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="h5">Part 2: Collaborative Task</h4>
+                            <ul>
+                                <li>You will work together with the other candidate to complete a task</li>
+                                <li>You might need to plan something together (like an outing)</li>
+                                <li>You'll need to ask questions, make suggestions, and respond to the other candidate</li>
+                                <li>For A1 level, the planning will be simple</li>
+                                <li>For B1 level, you'll need to discuss advantages and disadvantages</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 class="h5">Part 3: Discussion and Listening Activity</h4>
+                            <ul>
+                                <li>You will listen to a recording and answer questions</li>
+                                <li>You will have a final discussion related to the recording</li>
+                                <li>For A1 level, the listening task will be simple with concrete information</li>
+                                <li>For B1 level, you'll need to extract specific details and discuss them</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <strong>Unlike other IELTS tests:</strong>
+                            <ul class="mb-0">
+                                <li>Life Skills does not test reading or writing</li>
+                                <li>You receive a "Pass" or "Fail" result rather than a band score</li>
+                                <li>You interact with another candidate as well as the examiner</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Which UK Visa Applications Require IELTS Life Skills?</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Visa Type</th>
+                                    <th>Required Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Family of a settled person visa</td>
+                                    <td>A1 Life Skills</td>
+                                </tr>
+                                <tr>
+                                    <td>Extension of stay as a partner or parent</td>
+                                    <td>A2 Life Skills</td>
+                                </tr>
+                                <tr>
+                                    <td>Settlement (Indefinite Leave to Remain)</td>
+                                    <td>B1 Life Skills</td>
+                                </tr>
+                                <tr>
+                                    <td>British Citizenship</td>
+                                    <td>B1 Life Skills</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> Always check the latest requirements on the official UK government website as they may change over time.
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Sample Questions</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="h5 mb-3">A1 Level Sample Questions</h4>
+                        
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <p class="fw-bold">Part 1: Personal Questions</p>
+                                <ul>
+                                    <li>What is your name?</li>
+                                    <li>Where do you live?</li>
+                                    <li>Do you work or study?</li>
+                                    <li>What do you like doing in your free time?</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <p class="fw-bold">Part 2: Collaborative Task</p>
+                                <p>"You and your partner want to meet for coffee. Decide together:</p>
+                                <ul>
+                                    <li>When you will meet</li>
+                                    <li>Where you will meet</li>
+                                    <li>How long you will stay"</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <h4 class="h5 mb-3 mt-4">B1 Level Sample Questions</h4>
+                        
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <p class="fw-bold">Part 1: Discussion</p>
+                                <ul>
+                                    <li>What kind of public transport do you use most often?</li>
+                                    <li>Why do you prefer this type of transport?</li>
+                                    <li>How often do you use public transport?</li>
+                                    <li>What are the advantages of using public transport in your area?</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p class="fw-bold">Part 2: Collaborative Task</p>
+                                <p>"You and your partner are planning a day trip to London. You need to decide:</p>
+                                <ul>
+                                    <li>What sights you want to see</li>
+                                    <li>How you will travel around the city</li>
+                                    <li>Where you will eat lunch</li>
+                                    <li>What time you will return home"</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Preparing for IELTS Life Skills</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p>To prepare for IELTS Life Skills, focus on improving these skills:</p>
+                        
+                        <ul>
+                            <li><strong>Listening carefully</strong> to what others say and responding appropriately</li>
+                            <li><strong>Taking turns</strong> in conversations and not dominating the discussion</li>
+                            <li><strong>Asking questions</strong> to clarify information or keep a conversation going</li>
+                            <li><strong>Making suggestions</strong> and responding to others' suggestions</li>
+                            <li><strong>Expressing opinions</strong> and giving reasons (especially for B1 level)</li>
+                            <li><strong>Understanding instructions</strong> and following them accurately</li>
+                        </ul>
+                        
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Tip:</strong> Practice speaking English with friends in everyday situations. Try planning activities together, discussing preferences, and extracting information from conversations or recordings.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-5">
+                    <a href="{{ url_for('speaking_index') }}" class="btn btn-primary">Practice Speaking Skills</a>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('test_structure_detail', test_type='ukvi') }}" class="btn btn-outline-secondary me-2"><i class="fas fa-arrow-left"></i> Previous: IELTS for UKVI</a>
+                    <a href="{{ url_for('test_structure_detail', test_type='online') }}" class="btn btn-outline-primary">Next: IELTS Online <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
