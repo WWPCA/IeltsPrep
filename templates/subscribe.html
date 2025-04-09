@@ -12,33 +12,6 @@
     <div class="pricing-table">
         <div class="pricing-card">
             <div class="pricing-header">
-                <h3 class="pricing-name">Free</h3>
-                <div class="pricing-price">$0</div>
-                <div class="pricing-duration">forever</div>
-            </div>
-            <div class="pricing-features">
-                <ul>
-                    <li>Access to 1 sample test only</li>
-                    <li>1 Speaking assessment</li>
-                    <li>Limited test history</li>
-                    <li>Basic progress tracking</li>
-                    <li class="text-muted text-decoration-line-through">Full test access</li>
-                    <li class="text-muted text-decoration-line-through">AI speaking assessments</li>
-                    <li class="text-muted text-decoration-line-through">Detailed analytics</li>
-                    <li class="text-muted text-decoration-line-through">Offline mode</li>
-                </ul>
-                {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary w-100">Register Now</a>
-                {% elif current_user.is_subscribed() %}
-                    <button class="btn btn-outline-secondary w-100" disabled>Current Plan</button>
-                {% else %}
-                    <button class="btn btn-outline-secondary w-100" disabled>Current Plan</button>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div class="pricing-card">
-            <div class="pricing-header">
                 <h3 class="pricing-name">Base</h3>
                 <div class="pricing-price">$10</div>
                 <div class="pricing-duration">30 days access</div>
