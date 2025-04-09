@@ -320,9 +320,10 @@ def subscribe():
                           payment_methods=payment_methods)
 
 @app.route('/create-checkout-session', methods=['POST'])
+@app.route('/payment-cancel')
 def create_checkout_session():
     payment_method = request.form.get('payment_method', 'stripe')
-    plan = request.form.get('plan', 'monthly')
+    plan = request.form.get('plan', 'base')
     
     # For now, we only implement Stripe checkout
     if payment_method == 'stripe':
@@ -351,20 +352,31 @@ def payment_success():
         
         if payment_info and payment_info.get('paid') and current_user.is_authenticated:
             # Update user subscription
-            plan = payment_info.get('plan', 'monthly')
+            plan = payment_info.get('plan', 'base')
+            tests = payment_info.get('tests', 3)  # Default to 3 tests if not specified
+            days = payment_info.get('days', 30)   # Default to 30 days if not specified
             
-            if plan == 'monthly':
-                expiry_date = datetime.utcnow() + timedelta(days=30)
-            elif plan == 'annual':
-                expiry_date = datetime.utcnow() + timedelta(days=365)
-            else:
-                expiry_date = datetime.utcnow() + timedelta(days=30)  # Default to monthly
+            expiry_date = datetime.utcnow() + timedelta(days=days)
             
             current_user.subscription_status = 'active'
             current_user.subscription_expiry = expiry_date
+            
+            # Save the number of tests the user has access to
+            user_subscription_data = {
+                'plan': plan,
+                'total_tests': tests,
+                'tests_remaining': tests,
+                'purchase_date': datetime.utcnow().isoformat()
+            }
+            
+            # Update user's test_history to include subscription data
+            test_history = current_user.test_history
+            test_history.append({"subscription_data": user_subscription_data})
+            current_user.test_history = test_history
+            
             db.session.commit()
             
-            flash('Thank you for subscribing to IELTS AI Prep!', 'success')
+            flash(f'Thank you for purchasing the {plan.capitalize()} plan!', 'success')
         else:
             flash('Payment verification failed', 'danger')
             
@@ -372,8 +384,6 @@ def payment_success():
         flash(f'Error processing payment: {str(e)}', 'danger')
     
     return render_template('payment_success.html', title='Payment Successful')
-
-@app.route('/payment-cancel')
 def payment_cancel():
     flash('Payment was cancelled', 'info')
     return render_template('payment_cancel.html', title='Payment Cancelled')

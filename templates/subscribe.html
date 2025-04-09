@@ -4,8 +4,8 @@
 <div class="container py-5">
     <div class="row">
         <div class="col-md-12 text-center">
-            <h1 class="mb-2">Subscribe to IELTS AI Prep</h1>
-            <p class="lead mb-5">Get unlimited access to all practice tests and AI-powered features</p>
+            <h1 class="mb-2">Choose Your IELTS AI Prep Plan</h1>
+            <p class="lead mb-5">Select the plan that fits your preparation needs</p>
         </div>
     </div>
     
@@ -18,13 +18,13 @@
             </div>
             <div class="pricing-features">
                 <ul>
-                    <li>Access to sample tests only</li>
+                    <li>Access to 1 sample test only</li>
                     <li>1 Speaking assessment</li>
                     <li>Limited test history</li>
                     <li>Basic progress tracking</li>
                     <li class="text-muted text-decoration-line-through">Full test access</li>
-                    <li class="text-muted text-decoration-line-through">Unlimited AI speaking assessments</li>
-                    <li class="text-muted text-decoration-line-through">Detailed performance analytics</li>
+                    <li class="text-muted text-decoration-line-through">AI speaking assessments</li>
+                    <li class="text-muted text-decoration-line-through">Detailed analytics</li>
                     <li class="text-muted text-decoration-line-through">Offline mode</li>
                 </ul>
                 {% if not current_user.is_authenticated %}
@@ -37,32 +37,62 @@
             </div>
         </div>
         
-        <div class="pricing-card pricing-popular">
+        <div class="pricing-card">
             <div class="pricing-header">
-                <h3 class="pricing-name">Monthly</h3>
-                <div class="pricing-price">$9.99</div>
-                <div class="pricing-duration">per month</div>
+                <h3 class="pricing-name">Base</h3>
+                <div class="pricing-price">$10</div>
+                <div class="pricing-duration">30 days access</div>
             </div>
             <div class="pricing-features">
                 <ul>
-                    <li>Access to <strong>all</strong> practice tests</li>
-                    <li>Unlimited AI speaking assessments</li>
+                    <li><strong>3</strong> full practice tests</li>
+                    <li>AI speaking assessments</li>
                     <li>Complete test history</li>
-                    <li>Detailed performance analytics</li>
+                    <li>Basic performance analytics</li>
                     <li>Offline mode for practicing anywhere</li>
-                    <li>Audio feedback on speaking assessments</li>
-                    <li>Full access to new tests as they're added</li>
-                    <li>Cancel anytime</li>
+                    <li>Audio feedback on speaking</li>
+                    <li>30 days of access</li>
                 </ul>
                 {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Subscribe</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
                 {% elif current_user.is_subscribed() %}
                     <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
                 {% else %}
                     <form method="POST" action="{{ url_for('create_checkout_session') }}">
-                        <input type="hidden" name="plan" value="monthly">
+                        <input type="hidden" name="plan" value="base">
                         <input type="hidden" name="payment_method" value="stripe">
-                        <button type="submit" class="btn btn-primary w-100">Subscribe Now</button>
+                        <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="pricing-card pricing-popular">
+            <div class="pricing-header">
+                <h3 class="pricing-name">Intermediate</h3>
+                <div class="pricing-price">$15</div>
+                <div class="pricing-duration">30 days access</div>
+            </div>
+            <div class="pricing-features">
+                <ul>
+                    <li><strong>6</strong> full practice tests</li>
+                    <li>AI speaking assessments</li>
+                    <li>Complete test history</li>
+                    <li>Detailed performance analytics</li>
+                    <li>Offline mode for practicing anywhere</li>
+                    <li>Audio feedback on speaking</li>
+                    <li>30 days of access</li>
+                    <li>Email support</li>
+                </ul>
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                {% elif current_user.is_subscribed() %}
+                    <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
+                {% else %}
+                    <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <input type="hidden" name="plan" value="intermediate">
+                        <input type="hidden" name="payment_method" value="stripe">
+                        <button type="submit" class="btn btn-primary w-100">Buy Now</button>
                     </form>
                 {% endif %}
             </div>
@@ -70,27 +100,31 @@
         
         <div class="pricing-card">
             <div class="pricing-header">
-                <h3 class="pricing-name">Annual</h3>
-                <div class="pricing-price">$89.99</div>
-                <div class="pricing-duration">per year</div>
+                <h3 class="pricing-name">Pro</h3>
+                <div class="pricing-price">$20</div>
+                <div class="pricing-duration">30 days access</div>
             </div>
             <div class="pricing-features">
                 <ul>
-                    <li>All features in Monthly plan</li>
-                    <li><strong>Save 25% compared to monthly</strong></li>
-                    <li>Priority access to new features</li>
-                    <li>Email support for test questions</li>
-                    <li>Extra practice resources</li>
+                    <li><strong>12</strong> full practice tests</li>
+                    <li>AI speaking assessments</li>
+                    <li>Complete test history</li>
+                    <li>Advanced performance analytics</li>
+                    <li>Offline mode for practicing anywhere</li>
+                    <li>Audio feedback on speaking</li>
+                    <li>30 days of access</li>
+                    <li>Priority email support</li>
+                    <li>Exam day tips and strategies</li>
                 </ul>
                 {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Subscribe</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
                 {% elif current_user.is_subscribed() %}
                     <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
                 {% else %}
                     <form method="POST" action="{{ url_for('create_checkout_session') }}">
-                        <input type="hidden" name="plan" value="annual">
+                        <input type="hidden" name="plan" value="pro">
                         <input type="hidden" name="payment_method" value="stripe">
-                        <button type="submit" class="btn btn-primary w-100">Subscribe Now</button>
+                        <button type="submit" class="btn btn-primary w-100">Buy Now</button>
                     </form>
                 {% endif %}
             </div>
@@ -120,8 +154,9 @@
                         <div class="form-group mb-3">
                             <label for="plan" class="form-label">Select Plan:</label>
                             <select id="plan" name="plan" class="form-select">
-                                <option value="monthly">Monthly ($9.99/month)</option>
-                                <option value="annual">Annual ($89.99/year) - Save 25%</option>
+                                <option value="base">Base ($10) - 3 tests</option>
+                                <option value="intermediate">Intermediate ($15) - 6 tests</option>
+                                <option value="pro">Pro ($20) - 12 tests</option>
                             </select>
                         </div>
                         
@@ -164,7 +199,7 @@
     <!-- Benefits Section -->
     <div class="row mt-5">
         <div class="col-md-12">
-            <h2 class="text-center mb-4">Benefits of Premium Subscription</h2>
+            <h2 class="text-center mb-4">Benefits of Purchasing a Plan</h2>
             
             <div class="row">
                 <div class="col-md-6 mb-4">
@@ -172,11 +207,11 @@
                         <div class="card-body">
                             <div class="d-flex">
                                 <div class="me-3">
-                                    <i class="fas fa-infinity fa-2x text-primary"></i>
+                                    <i class="fas fa-book fa-2x text-primary"></i>
                                 </div>
                                 <div>
-                                    <h3 class="h5">Unlimited Practice Tests</h3>
-                                    <p>Access all Listening, Reading, and Writing practice tests in both Academic and General Training formats.</p>
+                                    <h3 class="h5">Full Practice Tests</h3>
+                                    <p>Access to 3, 6, or 12 full practice tests depending on your plan. Includes Listening, Reading, and Writing sections in both Academic and General Training formats.</p>
                                 </div>
                             </div>
                         </div>
@@ -237,7 +272,7 @@
     <!-- Testimonials -->
     <div class="row mt-5">
         <div class="col-md-12">
-            <h2 class="text-center mb-4">What Our Subscribers Say</h2>
+            <h2 class="text-center mb-4">What Our Users Say</h2>
             
             <div class="row">
                 <div class="col-md-4 mb-4">
@@ -309,12 +344,12 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingOne">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                            Can I cancel my subscription anytime?
+                            How long do I have access to the tests?
                         </button>
                     </h2>
                     <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            Yes, you can cancel your subscription at any time. Your access will continue until the end of your current billing period.
+                            All of our plans provide 30 days of access from the date of purchase. During this period, you can access all the tests included in your plan at any time.
                         </div>
                     </div>
                 </div>
@@ -322,12 +357,12 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingTwo">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                            How does the AI speaking assessment work?
+                            Can I take the test multiple times?
                         </button>
                     </h2>
                     <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            Our AI speaking assessment uses AWS Transcribe to convert your speech to text, then analyzes the text for fluency, coherence, vocabulary, grammar, and pronunciation. It provides detailed feedback along with an estimated IELTS band score, and uses Amazon Polly to deliver spoken feedback.
+                            Yes, you can take each test multiple times during your 30-day access period. Your results will be saved each time so you can track your progress.
                         </div>
                     </div>
                 </div>
@@ -335,12 +370,12 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingThree">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                            Can I access the content on mobile devices?
+                            What payment methods do you accept?
                         </button>
                     </h2>
                     <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            Yes, our platform is fully responsive and works on all modern devices including smartphones and tablets. We're also developing dedicated iOS and Android apps, which will be available soon.
+                            We accept all major credit cards through Stripe, which provides secure payment processing. We also support regional payment methods in certain countries.
                         </div>
                     </div>
                 </div>
@@ -348,12 +383,12 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingFour">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                            Do you offer refunds?
+                            Can I get a refund if I'm not satisfied?
                         </button>
                     </h2>
                     <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            We offer a 7-day money-back guarantee if you're not satisfied with our services. Please contact our support team if you have any issues with your subscription.
+                            We offer a 7-day money-back guarantee if you're not satisfied with our service. Please contact our support team to request a refund within 7 days of your purchase.
                         </div>
                     </div>
                 </div>
@@ -361,35 +396,17 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingFive">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                            How often do you add new practice tests?
+                            What's the difference between the plans?
                         </button>
                     </h2>
                     <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            We add new practice tests every month. Our team continuously develops fresh content based on the latest IELTS exam patterns to ensure you're well-prepared for the actual test.
+                            The main difference is the number of tests included: Base (3 tests), Intermediate (6 tests), and Pro (12 tests). Higher tier plans also offer more detailed analytics and additional support options. All plans provide 30 days of access.
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="text-center mt-5">
-        <h2 class="mb-3">Ready to improve your IELTS score?</h2>
-        <p class="lead mb-4">Join thousands of successful test takers worldwide</p>
-        
-        {% if not current_user.is_authenticated %}
-            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Create an Account</a>
-        {% elif not current_user.is_subscribed() %}
-            <form method="POST" action="{{ url_for('create_checkout_session') }}" class="d-inline">
-                <input type="hidden" name="plan" value="monthly">
-                <input type="hidden" name="payment_method" value="stripe">
-                <button type="submit" class="btn btn-primary btn-lg">Subscribe Now</button>
-            </form>
-        {% else %}
-            <p class="text-success fw-bold">You already have a premium subscription!</p>
-            <a href="{{ url_for('practice_index') }}" class="btn btn-primary btn-lg">Go to Practice Tests</a>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

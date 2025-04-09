@@ -7,25 +7,38 @@ from datetime import datetime, timedelta
 # Set Stripe API key
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 
-# Prices for the subscription plans
-PLAN_PRICES = {
-    'monthly': 999,  # $9.99 in cents
-    'annual': 8999   # $89.99 in cents
-}
-
-# Product names
-PLAN_NAMES = {
-    'monthly': 'IELTS AI Prep Monthly Subscription',
-    'annual': 'IELTS AI Prep Annual Subscription'
+# Subscription plans details
+SUBSCRIPTION_PLANS = {
+    'base': {
+        'name': 'IELTS AI Prep Base - 3 Tests',
+        'price': 1000,  # $10.00 in cents
+        'tests': 3,
+        'days': 30,
+        'description': 'Access to 3 tests for 30 days'
+    },
+    'intermediate': {
+        'name': 'IELTS AI Prep Intermediate - 6 Tests',
+        'price': 1500,  # $15.00 in cents
+        'tests': 6,
+        'days': 30,
+        'description': 'Access to 6 tests for 30 days'
+    },
+    'pro': {
+        'name': 'IELTS AI Prep Pro - 12 Tests',
+        'price': 2000,  # $20.00 in cents
+        'tests': 12,
+        'days': 30,
+        'description': 'Access to 12 tests for 30 days'
+    }
 }
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def create_stripe_checkout(plan='monthly'):
+def create_stripe_checkout(plan='base'):
     """
     Create a Stripe checkout session for subscription.
     
     Args:
-        plan (str): Subscription plan ('monthly' or 'annual')
+        plan (str): Subscription plan ('base', 'intermediate', or 'pro')
     
     Returns:
         str: Checkout URL
@@ -35,8 +48,8 @@ def create_stripe_checkout(plan='monthly'):
             logging.error("Stripe API key not found. Cannot create checkout session.")
             raise ValueError("Stripe API key is required")
         
-        if plan not in PLAN_PRICES:
-            plan = 'monthly'  # Default to monthly if invalid plan
+        if plan not in SUBSCRIPTION_PLANS:
+            plan = 'base'  # Default to base if invalid plan
         
         # Get domain for success and cancel URLs
         domain = os.environ.get('REPLIT_DEV_DOMAIN') 
@@ -60,11 +73,13 @@ def create_stripe_checkout(plan='monthly'):
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode='payment',  # Using one-time payment instead of subscription
             success_url=f'https://{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'https://{domain}/payment-cancel',
             metadata={
-                'plan': plan
+                'plan': plan,
+                'tests': str(SUBSCRIPTION_PLANS[plan]['tests']),
+                'days': str(SUBSCRIPTION_PLANS[plan]['days'])
             }
         )
         
@@ -79,26 +94,28 @@ def create_or_get_product(plan):
     Create a Stripe product if it doesn't exist, or get the existing one.
     
     Args:
-        plan (str): Subscription plan ('monthly' or 'annual')
+        plan (str): Subscription plan ('base', 'intermediate', or 'pro')
         
     Returns:
         stripe.Product: The Stripe product
     """
     try:
+        plan_details = SUBSCRIPTION_PLANS[plan]
+        
         # List products with the given name
         products = stripe.Product.list(
             active=True,
-            limit=1
+            limit=10
         )
         
         for product in products.data:
-            if product.name == PLAN_NAMES[plan]:
+            if product.name == plan_details['name']:
                 return product
         
         # If no product found, create one
         return stripe.Product.create(
-            name=PLAN_NAMES[plan],
-            description=f"IELTS test preparation subscription - {plan} plan"
+            name=plan_details['name'],
+            description=plan_details['description']
         )
     except Exception as e:
         logging.error(f"Error creating/getting Stripe product: {str(e)}")
@@ -110,26 +127,26 @@ def create_or_get_price(product_id, plan):
     
     Args:
         product_id (str): The Stripe product ID
-        plan (str): Subscription plan ('monthly' or 'annual')
+        plan (str): Subscription plan ('base', 'intermediate', or 'pro')
         
     Returns:
         stripe.Price: The Stripe price
     """
     try:
+        plan_details = SUBSCRIPTION_PLANS[plan]
+        
         # List prices for the given product
         prices = stripe.Price.list(
             product=product_id,
             active=True,
-            limit=100
+            limit=10
         )
         
         # Find a price with the correct amount
-        amount = PLAN_PRICES[plan]
-        recurring_interval = 'month' if plan == 'monthly' else 'year'
+        amount = plan_details['price']
         
         for price in prices.data:
-            if (price.unit_amount == amount and 
-                price.recurring.interval == recurring_interval):
+            if price.unit_amount == amount:
                 return price
         
         # If no price found, create one
@@ -137,11 +154,10 @@ def create_or_get_price(product_id, plan):
             product=product_id,
             unit_amount=amount,
             currency='usd',
-            recurring={
-                'interval': recurring_interval,
-            },
             metadata={
-                'plan': plan
+                'plan': plan,
+                'tests': str(plan_details['tests']),
+                'days': str(plan_details['days'])
             }
         )
     except Exception as e:
@@ -169,9 +185,15 @@ def verify_payment(session_id):
         
         # Check payment status
         if session.payment_status == 'paid':
+            plan = session.metadata.get('plan', 'base')
+            tests = int(session.metadata.get('tests', SUBSCRIPTION_PLANS[plan]['tests']))
+            days = int(session.metadata.get('days', SUBSCRIPTION_PLANS[plan]['days']))
+            
             return {
                 'paid': True,
-                'plan': session.metadata.get('plan', 'monthly'),
+                'plan': plan,
+                'tests': tests,
+                'days': days,
                 'customer': session.customer
             }
         else:
