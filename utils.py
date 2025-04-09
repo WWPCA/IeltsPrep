@@ -11,30 +11,65 @@ def get_user_region():
     This is a simplified version. In production, you would use a GeoIP service.
     For now, we'll use a dummy implementation that checks the Accept-Language header.
     """
+    # If user is authenticated and has a region set, use that
+    if current_user.is_authenticated and current_user.region:
+        return current_user.region
+    
     # For simplicity, we're using the Accept-Language header as a proxy for region
     accept_language = request.headers.get('Accept-Language', '')
     
-    # Map language codes to regions
+    # Map language codes to regions for payment methods
     language_region_map = {
-        'en-GB': 'UK',
-        'en-US': 'US',
+        # South Asia
         'hi': 'India',
         'ur': 'Pakistan',
-        'ar': 'Saudi Arabia',
+        'bn': 'Bangladesh',
+        'si': 'Sri Lanka',
+        'ne': 'Nepal',
+        
+        # East Asia & Middle East
         'ja': 'Japan',
         'ko': 'South Korea',
+        'ar-SA': 'Saudi Arabia',
+        'ar-AE': 'UAE',
+        'ar': 'UAE',  # Default Arabic to UAE
+        
+        # Europe
+        'pl': 'Poland',
+        'nl': 'Netherlands',
         'de': 'Germany',
         'fr': 'France',
-        'nl': 'Netherlands',
-        'pl': 'Poland'
+        'ru': 'Eastern Europe',
+        'uk': 'Eastern Europe',
+        'cs': 'Eastern Europe',
+        'sk': 'Eastern Europe',
+        'hu': 'Eastern Europe',
+        'ro': 'Eastern Europe',
+        'bg': 'Eastern Europe',
+        
+        # English-speaking countries (default)
+        'en-GB': 'UK',
+        'en-US': 'US',
+        'en-CA': 'Canada',
+        'en-AU': 'Australia',
+        'en-NZ': 'New Zealand'
     }
     
     # Extract the language code
     if accept_language:
         lang_code = accept_language.split(',')[0].strip()
+        # Try exact match first
+        if lang_code in language_region_map:
+            return language_region_map[lang_code]
+        
+        # Try prefix match
         for code, region in language_region_map.items():
-            if code in lang_code:
+            if lang_code.startswith(code) or code in lang_code:
                 return region
+    
+    # Get region from geolocation using IP (in a real app)
+    # This is a placeholder for a real IP-based geolocation service
+    # In a production app, you would integrate with a service like MaxMind GeoIP or similar
     
     # Default to US if we can't determine the region
     return 'US'
