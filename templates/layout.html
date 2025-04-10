@@ -41,9 +41,6 @@
                     <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
                     <li><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
                     <li><a href="{{ url_for('speaking_index') }}">Speaking Assessment</a></li>
-                    <li><a href="{{ url_for('pronunciation_coach') }}">
-                        <i class="fas fa-microphone me-1"></i>Pronunciation Coach
-                    </a></li>
                     <li><a href="{{ url_for('device_specs') }}">Device Requirements</a></li>
                     {% if current_user.is_authenticated %}
                         {% if current_user.is_subscribed() %}
@@ -96,7 +93,6 @@
                         <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
                         <li><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
                         <li><a href="{{ url_for('speaking_index') }}">Speaking Assessment</a></li>
-                        <li><a href="{{ url_for('pronunciation_coach') }}">Pronunciation Coach</a></li>
                         <li><a href="{{ url_for('subscribe') }}">Subscription Plans</a></li>
                     </ul>
                 </div>
