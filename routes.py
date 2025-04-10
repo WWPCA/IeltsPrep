@@ -126,6 +126,10 @@ def test_structure_detail(test_type):
                           title=f'IELTS {test_type.replace("_", " ").title()}',
                           test_info=test_info)
 
+@app.route('/test-day')
+def test_day():
+    return render_template('test_day.html', title='IELTS Test Day Preparation')
+
 # Practice Test Routes
 @app.route('/practice')
 def practice_index():
