@@ -294,7 +294,7 @@
                     </div>
                 
                     {% if is_sample %}
-                        <div class="alert alert-warning">
+                        <div class="alert alert-warning mb-4">
                             <div class="d-flex">
                                 <div class="me-3">
                                     <i class="fas fa-crown fa-2x"></i>
@@ -304,6 +304,26 @@
                                     <p>This is a preview of our AI-powered Speaking Assessment tool. To access the full functionality and practice with our advanced AI feedback system, please subscribe to one of our plans.</p>
                                     <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sample Video Tutorial Placeholder -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="h4 mb-0">How It Works - Video Tutorial</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="ratio ratio-16x9 mb-3">
+                                    <!-- This is a placeholder for the video that will be uploaded later -->
+                                    <div class="d-flex align-items-center justify-content-center bg-light border rounded p-5">
+                                        <div class="text-center">
+                                            <i class="fas fa-video fa-4x text-secondary mb-3"></i>
+                                            <h3 class="h5">Video Tutorial Coming Soon</h3>
+                                            <p class="text-muted mb-0">A detailed tutorial demonstrating how to use the speaking assessment features will be available here.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-muted"><small>This tutorial shows how to use our AI-powered speaking assessment tool to improve your IELTS speaking score.</small></p>
                             </div>
                         </div>
                     {% endif %}
