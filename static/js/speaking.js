@@ -130,7 +130,7 @@ function initializeSpeakingTest() {
         // Start timer
         speakingModule.recordingTimer = setInterval(function() {
             speakingModule.recordingSeconds++;
-            timerDisplay.textContent = formatTime(speakingModule.recordingSeconds);
+            timerDisplay.textContent = speakingModule.formatTime(speakingModule.recordingSeconds);
             
             // Auto-stop after 2 minutes (IELTS speaking responses are typically 1-2 minutes)
             if (speakingModule.recordingSeconds >= 120) {
@@ -170,7 +170,7 @@ function initializeSpeakingTest() {
             playbackContainer.innerHTML = `
                 <div class="card mt-3">
                     <div class="card-header">
-                        <h4>Your Recording (${formatTime(speakingModule.recordingSeconds)})</h4>
+                        <h4>Your Recording (${speakingModule.formatTime(speakingModule.recordingSeconds)})</h4>
                     </div>
                     <div class="card-body">
                         <audio controls src="${audioUrl}" class="w-100"></audio>
