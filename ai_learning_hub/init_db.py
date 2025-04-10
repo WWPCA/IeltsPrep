@@ -27,32 +27,38 @@ def init_db():
         
         print("Creating AI Learning Hub users...")
         admin = AIHubUser(
-            user_id=1,  # Reference to a system admin user if available
+            username="admin",
+            email="admin@ailearninghub.com",
             full_name="Admin User",
             skill_level="advanced",
             interests="machine learning, deep learning, ai ethics",
             last_login=datetime.utcnow()
         )
+        admin.set_password("admin123")
         db.session.add(admin)
         
         print("Creating regular users...")
         # Create sample AI Learning Hub users
         john = AIHubUser(
-            user_id=2,  # Reference to a regular user if available
+            username="johndoe",
+            email="john@example.com",
             full_name="John Doe",
             bio="AI enthusiast and software engineer",
             skill_level="intermediate",
             interests="machine learning, deep learning, nlp"
         )
+        john.set_password("password123")
         db.session.add(john)
         
         jane = AIHubUser(
-            user_id=3,  # Reference to another regular user if available
+            username="janesmith",
+            email="jane@example.com",
             full_name="Jane Smith",
             bio="Data scientist with 5 years of experience",
             skill_level="advanced",
             interests="data science, computer vision, reinforcement learning"
         )
+        jane.set_password("password123")
         db.session.add(jane)
         
         # Create sample courses
