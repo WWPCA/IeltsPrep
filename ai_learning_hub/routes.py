@@ -12,8 +12,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from ai_learning_hub.app import app, db
 from ai_learning_hub.models import (
-    Certificate, CompletedLesson, Course, Enrollment, Lesson, Module,
-    ProgressRecord, QuizQuestion, Review, User
+    AIHubUser, Certificate, CompletedLesson, Course, Enrollment, Lesson, Module,
+    ProgressRecord, QuizQuestion, Review
 )
 
 # Setup login manager
@@ -24,7 +24,7 @@ login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return AIHubUser.query.get(int(user_id))
 
 
 # Custom decorators
@@ -74,7 +74,7 @@ def login():
         password = request.form.get('password')
         remember = 'remember' in request.form
         
-        user = User.query.filter_by(email=email).first()
+        user = AIHubUser.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
             login_user(user, remember=remember)
@@ -108,13 +108,13 @@ def register():
             error = 'Passwords do not match'
         elif len(password) < 8:
             error = 'Password must be at least 8 characters long'
-        elif User.query.filter_by(username=username).first():
+        elif AIHubUser.query.filter_by(username=username).first():
             error = 'Username already taken'
-        elif User.query.filter_by(email=email).first():
+        elif AIHubUser.query.filter_by(email=email).first():
             error = 'Email already registered'
         else:
             # Create new user
-            new_user = User(username=username, email=email)
+            new_user = AIHubUser(username=username, email=email)
             new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
@@ -138,13 +138,13 @@ def logout():
 @login_required
 def dashboard():
     # Get user's enrolled courses
-    enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
+    enrollments = Enrollment.query.filter_by(aihub_user_id=current_user.id).all()
     enrolled_courses = []
     
     for enrollment in enrollments:
         course = Course.query.get(enrollment.course_id)
         progress = ProgressRecord.query.filter_by(
-            user_id=current_user.id,
+            aihub_user_id=current_user.id,
             course_id=course.id
         ).first()
         
@@ -695,7 +695,7 @@ def submit_review():
 def view_certificate(certificate_id):
     certificate = Certificate.query.filter_by(certificate_id=certificate_id).first_or_404()
     course = Course.query.get_or_404(certificate.course_id)
-    user = User.query.get_or_404(certificate.user_id)
+    user = AIHubUser.query.get_or_404(certificate.aihub_user_id)
     
     return render_template(
         'certificate.html',

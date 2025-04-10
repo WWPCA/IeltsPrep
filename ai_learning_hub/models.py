@@ -9,15 +9,18 @@ from ai_learning_hub.app import db
 # We'll use the existing User model from the main application
 # and create our AI Learning Hub specific models with different names
 
-class AIHubUser(db.Model):
-    """AI Learning Hub user profile model that extends the main User model"""
+class AIHubUser(UserMixin, db.Model):
+    """AI Learning Hub user model that is completely separate from the IELTS User model"""
     __tablename__ = 'ai_hub_user'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)  # Reference to main User model
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
     full_name = db.Column(db.String(100), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     profile_image = db.Column(db.String(200), nullable=True)
+    join_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
     
     # Preferences
@@ -28,6 +31,12 @@ class AIHubUser(db.Model):
     # Subscription info
     subscription_type = db.Column(db.String(20), default="free")  # free, basic, premium
     subscription_expiry = db.Column(db.DateTime, nullable=True)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
     
     # Relationships
     enrollments = db.relationship('Enrollment', backref='aihub_user', lazy=True, 
