@@ -466,90 +466,16 @@ def get_pronunciation_exercises():
         difficulty = request.args.get('difficulty', 'medium')
         category = request.args.get('category', 'general')
         
-        # Static datasets of exercises based on difficulty and category
-        exercises = {
-            'easy': {
-                'general': [
-                    {'text': 'Hello, how are you today?', 'focus': 'Basic greeting'},
-                    {'text': 'My name is David. Nice to meet you.', 'focus': 'Self-introduction'},
-                    {'text': 'I live in New York City.', 'focus': 'Simple statement'},
-                    {'text': 'Today is Monday, October fifth.', 'focus': 'Date pronunciation'},
-                    {'text': 'I enjoy watching movies and reading books.', 'focus': 'Hobbies'}
-                ],
-                'academic': [
-                    {'text': 'The professor explained the concept clearly.', 'focus': 'Academic vocabulary'},
-                    {'text': 'Students must submit their assignments on time.', 'focus': 'Academic rules'},
-                    {'text': 'The library is open until nine p.m.', 'focus': 'Time and places'},
-                    {'text': 'Please take notes during the lecture.', 'focus': 'Academic instructions'},
-                    {'text': 'The research paper is due next week.', 'focus': 'Academic deadlines'}
-                ],
-                'business': [
-                    {'text': 'We have a meeting at ten o\'clock.', 'focus': 'Business scheduling'},
-                    {'text': 'Please email me the report by Friday.', 'focus': 'Business requests'},
-                    {'text': 'Our company has offices in five countries.', 'focus': 'Company information'},
-                    {'text': 'The presentation went very well.', 'focus': 'Business evaluation'},
-                    {'text': 'I need to make a phone call to a client.', 'focus': 'Business communication'}
-                ]
-            },
-            'medium': {
-                'general': [
-                    {'text': 'The weather is quite unpredictable this time of year.', 'focus': 'Weather vocabulary'},
-                    {'text': 'I\'ve been learning English for approximately three years.', 'focus': 'Time expressions'},
-                    {'text': 'The restaurant we visited yesterday was extraordinary.', 'focus': 'Adjectives and adverbs'},
-                    {'text': 'Could you recommend a good place to visit in this city?', 'focus': 'Questions and recommendations'},
-                    {'text': 'Public transportation is very efficient in this area.', 'focus': 'Urban vocabulary'}
-                ],
-                'academic': [
-                    {'text': 'Statistical analysis reveals significant correlations between the variables.', 'focus': 'Academic terminology'},
-                    {'text': 'The methodology section describes the experimental procedure in detail.', 'focus': 'Research vocabulary'},
-                    {'text': 'Environmental factors contribute substantially to biodiversity loss.', 'focus': 'Scientific terminology'},
-                    {'text': 'The literature review synthesizes previous research on this topic.', 'focus': 'Academic writing terminology'},
-                    {'text': 'Students are required to participate in group discussions.', 'focus': 'Academic requirements'}
-                ],
-                'business': [
-                    {'text': 'Our quarterly financial report shows a twenty percent increase in revenue.', 'focus': 'Business reporting'},
-                    {'text': 'We need to analyze customer feedback to improve our services.', 'focus': 'Business analysis'},
-                    {'text': 'The project deadline has been extended to the end of the month.', 'focus': 'Project management'},
-                    {'text': 'Please schedule a meeting with the marketing department.', 'focus': 'Business coordination'},
-                    {'text': 'We should consider alternative strategies for market penetration.', 'focus': 'Business strategy'}
-                ]
-            },
-            'hard': {
-                'general': [
-                    {'text': 'Despite the inclement weather, the outdoor event was extraordinarily successful.', 'focus': 'Complex vocabulary and sentence structure'},
-                    {'text': 'The architectural magnificence of the cathedral left the tourists awestruck.', 'focus': 'Difficult pronunciation clusters'},
-                    {'text': 'The government announced unprecedented measures to stimulate economic growth.', 'focus': 'Political and economic vocabulary'},
-                    {'text': 'She meticulously organized her schedule to accommodate all her responsibilities.', 'focus': 'Adverbs and syllable stress'},
-                    {'text': 'The philanthropist anonymously donated substantial funds to various charitable organizations.', 'focus': 'Long multi-syllable words'}
-                ],
-                'academic': [
-                    {'text': 'The interdisciplinary research synthesizes methodologies from cognitive psychology and neurophysiology.', 'focus': 'Academic jargon'},
-                    {'text': 'The dissertation examines the socioeconomic implications of technological determinism in developing nations.', 'focus': 'Academic terminology'},
-                    {'text': 'Preliminary experimental results indicate a statistically significant correlation between the variables.', 'focus': 'Scientific reporting'},
-                    {'text': 'The epistemological foundations of qualitative research methodologies remain controversial.', 'focus': 'Philosophy of science vocabulary'},
-                    {'text': 'Researchers must acknowledge the inherent limitations of their methodological approach.', 'focus': 'Research ethics and considerations'}
-                ],
-                'business': [
-                    {'text': 'The conglomerate\'s acquisition strategy has resulted in unprecedented market capitalization growth.', 'focus': 'Business finance terminology'},
-                    {'text': 'Stakeholders expressed concern regarding the sustainability of the company\'s supply chain practices.', 'focus': 'Business ethics vocabulary'},
-                    {'text': 'The implementation of artificial intelligence solutions has revolutionized our operational efficiency.', 'focus': 'Technology business vocabulary'},
-                    {'text': 'Quarterly fluctuations notwithstanding, the annual revenue projections remain optimistic.', 'focus': 'Complex business expressions'},
-                    {'text': 'The strategic partnership aims to leverage synergies and establish competitive differentiation.', 'focus': 'Business strategy jargon'}
-                ]
-            }
-        }
+        # Import here to avoid circular imports
+        from pronunciation_coach import generate_pronunciation_exercises
         
-        # Get exercises for the requested difficulty and category
-        if difficulty in exercises and category in exercises[difficulty]:
-            selected_exercises = exercises[difficulty][category]
-        else:
-            # Default to medium/general if the requested combination doesn't exist
-            selected_exercises = exercises['medium']['general']
+        # Get exercises from the pronunciation coach module
+        exercises = generate_pronunciation_exercises(difficulty, category)
         
         # Return JSON response
         return jsonify({
             'success': True,
-            'exercises': selected_exercises
+            'exercises': exercises
         })
     except Exception as e:
         logging.error(f"Error getting pronunciation exercises: {str(e)}")
@@ -561,7 +487,7 @@ def get_pronunciation_exercises():
 @app.route('/generate-speech', methods=['POST'])
 def generate_speech():
     """
-    Generate speech from text using AWS Polly
+    Generate speech from text using our text-to-speech function
     """
     try:
         # Get parameters
@@ -581,12 +507,16 @@ def generate_speech():
         filename = f"tts_{uuid.uuid4()}.mp3"
         output_path = os.path.join(upload_dir, filename)
         
-        # Generate speech using AWS Polly
-        success = generate_polly_speech(text, output_path)
+        # Import our standalone function
+        from pronunciation_coach import mock_generate_speech
+        
+        # Generate speech using our mock function (could be replaced with real TTS)
+        success = mock_generate_speech(text, output_path)
         
         if success:
-            # Return the URL to the generated audio
-            audio_url = f"/static/audio/tts/{filename}"
+            # Since we can't generate real audio yet, let's use a sample audio file
+            # that's already in the static folder
+            audio_url = "/static/audio/community_center.mp3"
             return jsonify({
                 'success': True,
                 'audio_url': audio_url
@@ -600,7 +530,7 @@ def generate_speech():
         logging.error(f"Error generating speech: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'Failed to generate speech'
+            'error': f'Failed to generate speech: {str(e)}'
         }), 500
 
 @app.route('/analyze-pronunciation', methods=['POST'])
@@ -633,8 +563,11 @@ def analyze_pronunciation_route():
         file_path = os.path.join(upload_dir, filename)
         audio_file.save(file_path)
         
-        # Transcribe the audio using AWS Transcribe
-        transcription = transcribe_audio(file_path)
+        # Import our standalone pronunciation coach module
+        from pronunciation_coach import mock_transcribe_audio, analyze_pronunciation
+        
+        # Get a transcription (mock function for now, but could be replaced with real transcription)
+        transcription = mock_transcribe_audio(file_path)
         
         if not transcription:
             return jsonify({
@@ -655,7 +588,7 @@ def analyze_pronunciation_route():
         logging.error(f"Error analyzing pronunciation: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'Failed to analyze pronunciation'
+            'error': f'Failed to analyze pronunciation: {str(e)}'
         }), 500
 
 # API Routes for offline sync

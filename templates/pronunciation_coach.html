@@ -310,12 +310,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createExerciseCard(exercise) {
+        console.log('Creating card with exercise:', exercise);
+        
         const template = document.getElementById('exerciseCardTemplate');
+        if (!template) {
+            console.error('Exercise card template not found!');
+            return document.createElement('div');
+        }
+        
         const card = document.importNode(template.content, true).firstElementChild;
+        console.log('Card element created:', card);
         
         // Set exercise data
-        card.querySelector('.pronunciation-text').textContent = exercise.text;
-        card.querySelector('.focus-label').textContent = exercise.focus;
+        const textEl = card.querySelector('.pronunciation-text');
+        const focusEl = card.querySelector('.focus-label');
+        
+        if (!textEl || !focusEl) {
+            console.error('Required elements not found in card template!');
+            console.log('Text element found:', !!textEl);
+            console.log('Focus element found:', !!focusEl);
+        }
+        
+        textEl.textContent = exercise.text;
+        focusEl.textContent = exercise.focus;
         
         // Set up audio reference if available
         if (exercise.audio_url) {

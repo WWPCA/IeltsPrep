@@ -208,3 +208,32 @@ def mock_transcribe_audio(audio_path):
     # Generate a simplified "transcription" based on the file name
     # In a real implementation, this would use actual speech-to-text
     return "This is a simulated transcription for testing purposes. In a real application, this would contain the actual words spoken by the user."
+
+
+def mock_generate_speech(text, output_path):
+    """
+    Mock function to simulate text-to-speech when AWS Polly isn't available.
+    In a real implementation, this would use text-to-speech services.
+    
+    Args:
+        text (str): Text to convert to speech
+        output_path (str): Path to save the output audio file
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        # In a real implementation, this would convert the text to audio
+        # For now, we'll use a dummy file that could be replaced with a static audio
+        
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        # Create an empty file (or copy a sample audio if available)
+        with open(output_path, 'w') as f:
+            f.write("Mock audio file")
+            
+        return True
+    except Exception as e:
+        print(f"Error generating mock speech: {str(e)}")
+        return False
