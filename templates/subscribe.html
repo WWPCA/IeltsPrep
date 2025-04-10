@@ -32,6 +32,7 @@
                     <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
                 {% else %}
                     <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="plan" value="base">
                         <input type="hidden" name="payment_method" value="stripe">
                         <button type="submit" class="btn btn-primary w-100">Buy Now</button>
