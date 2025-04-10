@@ -41,7 +41,7 @@ def create_stripe_checkout(plan='base'):
         plan (str): Subscription plan ('base', 'intermediate', or 'pro')
     
     Returns:
-        str: Checkout URL
+        dict: Contains session_id and checkout_url
     """
     try:
         if not stripe.api_key:
@@ -83,7 +83,10 @@ def create_stripe_checkout(plan='base'):
             }
         )
         
-        return checkout_session.url
+        return {
+            'session_id': checkout_session.id,
+            'checkout_url': checkout_session.url
+        }
         
     except Exception as e:
         logging.error(f"Error creating Stripe checkout: {str(e)}")

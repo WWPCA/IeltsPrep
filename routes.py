@@ -345,29 +345,32 @@ def create_checkout_session():
     # For now, we only implement Stripe checkout
     if payment_method == 'stripe':
         try:
-            checkout_url = create_stripe_checkout(plan)
-            # Instead of the redirect function, return an HTML that performs the redirect via JavaScript
-            return f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Redirecting to Stripe...</title>
-                <script>
-                    window.location.href = "{checkout_url}";
-                </script>
-            </head>
-            <body>
-                <p>Redirecting to payment page...</p>
-                <p>If you are not redirected automatically, <a href="{checkout_url}">click here</a>.</p>
-            </body>
-            </html>
-            """
+            # Create checkout session and store in session
+            checkout_data = create_stripe_checkout(plan)
+            session['checkout_session_id'] = checkout_data['session_id']
+            session['checkout_url'] = checkout_data['checkout_url']
+            
+            # Redirect to our new checkout page route
+            return redirect(url_for('stripe_checkout'))
         except Exception as e:
             flash(f'Error creating checkout session: {str(e)}', 'danger')
             return redirect(url_for('subscribe'))
     else:
         flash('This payment method is not yet implemented', 'warning')
         return redirect(url_for('subscribe'))
+
+@app.route('/stripe-checkout')
+def stripe_checkout():
+    # Get checkout URL from session
+    checkout_url = session.get('checkout_url')
+    
+    if not checkout_url:
+        flash('Checkout session not found', 'danger')
+        return redirect(url_for('subscribe'))
+    
+    return render_template('stripe_checkout.html', 
+                          checkout_url=checkout_url,
+                          title='Stripe Checkout')
 
 @app.route('/payment-success')
 def payment_success():

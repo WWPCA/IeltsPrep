@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2>Redirecting to Payment</h2>
+                </div>
+                <div class="card-body">
+                    <div class="spinner-border text-primary mb-4" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="lead">You are being redirected to our secure payment provider...</p>
+                    <p>If you are not redirected automatically, please click the button below.</p>
+                    <a href="{{ checkout_url }}" class="btn btn-primary btn-lg mt-3">Continue to Payment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Redirect after a short delay
+    setTimeout(function() {
+        window.location.href = "{{ checkout_url }}";
+    }, 2000);
+</script>
+{% endblock %}
