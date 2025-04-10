@@ -49,13 +49,189 @@
                     
                     <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="listening">
                         <div class="questions">
-                            {% for q_id, question in test.questions.items() %}
-                                <div class="question">
-                                    <p class="question-text">{{ question }}</p>
-                                    <div class="form-group">
-                                        <input type="text" class="form-control answer-input" 
-                                               placeholder="Your answer" data-question-id="{{ q_id }}">
+                            {% for question_group in test.questions %}
+                                <div class="question-group mb-5">
+                                    <h3 class="question-group-header">Questions {{ question_group.number }}</h3>
+                                    
+                                    <div class="instruction-box mb-3 p-3 bg-light">
+                                        <p class="instruction-text mb-0">{{ question_group.instructions }}</p>
                                     </div>
+                                    
+                                    {% if question_group.form_title is defined %}
+                                        <!-- Form completion questions -->
+                                        <div class="form-completion-container border p-3 mb-4">
+                                            <h4 class="form-title text-center mb-3">{{ question_group.form_title }}</h4>
+                                            <div class="form-fields">
+                                                {% for field in question_group.form_fields %}
+                                                    <div class="form-field mb-3 d-flex">
+                                                        <div class="field-label col-4">{{ field.field }}:</div>
+                                                        <div class="field-input col-8">
+                                                            <input type="text" class="form-control answer-input" 
+                                                                  placeholder="Your answer" data-question-id="{{ field.answer_key }}">
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if question_group.questions is defined %}
+                                        <!-- Sentence completion questions -->
+                                        <div class="sentence-completion-container">
+                                            {% for q in question_group.questions %}
+                                                <div class="question mb-4">
+                                                    <p class="question-number mb-1">{{ q.number }}</p>
+                                                    <p class="question-text">{{ q.text|safe }}</p>
+                                                    <div class="form-group">
+                                                        <input type="text" class="form-control answer-input" 
+                                                              placeholder="Your answer" data-question-id="{{ q.number }}">
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if question_group.table_title is defined %}
+                                        <!-- Table completion questions -->
+                                        <div class="table-completion-container">
+                                            <h4 class="table-title text-center mb-3">{{ question_group.table_title }}</h4>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            {% for header in question_group.table_headers %}
+                                                                <th>{{ header }}</th>
+                                                            {% endfor %}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for row in question_group.table_rows %}
+                                                            <tr>
+                                                                <td>{{ row.facility }}</td>
+                                                                <td>{{ row.location }}</td>
+                                                                <td>
+                                                                    {% if "____" in row.hours %}
+                                                                        <div class="form-group mb-0">
+                                                                            <input type="text" class="form-control answer-input" 
+                                                                                  placeholder="Your answer" data-question-id="{{ row.hours.split()[1] }}">
+                                                                        </div>
+                                                                    {% else %}
+                                                                        {{ row.hours }}
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {% if "____" in row.notes %}
+                                                                        <div class="form-group mb-0">
+                                                                            <input type="text" class="form-control answer-input" 
+                                                                                  placeholder="Your answer" data-question-id="{{ row.notes.split()[1] }}">
+                                                                        </div>
+                                                                    {% else %}
+                                                                        {{ row.notes }}
+                                                                    {% endif %}
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if question_group.box_options is defined %}
+                                        <!-- Multiple choice from box questions -->
+                                        <div class="box-selection-container">
+                                            <div class="options-box border p-3 mb-3 bg-light">
+                                                {% for option in question_group.box_options %}
+                                                    <div class="option">{{ option }}</div>
+                                                {% endfor %}
+                                            </div>
+                                            <p class="question-text mb-3">{{ question_group.question_text }}</p>
+                                            <div class="answer-inputs">
+                                                {% for answer_num in question_group.answers %}
+                                                    <div class="form-group mb-2 d-flex align-items-center">
+                                                        <label class="me-3 mb-0">{{ answer_num }}:</label>
+                                                        <input type="text" class="form-control answer-input" 
+                                                              placeholder="Enter letter (A-G)" data-question-id="{{ answer_num }}">
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if question_group.note_title is defined %}
+                                        <!-- Notes completion questions -->
+                                        <div class="notes-completion-container">
+                                            <h4 class="notes-title mb-3">{{ question_group.note_title }}</h4>
+                                            <div class="notes border p-3">
+                                                {% for note_line in question_group.notes %}
+                                                    <p class="note-line">
+                                                        {{ note_line|replace("_____", "<input type='text' class='form-control d-inline-block answer-input' style='width: 150px;' placeholder='Your answer' data-question-id='")|safe }}
+                                                        {% set parts = note_line.split("_____") %}
+                                                        {% if parts|length > 1 %}
+                                                            {% set question_num = parts[1].strip() %}
+                                                            "{{ question_num }}'>
+                                                        {% endif %}
+                                                    </p>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if question_group.diagram_title is defined %}
+                                        <!-- Diagram completion questions -->
+                                        <div class="diagram-completion-container">
+                                            <h4 class="diagram-title text-center mb-3">{{ question_group.diagram_title }}</h4>
+                                            <div class="diagram border p-4">
+                                                {% for part in question_group.diagram_parts %}
+                                                    <div class="diagram-part mb-3">
+                                                        <div class="row">
+                                                            <div class="col-4">
+                                                                <strong>{{ part.label }}:</strong>
+                                                            </div>
+                                                            <div class="col-8">
+                                                                {% set component_parts = part.component.split("_____") %}
+                                                                {% if component_parts|length > 1 %}
+                                                                    {{ component_parts[0] }}
+                                                                    <input type="text" class="form-control d-inline-block answer-input" 
+                                                                           style="width: 150px;" placeholder="Your answer" 
+                                                                           data-question-id="{{ component_parts[1].strip() }}">
+                                                                    {% if component_parts|length > 2 %}
+                                                                        {{ component_parts[2] }}
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    {{ part.component }}
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if question_group.questions is defined and question_group.questions[0].options is defined %}
+                                        <!-- Multiple choice questions -->
+                                        <div class="multiple-choice-container">
+                                            {% for mcq in question_group.questions %}
+                                                <div class="question mb-4">
+                                                    <p class="question-number mb-1"><strong>{{ mcq.number }}</strong></p>
+                                                    <p class="question-text mb-2">{{ mcq.text }}</p>
+                                                    <div class="options">
+                                                        {% for key, text in mcq.options.items() %}
+                                                            <div class="form-check">
+                                                                <input class="form-check-input answer-input" type="radio" 
+                                                                       name="q{{ mcq.number }}" id="q{{ mcq.number }}_{{ key }}" 
+                                                                       value="{{ key }}" data-question-id="{{ mcq.number }}">
+                                                                <label class="form-check-label" for="q{{ mcq.number }}_{{ key }}">
+                                                                    {{ key }}. {{ text }}
+                                                                </label>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             {% endfor %}
                         </div>
@@ -77,14 +253,62 @@
                 <!-- Listening Test List -->
                 <h1 class="mb-4">IELTS Listening Practice Tests</h1>
                 
-                <div class="alert alert-info mb-4">
-                    <div class="d-flex">
-                        <div class="me-3">
-                            <i class="fas fa-headphones fa-2x"></i>
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-headphones me-2"></i>About IELTS Listening</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>The IELTS Listening test takes approximately 30 minutes (plus 10 minutes transfer time) and consists of 40 questions. There are four sections, each with 10 questions.</p>
+                        
+                        <h5 class="mt-4">Test Format</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Section</th>
+                                        <th>Description</th>
+                                        <th>Context</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Section 1</strong></td>
+                                        <td>A conversation between two people in an everyday social context</td>
+                                        <td>Often a conversation about accommodations, making appointments, or general everyday situations</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Section 2</strong></td>
+                                        <td>A monologue set in an everyday social context</td>
+                                        <td>Such as a speech about local facilities or services, a tour guide presentation, or an orientation talk</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Section 3</strong></td>
+                                        <td>A conversation between up to four people in an educational or training context</td>
+                                        <td>For example, a university tutor and student discussing an assignment, or several students planning a research project</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Section 4</strong></td>
+                                        <td>A monologue on an academic subject</td>
+                                        <td>Such as a university lecture or an academic presentation</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div>
-                            <h4>About IELTS Listening</h4>
-                            <p class="mb-0">The IELTS Listening test takes approximately 30 minutes (plus 10 minutes transfer time) and consists of 40 questions. There are four sections, each with 10 questions. The recordings include everyday social contexts, monologues, academic discussions, and lectures.</p>
+                        
+                        <h5 class="mt-4">Question Types</h5>
+                        <p>You will encounter various question types in the IELTS Listening test:</p>
+                        <ul>
+                            <li><strong>Multiple choice</strong> - Select one answer from several options</li>
+                            <li><strong>Matching</strong> - Match items from a given list</li>
+                            <li><strong>Form/note/table/flow-chart/summary completion</strong> - Fill in missing information</li>
+                            <li><strong>Sentence completion</strong> - Complete sentences with words from the recording</li>
+                            <li><strong>Labeling diagrams/maps/plans</strong> - Label with words from the recording</li>
+                            <li><strong>Short-answer questions</strong> - Write short answers using information from the recording</li>
+                        </ul>
+                        
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            The recording is played <strong>ONCE only</strong> in the actual test. You'll be given time to read questions before each section starts.
                         </div>
                     </div>
                 </div>
