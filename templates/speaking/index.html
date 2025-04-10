@@ -16,6 +16,33 @@
                 <div class="speaking-test" data-prompt-id="{{ prompt.id }}">
                     <h1 class="mb-4">IELTS Speaking Assessment</h1>
                     
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-comment fa-2x"></i>
+                            </div>
+                            <div>
+                                <h4>About IELTS Speaking</h4>
+                                <p class="mb-0">The IELTS Speaking test is a face-to-face interview with an IELTS examiner lasting 11-14 minutes. It consists of three parts: an introduction, a long turn, and a discussion. Our AI-powered assessment tool helps you prepare by providing instant feedback on your speaking performance.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if not current_user.is_subscribed() %}
+                        <div class="alert alert-warning mb-4">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-crown fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4>Subscribe for Access</h4>
+                                    <p>Subscribe to one of our test packages to unlock all speaking assessments with AI-powered feedback.</p>
+                                    <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
                     <div class="card mb-4">
                         <div class="card-header bg-primary text-white">
                             <h2 class="h4 mb-0">Speaking Prompt - Part {{ prompt.part }}</h2>
