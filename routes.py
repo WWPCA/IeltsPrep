@@ -245,8 +245,11 @@ def speaking_index():
     prompts = SpeakingPrompt.query.all()
     sample_prompt = prompts[0] if prompts else None
     
+    # Flag to indicate if this is a sample view (not subscribed)
+    is_sample = not (current_user.is_authenticated and current_user.is_subscribed())
+    
     return render_template('speaking/index.html', title='Speaking Assessment',
-                          prompts=prompts, sample_prompt=sample_prompt)
+                          prompts=prompts, sample_prompt=sample_prompt, is_sample=is_sample)
 
 @app.route('/speaking/<int:prompt_id>')
 @login_required
@@ -257,13 +260,13 @@ def speaking_assessment(prompt_id):
     prompts = SpeakingPrompt.query.all()
     sample_prompt = prompts[0] if prompts else None
     
-    # Allow free users to access one prompt for free
-    if prompt_id != 1 and not current_user.is_subscribed():
-        flash('This speaking prompt requires a subscription. Please subscribe to access all speaking assessments.', 'warning')
+    # Don't allow non-subscribers to access any speaking prompt
+    if not current_user.is_subscribed():
+        flash('Speaking assessment requires a subscription. Please subscribe to access this feature.', 'warning')
         return redirect(url_for('subscribe'))
     
     return render_template('speaking/index.html', title='Speaking Assessment',
-                          prompt=prompt, assessment=True, prompts=prompts, sample_prompt=sample_prompt)
+                          prompt=prompt, assessment=True, prompts=prompts, sample_prompt=sample_prompt, is_sample=False)
 
 @app.route('/api/speaking/submit', methods=['POST'])
 @login_required
