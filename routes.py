@@ -1,5 +1,6 @@
 import os
 import json
+import uuid
 import logging
 from functools import wraps
 from datetime import datetime, timedelta
@@ -12,7 +13,8 @@ from app import app, db
 from models import (User, TestStructure, PracticeTest, UserTestAttempt, 
                    SpeakingPrompt, SpeakingResponse, PaymentMethod, Translation)
 from utils import get_user_region, get_translation, compress_audio
-from aws_services import transcribe_audio, generate_polly_speech, analyze_speaking_response
+from aws_services import (transcribe_audio, generate_polly_speech, analyze_speaking_response, 
+                      analyze_pronunciation, generate_pronunciation_exercises)
 from payment_services import create_stripe_checkout, verify_payment
 
 # Helper functions
@@ -445,6 +447,139 @@ def payment_cancel():
 @app.route('/device-specs')
 def device_specs():
     return render_template('device_specs.html', title='Device Requirements')
+
+# Pronunciation Coach Routes
+@app.route('/pronunciation-coach')
+def pronunciation_coach():
+    """
+    Display the pronunciation coach interface
+    """
+    return render_template('pronunciation_coach.html', title='Pronunciation Coach')
+
+@app.route('/pronunciation-exercises')
+def get_pronunciation_exercises():
+    """
+    Get pronunciation exercises based on difficulty and category
+    """
+    try:
+        # Get parameters
+        difficulty = request.args.get('difficulty', 'medium')
+        category = request.args.get('category', 'general')
+        
+        # Get exercises from the AWS services module
+        exercises = generate_pronunciation_exercises(difficulty, category)
+        
+        # Return JSON response
+        return jsonify({
+            'success': True,
+            'exercises': exercises
+        })
+    except Exception as e:
+        logging.error(f"Error getting pronunciation exercises: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load pronunciation exercises'
+        }), 500
+
+@app.route('/generate-speech', methods=['POST'])
+def generate_speech():
+    """
+    Generate speech from text using AWS Polly
+    """
+    try:
+        # Get parameters
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Missing text parameter'
+            }), 400
+        
+        text = data['text']
+        
+        # Create a unique filename
+        upload_dir = os.path.join(app.root_path, 'static', 'audio', 'tts')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        filename = f"tts_{uuid.uuid4()}.mp3"
+        output_path = os.path.join(upload_dir, filename)
+        
+        # Generate speech using AWS Polly
+        success = generate_polly_speech(text, output_path)
+        
+        if success:
+            # Return the URL to the generated audio
+            audio_url = f"/static/audio/tts/{filename}"
+            return jsonify({
+                'success': True,
+                'audio_url': audio_url
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to generate speech'
+            }), 500
+    except Exception as e:
+        logging.error(f"Error generating speech: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate speech'
+        }), 500
+
+@app.route('/analyze-pronunciation', methods=['POST'])
+def analyze_pronunciation_route():
+    """
+    Analyze pronunciation from uploaded audio
+    """
+    try:
+        # Check if audio file was uploaded
+        if 'audio' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No audio file provided'
+            }), 400
+        
+        audio_file = request.files['audio']
+        reference_text = request.form.get('reference_text', '')
+        
+        if not reference_text:
+            return jsonify({
+                'success': False,
+                'error': 'No reference text provided'
+            }), 400
+        
+        # Save the uploaded audio file
+        upload_dir = os.path.join(app.root_path, 'static', 'uploads', 'audio')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        filename = f"recording_{uuid.uuid4()}.webm"
+        file_path = os.path.join(upload_dir, filename)
+        audio_file.save(file_path)
+        
+        # Transcribe the audio using AWS Transcribe
+        transcription = transcribe_audio(file_path)
+        
+        if not transcription:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to transcribe audio'
+            }), 500
+        
+        # Analyze pronunciation by comparing transcription to reference text
+        analysis_results = analyze_pronunciation(transcription, reference_text)
+        
+        # Return the results
+        return jsonify({
+            'success': True,
+            'results': analysis_results,
+            'transcription': transcription
+        })
+    except Exception as e:
+        logging.error(f"Error analyzing pronunciation: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to analyze pronunciation'
+        }), 500
 
 # API Routes for offline sync
 @app.route('/api/sync', methods=['POST'])
