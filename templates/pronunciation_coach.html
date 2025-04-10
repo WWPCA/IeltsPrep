@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         // Fetch exercises from the server
-        fetch(`/pronunciation-exercises?difficulty=${difficulty}&category=${category}`)
+        fetch(`/pronunciation/pronunciation-exercises?difficulty=${difficulty}&category=${category}`)
             .then(response => response.json())
             .then(data => {
                 const container = document.getElementById('exercisesContainer');
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 playBtn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Generating...';
                 
                 // Generate audio
-                fetch('/generate-speech', {
+                fetch('/pronunciation/generate-speech', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('reference_text', currentExercise.text);
         
         // Send to server for analysis
-        fetch('/analyze-pronunciation', {
+        fetch('/pronunciation/analyze-pronunciation', {
             method: 'POST',
             body: formData
         })
