@@ -1,0 +1,194 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('test_structure') }}">Test Structure</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">IELTS Online</li>
+                </ol>
+            </nav>
+            
+            <div class="test-structure-content">
+                <h1 class="mb-4">IELTS Online</h1>
+                
+                <div class="alert alert-primary mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-laptop fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>Purpose</h4>
+                            <p class="mb-0">{{ test_info.description }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Test Format</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p>IELTS Online is the Academic version of IELTS that you can take from the comfort of your home or another suitable location. It offers the same trusted IELTS quality with the convenience of online delivery.</p>
+                        <p>{{ test_info.format_details.format }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="h5 mb-0">Test Sections</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li><strong>Listening:</strong> 30 minutes + 10 minutes transfer time</li>
+                                    <li><strong>Reading:</strong> 60 minutes</li>
+                                    <li><strong>Writing:</strong> 60 minutes</li>
+                                    <li><strong>Speaking:</strong> 11-14 minutes via video call with a certified IELTS Examiner</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="h5 mb-0">Technical Requirements</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ test_info.format_details.requirements }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Test Security</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p>{{ test_info.format_details.security }}</p>
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4>Important Security Notes</h4>
+                                    <ul class="mb-0">
+                                        <li>You must be alone in the room for the entire test.</li>
+                                        <li>No unauthorized materials are allowed in the test room.</li>
+                                        <li>You cannot leave the camera view during the test.</li>
+                                        <li>Your test will be recorded for security purposes.</li>
+                                        <li>You may be asked to show your room using your smartphone camera before the test begins.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Advantages of IELTS Online</h2>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card mb-3 h-100">
+                            <div class="card-body">
+                                <h3 class="h5"><i class="fas fa-home text-primary me-2"></i> Test from Home</h3>
+                                <p class="mb-0">Take the test from the comfort of your own home or any private location with a stable internet connection. No need to travel to a test center.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3 h-100">
+                            <div class="card-body">
+                                <h3 class="h5"><i class="fas fa-calendar-alt text-primary me-2"></i> Flexible Scheduling</h3>
+                                <p class="mb-0">More test dates and time slots are available compared to in-person testing, giving you greater flexibility in scheduling your test.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3 h-100">
+                            <div class="card-body">
+                                <h3 class="h5"><i class="fas fa-certificate text-primary me-2"></i> Same IELTS Quality</h3>
+                                <p class="mb-0">The test has the same content, format, and level of difficulty as the in-person IELTS Academic test, and is equally recognized by institutions worldwide.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3 h-100">
+                            <div class="card-body">
+                                <h3 class="h5"><i class="fas fa-bolt text-primary me-2"></i> Fast Results</h3>
+                                <p class="mb-0">Receive your results within 3-5 days, which is typically faster than paper-based testing.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">Preparation Tips for IELTS Online</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="h5 mb-3">Before Test Day</h4>
+                                <ul>
+                                    <li>Take a practice test online to familiarize yourself with the format.</li>
+                                    <li>Check that your computer meets all technical requirements.</li>
+                                    <li>Test your microphone, camera, and internet connection.</li>
+                                    <li>Prepare a suitable room that is quiet, well-lit, and private.</li>
+                                    <li>Have your ID document ready (passport is recommended).</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="h5 mb-3">On Test Day</h4>
+                                <ul>
+                                    <li>Log in 30 minutes before your scheduled test time.</li>
+                                    <li>Clear your desk of all items except what's allowed.</li>
+                                    <li>Have a clear bottle of water if needed.</li>
+                                    <li>Ensure your face is well-lit and clearly visible.</li>
+                                    <li>Follow all instructions from the online proctor.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3">How to Book IELTS Online</h2>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <ol>
+                            <li>Visit the official IELTS website or contact your local IELTS test center.</li>
+                            <li>Select "IELTS Online" as your test type.</li>
+                            <li>Choose your preferred date and time.</li>
+                            <li>Complete the registration process and make payment.</li>
+                            <li>Receive confirmation email with instructions for the test day.</li>
+                            <li>Perform the system check before your test date to ensure your computer meets all requirements.</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-info-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>Availability Note</h4>
+                            <p class="mb-0">IELTS Online is available in most countries, but not all. Check the official IELTS website for availability in your region. Also note that not all organizations accept IELTS Online scores, so verify with your receiving organization before booking.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-5">
+                    <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-primary me-2">Practice Listening</a>
+                    <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-primary me-2">Practice Reading</a>
+                    <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-primary me-2">Practice Writing</a>
+                    <a href="{{ url_for('speaking_index') }}" class="btn btn-primary">Practice Speaking</a>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('test_structure_detail', test_type='life_skills') }}" class="btn btn-outline-secondary me-2"><i class="fas fa-arrow-left"></i> Previous: IELTS Life Skills</a>
+                    <a href="{{ url_for('test_structure_detail', test_type='academic') }}" class="btn btn-outline-secondary">Back to Academic IELTS</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

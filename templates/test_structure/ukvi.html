@@ -21,194 +21,94 @@
                         </div>
                         <div>
                             <h4>Purpose</h4>
-                            <p class="mb-0">IELTS for UKVI is a Secure English Language Test (SELT) approved by UK Visas and Immigration for visa applications to the United Kingdom.</p>
+                            <p class="mb-0">{{ test_info.description }}</p>
                         </div>
                     </div>
                 </div>
                 
-                <h2 class="mb-3">What is IELTS for UKVI?</h2>
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <p>IELTS for UKVI (UK Visas and Immigration) is a version of the IELTS test that is specially designed to meet the requirements of UK immigration applications. It is a Secure English Language Test (SELT) approved by UK Visas and Immigration for visa applications to the UK.</p>
-                        
-                        <div class="alert alert-info mt-3">
-                            <strong>Important Note:</strong> The content, format, level of difficulty, scoring system, and assessment criteria for IELTS for UKVI are exactly the same as the regular IELTS test. The only difference is that the test is administered with increased security measures and is taken at approved UKVI test centers.
-                        </div>
-                    </div>
-                </div>
-                
-                <h2 class="mb-3">IELTS for UKVI Test Formats</h2>
-                <p>IELTS for UKVI is available in three formats:</p>
+                <h2 class="mb-3">Test Format</h2>
+                <p>IELTS for UKVI has the same content, format, and level of difficulty as the standard IELTS test. The difference is that it's specifically approved for UK visa and immigration purposes and is conducted in UKVI-approved centers with increased security measures.</p>
                 
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h3 class="h5 mb-0">IELTS Academic for UKVI</h3>
+                        <h3 class="h5 mb-0">Key Information</h3>
                     </div>
                     <div class="card-body">
-                        <p>This is identical to the standard IELTS Academic test but administered in UKVI-approved test centers. It's suitable for those applying to study at undergraduate or postgraduate levels or seeking professional registration in the UK.</p>
-                        <p><strong>Sections:</strong></p>
-                        <ul>
-                            <li>Listening (30 minutes + 10 minutes transfer time)</li>
-                            <li>Reading (60 minutes)</li>
-                            <li>Writing (60 minutes)</li>
-                            <li>Speaking (11-14 minutes)</li>
+                        <ul class="mb-0">
+                            <li><strong>Two versions available:</strong> You can take either IELTS Academic for UKVI or IELTS General Training for UKVI, depending on your visa requirements.</li>
+                            <li><strong>Special security:</strong> The test is conducted with enhanced security measures, including biometric testing (a photograph and finger scan).</li>
+                            <li><strong>Approved centers:</strong> The test must be taken at a location specially approved by UK Visas and Immigration.</li>
+                            <li><strong>Recognized globally:</strong> IELTS for UKVI is recognized not just by UK Visas and Immigration but also by universities, employers, and immigration authorities around the world.</li>
                         </ul>
-                        <a href="{{ url_for('test_structure_detail', test_type='academic') }}" class="btn btn-outline-primary btn-sm">View Academic Test Details</a>
                     </div>
                 </div>
                 
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="h5 mb-0">IELTS General Training for UKVI</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>This is identical to the standard IELTS General Training test but administered in UKVI-approved test centers. It's suitable for those applying to train or study below degree level, work, or migrate to the UK.</p>
-                        <p><strong>Sections:</strong></p>
-                        <ul>
-                            <li>Listening (30 minutes + 10 minutes transfer time)</li>
-                            <li>Reading (60 minutes)</li>
-                            <li>Writing (60 minutes)</li>
-                            <li>Speaking (11-14 minutes)</li>
-                        </ul>
-                        <a href="{{ url_for('test_structure_detail', test_type='general_training') }}" class="btn btn-outline-primary btn-sm">View General Training Test Details</a>
-                    </div>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="h5 mb-0">IELTS Life Skills</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>IELTS Life Skills is a specific test format designed for those applying for UK visas in the 'family of a settled person' or 'settlement' categories.</p>
-                        <p><strong>Sections:</strong> Speaking and Listening only</p>
-                        <p><strong>Available at levels:</strong></p>
-                        <ul>
-                            <li>A1 (for specific visas like 'family of a settled person')</li>
-                            <li>B1 (for settlement or naturalization)</li>
-                        </ul>
-                        <p><strong>Duration:</strong> 16-22 minutes</p>
-                        <a href="{{ url_for('test_structure_detail', test_type='life_skills') }}" class="btn btn-outline-primary btn-sm">View Life Skills Test Details</a>
-                    </div>
-                </div>
-                
-                <h2 class="mb-3">UKVI Specific Requirements</h2>
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <p>When taking an IELTS for UKVI test, there are specific requirements that differ from the standard IELTS test:</p>
-                        
-                        <ul>
-                            <li><strong>Test Centers:</strong> You must take the test at a center that is specifically approved to administer IELTS for UKVI.</li>
-                            <li><strong>Biometric Data:</strong> You will need to have your photograph taken on the day of the test. This photograph will appear on your Test Report Form (TRF).</li>
-                            <li><strong>Identity Verification:</strong> Enhanced identity verification procedures are in place.</li>
-                            <li><strong>Test Report Form:</strong> The Test Report Form has 'SELT' written on it to indicate it was taken as a Secure English Language Test.</li>
-                            <li><strong>Test Booking:</strong> When booking your test, make sure you specifically select 'IELTS for UKVI'.</li>
-                        </ul>
-                        
-                        <div class="alert alert-warning mt-3">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Important:</strong> A standard IELTS test cannot be used for UK visa applications that require a SELT. You must take the IELTS for UKVI test.
+                <div class="alert alert-info mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-info-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>Which Test Should I Take?</h4>
+                            <p>The test you need depends on your visa type:</p>
+                            <ul class="mb-0">
+                                <li><strong>Tier 1, 2, or 4 visas:</strong> Either Academic or General Training, depending on your specific circumstances</li>
+                                <li><strong>For study at degree level and above:</strong> Academic IELTS for UKVI</li>
+                                <li><strong>For work or study below degree level:</strong> General Training IELTS for UKVI</li>
+                                <li><strong>For family, settlement or ILR:</strong> Usually IELTS Life Skills (A1, A2 or B1 level)</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
                 
-                <h2 class="mb-3">Which UKVI Visa Applications Require IELTS?</h2>
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <p>Different UK visa types require different English language tests and minimum scores:</p>
-                        
-                        <table class="table table-bordered mt-3">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th>Visa Type</th>
-                                    <th>Required Test</th>
-                                    <th>Minimum Level</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Tier 1 Visa (Entrepreneur)</td>
-                                    <td>IELTS Academic or General Training for UKVI</td>
-                                    <td>B1 (at least 4.0 in all skills)</td>
-                                </tr>
-                                <tr>
-                                    <td>Tier 2 Visa (Skilled Worker)</td>
-                                    <td>IELTS Academic or General Training for UKVI</td>
-                                    <td>B1 (at least 4.0 in all skills)</td>
-                                </tr>
-                                <tr>
-                                    <td>Tier 4 Visa (Student) - Degree level and above</td>
-                                    <td>IELTS Academic for UKVI</td>
-                                    <td>B2 (at least 5.5 in all skills)</td>
-                                </tr>
-                                <tr>
-                                    <td>Tier 4 Visa (Student) - Below degree level</td>
-                                    <td>IELTS Academic for UKVI</td>
-                                    <td>B1 (at least 4.0 in all skills)</td>
-                                </tr>
-                                <tr>
-                                    <td>Family Visa (2.5 year route)</td>
-                                    <td>IELTS Life Skills</td>
-                                    <td>A1 (speaking and listening only)</td>
-                                </tr>
-                                <tr>
-                                    <td>Settlement (5 year route)</td>
-                                    <td>IELTS Life Skills</td>
-                                    <td>B1 (speaking and listening only)</td>
-                                </tr>
-                                <tr>
-                                    <td>British Citizenship/Naturalization</td>
-                                    <td>IELTS Life Skills</td>
-                                    <td>B1 (speaking and listening only)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <div class="alert alert-info mt-3">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> Requirements may change. Always check the official UK government website for the most up-to-date information on visa English language requirements.
+                <h2 class="mb-3">Test Content</h2>
+                
+                <div class="test-structure-section">
+                    <h3><i class="fas fa-headphones me-2 text-primary"></i> Listening</h3>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <p>{{ test_info.format_details.listening }}</p>
                         </div>
                     </div>
                 </div>
                 
-                <h2 class="mb-3">CEFR Levels and IELTS Scores</h2>
+                <div class="test-structure-section">
+                    <h3><i class="fas fa-book-open me-2 text-primary"></i> Reading</h3>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <p>{{ test_info.format_details.reading }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="test-structure-section">
+                    <h3><i class="fas fa-pencil-alt me-2 text-primary"></i> Writing</h3>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <p>{{ test_info.format_details.writing }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="test-structure-section">
+                    <h3><i class="fas fa-comment me-2 text-primary"></i> Speaking</h3>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <p>{{ test_info.format_details.speaking }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mb-3 mt-5">How to Book IELTS for UKVI</h2>
                 <div class="card mb-4">
                     <div class="card-body">
-                        <p>UK visa requirements often refer to Common European Framework of Reference (CEFR) levels. Here's how IELTS scores correspond to CEFR levels:</p>
-                        
-                        <table class="table table-bordered mt-3">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th>CEFR Level</th>
-                                    <th>IELTS Band Score</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>C2 (Proficient User)</td>
-                                    <td>8.5 - 9.0</td>
-                                </tr>
-                                <tr>
-                                    <td>C1 (Advanced User)</td>
-                                    <td>7.0 - 8.0</td>
-                                </tr>
-                                <tr>
-                                    <td>B2 (Independent User)</td>
-                                    <td>5.5 - 6.5</td>
-                                </tr>
-                                <tr>
-                                    <td>B1 (Independent User)</td>
-                                    <td>4.0 - 5.0</td>
-                                </tr>
-                                <tr>
-                                    <td>A2 (Basic User)</td>
-                                    <td>2.5 - 3.5</td>
-                                </tr>
-                                <tr>
-                                    <td>A1 (Basic User)</td>
-                                    <td>1.0 - 2.0</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <ol>
+                            <li>Check which version of the test you need for your visa application.</li>
+                            <li>Find an approved UKVI test center near you through the official IELTS website.</li>
+                            <li>Book your test online or through your local test center, specifying that you need IELTS for UKVI.</li>
+                            <li>Be prepared to provide biometric data (photograph and finger scan) on the test day.</li>
+                            <li>Bring your passport as identification on the test day.</li>
+                        </ol>
                     </div>
                 </div>
                 
