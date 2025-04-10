@@ -169,6 +169,12 @@ def take_practice_test(test_type, test_id):
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
+    # Handle new question format for listening tests
+    if test_type == 'listening':
+        # Convert questions from JSON string to Python list/dict
+        import json
+        test.questions = json.loads(test.questions)
+    
     return render_template(f'practice/{test_type}.html', 
                           title=f'IELTS {test_type.capitalize()} Practice',
                           test=test,
@@ -185,7 +191,10 @@ def submit_test():
         return jsonify({'error': 'Missing required data'}), 400
     
     test = PracticeTest.query.get_or_404(test_id)
-    correct_answers = test.answers
+    
+    # Parse answers from JSON string
+    import json
+    correct_answers = json.loads(test.answers)
     
     # Calculate score
     score = 0

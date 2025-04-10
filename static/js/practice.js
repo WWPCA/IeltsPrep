@@ -32,6 +32,17 @@ document.addEventListener('DOMContentLoaded', function() {
         startTimer(timerElement, timeLimit);
     }
     
+    // Initialize audio player for listening tests
+    const audioElement = document.getElementById('listening-audio');
+    const playButton = document.getElementById('play-audio');
+    const currentTimeDisplay = document.getElementById('current-time');
+    const durationDisplay = document.getElementById('duration');
+    const audioProgress = document.getElementById('audio-progress');
+    
+    if (audioElement && playButton) {
+        initializeAudioPlayer(audioElement, playButton, currentTimeDisplay, durationDisplay, audioProgress);
+    }
+    
     // Add event listener to the form submission
     const testForm = document.getElementById('practice-test-form');
     if (testForm) {
