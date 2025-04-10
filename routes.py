@@ -240,13 +240,17 @@ def speaking_index():
 def speaking_assessment(prompt_id):
     prompt = SpeakingPrompt.query.get_or_404(prompt_id)
     
+    # Get all prompts to display in the information section
+    prompts = SpeakingPrompt.query.all()
+    sample_prompt = prompts[0] if prompts else None
+    
     # Allow free users to access one prompt for free
     if prompt_id != 1 and not current_user.is_subscribed():
         flash('This speaking prompt requires a subscription. Please subscribe to access all speaking assessments.', 'warning')
         return redirect(url_for('subscribe'))
     
     return render_template('speaking/index.html', title='Speaking Assessment',
-                          prompt=prompt, assessment=True)
+                          prompt=prompt, assessment=True, prompts=prompts, sample_prompt=sample_prompt)
 
 @app.route('/api/speaking/submit', methods=['POST'])
 @login_required
