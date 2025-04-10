@@ -223,6 +223,69 @@
     font-weight: bold;
     color: #0d6efd;
 }
+
+/* Celebration styles */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-20px);
+    }
+    60% {
+        transform: translateY(-10px);
+    }
+}
+
+.score-display {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.score-value {
+    font-size: 1.8rem;
+}
+
+.celebrating .score-value {
+    animation: bounce 1s ease infinite;
+    display: inline-block;
+}
+
+.practice-again-btn {
+    display: block;
+    margin: 20px auto 10px;
+    transition: all 0.3s ease;
+}
+
+.practice-again-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.practice-message {
+    animation: fadeInOut 3s ease;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    70% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
 </style>
 {% endblock %}
 
@@ -587,10 +650,104 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply color based on score
         if (results.score >= 7) {
             scoreDisplay.style.color = '#28a745'; // Green for good score
+            scoreDisplay.classList.add('celebrating'); // Add bounce animation
+            // Launch celebration confetti for high scores
+            celebrateWithConfetti('success');
         } else if (results.score >= 5) {
             scoreDisplay.style.color = '#fd7e14'; // Orange for average score
+            // Launch modest confetti for medium scores
+            celebrateWithConfetti('medium');
         } else {
             scoreDisplay.style.color = '#dc3545'; // Red for poor score
+            // No confetti for low scores
+        }
+        
+        // Add "Practice Again" button
+        const practiceAgainButton = document.createElement('button');
+        practiceAgainButton.className = 'btn btn-primary mt-3 practice-again-btn';
+        practiceAgainButton.innerHTML = '<i class="fas fa-redo me-2"></i>Practice Again';
+        practiceAgainButton.addEventListener('click', function() {
+            // Reset the card to allow another attempt
+            card.querySelector('.record-btn').disabled = false;
+            card.querySelector('.replay-btn').disabled = true;
+            card.querySelector('.recorded-audio').style.display = 'none';
+            card.querySelector('.result-panel').style.display = 'none';
+            
+            // Display a small message that encourages continued practice
+            const container = card.querySelector('.card-body');
+            const practiceMessage = document.createElement('div');
+            practiceMessage.className = 'alert alert-info practice-message mt-3';
+            practiceMessage.innerHTML = '<i class="fas fa-info-circle me-2"></i>Ready for another try! Keep practicing to improve your pronunciation.';
+            container.insertBefore(practiceMessage, container.querySelector('.controls'));
+            
+            // Remove the message after 3 seconds
+            setTimeout(() => {
+                if (practiceMessage.parentNode) {
+                    practiceMessage.parentNode.removeChild(practiceMessage);
+                }
+            }, 3000);
+        });
+        resultPanel.appendChild(practiceAgainButton);
+    }
+    
+    // Function to show celebration confetti based on score level
+    function celebrateWithConfetti(level) {
+        const defaults = {
+            spread: 360,
+            ticks: 100,
+            gravity: 0.8,
+            decay: 0.94,
+            startVelocity: 30,
+            zIndex: 10000
+        };
+        
+        if (level === 'success') {
+            // Full colorful celebration for high scores
+            confetti({
+                ...defaults,
+                particleCount: 150,
+                scalar: 1.2,
+                shapes: ['circle', 'square'],
+                colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
+            });
+            
+            // Add a second burst after a small delay
+            setTimeout(() => {
+                confetti({
+                    ...defaults,
+                    particleCount: 80,
+                    scalar: 1.2,
+                    shapes: ['circle', 'square'],
+                    colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
+                });
+            }, 500);
+            
+            // Add cannon fire from sides
+            setTimeout(() => {
+                confetti({
+                    particleCount: 80,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
+                });
+                confetti({
+                    particleCount: 80,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
+                });
+            }, 250);
+        } else if (level === 'medium') {
+            // More modest celebration for medium scores
+            confetti({
+                ...defaults,
+                particleCount: 70,
+                scalar: 0.9,
+                shapes: ['circle'],
+                colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a']
+            });
         }
     }
     
