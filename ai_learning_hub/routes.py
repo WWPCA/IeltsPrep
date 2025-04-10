@@ -144,7 +144,7 @@ def dashboard():
     for enrollment in enrollments:
         course = Course.query.get(enrollment.course_id)
         progress = ProgressRecord.query.filter_by(
-            aihub_user_id=current_user.id,
+            aihub_aihub_aihub_user_id=current_user.id,
             course_id=course.id
         ).first()
         
@@ -169,7 +169,7 @@ def dashboard():
         ).order_by(Course.rating.desc()).limit(4).all()
     
     # Get user's completed certificates
-    certificates = Certificate.query.filter_by(user_id=current_user.id).all()
+    certificates = Certificate.query.filter_by(aihub_aihub_aihub_user_id=current_user.id).all()
     
     return render_template(
         'dashboard.html',
@@ -219,7 +219,7 @@ def course_detail(slug):
     
     if current_user.is_authenticated:
         enrollment = Enrollment.query.filter_by(
-            user_id=current_user.id,
+            aihub_aihub_aihub_user_id=current_user.id,
             course_id=course.id
         ).first()
         
@@ -227,7 +227,7 @@ def course_detail(slug):
         
         if is_enrolled:
             progress = ProgressRecord.query.filter_by(
-                user_id=current_user.id,
+                aihub_aihub_aihub_user_id=current_user.id,
                 course_id=course.id
             ).first()
             
@@ -254,7 +254,7 @@ def enroll(course_id):
     
     # Check if already enrolled
     existing_enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course.id
     ).first()
     
@@ -268,12 +268,12 @@ def enroll(course_id):
         return redirect(url_for('pricing'))
     
     # Create enrollment
-    enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
+    enrollment = Enrollment(aihub_aihub_user_id=current_user.id, course_id=course.id)
     db.session.add(enrollment)
     
     # Create progress record
     progress = ProgressRecord(
-        user_id=current_user.id,
+        aihub_user_id=current_user.id,
         course_id=course.id,
         progress_percentage=0
     )
@@ -295,7 +295,7 @@ def learn(course_slug):
     
     # Check if user is enrolled
     enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course.id
     ).first_or_404()
     
@@ -304,13 +304,13 @@ def learn(course_slug):
     
     # Get user progress
     progress = ProgressRecord.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course.id
     ).first()
     
     # Get completed lessons
     completed_lessons = CompletedLesson.query.filter_by(
-        user_id=current_user.id
+        aihub_aihub_user_id=current_user.id
     ).all()
     completed_lesson_ids = [cl.lesson_id for cl in completed_lessons]
     
@@ -343,7 +343,7 @@ def lesson(lesson_id):
     
     # Check if user is enrolled
     enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course.id
     ).first_or_404()
     
@@ -354,7 +354,7 @@ def lesson(lesson_id):
     
     # Update user's last accessed lesson
     progress = ProgressRecord.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course.id
     ).first()
     
@@ -400,7 +400,7 @@ def lesson(lesson_id):
     
     # Check if lesson is completed
     is_completed = CompletedLesson.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         lesson_id=lesson.id
     ).first() is not None
     
@@ -435,14 +435,14 @@ def complete_lesson():
     
     # Check if already completed
     existing = CompletedLesson.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         lesson_id=lesson_id
     ).first()
     
     if not existing:
         # Mark lesson as completed
         completed = CompletedLesson(
-            user_id=current_user.id,
+            aihub_aihub_user_id=current_user.id,
             lesson_id=lesson_id
         )
         db.session.add(completed)
@@ -457,7 +457,7 @@ def complete_lesson():
         
         # Count completed lessons
         completed_count = CompletedLesson.query.filter(
-            CompletedLesson.user_id == current_user.id,
+            CompletedLesson.aihub_user_id == current_user.id,
             CompletedLesson.lesson_id.in_([
                 l.id for m in Module.query.filter_by(course_id=course_id).all()
                 for l in Lesson.query.filter_by(module_id=m.id).all()
@@ -469,7 +469,7 @@ def complete_lesson():
         
         # Update progress record
         progress = ProgressRecord.query.filter_by(
-            user_id=current_user.id,
+            aihub_aihub_user_id=current_user.id,
             course_id=course_id
         ).first()
         
@@ -478,7 +478,7 @@ def complete_lesson():
             progress.updated_at = datetime.utcnow()
         else:
             progress = ProgressRecord(
-                user_id=current_user.id,
+                aihub_user_id=current_user.id,
                 course_id=course_id,
                 progress_percentage=completion_percentage
             )
@@ -488,7 +488,7 @@ def complete_lesson():
         is_completed = completion_percentage >= 100
         if is_completed:
             enrollment = Enrollment.query.filter_by(
-                user_id=current_user.id,
+                aihub_aihub_user_id=current_user.id,
                 course_id=course_id
             ).first()
             
@@ -498,15 +498,15 @@ def complete_lesson():
                 
                 # Generate certificate
                 certificate = Certificate.query.filter_by(
-                    user_id=current_user.id,
+                    aihub_aihub_user_id=current_user.id,
                     course_id=course_id
                 ).first()
                 
                 if not certificate:
                     import uuid
                     certificate_id = f"{course.slug[:8]}-{uuid.uuid4().hex[:8]}"
-                    certificate = Certificate(
-                        user_id=current_user.id,
+                    certificate = Certificate(aihub_user_id=current_user.id
+                        aihub_aihub_user_id=current_user.id,
                         course_id=course_id,
                         certificate_id=certificate_id
                     )
@@ -522,7 +522,7 @@ def complete_lesson():
     
     # Already completed, just return current progress
     progress = ProgressRecord.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course_id
     ).first()
     
@@ -566,13 +566,13 @@ def submit_quiz():
     if passed:
         # Check if already completed
         existing = CompletedLesson.query.filter_by(
-            user_id=current_user.id,
+            aihub_aihub_user_id=current_user.id,
             lesson_id=lesson_id
         ).first()
         
         if not existing:
             completed = CompletedLesson(
-                user_id=current_user.id,
+                aihub_aihub_user_id=current_user.id,
                 lesson_id=lesson_id,
                 quiz_score=percentage
             )
@@ -647,7 +647,7 @@ def submit_review():
     
     # Check if user is enrolled
     enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course_id
     ).first()
     
@@ -657,7 +657,7 @@ def submit_review():
     
     # Check if user already reviewed
     existing_review = Review.query.filter_by(
-        user_id=current_user.id,
+        aihub_aihub_user_id=current_user.id,
         course_id=course_id
     ).first()
     
@@ -668,8 +668,8 @@ def submit_review():
         existing_review.updated_at = datetime.utcnow()
     else:
         # Create new review
-        review = Review(
-            user_id=current_user.id,
+        review = Review(aihub_user_id=current_user.id
+            aihub_aihub_user_id=current_user.id,
             course_id=course_id,
             rating=rating,
             review_text=review_text
