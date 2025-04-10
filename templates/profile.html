@@ -52,6 +52,59 @@
                     {% endif %}
                 </div>
             </div>
+            
+            <!-- Study Streak Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Study Streak</h3>
+                    <span class="badge bg-light text-primary">{{ streak_data.current_streak }} Days</span>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-6">
+                            <h5 class="text-center mb-1">Current Streak</h5>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <div class="streak-circle bg-primary text-white">
+                                    <span class="streak-number">{{ streak_data.current_streak }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-center mb-1">Longest Streak</h5>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <div class="streak-circle bg-success text-white">
+                                    <span class="streak-number">{{ streak_data.longest_streak }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-calendar mb-3">
+                        <h5 class="mb-2">Last 30 Days Activity</h5>
+                        <div class="d-flex flex-wrap justify-content-between">
+                            {% for day in streak_data.last_30_days %}
+                                <div class="activity-day {{ 'active' if day.active }}" title="{{ day.date }}">
+                                    {{ day.day_name }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="streak-motivation text-center mt-3">
+                        {% if streak_data.current_streak == 0 %}
+                            <p class="mb-0">Start your learning streak today!</p>
+                        {% elif streak_data.current_streak < 3 %}
+                            <p class="mb-0">Great start! Keep going to build your streak.</p>
+                        {% elif streak_data.current_streak < 7 %}
+                            <p class="mb-0">Impressive! You're building a solid study habit.</p>
+                        {% elif streak_data.current_streak < 14 %}
+                            <p class="mb-0">Amazing dedication! Keep up the great work!</p>
+                        {% else %}
+                            <p class="mb-0">Phenomenal! Your commitment is inspiring!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="col-md-8">

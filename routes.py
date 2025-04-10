@@ -304,6 +304,7 @@ def speaking_assessment(prompt_id):
 
 @app.route('/api/speaking/submit', methods=['POST'])
 @login_required
+@update_user_streak
 def submit_speaking():
     prompt_id = request.form.get('prompt_id')
     audio_file = request.files.get('audio')
