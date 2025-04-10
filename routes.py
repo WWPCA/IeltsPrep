@@ -27,6 +27,25 @@ def subscription_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def update_user_streak(f):
+    """Decorator to update a user's study streak when they perform activities"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # First execute the route function
+        response = f(*args, **kwargs)
+        
+        # Then update the user's streak if they're logged in
+        if current_user.is_authenticated:
+            try:
+                current_user.update_streak()
+                db.session.commit()
+            except Exception as e:
+                app.logger.error(f"Error updating user streak: {str(e)}")
+                db.session.rollback()
+                
+        return response
+    return decorated_function
+
 # Home route
 @app.route('/')
 def index():
@@ -113,8 +132,11 @@ def logout():
 
 @app.route('/profile')
 @login_required
+@update_user_streak
 def profile():
-    return render_template('profile.html', title='My Profile')
+    # Get streak data for visualization
+    streak_data = current_user.get_streak_data()
+    return render_template('profile.html', title='My Profile', streak_data=streak_data)
 
 # Test Structure Routes
 @app.route('/test-structure')
@@ -162,6 +184,7 @@ def practice_test_list(test_type):
 
 @app.route('/practice/<test_type>/<int:test_id>')
 @login_required
+@update_user_streak
 def take_practice_test(test_type, test_id):
     if test_type not in ['listening', 'reading', 'writing']:
         abort(404)
@@ -188,6 +211,7 @@ def take_practice_test(test_type, test_id):
 
 @app.route('/api/submit-test', methods=['POST'])
 @login_required
+@update_user_streak
 def submit_test():
     data = request.json
     test_id = data.get('test_id')
@@ -262,6 +286,7 @@ def speaking_index():
 
 @app.route('/speaking/<int:prompt_id>')
 @login_required
+@update_user_streak
 def speaking_assessment(prompt_id):
     prompt = SpeakingPrompt.query.get_or_404(prompt_id)
     

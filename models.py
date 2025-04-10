@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from app import db, login_manager
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,6 +18,14 @@ class User(UserMixin, db.Model):
     subscription_status = db.Column(db.String(20), default="none")
     subscription_expiry = db.Column(db.DateTime, nullable=True)
     preferred_language = db.Column(db.String(10), default="en")
+    
+    # Study streak tracking
+    current_streak = db.Column(db.Integer, default=0)
+    longest_streak = db.Column(db.Integer, default=0)
+    last_activity_date = db.Column(db.Date, nullable=True)
+    
+    # Store study activity history as JSON string
+    _activity_history = db.Column(db.Text, default='[]')
     
     # Store test history as JSON string
     _test_history = db.Column(db.Text, default='[]')
@@ -45,6 +53,75 @@ class User(UserMixin, db.Model):
     @speaking_scores.setter
     def speaking_scores(self, value):
         self._speaking_scores = json.dumps(value)
+    
+    @property
+    def activity_history(self):
+        return json.loads(self._activity_history)
+    
+    @activity_history.setter
+    def activity_history(self, value):
+        self._activity_history = json.dumps(value)
+    
+    def update_streak(self):
+        """Update the user's study streak based on their activity"""
+        today = date.today()
+        
+        # If this is the first activity ever
+        if not self.last_activity_date:
+            self.current_streak = 1
+            self.longest_streak = 1
+            self.last_activity_date = today
+            
+            # Add today to activity history
+            history = self.activity_history
+            history.append(today.isoformat())
+            self.activity_history = history
+            return
+        
+        # If already logged activity today, no need to update
+        if self.last_activity_date == today:
+            return
+            
+        # Check if the last activity was yesterday
+        yesterday = today - timedelta(days=1)
+        if self.last_activity_date == yesterday:
+            # Continuing the streak
+            self.current_streak += 1
+            if self.current_streak > self.longest_streak:
+                self.longest_streak = self.current_streak
+        elif self.last_activity_date < yesterday:
+            # Streak broken - start a new one
+            self.current_streak = 1
+            
+        # Update last activity date
+        self.last_activity_date = today
+        
+        # Add to activity history
+        history = self.activity_history
+        history.append(today.isoformat())
+        self.activity_history = history
+    
+    def get_streak_data(self):
+        """Get formatted streak data for visualization"""
+        # Get last 30 days of activity for visualization
+        today = date.today()
+        last_30_days = []
+        
+        # Create a list of the last 30 days with activity status
+        for i in range(30):
+            day_date = today - timedelta(days=29-i)
+            active = day_date.isoformat() in self.activity_history
+            last_30_days.append({
+                'date': day_date.isoformat(),
+                'active': active,
+                'day_name': day_date.strftime('%a')[:1]  # First letter of day name
+            })
+            
+        return {
+            'current_streak': self.current_streak,
+            'longest_streak': self.longest_streak,
+            'last_30_days': last_30_days
+        }
     
     def is_subscribed(self):
         # Check if user has an active subscription
