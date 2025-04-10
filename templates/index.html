@@ -4,12 +4,12 @@
 <!-- Hero Section -->
 <section class="hero">
     <div class="container">
-        <h1>Master Artificial Intelligence with Personalized Learning Paths</h1>
-        <p class="lead"><strong>From Novice to AI Expert: The Most Accessible AI Learning Platform for All Skill Levels</strong></p>
-        <p>AI Learning Hub guides you through your artificial intelligence journey with interactive projects, personalized learning paths, and AI-powered tutoring - whether you're a complete beginner or advanced practitioner.</p>
+        <h1>Official IELTS Preparation with AI-Powered Practice Tests</h1>
+        <p class="lead"><strong>Achieve Band 7+ with the World's First AI-Powered IELTS Test Preparation Platform</strong></p>
+        <p>IELTS AI Prep helps you achieve your target band score with authentic practice tests, AI-powered speaking assessment, and comprehensive preparation resources for Academic, General Training, UKVI and Life Skills.</p>
         <div class="hero-buttons">
-            <a href="{{ url_for('test_structure') }}" class="btn btn-primary btn-lg">Explore Learning Paths</a>
-            <a href="{{ url_for('subscribe') }}" class="btn btn-secondary btn-lg">Start Learning Today</a>
+            <a href="{{ url_for('test_structure') }}" class="btn btn-primary btn-lg">Explore IELTS Test Format</a>
+            <a href="{{ url_for('subscribe') }}" class="btn btn-secondary btn-lg">Start Preparing Today</a>
         </div>
     </div>
 </section>
@@ -17,55 +17,55 @@
 <!-- Features Section -->
 <section class="features">
     <div class="container">
-        <h2>Why Choose AI Learning Hub for Your AI Education?</h2>
+        <h2>Why Choose IELTS AI Prep for Your Test Preparation?</h2>
         
         <div class="features-grid">
             <div class="feature-card card">
                 <div class="card-body">
                     <div class="feature-icon">
-                        <i class="fas fa-road"></i>
+                        <i class="fas fa-book-open"></i>
                     </div>
-                    <h3>Personalized Learning Journey</h3>
-                    <p>Our adaptive platform creates customized learning paths based on your experience level, learning goals, and progress - from Python basics to advanced deep learning models.</p>
+                    <h3>Comprehensive Test Preparation</h3>
+                    <p>Official-format practice materials for all IELTS modules: Listening, Reading, Writing, and Speaking for both IELTS Academic and IELTS General Training.</p>
                 </div>
             </div>
             
             <div class="feature-card card">
                 <div class="card-body">
                     <div class="feature-icon">
-                        <i class="fas fa-robot"></i>
+                        <i class="fas fa-microphone-alt"></i>
                     </div>
-                    <h3>AI-Powered Learning Assistant</h3>
-                    <p>Get real-time help and explanations from our advanced AI tutor that adapts to your learning style, answers your questions, and provides personalized feedback on your code and projects.</p>
+                    <h3>AI-Enhanced Band Score Assessment</h3>
+                    <p>Receive detailed band score feedback on your speaking responses with assessments across all four IELTS criteria: Fluency and Coherence, Lexical Resource, Grammatical Range, and Pronunciation.</p>
                 </div>
             </div>
             
             <div class="feature-card card">
                 <div class="card-body">
                     <div class="feature-icon">
-                        <i class="fas fa-project-diagram"></i>
+                        <i class="fas fa-globe"></i>
                     </div>
-                    <h3>Hands-On Project Learning</h3>
-                    <p>Apply your skills with real-world projects in computer vision, natural language processing, reinforcement learning, and data science - all with step-by-step guidance.</p>
+                    <h3>Global Test Centre Preparation</h3>
+                    <p>Designed for test-takers worldwide with multiple payment options, low-bandwidth mode for limited internet connectivity, and offline practice capabilities.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Learning Paths Overview -->
+<!-- Test Modules Overview -->
 <section class="test-sections py-5 bg-light">
     <div class="container">
-        <h2 class="text-center mb-5">Master AI Across All Skill Levels and Specializations</h2>
+        <h2 class="text-center mb-5">Improve Your Band Score Across All IELTS Test Modules</h2>
         
         <div class="row">
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-code fa-3x text-primary mb-3"></i>
-                        <h3>Programming Fundamentals</h3>
-                        <p>Master Python programming with interactive lessons covering variables, data structures, functions, and object-oriented programming - designed specifically for aspiring AI practitioners with no prior coding experience.</p>
-                        <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-outline-primary mt-3">Start Learning</a>
+                        <i class="fas fa-headphones fa-3x text-primary mb-3"></i>
+                        <h3>IELTS Listening Test</h3>
+                        <p>Practice with authentic recordings featuring a range of accents and question types: multiple choice, matching, plan/map/diagram labelling, form completion, note completion, table completion, flow-chart completion, summary completion, and sentence completion.</p>
+                        <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-outline-primary mt-3">Practice Now</a>
                     </div>
                 </div>
             </div>
@@ -73,10 +73,10 @@
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-brain fa-3x text-primary mb-3"></i>
-                        <h3>Machine Learning</h3>
-                        <p>Explore the foundations of ML with hands-on projects in classification, regression, clustering, and model evaluation. Learn popular algorithms like decision trees, random forests, and gradient boosting with step-by-step guidance.</p>
-                        <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-outline-primary mt-3">Start Learning</a>
+                        <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                        <h3>IELTS Reading Test</h3>
+                        <p>Improve comprehension with Academic and General Training practice texts covering diverse topics and question formats including multiple choice, identifying information, identifying writer's views/claims, matching information, matching headings, and more.</p>
+                        <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-outline-primary mt-3">Practice Now</a>
                     </div>
                 </div>
             </div>
@@ -84,10 +84,10 @@
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-network-wired fa-3x text-primary mb-3"></i>
-                        <h3>Deep Learning</h3>
-                        <p>Build and train neural networks for image recognition, natural language processing, and generative AI. Master frameworks like TensorFlow and PyTorch with guided projects that reinforce theoretical concepts.</p>
-                        <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-outline-primary mt-3">Start Learning</a>
+                        <i class="fas fa-pen fa-3x text-primary mb-3"></i>
+                        <h3>IELTS Writing Test</h3>
+                        <p>Master Task 1 (describing visual data for Academic or writing a letter for General Training) and Task 2 (essay writing) with guided practice tests and detailed band score feedback.</p>
+                        <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-outline-primary mt-3">Practice Now</a>
                     </div>
                 </div>
             </div>
@@ -95,10 +95,10 @@
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="card h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
-                        <h3>Data Science</h3>
-                        <p>Learn data analysis, visualization, and statistical modeling with real-world datasets. Master the data pipeline from collection to preprocessing, exploration, and insights generation with industry-standard tools.</p>
-                        <a href="{{ url_for('speaking_index') }}" class="btn btn-outline-primary mt-3">Start Learning</a>
+                        <i class="fas fa-comment fa-3x text-primary mb-3"></i>
+                        <h3>IELTS Speaking Test</h3>
+                        <p>Practice all three parts of the speaking test with AI-powered assessment across the four marking criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.</p>
+                        <a href="{{ url_for('speaking_index') }}" class="btn btn-outline-primary mt-3">View Sample</a>
                     </div>
                 </div>
             </div>
