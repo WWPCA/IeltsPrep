@@ -26,7 +26,7 @@
                         </div>
                         <div class="card-body">
                             <div class="audio-player mb-3">
-                                <audio id="listening-audio" src="{{ test.audio_url }}" preload="auto"></audio>
+                                <audio id="listening-audio" src="{{ url_for('static', filename=test.audio_url) }}" preload="auto"></audio>
                                 <div class="audio-controls">
                                     <button id="play-audio" class="btn btn-primary">
                                         <i class="fas fa-play"></i> Play
