@@ -101,22 +101,6 @@
                         <li><a href="#">Contact Us</a></li>
                     </ul>
                 </div>
-                
-                <div class="footer-links">
-                    <h3>Language</h3>
-                    <form method="POST" action="{{ url_for('set_language') }}">
-                        <select id="language-selector" name="language" class="form-select">
-                            <option value="en" {% if current_user.is_authenticated and current_user.preferred_language == 'en' %}selected{% endif %}>English</option>
-                            <option value="hi" {% if current_user.is_authenticated and current_user.preferred_language == 'hi' %}selected{% endif %}>Hindi</option>
-                            <option value="ur" {% if current_user.is_authenticated and current_user.preferred_language == 'ur' %}selected{% endif %}>Urdu</option>
-                            <option value="ar" {% if current_user.is_authenticated and current_user.preferred_language == 'ar' %}selected{% endif %}>Arabic</option>
-                            <option value="ja" {% if current_user.is_authenticated and current_user.preferred_language == 'ja' %}selected{% endif %}>Japanese</option>
-                            <option value="ko" {% if current_user.is_authenticated and current_user.preferred_language == 'ko' %}selected{% endif %}>Korean</option>
-                            <option value="de" {% if current_user.is_authenticated and current_user.preferred_language == 'de' %}selected{% endif %}>German</option>
-                            <option value="fr" {% if current_user.is_authenticated and current_user.preferred_language == 'fr' %}selected{% endif %}>French</option>
-                        </select>
-                    </form>
-                </div>
             </div>
             
             <div class="copyright">

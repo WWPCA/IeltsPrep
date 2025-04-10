@@ -430,30 +430,6 @@ def payment_cancel():
 def device_specs():
     return render_template('device_specs.html', title='Device Requirements')
 
-# Localization and Utility Routes
-@app.route('/set-language', methods=['POST'])
-def set_language():
-    language = request.form.get('language', 'en')
-    if current_user.is_authenticated:
-        current_user.preferred_language = language
-        db.session.commit()
-    else:
-        session['language'] = language
-    
-    return redirect(request.referrer or url_for('index'))
-
-@app.route('/api/translations/<language>')
-def get_translations(language):
-    translations = Translation.query.filter_by(language=language).all()
-    result = {}
-    
-    for translation in translations:
-        if translation.page not in result:
-            result[translation.page] = {}
-        result[translation.page][translation.element] = translation.text
-    
-    return jsonify(result)
-
 # API Routes for offline sync
 @app.route('/api/sync', methods=['POST'])
 @login_required
