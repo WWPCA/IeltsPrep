@@ -16,8 +16,8 @@
                 <div class="speaking-test" data-prompt-id="{{ prompt.id }}">
                     <h1 class="mb-4">IELTS Speaking Assessment</h1>
                     
-                    <!-- Info Box -->
-                    <div class="mb-4">
+                    <!-- Info Box with fixed position -->
+                    <div class="mb-4" style="position: fixed; top: 85px; width: 100%; max-width: 730px; z-index: 1000;">
                         <div class="alert alert-info mb-3">
                             <div class="d-flex">
                                 <div class="me-3">
@@ -45,6 +45,9 @@
                             </div>
                         {% endif %}
                     </div>
+                    
+                    <!-- Spacer to prevent content from being hidden behind fixed position info box -->
+                    <div style="height: 260px;"></div>
                     
                     <div class="card mb-4">
                         <div class="card-header bg-primary text-white">
