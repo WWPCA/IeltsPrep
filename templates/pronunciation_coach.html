@@ -273,10 +273,16 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
+        console.log(`Fetching exercises with difficulty=${difficulty}, category=${category}`);
+        
         // Fetch exercises from the server
         fetch(`/pronunciation-exercises?difficulty=${difficulty}&category=${category}`)
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Received data:', data);
                 const container = document.getElementById('exercisesContainer');
                 container.innerHTML = '';
                 
