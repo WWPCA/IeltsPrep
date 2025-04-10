@@ -2,11 +2,21 @@
  * IELTS AI Prep - Speaking Assessment JavaScript
  */
 
-let mediaRecorder;
-let audioChunks = [];
-let recordingTimer;
-let recordingSeconds = 0;
-let isRecording = false;
+// Wrap all variables in a namespace to avoid global conflicts
+const speakingModule = {
+    mediaRecorder: null,
+    audioChunks: [],
+    recordingTimer: null,
+    recordingSeconds: 0,
+    isRecording: false,
+    
+    // Format time function for the speaking module
+    formatTime: function(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize speaking assessment
@@ -72,15 +82,15 @@ function initializeSpeakingTest() {
      * Set up the media recorder with the audio stream
      */
     function setupRecorder(stream) {
-        mediaRecorder = new MediaRecorder(stream);
+        speakingModule.mediaRecorder = new MediaRecorder(stream);
         
-        mediaRecorder.ondataavailable = function(event) {
-            audioChunks.push(event.data);
+        speakingModule.mediaRecorder.ondataavailable = function(event) {
+            speakingModule.audioChunks.push(event.data);
         };
         
-        mediaRecorder.onstop = function() {
+        speakingModule.mediaRecorder.onstop = function() {
             // Create audio blob
-            const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+            const audioBlob = new Blob(speakingModule.audioChunks, { type: 'audio/mp3' });
             
             // Create a URL for the blob
             const audioUrl = URL.createObjectURL(audioBlob);
@@ -98,8 +108,8 @@ function initializeSpeakingTest() {
      */
     function startRecording() {
         // Clear any existing recording
-        audioChunks = [];
-        recordingSeconds = 0;
+        speakingModule.audioChunks = [];
+        speakingModule.recordingSeconds = 0;
         
         // Hide any previous feedback
         if (feedbackContainer) {
@@ -114,16 +124,16 @@ function initializeSpeakingTest() {
         timerDisplay.style.display = 'inline';
         
         // Start recording
-        mediaRecorder.start();
-        isRecording = true;
+        speakingModule.mediaRecorder.start();
+        speakingModule.isRecording = true;
         
         // Start timer
-        recordingTimer = setInterval(function() {
-            recordingSeconds++;
-            timerDisplay.textContent = formatTime(recordingSeconds);
+        speakingModule.recordingTimer = setInterval(function() {
+            speakingModule.recordingSeconds++;
+            timerDisplay.textContent = formatTime(speakingModule.recordingSeconds);
             
             // Auto-stop after 2 minutes (IELTS speaking responses are typically 1-2 minutes)
-            if (recordingSeconds >= 120) {
+            if (speakingModule.recordingSeconds >= 120) {
                 stopRecording();
             }
         }, 1000);
@@ -135,14 +145,14 @@ function initializeSpeakingTest() {
      * Stop recording audio
      */
     function stopRecording() {
-        if (!isRecording) return;
+        if (!speakingModule.isRecording) return;
         
         // Stop the recorder
-        mediaRecorder.stop();
-        isRecording = false;
+        speakingModule.mediaRecorder.stop();
+        speakingModule.isRecording = false;
         
         // Stop the timer
-        clearInterval(recordingTimer);
+        clearInterval(speakingModule.recordingTimer);
         
         // Update UI
         recordButton.disabled = false;
@@ -160,7 +170,7 @@ function initializeSpeakingTest() {
             playbackContainer.innerHTML = `
                 <div class="card mt-3">
                     <div class="card-header">
-                        <h4>Your Recording (${formatTime(recordingSeconds)})</h4>
+                        <h4>Your Recording (${formatTime(speakingModule.recordingSeconds)})</h4>
                     </div>
                     <div class="card-body">
                         <audio controls src="${audioUrl}" class="w-100"></audio>
