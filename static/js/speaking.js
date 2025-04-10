@@ -1,16 +1,21 @@
 /**
  * IELTS AI Prep - Speaking Assessment JavaScript
+ * 
+ * This file handles the speaking assessment functionality with audio recording
+ * and submission for analysis. It uses a namespace pattern to avoid conflicts
+ * with global variables in other JavaScript files.
  */
 
-// Wrap all variables in a namespace to avoid global conflicts
+// Create a namespace for all speaking assessment variables and functions
 const speakingModule = {
+    // Recording state variables
     mediaRecorder: null,
     audioChunks: [],
     recordingTimer: null,
     recordingSeconds: 0,
     isRecording: false,
     
-    // Format time function for the speaking module
+    // Format time function for the speaking module (mm:ss format)
     formatTime: function(seconds) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;

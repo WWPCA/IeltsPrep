@@ -244,14 +244,21 @@ def submit_test():
 # Speaking Assessment Routes
 @app.route('/speaking')
 def speaking_index():
-    prompts = SpeakingPrompt.query.all()
-    sample_prompt = prompts[0] if prompts else None
-    
-    # Flag to indicate if this is a sample view (not subscribed)
-    is_sample = not (current_user.is_authenticated and current_user.is_subscribed())
-    
-    return render_template('speaking/index.html', title='Speaking Assessment',
-                          prompts=prompts, sample_prompt=sample_prompt, is_sample=is_sample)
+    try:
+        prompts = SpeakingPrompt.query.all()
+        sample_prompt = prompts[0] if prompts else None
+        
+        # Flag to indicate if this is a sample view (not subscribed)
+        is_sample = not (current_user.is_authenticated and current_user.is_subscribed())
+        
+        # Set assessment to False for the index page, only set to True for specific prompt pages
+        return render_template('speaking/index.html', title='Speaking Assessment',
+                            prompts=prompts, sample_prompt=sample_prompt, 
+                            is_sample=is_sample, assessment=False)
+    except Exception as e:
+        app.logger.error(f"Error in speaking_index: {str(e)}")
+        flash('An error occurred while loading the speaking assessment page. Please try again.', 'danger')
+        return redirect(url_for('index'))
 
 @app.route('/speaking/<int:prompt_id>')
 @login_required
