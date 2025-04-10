@@ -85,6 +85,118 @@
                     <div id="audio-playback"></div>
                     
                     <div id="feedback-container"></div>
+                    
+                    <!-- How It Works - Kept visible during assessment -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">How It Works</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-3 mb-md-0 text-center">
+                                    <div class="feature-icon mb-2">
+                                        <i class="fas fa-microphone-alt fa-3x text-primary"></i>
+                                    </div>
+                                    <h3 class="h5">1. Record</h3>
+                                    <p>Record your response to an IELTS-style speaking prompt.</p>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3 mb-md-0 text-center">
+                                    <div class="feature-icon mb-2">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-primary"></i>
+                                    </div>
+                                    <h3 class="h5">2. Submit</h3>
+                                    <p>Submit your recording for AI analysis powered by AWS.</p>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3 mb-md-0 text-center">
+                                    <div class="feature-icon mb-2">
+                                        <i class="fas fa-robot fa-3x text-primary"></i>
+                                    </div>
+                                    <h3 class="h5">3. Analyze</h3>
+                                    <p>Our AI evaluates your pronunciation, fluency, vocabulary, and grammar.</p>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3 mb-md-0 text-center">
+                                    <div class="feature-icon mb-2">
+                                        <i class="fas fa-chart-line fa-3x text-primary"></i>
+                                    </div>
+                                    <h3 class="h5">4. Improve</h3>
+                                    <p>Receive detailed feedback and track your progress over time.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- IELTS Speaking Parts - Kept visible during assessment -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">IELTS Speaking Parts</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="accordion" id="speakingPartsAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingOne">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                            Part 1: Introduction and Interview (4-5 minutes)
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#speakingPartsAccordion">
+                                        <div class="accordion-body">
+                                            <p>The examiner introduces themselves and asks you to introduce yourself and confirm your identity. They will then ask general questions on familiar topics such as:</p>
+                                            <ul>
+                                                <li>Home</li>
+                                                <li>Family</li>
+                                                <li>Work or studies</li>
+                                                <li>Hobbies and interests</li>
+                                                <li>Daily routines</li>
+                                            </ul>
+                                            <p>This part tests your ability to communicate opinions and information on everyday topics by answering a range of questions.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingTwo">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                            Part 2: Long Turn (3-4 minutes)
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#speakingPartsAccordion">
+                                        <div class="accordion-body">
+                                            <p>The examiner gives you a task card with a topic and some points to include in your talk. You have 1 minute to prepare and make notes, then you need to talk about the topic for 1-2 minutes. Topics are usually about:</p>
+                                            <ul>
+                                                <li>Describing a person, place, object, or event</li>
+                                                <li>Talking about an experience or memory</li>
+                                                <li>Explaining a preference or decision</li>
+                                            </ul>
+                                            <p>After your talk, the examiner may ask one or two brief questions on the same topic. This part tests your ability to speak at length with minimal hesitation and to use language accurately and appropriately.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingThree">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                            Part 3: Discussion (4-5 minutes)
+                                        </button>
+                                    </h2>
+                                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#speakingPartsAccordion">
+                                        <div class="accordion-body">
+                                            <p>The examiner asks further questions connected to the topic in Part 2, allowing a deeper discussion of more abstract ideas and issues. Questions typically ask you to:</p>
+                                            <ul>
+                                                <li>Analyze situations or problems</li>
+                                                <li>Discuss hypothetical scenarios</li>
+                                                <li>Evaluate different options or viewpoints</li>
+                                                <li>Make comparisons or speculate about the future</li>
+                                            </ul>
+                                            <p>This part tests your ability to explain and justify opinions and to analyze, discuss and speculate about issues.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
             {% else %}
