@@ -36,6 +36,13 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
+    class LoginForm:
+        # Simple form class to enable CSRF protection
+        def __init__(self):
+            pass
+    
+    form = LoginForm()
+    
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -51,7 +58,7 @@ def login():
         else:
             flash('Login failed. Please check your email and password.', 'danger')
             
-    return render_template('login.html', title='Login')
+    return render_template('login.html', title='Login', form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -327,7 +334,6 @@ def subscribe():
                           payment_methods=payment_methods)
 
 @app.route('/create-checkout-session', methods=['POST'])
-@app.route('/payment-cancel')
 def create_checkout_session():
     payment_method = request.form.get('payment_method', 'stripe')
     plan = request.form.get('plan', 'base')
@@ -391,6 +397,8 @@ def payment_success():
         flash(f'Error processing payment: {str(e)}', 'danger')
     
     return render_template('payment_success.html', title='Payment Successful')
+
+@app.route('/payment-cancel')
 def payment_cancel():
     flash('Payment was cancelled', 'info')
     return render_template('payment_cancel.html', title='Payment Cancelled')
