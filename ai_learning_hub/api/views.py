@@ -17,3 +17,8 @@ def api_status():
     """API status page"""
     # Pass the current datetime to the template
     return render_template('api_status.html', now=datetime.utcnow())
+
+@api_web_bp.route('/tester')
+def api_tester():
+    """Interactive API testing tool for mobile developers"""
+    return render_template('mobile_api_tester.html')

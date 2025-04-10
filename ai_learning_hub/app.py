@@ -47,5 +47,9 @@ with app.app_context():
     from ai_learning_hub.api.views import api_web_bp
     app.register_blueprint(api_web_bp)
     
+    # Register the pronunciation coach blueprint
+    from ai_learning_hub.pronunciation_routes import pronunciation_bp
+    app.register_blueprint(pronunciation_bp)
+    
     # Create tables
     db.create_all()

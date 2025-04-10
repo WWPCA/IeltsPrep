@@ -63,6 +63,11 @@
                             </ul>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('pronunciation.pronunciation_coach') }}">
+                                <i class="fas fa-microphone me-1"></i>Pronunciation Coach
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('pricing') }}">Pricing</a>
                         </li>
                         <li class="nav-item">
@@ -138,6 +143,7 @@
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="{{ url_for('index') }}" class="footer-link">Home</a></li>
                         <li class="mb-2"><a href="{{ url_for('courses') }}" class="footer-link">All Courses</a></li>
+                        <li class="mb-2"><a href="{{ url_for('pronunciation.pronunciation_coach') }}" class="footer-link">Pronunciation Coach</a></li>
                         <li class="mb-2"><a href="{{ url_for('pricing') }}" class="footer-link">Pricing</a></li>
                         <li class="mb-2"><a href="{{ url_for('about') }}" class="footer-link">About Us</a></li>
                         <li class="mb-2"><a href="{{ url_for('contact') }}" class="footer-link">Contact</a></li>

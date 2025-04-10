@@ -1,224 +1,148 @@
-import json
+"""
+Database models for the AI Learning Hub application
+"""
 from datetime import datetime
-
+import json
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from werkzeug.security import check_password_hash, generate_password_hash
+from ai_learning_hub.app import db, login_manager
 
-from ai_learning_hub.app import db
-
-# We'll use the existing User model from the main application
-# and create our AI Learning Hub specific models with different names
+@login_manager.user_loader
+def load_user(user_id):
+    """Load a user from the database"""
+    return AIHubUser.query.get(int(user_id))
 
 class AIHubUser(UserMixin, db.Model):
-    """AI Learning Hub user model that is completely separate from the IELTS User model"""
-    __tablename__ = 'ai_hub_user'
-    
+    """User model for AI Learning Hub"""
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    full_name = db.Column(db.String(100), nullable=True)
+    full_name = db.Column(db.String(120), nullable=True)
+    profile_picture = db.Column(db.String(256), nullable=True)
     bio = db.Column(db.Text, nullable=True)
-    profile_image = db.Column(db.String(200), nullable=True)
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
-    
-    # Preferences
-    skill_level = db.Column(db.String(20), default="beginner")  # beginner, intermediate, advanced
-    interests = db.Column(db.String(200), nullable=True)  # comma-separated list of interests
-    learning_goal = db.Column(db.String(100), nullable=True)
-    
-    # Subscription info
-    subscription_type = db.Column(db.String(20), default="free")  # free, basic, premium
+    is_active = db.Column(db.Boolean, default=True)
+    subscription_status = db.Column(db.String(20), default="none")
     subscription_expiry = db.Column(db.DateTime, nullable=True)
+    preferred_language = db.Column(db.String(10), default="en")
+    _preferences = db.Column(db.Text, default='{}')  # JSON string of user preferences
+    
+    # Relationships
+    courses = db.relationship('UserCourse', backref='user', lazy='dynamic')
     
     def set_password(self, password):
+        """Set the user's password hash"""
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
+        """Check if the password is correct"""
         return check_password_hash(self.password_hash, password)
     
-    # Relationships
-    enrollments = db.relationship('Enrollment', backref='aihub_user', lazy=True, 
-                                 foreign_keys='Enrollment.aihub_user_id')
-    progress_records = db.relationship('ProgressRecord', backref='aihub_user', lazy=True,
-                                      foreign_keys='ProgressRecord.aihub_user_id')
-    completed_lessons = db.relationship('CompletedLesson', backref='aihub_user', lazy=True,
-                                       foreign_keys='CompletedLesson.aihub_user_id')
+    @property
+    def preferences(self):
+        """Get user preferences"""
+        return json.loads(self._preferences)
+    
+    @preferences.setter
+    def preferences(self, value):
+        """Set user preferences"""
+        self._preferences = json.dumps(value)
     
     def is_subscribed(self):
-        if self.subscription_type == "free":
-            return False
+        """Check if the user has an active subscription"""
         if not self.subscription_expiry:
             return False
-        return self.subscription_expiry > datetime.utcnow()
+        return self.subscription_status == "active" and self.subscription_expiry > datetime.utcnow()
     
     def __repr__(self):
-        return f'<AIHubUser {self.id}>'
-
+        return f'<AIHubUser {self.username}>'
 
 class Course(db.Model):
+    """Course model for AI Learning Hub"""
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    slug = db.Column(db.String(100), unique=True, nullable=False)
+    title = db.Column(db.String(120), nullable=False)
+    slug = db.Column(db.String(120), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=False)
-    short_description = db.Column(db.String(200), nullable=True)
-    cover_image = db.Column(db.String(200), nullable=True)
-    level = db.Column(db.String(20), nullable=False)  # beginner, intermediate, advanced
-    price = db.Column(db.Float, default=0.0)
-    is_premium = db.Column(db.Boolean, default=False)
-    category = db.Column(db.String(50), nullable=False)
-    tags = db.Column(db.String(200), nullable=True)  # comma-separated tags
-    prerequisites = db.Column(db.Text, nullable=True)
-    learning_outcomes = db.Column(db.Text, nullable=True)  # JSON string list
-    instructor_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=True)
+    thumbnail_url = db.Column(db.String(256), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Rating and stats
-    rating = db.Column(db.Float, default=0.0)
-    rating_count = db.Column(db.Integer, default=0)
-    enrollment_count = db.Column(db.Integer, default=0)
-    
-    # SEO fields
-    meta_title = db.Column(db.String(150), nullable=True)
-    meta_description = db.Column(db.String(300), nullable=True)
-    seo_keywords = db.Column(db.String(200), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'))
+    is_published = db.Column(db.Boolean, default=False)
+    difficulty_level = db.Column(db.String(20), default="beginner")
+    duration_minutes = db.Column(db.Integer, nullable=True)
+    category = db.Column(db.String(50), nullable=True)
+    tags = db.Column(db.String(256), nullable=True)  # Comma-separated tags
     
     # Relationships
-    modules = db.relationship('Module', backref='course', lazy=True)
-    enrollments = db.relationship('Enrollment', backref='course', lazy=True)
-    
-    def instructor(self):
-        return AIHubUser.query.get(self.instructor_id)
-    
-    @property
-    def outcomes_list(self):
-        if self.learning_outcomes:
-            return json.loads(self.learning_outcomes)
-        return []
-    
-    @outcomes_list.setter
-    def outcomes_list(self, value):
-        self.learning_outcomes = json.dumps(value)
+    modules = db.relationship('Module', backref='course', lazy='dynamic')
+    enrollments = db.relationship('UserCourse', backref='course', lazy='dynamic')
     
     def __repr__(self):
         return f'<Course {self.title}>'
 
-
 class Module(db.Model):
+    """Module model for courses"""
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    order = db.Column(db.Integer, nullable=False)
+    order = db.Column(db.Integer, default=0)  # Order in the course
     
     # Relationships
-    lessons = db.relationship('Lesson', backref='module', lazy=True)
+    lessons = db.relationship('Lesson', backref='module', lazy='dynamic')
     
     def __repr__(self):
         return f'<Module {self.title}>'
 
-
 class Lesson(db.Model):
+    """Lesson model for modules"""
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    slug = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(120), nullable=False)
     content = db.Column(db.Text, nullable=False)
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
-    order = db.Column(db.Integer, nullable=False)
-    lesson_type = db.Column(db.String(20), default="text")  # text, video, quiz, project
-    video_url = db.Column(db.String(200), nullable=True)
-    duration_minutes = db.Column(db.Integer, default=0)
-    is_free = db.Column(db.Boolean, default=False)
+    order = db.Column(db.Integer, default=0)  # Order in the module
+    video_url = db.Column(db.String(256), nullable=True)
+    duration_minutes = db.Column(db.Integer, nullable=True)
     
     # Relationships
-    quiz_questions = db.relationship('QuizQuestion', backref='lesson', lazy=True)
-    completed_by = db.relationship('CompletedLesson', backref='lesson', lazy=True)
+    completions = db.relationship('LessonCompletion', backref='lesson', lazy='dynamic')
     
     def __repr__(self):
         return f'<Lesson {self.title}>'
 
-
-class QuizQuestion(db.Model):
+class UserCourse(db.Model):
+    """Model for user course enrollments"""
     id = db.Column(db.Integer, primary_key=True)
-    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
-    question_text = db.Column(db.Text, nullable=False)
-    question_type = db.Column(db.String(20), default="multiple_choice")  # multiple_choice, true_false, code_completion
-    options = db.Column(db.Text, nullable=True)  # JSON string for options
-    correct_answer = db.Column(db.Text, nullable=False)
-    explanation = db.Column(db.Text, nullable=True)
-    order = db.Column(db.Integer, default=0)
-    
-    @property
-    def options_list(self):
-        if self.options:
-            return json.loads(self.options)
-        return []
-    
-    @options_list.setter
-    def options_list(self, value):
-        self.options = json.dumps(value)
-    
-    def __repr__(self):
-        return f'<QuizQuestion {self.id}>'
-
-
-class Enrollment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_accessed = db.Column(db.DateTime, default=datetime.utcnow)
-    completed = db.Column(db.Boolean, default=False)
+    enrolled_date = db.Column(db.DateTime, default=datetime.utcnow)
+    last_accessed = db.Column(db.DateTime, nullable=True)
+    is_completed = db.Column(db.Boolean, default=False)
     completion_date = db.Column(db.DateTime, nullable=True)
     
     def __repr__(self):
-        return f'<Enrollment {self.id}>'
+        return f'<UserCourse user_id={self.user_id} course_id={self.course_id}>'
 
-
-class ProgressRecord(db.Model):
+class LessonCompletion(db.Model):
+    """Model for tracking completed lessons"""
     id = db.Column(db.Integer, primary_key=True)
-    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    progress_percentage = db.Column(db.Float, default=0.0)
-    last_lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def __repr__(self):
-        return f'<ProgressRecord {self.id}>'
-
-
-class CompletedLesson(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
-    completed_at = db.Column(db.DateTime, default=datetime.utcnow)
-    quiz_score = db.Column(db.Float, nullable=True)  # If lesson has a quiz
+    completed_date = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
-        return f'<CompletedLesson {self.id}>'
+        return f'<LessonCompletion user_id={self.user_id} lesson_id={self.lesson_id}>'
 
-
-class Review(db.Model):
+class UserNote(db.Model):
+    """Model for user notes on lessons"""
     id = db.Column(db.Integer, primary_key=True)
-    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
-    review_text = db.Column(db.Text, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def __repr__(self):
-        return f'<Review {self.id}>'
-
-
-class Certificate(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    issued_at = db.Column(db.DateTime, default=datetime.utcnow)
-    certificate_id = db.Column(db.String(50), unique=True, nullable=False)
-    
-    def __repr__(self):
-        return f'<Certificate {self.certificate_id}>'
+        return f'<UserNote user_id={self.user_id} lesson_id={self.lesson_id}>'

@@ -263,3 +263,202 @@ To improve your score:
 Keep practicing regularly!"""
     
     return scores, feedback
+
+
+def analyze_pronunciation(transcription, reference_text):
+    """
+    Analyze pronunciation by comparing transcribed speech to reference text.
+    
+    Args:
+        transcription (str): Transcribed text from the user's speech
+        reference_text (str): The reference text the user was trying to pronounce
+        
+    Returns:
+        dict: Pronunciation analysis results
+    """
+    try:
+        # Convert both texts to lowercase and remove punctuation for comparison
+        import re
+        import string
+        
+        def clean_text(text):
+            # Remove punctuation and convert to lowercase
+            text = text.lower()
+            text = re.sub(r'[^\w\s]', '', text)
+            return text
+        
+        clean_transcription = clean_text(transcription)
+        clean_reference = clean_text(reference_text)
+        
+        # Split into words
+        transcribed_words = clean_transcription.split()
+        reference_words = clean_reference.split()
+        
+        # Calculate word accuracy
+        matched_words = 0
+        mismatched_words = []
+        
+        # Find words that appear in both texts
+        for ref_word in reference_words:
+            if ref_word in transcribed_words:
+                matched_words += 1
+            else:
+                mismatched_words.append(ref_word)
+        
+        # Calculate accuracy percentage
+        if len(reference_words) > 0:
+            accuracy = (matched_words / len(reference_words)) * 100
+        else:
+            accuracy = 0
+            
+        # Determine pronunciation score (out of 9, IELTS-style)
+        if accuracy >= 95:
+            score = 9
+            feedback = "Excellent pronunciation! You pronounced almost all words correctly."
+        elif accuracy >= 90:
+            score = 8
+            feedback = "Very good pronunciation. Most words were pronounced correctly."
+        elif accuracy >= 80:
+            score = 7
+            feedback = "Good pronunciation. You had a few challenging words."
+        elif accuracy >= 70:
+            score = 6
+            feedback = "Fairly good pronunciation. Several words were mispronounced."
+        elif accuracy >= 60:
+            score = 5
+            feedback = "Moderate pronunciation. You need to work on many words."
+        elif accuracy >= 50:
+            score = 4
+            feedback = "Limited pronunciation accuracy. Many words were not recognized correctly."
+        else:
+            score = 3
+            feedback = "Pronunciation needs significant improvement. Focus on basic pronunciation rules."
+        
+        # Generate specific feedback on problem words
+        problem_words_feedback = ""
+        if mismatched_words:
+            problem_words_feedback = "Words to practice: " + ", ".join(mismatched_words[:5])
+            if len(mismatched_words) > 5:
+                problem_words_feedback += f", and {len(mismatched_words) - 5} more."
+        
+        # Generate full feedback
+        full_feedback = f"{feedback}\n\n"
+        full_feedback += f"Accuracy: {accuracy:.1f}%\n\n"
+        if problem_words_feedback:
+            full_feedback += f"{problem_words_feedback}\n\n"
+        full_feedback += "Tips for improvement:\n"
+        full_feedback += "- Listen to native speakers pronounce these words\n"
+        full_feedback += "- Practice speaking more slowly and clearly\n"
+        full_feedback += "- Pay attention to word stress and intonation\n"
+        full_feedback += "- Record yourself and compare with reference audio"
+        
+        return {
+            'score': score,
+            'accuracy': accuracy,
+            'feedback': full_feedback,
+            'mismatched_words': mismatched_words[:10]  # Limit to 10 words
+        }
+    
+    except Exception as e:
+        logging.error(f"Error in analyze_pronunciation: {str(e)}")
+        return {
+            'score': 4,
+            'accuracy': 40,
+            'feedback': "Sorry, there was an error analyzing your pronunciation. Please try again.",
+            'mismatched_words': []
+        }
+
+
+def generate_pronunciation_exercises(difficulty='medium', category='general'):
+    """
+    Generate pronunciation exercises based on difficulty and category.
+    
+    Args:
+        difficulty (str): 'easy', 'medium', or 'hard'
+        category (str): Category of words to practice
+        
+    Returns:
+        list: A list of pronunciation exercise items
+    """
+    # Define exercise sets by difficulty and category
+    exercises = {
+        'easy': {
+            'general': [
+                {'text': 'Hello, how are you today?', 'focus': 'Basic greeting'},
+                {'text': 'My name is David. Nice to meet you.', 'focus': 'Self-introduction'},
+                {'text': 'I live in New York City.', 'focus': 'Simple statement'},
+                {'text': 'Today is Monday, October fifth.', 'focus': 'Date pronunciation'},
+                {'text': 'I enjoy watching movies and reading books.', 'focus': 'Hobbies'}
+            ],
+            'academic': [
+                {'text': 'The professor explained the concept clearly.', 'focus': 'Academic vocabulary'},
+                {'text': 'Students must submit their assignments on time.', 'focus': 'Academic rules'},
+                {'text': 'The library is open until nine p.m.', 'focus': 'Time and places'},
+                {'text': 'Please take notes during the lecture.', 'focus': 'Academic instructions'},
+                {'text': 'The research paper is due next week.', 'focus': 'Academic deadlines'}
+            ],
+            'business': [
+                {'text': 'We have a meeting at ten o\'clock.', 'focus': 'Business scheduling'},
+                {'text': 'Please email me the report by Friday.', 'focus': 'Business requests'},
+                {'text': 'Our company has offices in five countries.', 'focus': 'Company information'},
+                {'text': 'The presentation went very well.', 'focus': 'Business evaluation'},
+                {'text': 'I need to make a phone call to a client.', 'focus': 'Business communication'}
+            ]
+        },
+        'medium': {
+            'general': [
+                {'text': 'The weather is quite unpredictable this time of year.', 'focus': 'Weather vocabulary'},
+                {'text': 'I\'ve been learning English for approximately three years.', 'focus': 'Time expressions'},
+                {'text': 'The restaurant we visited yesterday was extraordinary.', 'focus': 'Adjectives and adverbs'},
+                {'text': 'Could you recommend a good place to visit in this city?', 'focus': 'Questions and recommendations'},
+                {'text': 'Public transportation is very efficient in this area.', 'focus': 'Urban vocabulary'}
+            ],
+            'academic': [
+                {'text': 'Statistical analysis reveals significant correlations between the variables.', 'focus': 'Academic terminology'},
+                {'text': 'The methodology section describes the experimental procedure in detail.', 'focus': 'Research vocabulary'},
+                {'text': 'Environmental factors contribute substantially to biodiversity loss.', 'focus': 'Scientific terminology'},
+                {'text': 'The literature review synthesizes previous research on this topic.', 'focus': 'Academic writing terminology'},
+                {'text': 'Qualitative and quantitative approaches offer different perspectives.', 'focus': 'Research methods'}
+            ],
+            'business': [
+                {'text': 'The quarterly financial report indicates a fifteen percent increase in revenue.', 'focus': 'Financial terminology'},
+                {'text': 'We should prioritize customer satisfaction and product quality.', 'focus': 'Business priorities'},
+                {'text': 'The marketing department has developed an innovative advertising campaign.', 'focus': 'Marketing vocabulary'},
+                {'text': 'Stakeholders are concerned about the environmental impact of our operations.', 'focus': 'Corporate responsibility'},
+                {'text': 'The negotiation process resulted in a mutually beneficial agreement.', 'focus': 'Business negotiations'}
+            ]
+        },
+        'hard': {
+            'general': [
+                {'text': 'The phenomenon of bioluminescence is particularly fascinating in deep-sea creatures.', 'focus': 'Scientific phenomena'},
+                {'text': 'The architecture of the cathedral exemplifies Gothic craftsmanship at its finest.', 'focus': 'Art and architecture'},
+                {'text': 'Psychological studies suggest that multitasking diminishes productivity rather than enhancing it.', 'focus': 'Psychology concepts'},
+                {'text': 'The parliamentary debate addressed controversial legislation regarding renewable energy initiatives.', 'focus': 'Political terminology'},
+                {'text': 'Contemporary philosophical discourse frequently incorporates interdisciplinary perspectives.', 'focus': 'Abstract concepts'}
+            ],
+            'academic': [
+                {'text': 'The epistemological framework underpinning this research paradigm warrants further scrutiny.', 'focus': 'Advanced academic terminology'},
+                {'text': 'Longitudinal studies demonstrate the efficacy of early intervention in developmental disorders.', 'focus': 'Research terminology'},
+                {'text': 'The thermodynamic characteristics of this compound exhibit anomalous behavior at extreme temperatures.', 'focus': 'Scientific terminology'},
+                {'text': 'Socioeconomic disparities significantly influence educational attainment and subsequent career trajectories.', 'focus': 'Sociological concepts'},
+                {'text': 'Historiographical approaches to colonial narratives have evolved considerably in recent decades.', 'focus': 'Historical analysis'}
+            ],
+            'business': [
+                {'text': 'The conglomerate\'s acquisition strategy has precipitated unprecedented market consolidation in this sector.', 'focus': 'Corporate strategy'},
+                {'text': 'Fluctuations in cryptocurrency valuations exemplify the volatility inherent in emerging financial instruments.', 'focus': 'Financial markets'},
+                {'text': 'The implementation of blockchain technology promises enhanced transparency in supply chain management.', 'focus': 'Business technology'},
+                {'text': 'Corporate sustainability initiatives must reconcile environmental imperatives with fiscal responsibilities.', 'focus': 'Corporate responsibility'},
+                {'text': 'The multinational corporation navigates regulatory complexities across diverse jurisdictional frameworks.', 'focus': 'International business'}
+            ]
+        }
+    }
+    
+    # Select appropriate exercises based on difficulty and category
+    if difficulty not in exercises:
+        difficulty = 'medium'  # Default to medium if invalid difficulty
+    
+    if category not in exercises[difficulty]:
+        category = 'general'  # Default to general if invalid category
+        
+    # Return the exercises
+    return exercises[difficulty][category]
