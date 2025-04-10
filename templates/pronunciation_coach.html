@@ -73,7 +73,7 @@
             <audio class="reference-audio" preload="none"></audio>
             <audio class="recorded-audio" controls id="audioPlayback" style="display: none;"></audio>
             
-            <div class="result-panel">
+            <div class="result-panel" style="display: none;">
                 <h4 class="text-center mb-4">Pronunciation Feedback</h4>
                 
                 <div class="score-display">
@@ -375,42 +375,73 @@ document.addEventListener('DOMContentLoaded', function() {
     function createExerciseCard(exercise) {
         console.log('Creating card with exercise:', exercise);
         
+        // Add more debugging
+        console.log('Template exists?', !!document.getElementById('exerciseCardTemplate'));
+        
         const template = document.getElementById('exerciseCardTemplate');
         if (!template) {
             console.error('Exercise card template not found!');
-            return document.createElement('div');
+            
+            // Create a simple fallback card without using the template
+            const fallbackCard = document.createElement('div');
+            fallbackCard.className = 'card mb-4';
+            fallbackCard.innerHTML = `
+                <div class="card-header">${exercise.focus}</div>
+                <div class="card-body">
+                    <p class="card-text">${exercise.text}</p>
+                    <button class="btn btn-primary">Listen</button>
+                </div>
+            `;
+            return fallbackCard;
         }
         
-        const card = document.importNode(template.content, true).firstElementChild;
-        console.log('Card element created:', card);
-        
-        // Set exercise data
-        const textEl = card.querySelector('.pronunciation-text');
-        const focusEl = card.querySelector('.focus-label');
-        
-        if (!textEl || !focusEl) {
-            console.error('Required elements not found in card template!');
-            console.log('Text element found:', !!textEl);
-            console.log('Focus element found:', !!focusEl);
+        try {
+            const card = document.importNode(template.content, true).firstElementChild;
+            console.log('Card element created:', card);
+            
+            // Set exercise data
+            const textEl = card.querySelector('.pronunciation-text');
+            const focusEl = card.querySelector('.focus-label');
+            
+            if (!textEl || !focusEl) {
+                console.error('Required elements not found in card template!');
+                console.log('Text element found:', !!textEl);
+                console.log('Focus element found:', !!focusEl);
+                throw new Error('Required elements not found in card template!');
+            }
+            
+            textEl.textContent = exercise.text;
+            focusEl.textContent = exercise.focus;
+            
+            // Set up audio reference if available
+            if (exercise.audio_url) {
+                const audioElement = card.querySelector('.reference-audio');
+                audioElement.src = exercise.audio_url;
+                audioElement.preload = 'none';
+            }
+            
+            // Set exercise data attribute for later access
+            card.dataset.exercise = JSON.stringify(exercise);
+            
+            // Set up event listeners
+            setupCardEventListeners(card);
+            
+            return card;
+        } catch (error) {
+            console.error('Error creating exercise card:', error);
+            
+            // Create a simple fallback card
+            const fallbackCard = document.createElement('div');
+            fallbackCard.className = 'card mb-4';
+            fallbackCard.innerHTML = `
+                <div class="card-header">${exercise.focus}</div>
+                <div class="card-body">
+                    <p class="card-text">${exercise.text}</p>
+                    <button class="btn btn-primary">Listen</button>
+                </div>
+            `;
+            return fallbackCard;
         }
-        
-        textEl.textContent = exercise.text;
-        focusEl.textContent = exercise.focus;
-        
-        // Set up audio reference if available
-        if (exercise.audio_url) {
-            const audioElement = card.querySelector('.reference-audio');
-            audioElement.src = exercise.audio_url;
-            audioElement.preload = 'none';
-        }
-        
-        // Set exercise data attribute for later access
-        card.dataset.exercise = JSON.stringify(exercise);
-        
-        // Set up event listeners
-        setupCardEventListeners(card);
-        
-        return card;
     }
     
     function setupCardEventListeners(card) {
