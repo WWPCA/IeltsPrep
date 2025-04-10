@@ -21,46 +21,38 @@ def init_db():
         print("Creating database tables...")
         db.create_all()
         
-        if User.query.count() > 0:
+        if AIHubUser.query.count() > 0:
             print("Database already initialized, skipping...")
             return
         
-        print("Creating admin user...")
-        admin = User(
-            username="admin",
-            email="admin@ailearninghub.com",
+        print("Creating AI Learning Hub users...")
+        admin = AIHubUser(
+            user_id=1,  # Reference to a system admin user if available
             full_name="Admin User",
             skill_level="advanced",
             interests="machine learning, deep learning, ai ethics",
-            join_date=datetime.utcnow() - timedelta(days=100)
+            last_login=datetime.utcnow()
         )
-        admin.set_password("admin123")
         db.session.add(admin)
         
         print("Creating regular users...")
-        # Create sample users
-        john = User(
-            username="john_doe",
-            email="john@example.com",
+        # Create sample AI Learning Hub users
+        john = AIHubUser(
+            user_id=2,  # Reference to a regular user if available
             full_name="John Doe",
             bio="AI enthusiast and software engineer",
             skill_level="intermediate",
-            interests="machine learning, deep learning, nlp",
-            join_date=datetime.utcnow() - timedelta(days=45)
+            interests="machine learning, deep learning, nlp"
         )
-        john.set_password("password123")
         db.session.add(john)
         
-        jane = User(
-            username="jane_smith",
-            email="jane@example.com",
+        jane = AIHubUser(
+            user_id=3,  # Reference to another regular user if available
             full_name="Jane Smith",
             bio="Data scientist with 5 years of experience",
             skill_level="advanced",
-            interests="data science, computer vision, reinforcement learning",
-            join_date=datetime.utcnow() - timedelta(days=30)
+            interests="data science, computer vision, reinforcement learning"
         )
-        jane.set_password("password123")
         db.session.add(jane)
         
         # Create sample courses
@@ -752,14 +744,14 @@ def init_db():
         # Create some user enrollments
         print("Creating enrollments and progress records...")
         enrollment1 = Enrollment(
-            user_id=2,  # John Doe
+            aihub_user_id=2,  # John Doe
             course_id=1,  # Intro to ML
             enrolled_at=datetime.utcnow() - timedelta(days=20)
         )
         db.session.add(enrollment1)
         
         progress1 = ProgressRecord(
-            user_id=2,
+            aihub_user_id=2,
             course_id=1,
             progress_percentage=35.0,
             last_lesson_id=3
@@ -767,14 +759,14 @@ def init_db():
         db.session.add(progress1)
         
         completed1 = CompletedLesson(
-            user_id=2,
+            aihub_user_id=2,
             lesson_id=1,
             completed_at=datetime.utcnow() - timedelta(days=18)
         )
         db.session.add(completed1)
         
         completed2 = CompletedLesson(
-            user_id=2,
+            aihub_user_id=2,
             lesson_id=2,
             completed_at=datetime.utcnow() - timedelta(days=15)
         )
@@ -783,7 +775,7 @@ def init_db():
         # Add some reviews
         print("Adding reviews...")
         review1 = Review(
-            user_id=2,
+            aihub_user_id=2,
             course_id=1,
             rating=5,
             review_text="Excellent introduction to machine learning concepts! The explanations are clear and the examples are very helpful.",
@@ -792,7 +784,7 @@ def init_db():
         db.session.add(review1)
         
         review2 = Review(
-            user_id=3,
+            aihub_user_id=3,
             course_id=1,
             rating=4,
             review_text="Very good content. I would have liked more practical exercises, but the theoretical explanations are excellent.",

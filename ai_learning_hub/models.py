@@ -11,6 +11,8 @@ from ai_learning_hub.app import db
 
 class AIHubUser(db.Model):
     """AI Learning Hub user profile model that extends the main User model"""
+    __tablename__ = 'ai_hub_user'
+    
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)  # Reference to main User model
     full_name = db.Column(db.String(100), nullable=True)
