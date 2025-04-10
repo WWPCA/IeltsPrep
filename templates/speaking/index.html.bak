@@ -228,51 +228,57 @@
                         </div>
                     </div>
                     
-                    <!-- Subscribe for more speaking prompts -->
-                    {% if not current_user.is_subscribed() %}
-                    <div class="card mb-4 border-warning">
-                        <div class="card-header bg-warning text-dark">
-                            <h2 class="h4 mb-0"><i class="fas fa-crown me-2"></i>Unlock Premium IELTS Speaking Practice</h2>
+                    <!-- Available Speaking Prompts - Kept visible during assessment -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Available Speaking Prompts</h2>
                         </div>
                         <div class="card-body">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-microphone-alt fa-4x text-warning mb-3"></i>
-                                <h3>Access All Speaking Prompts</h3>
-                                <p class="lead">Subscribe to our premium plan to unlock all speaking prompts and receive personalized AI feedback on your responses.</p>
-                            </div>
-                            
-                            <div class="row mb-4">
-                                <div class="col-md-4 mb-3 mb-md-0">
-                                    <div class="feature text-center">
-                                        <i class="fas fa-comments fa-2x text-primary mb-2"></i>
-                                        <h4 class="h5">12+ Speaking Prompts</h4>
-                                        <p>Access our growing library of speaking prompts covering all IELTS parts.</p>
+                            <div class="row">
+                                {% if prompts %}
+                                    {% for prompt_item in prompts %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100 {% if prompt_item.id == prompt.id %}border-primary{% endif %}">
+                                                <div class="card-header {% if prompt_item.id == 1 or current_user.is_subscribed() %}bg-primary{% else %}bg-secondary{% endif %} text-white">
+                                                    <h3 class="h5 mb-0">Part {{ prompt_item.part }} Prompt {% if prompt_item.id == prompt.id %}<span class="badge bg-light text-dark">Current</span>{% endif %}</h3>
+                                                </div>
+                                                <div class="card-body">
+                                                    {% if prompt_item.id == 1 or current_user.is_subscribed() %}
+                                                        <p>{{ prompt_item.prompt_text|truncate(100) }}</p>
+                                                        <div class="badge bg-info mb-3">Part {{ prompt_item.part }}</div>
+                                                    {% else %}
+                                                        <div class="text-center">
+                                                            <i class="fas fa-lock fa-3x text-secondary mb-3"></i>
+                                                            <p>This speaking prompt is available to premium subscribers only.</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="card-footer bg-white text-center">
+                                                    {% if prompt_item.id == 1 or current_user.is_subscribed() %}
+                                                        {% if prompt_item.id != prompt.id %}
+                                                            <a href="{{ url_for('speaking_assessment', prompt_id=prompt_item.id) }}" class="btn btn-primary">
+                                                                Start Speaking Assessment
+                                                            </a>
+                                                        {% else %}
+                                                            <span class="btn btn-secondary disabled">Current Prompt</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <a href="{{ url_for('subscribe') }}" class="btn btn-secondary">Subscribe to Access</a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="col-12">
+                                        <div class="alert alert-info mb-0">
+                                            No speaking prompts available yet. Please check back later.
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4 mb-3 mb-md-0">
-                                    <div class="feature text-center">
-                                        <i class="fas fa-robot fa-2x text-primary mb-2"></i>
-                                        <h4 class="h5">AI Speech Analysis</h4>
-                                        <p>Get detailed feedback on your pronunciation, fluency, and vocabulary.</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="feature text-center">
-                                        <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                                        <h4 class="h5">Track Progress</h4>
-                                        <p>Monitor your speaking improvements over time with detailed analytics.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="text-center">
-                                <a href="{{ url_for('subscribe') }}" class="btn btn-warning btn-lg">
-                                    <i class="fas fa-unlock-alt me-2"></i>Subscribe Now
-                                </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
                 
             {% else %}
@@ -372,11 +378,11 @@
                         <div class="accordion" id="speakingPartsAccordion">
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="headingOne">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                                         Part 1: Introduction and Interview (4-5 minutes)
                                     </button>
                                 </h2>
-                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#speakingPartsAccordion">
+                                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#speakingPartsAccordion">
                                     <div class="accordion-body">
                                         <p>The examiner introduces themselves and asks you to introduce yourself and confirm your identity. They will then ask general questions on familiar topics such as:</p>
                                         <ul>
@@ -433,92 +439,136 @@
                     </div>
                 </div>
                 
-                <!-- Subscribe button -->
-                {% if current_user.is_authenticated and not current_user.is_subscribed() %}
-                <div class="card mb-4 border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h2 class="h4 mb-0"><i class="fas fa-crown me-2"></i>Unlock Premium IELTS Speaking Practice</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-4">
-                            <i class="fas fa-microphone-alt fa-4x text-warning mb-3"></i>
-                            <h3>Access All Speaking Prompts</h3>
-                            <p class="lead">Subscribe to our premium plan to unlock all speaking prompts and receive personalized AI feedback on your responses.</p>
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="feature text-center">
-                                    <i class="fas fa-comments fa-2x text-primary mb-2"></i>
-                                    <h4 class="h5">12+ Speaking Prompts</h4>
-                                    <p>Access our growing library of speaking prompts covering all IELTS parts.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="feature text-center">
-                                    <i class="fas fa-robot fa-2x text-primary mb-2"></i>
-                                    <h4 class="h5">AI Speech Analysis</h4>
-                                    <p>Get detailed feedback on your pronunciation, fluency, and vocabulary.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="feature text-center">
-                                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                                    <h4 class="h5">Track Progress</h4>
-                                    <p>Monitor your speaking improvements over time with detailed analytics.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center">
-                            <a href="{{ url_for('subscribe') }}" class="btn btn-warning btn-lg">
-                                <i class="fas fa-unlock-alt me-2"></i>Subscribe Now
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
+                <h3 class="mb-3">Available Speaking Prompts</h3>
                 
-                {% if prompts and current_user.is_authenticated %}
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="h4 mb-0">Start a Speaking Assessment</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <p><strong>Free Trial:</strong> Try our speaking assessment with one free speaking prompt. Subscribe to unlock all prompts.</p>
-                        </div>
-                        
-                        <div class="row">
-                            {% for prompt in prompts %}
-                                {% if prompt.id == 1 or current_user.is_subscribed() %}
-                                <div class="col-md-4 mb-3">
-                                    <div class="card h-100">
-                                        <div class="card-header bg-primary text-white">
-                                            <h3 class="h5 mb-0">Part {{ prompt.part }} Prompt</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <p>{{ prompt.prompt_text|truncate(80) }}</p>
-                                        </div>
-                                        <div class="card-footer bg-white text-center">
+                <div class="row">
+                    {% if prompts %}
+                        {% for prompt in prompts %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header {% if prompt.id == 1 or current_user.is_subscribed() %}bg-primary{% else %}bg-secondary{% endif %} text-white">
+                                        <h3 class="h5 mb-0">Part {{ prompt.part }} Prompt</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if prompt.id == 1 or current_user.is_subscribed() %}
+                                            <p>{{ prompt.prompt_text|truncate(100) }}</p>
+                                            <div class="badge bg-info mb-3">Part {{ prompt.part }}</div>
+                                        {% else %}
+                                            <div class="text-center">
+                                                <i class="fas fa-lock fa-3x text-secondary mb-3"></i>
+                                                <p>This speaking prompt is available to premium subscribers only.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer bg-white text-center">
+                                        {% if prompt.id == 1 or current_user.is_subscribed() %}
                                             <a href="{{ url_for('speaking_assessment', prompt_id=prompt.id) }}" class="btn btn-primary">
-                                                Start Assessment
+                                                Start Speaking Assessment
                                             </a>
+                                        {% else %}
+                                            <a href="{{ url_for('subscribe') }}" class="btn btn-primary">
+                                                Subscribe to Access
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <p class="mb-0">No speaking prompts available at the moment. Please check back later.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if sample_prompt %}
+                    <div class="card mt-5">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Sample Speaking Assessment</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-light border">
+                                <h3 class="h5">Sample Prompt:</h3>
+                                <p>{{ sample_prompt.prompt_text }}</p>
+                            </div>
+                            
+                            <div class="alert alert-success">
+                                <h3 class="h5">Sample Response:</h3>
+                                <p>"My hometown is a beautiful coastal city in the south. It's known for its stunning beaches and warm climate throughout the year. The population is around 300,000 people, and most residents work in tourism or fishing industries. What I love most about my hometown is the relaxed lifestyle and friendly community. People there are always willing to help each other, and there's a strong sense of belonging. The city has changed a lot over the past decade, with new developments and infrastructure, but it still maintains its traditional charm. If you ever visit, I'd recommend trying the local seafood restaurants by the harbor, which serve the freshest fish you can find."</p>
+                            </div>
+                            
+                            <div class="sample-feedback">
+                                <h3 class="h5">Sample AI Feedback:</h3>
+                                <div class="row mt-3">
+                                    <div class="col-md-4 text-center mb-4">
+                                        <div class="score-circle mx-auto">
+                                            <div class="score-number">7.2</div>
+                                            <div class="score-label">Overall Band</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="score-bars">
+                                            <div class="score-bar mb-3">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>Fluency & Coherence</span>
+                                                    <span>7.0</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" style="width: 77.7%" aria-valuenow="7" aria-valuemin="0" aria-valuemax="9"></div>
+                                                </div>
+                                            </div>
+                                            <div class="score-bar mb-3">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>Lexical Resource</span>
+                                                    <span>7.5</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" style="width: 83.3%" aria-valuenow="7.5" aria-valuemin="0" aria-valuemax="9"></div>
+                                                </div>
+                                            </div>
+                                            <div class="score-bar mb-3">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>Grammatical Range & Accuracy</span>
+                                                    <span>7.0</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" style="width: 77.7%" aria-valuenow="7" aria-valuemin="0" aria-valuemax="9"></div>
+                                                </div>
+                                            </div>
+                                            <div class="score-bar mb-3">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>Pronunciation</span>
+                                                    <span>7.0</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" style="width: 77.7%" aria-valuenow="7" aria-valuemin="0" aria-valuemax="9"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                {% endif %}
-                            {% endfor %}
+                                
+                                <div class="alert alert-light border mt-3">
+                                    <h4 class="h6">Detailed Feedback:</h4>
+                                    <p>This is a well-developed response that effectively addresses the prompt. You provided good details about your hometown and used a variety of descriptive language. Your response was well-organized and flowed naturally from one point to another.</p>
+                                    <p>Your vocabulary range is good, with effective use of words like "stunning," "infrastructure," and "traditional charm." Work on incorporating more advanced vocabulary and idiomatic expressions to achieve an even higher score.</p>
+                                    <p>Your grammar was generally accurate with a mix of simple and complex structures. Continue practicing complex sentences with proper subordination.</p>
+                                    <p>Overall, this response demonstrates Band 7+ speaking ability. Keep practicing to improve consistency and range.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <a href="{{ url_for('speaking_assessment', prompt_id=sample_prompt.id) }}" class="btn btn-primary btn-lg">
+                                    Try This Prompt
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
                 {% endif %}
             {% endif %}
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/speaking.js') }}"></script>
 {% endblock %}
