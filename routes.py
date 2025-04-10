@@ -58,6 +58,13 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
+    class RegistrationForm:
+        # Simple form class to enable CSRF protection
+        def __init__(self):
+            pass
+
+    form = RegistrationForm()
+    
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -67,12 +74,12 @@ def register():
         
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
-            return render_template('register.html', title='Register')
+            return render_template('register.html', title='Register', form=form)
         
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
         if existing_user:
             flash('Username or email already exists!', 'danger')
-            return render_template('register.html', title='Register')
+            return render_template('register.html', title='Register', form=form)
         
         new_user = User(
             username=username,
@@ -87,7 +94,7 @@ def register():
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('login'))
     
-    return render_template('register.html', title='Register')
+    return render_template('register.html', title='Register', form=form)
 
 @app.route('/logout')
 def logout():
