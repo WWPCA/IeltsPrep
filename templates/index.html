@@ -4,12 +4,12 @@
 <!-- Hero Section -->
 <section class="hero">
     <div class="container">
-        <h1>Prepare for IELTS Success with AI-Powered Practice</h1>
-        <p class="lead"><strong>The Only AI-Powered IELTS Test Prep Tool in the World</strong></p>
-        <p>IELTS AI Prep helps you achieve your target score with personalized practice tests, AI-powered speaking assessment, and comprehensive test preparation resources.</p>
+        <h1>Official IELTS Preparation with AI-Powered Practice Tests</h1>
+        <p class="lead"><strong>Achieve Band 7+ with the World's First AI-Powered IELTS Test Preparation Platform</strong></p>
+        <p>IELTS AI Prep helps you achieve your target band score with authentic practice tests, AI-powered speaking assessment, and comprehensive preparation resources for Academic, General Training, UKVI and Life Skills.</p>
         <div class="hero-buttons">
-            <a href="{{ url_for('test_structure') }}" class="btn btn-primary btn-lg">Learn About IELTS</a>
-            <a href="{{ url_for('subscribe') }}" class="btn btn-secondary btn-lg">Subscribe Now</a>
+            <a href="{{ url_for('test_structure') }}" class="btn btn-primary btn-lg">Explore IELTS Test Format</a>
+            <a href="{{ url_for('subscribe') }}" class="btn btn-secondary btn-lg">Start Preparing Today</a>
         </div>
     </div>
 </section>
@@ -17,7 +17,7 @@
 <!-- Features Section -->
 <section class="features">
     <div class="container">
-        <h2>Why Choose IELTS AI Prep?</h2>
+        <h2>Why Choose IELTS AI Prep for Your Test Preparation?</h2>
         
         <div class="features-grid">
             <div class="feature-card card">
@@ -25,8 +25,8 @@
                     <div class="feature-icon">
                         <i class="fas fa-book-open"></i>
                     </div>
-                    <h3>Complete Test Coverage</h3>
-                    <p>Practice materials for all IELTS sections: Listening, Reading, Writing, and Speaking in both Academic and General Training formats.</p>
+                    <h3>Comprehensive Test Preparation</h3>
+                    <p>Official-format practice materials for all IELTS modules: Listening, Reading, Writing, and Speaking for both IELTS Academic and IELTS General Training.</p>
                 </div>
             </div>
             
@@ -35,8 +35,8 @@
                     <div class="feature-icon">
                         <i class="fas fa-microphone-alt"></i>
                     </div>
-                    <h3>AI-Powered Speaking Assessment</h3>
-                    <p>Get instant feedback on your speaking responses with our advanced AI assessment tool powered by AWS technology.</p>
+                    <h3>AI-Enhanced Band Score Assessment</h3>
+                    <p>Receive detailed band score feedback on your speaking responses with assessments across all four IELTS criteria: Fluency and Coherence, Lexical Resource, Grammatical Range, and Pronunciation.</p>
                 </div>
             </div>
             
@@ -45,26 +45,26 @@
                     <div class="feature-icon">
                         <i class="fas fa-globe"></i>
                     </div>
-                    <h3>Global Access</h3>
-                    <p>Optimized for users around the world with low-bandwidth options, offline mode, and regional payment methods.</p>
+                    <h3>Global Test Centre Preparation</h3>
+                    <p>Designed for test-takers worldwide with multiple payment options, low-bandwidth mode for limited internet connectivity, and offline practice capabilities.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Test Sections Overview -->
+<!-- Test Modules Overview -->
 <section class="test-sections py-5 bg-light">
     <div class="container">
-        <h2 class="text-center mb-5">Master All IELTS Test Sections</h2>
+        <h2 class="text-center mb-5">Improve Your Band Score Across All IELTS Test Modules</h2>
         
         <div class="row">
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-headphones fa-3x text-primary mb-3"></i>
-                        <h3>Listening</h3>
-                        <p>Practice with authentic audio recordings and questions in the exact IELTS format.</p>
+                        <h3>IELTS Listening Test</h3>
+                        <p>Practice with authentic recordings featuring a range of accents and question types: multiple choice, matching, plan/map/diagram labelling, form completion, note completion, table completion, flow-chart completion, summary completion, and sentence completion.</p>
                         <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-outline-primary mt-3">Practice Now</a>
                     </div>
                 </div>
@@ -74,8 +74,8 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-book fa-3x text-primary mb-3"></i>
-                        <h3>Reading</h3>
-                        <p>Build comprehension skills with practice tests for Academic and General Training.</p>
+                        <h3>IELTS Reading Test</h3>
+                        <p>Improve comprehension with Academic and General Training practice texts covering diverse topics and question formats including multiple choice, identifying information, identifying writer's views/claims, matching information, matching headings, and more.</p>
                         <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-outline-primary mt-3">Practice Now</a>
                     </div>
                 </div>
@@ -85,8 +85,8 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-pen fa-3x text-primary mb-3"></i>
-                        <h3>Writing</h3>
-                        <p>Develop your writing skills with task-specific practice and guidance.</p>
+                        <h3>IELTS Writing Test</h3>
+                        <p>Master Task 1 (describing visual data for Academic or writing a letter for General Training) and Task 2 (essay writing) with guided practice tests and detailed band score feedback.</p>
                         <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-outline-primary mt-3">Practice Now</a>
                     </div>
                 </div>
@@ -96,8 +96,8 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-comment fa-3x text-primary mb-3"></i>
-                        <h3>Speaking</h3>
-                        <p>Record responses to IELTS-style prompts and get AI-powered feedback.</p>
+                        <h3>IELTS Speaking Test</h3>
+                        <p>Practice all three parts of the speaking test with AI-powered assessment across the four marking criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.</p>
                         <a href="{{ url_for('speaking_index') }}" class="btn btn-outline-primary mt-3">View Sample</a>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
 <!-- Testimonials Section -->
 <section class="testimonials py-5">
     <div class="container">
-        <h2 class="text-center mb-5">Success Stories from IELTS Test Takers</h2>
+        <h2 class="text-center mb-5">IELTS Success Stories: Test-Takers Who Achieved Their Target Band Scores</h2>
         
         <div class="row">
             <div class="col-md-4 mb-4">
@@ -122,11 +122,11 @@
                             <i class="fas fa-star text-warning"></i>
                             <i class="fas fa-star text-warning"></i>
                         </div>
-                        <p class="testimonial-text">"The AI speaking assessment helped me identify my weaknesses in pronunciation and fluency. After practicing regularly, I improved from band 6 to 7.5!"</p>
+                        <p class="testimonial-text">"The AI Speaking test assessment helped me identify weaknesses in my Pronunciation and Fluency and Coherence. After targeted practice with IELTS AI Prep, I improved from Band 6 to 7.5 and secured admission to my dream university!"</p>
                         <div class="testimonial-author">
                             <div class="testimonial-name">Rahul S.</div>
                             <div class="testimonial-location">New Delhi, India</div>
-                            <div class="testimonial-score">Overall Band: 7.5</div>
+                            <div class="testimonial-score">Overall Band Score: 7.5</div>
                         </div>
                     </div>
                 </div>
@@ -142,11 +142,11 @@
                             <i class="fas fa-star text-warning"></i>
                             <i class="fas fa-star text-warning"></i>
                         </div>
-                        <p class="testimonial-text">"The practice tests were so similar to the actual IELTS exam that I felt completely prepared on test day. The offline feature was especially helpful during my commute."</p>
+                        <p class="testimonial-text">"The IELTS practice tests perfectly mirrored my actual IELTS exam at the test centre. I found the format, timing, and question types identical to my real IELTS Academic test. The offline practice feature was invaluable during my daily commute."</p>
                         <div class="testimonial-author">
                             <div class="testimonial-name">Fatima A.</div>
                             <div class="testimonial-location">Dubai, UAE</div>
-                            <div class="testimonial-score">Overall Band: 8.0</div>
+                            <div class="testimonial-score">Overall Band Score: 8.0</div>
                         </div>
                     </div>
                 </div>
@@ -162,11 +162,11 @@
                             <i class="fas fa-star text-warning"></i>
                             <i class="fas fa-star-half-alt text-warning"></i>
                         </div>
-                        <p class="testimonial-text">"As someone who struggled with the writing section, the detailed feedback and sample answers were invaluable. I finally achieved the score I needed for my university application."</p>
+                        <p class="testimonial-text">"I struggled with IELTS Writing Task 1 and Task 2, particularly with Coherence and Cohesion. The detailed band descriptors and sample answers in IELTS AI Prep helped me understand exactly what examiners look for. I finally achieved the Band 7.0 needed for my visa application!"</p>
                         <div class="testimonial-author">
                             <div class="testimonial-name">Min-Jun K.</div>
                             <div class="testimonial-location">Seoul, South Korea</div>
-                            <div class="testimonial-score">Overall Band: 7.0</div>
+                            <div class="testimonial-score">Overall Band Score: 7.0</div>
                         </div>
                     </div>
                 </div>
@@ -178,9 +178,9 @@
 <!-- CTA Section -->
 <section class="cta py-5 bg-primary text-white">
     <div class="container text-center">
-        <h2 class="mb-4">Ready to Achieve Your Target IELTS Score?</h2>
-        <p class="lead mb-4">Join thousands of successful test takers who prepared with IELTS AI Prep</p>
-        <a href="{{ url_for('subscribe') }}" class="btn btn-light btn-lg">View Subscription Plans</a>
+        <h2 class="mb-4">Ready to Achieve Your Target IELTS Band Score?</h2>
+        <p class="lead mb-4">Join thousands of successful IELTS candidates who prepared with our AI-powered practice tests and reached their target band scores for university admission, professional registration, and immigration purposes.</p>
+        <a href="{{ url_for('subscribe') }}" class="btn btn-light btn-lg">View IELTS Preparation Plans</a>
     </div>
 </section>
 {% endblock %}
