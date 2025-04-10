@@ -346,7 +346,22 @@ def create_checkout_session():
     if payment_method == 'stripe':
         try:
             checkout_url = create_stripe_checkout(plan)
-            return redirect(checkout_url)
+            # Instead of the redirect function, return an HTML that performs the redirect via JavaScript
+            return f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Redirecting to Stripe...</title>
+                <script>
+                    window.location.href = "{checkout_url}";
+                </script>
+            </head>
+            <body>
+                <p>Redirecting to payment page...</p>
+                <p>If you are not redirected automatically, <a href="{checkout_url}">click here</a>.</p>
+            </body>
+            </html>
+            """
         except Exception as e:
             flash(f'Error creating checkout session: {str(e)}', 'danger')
             return redirect(url_for('subscribe'))
