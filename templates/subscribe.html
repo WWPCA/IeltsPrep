@@ -64,6 +64,7 @@
                     <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
                 {% else %}
                     <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="plan" value="intermediate">
                         <input type="hidden" name="payment_method" value="stripe">
                         <button type="submit" class="btn btn-primary w-100">Buy Now</button>
@@ -96,6 +97,7 @@
                     <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
                 {% else %}
                     <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="plan" value="pro">
                         <input type="hidden" name="payment_method" value="stripe">
                         <button type="submit" class="btn btn-primary w-100">Buy Now</button>
@@ -113,6 +115,7 @@
             <div class="row">
                 <div class="col-md-8 offset-md-2">
                     <form method="POST" action="{{ url_for('create_checkout_session') }}" class="mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group mb-4">
                             <label for="plan" class="form-label"><strong>1. Select Your Plan:</strong></label>
                             <select id="plan" name="plan" class="form-select form-select-lg">
