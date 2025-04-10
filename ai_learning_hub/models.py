@@ -6,16 +6,16 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from ai_learning_hub.app import db
 
+# We'll use the existing User model from the main application
+# and create our AI Learning Hub specific models with different names
 
-class User(UserMixin, db.Model):
+class AIHubUser(db.Model):
+    """AI Learning Hub user profile model that extends the main User model"""
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)  # Reference to main User model
     full_name = db.Column(db.String(100), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     profile_image = db.Column(db.String(200), nullable=True)
-    join_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
     
     # Preferences
@@ -28,15 +28,12 @@ class User(UserMixin, db.Model):
     subscription_expiry = db.Column(db.DateTime, nullable=True)
     
     # Relationships
-    enrollments = db.relationship('Enrollment', backref='user', lazy=True)
-    progress_records = db.relationship('ProgressRecord', backref='user', lazy=True)
-    completed_lessons = db.relationship('CompletedLesson', backref='user', lazy=True)
-    
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+    enrollments = db.relationship('Enrollment', backref='aihub_user', lazy=True, 
+                                 foreign_keys='Enrollment.aihub_user_id')
+    progress_records = db.relationship('ProgressRecord', backref='aihub_user', lazy=True,
+                                      foreign_keys='ProgressRecord.aihub_user_id')
+    completed_lessons = db.relationship('CompletedLesson', backref='aihub_user', lazy=True,
+                                       foreign_keys='CompletedLesson.aihub_user_id')
     
     def is_subscribed(self):
         if self.subscription_type == "free":
@@ -46,7 +43,7 @@ class User(UserMixin, db.Model):
         return self.subscription_expiry > datetime.utcnow()
     
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'<AIHubUser {self.id}>'
 
 
 class Course(db.Model):
@@ -63,7 +60,7 @@ class Course(db.Model):
     tags = db.Column(db.String(200), nullable=True)  # comma-separated tags
     prerequisites = db.Column(db.Text, nullable=True)
     learning_outcomes = db.Column(db.Text, nullable=True)  # JSON string list
-    instructor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    instructor_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -82,7 +79,7 @@ class Course(db.Model):
     enrollments = db.relationship('Enrollment', backref='course', lazy=True)
     
     def instructor(self):
-        return User.query.get(self.instructor_id)
+        return AIHubUser.query.get(self.instructor_id)
     
     @property
     def outcomes_list(self):
@@ -158,7 +155,7 @@ class QuizQuestion(db.Model):
 
 class Enrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_accessed = db.Column(db.DateTime, default=datetime.utcnow)
@@ -171,7 +168,7 @@ class Enrollment(db.Model):
 
 class ProgressRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     progress_percentage = db.Column(db.Float, default=0.0)
     last_lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=True)
@@ -183,7 +180,7 @@ class ProgressRecord(db.Model):
 
 class CompletedLesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
     completed_at = db.Column(db.DateTime, default=datetime.utcnow)
     quiz_score = db.Column(db.Float, nullable=True)  # If lesson has a quiz
@@ -194,7 +191,7 @@ class CompletedLesson(db.Model):
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
     review_text = db.Column(db.Text, nullable=True)
@@ -207,7 +204,7 @@ class Review(db.Model):
 
 class Certificate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    aihub_user_id = db.Column(db.Integer, db.ForeignKey('ai_hub_user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     issued_at = db.Column(db.DateTime, default=datetime.utcnow)
     certificate_id = db.Column(db.String(50), unique=True, nullable=False)
