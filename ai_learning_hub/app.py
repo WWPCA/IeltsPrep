@@ -37,10 +37,15 @@ login_manager.login_view = 'auth.login'
 with app.app_context():
     # Import the models here or their tables won't be created
     import ai_learning_hub.models  # noqa: F401
+    import ai_learning_hub.api.models  # Import API-specific models
 
     # Register the API blueprint for mobile apps
     from ai_learning_hub.api.routes import api_bp
     app.register_blueprint(api_bp)
+    
+    # Register the API web blueprint for documentation and status pages
+    from ai_learning_hub.api.views import api_web_bp
+    app.register_blueprint(api_web_bp)
     
     # Create tables
     db.create_all()
