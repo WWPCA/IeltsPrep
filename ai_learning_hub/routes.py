@@ -1,54 +1,74 @@
-import os
 import json
-import logging
 from functools import wraps
 from datetime import datetime, timedelta
 
-from flask import render_template, url_for, flash, redirect, request, jsonify, session, abort
-from flask_login import login_user, current_user, logout_user, login_required
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
+from flask import (
+    flash, jsonify, redirect, render_template, request, session, url_for
+)
+from flask_login import (
+    LoginManager, current_user, login_required, login_user, logout_user
+)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from ai_learning_hub.app import app, db
-from ai_learning_hub.models import (User, Course, Module, Lesson, Resource, Quiz, 
-                                 QuizQuestion, ProjectAssignment, UserCourseProgress, 
-                                 UserProjectSubmission, Category, LearningPath,
-                                 Subscription, PaymentTransaction)
+from ai_learning_hub.models import (
+    Certificate, CompletedLesson, Course, Enrollment, Lesson, Module,
+    ProgressRecord, QuizQuestion, Review, User
+)
 
-# Helper functions
+# Setup login manager
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# Custom decorators
 def premium_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.subscription_status != "premium":
-            flash('This feature requires a premium subscription. Please upgrade to continue.', 'warning')
-            return redirect(url_for('subscription_plans'))
+        if not current_user.is_authenticated or not current_user.is_subscribed():
+            flash('This content requires a premium subscription.', 'warning')
+            return redirect(url_for('pricing'))
         return f(*args, **kwargs)
     return decorated_function
 
-# Home route
+
+# Error handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
+
+
+# Main routes
 @app.route('/')
 def index():
-    # Get featured courses for the homepage
-    featured_courses = Course.query.filter_by(is_featured=True, is_published=True).limit(4).all()
+    featured_courses = Course.query.filter_by(is_premium=False).order_by(Course.rating.desc()).limit(6).all()
+    categories = db.session.query(Course.category).distinct().all()
+    categories = [c[0] for c in categories]
     
-    # Get popular learning paths
-    learning_paths = LearningPath.query.limit(3).all()
-    
-    # Get categories for the filter section
-    categories = Category.query.all()
-    
-    return render_template('index.html', 
-                           title='AI Learning Hub - Master AI, Machine Learning & Data Science',
-                           featured_courses=featured_courses,
-                           learning_paths=learning_paths,
-                           categories=categories)
+    return render_template(
+        'index.html',
+        featured_courses=featured_courses,
+        categories=categories
+    )
 
-# Authentication routes
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     
+    error = None
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -62,303 +82,346 @@ def login():
             db.session.commit()
             
             next_page = request.args.get('next')
-            flash('Login successful!', 'success')
-            return redirect(next_page if next_page else url_for('dashboard'))
+            return redirect(next_page or url_for('dashboard'))
         else:
-            flash('Login failed. Please check your email and password.', 'danger')
-            
-    return render_template('login.html', title='Login')
+            error = 'Invalid email or password'
+    
+    return render_template('login.html', error=error)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     
+    error = None
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         
-        if password != confirm_password:
-            flash('Passwords do not match!', 'danger')
-            return render_template('register.html', title='Register')
-        
-        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-        if existing_user:
-            flash('Username or email already exists!', 'danger')
-            return render_template('register.html', title='Register')
-        
-        new_user = User(
-            username=username,
-            email=email,
-            subscription_status="free"
-        )
-        new_user.set_password(password)
-        
-        # Set default learning preferences
-        new_user.learning_preferences = {
-            "difficulty_level": "beginner",
-            "learning_goal": "explore",
-            "interests": [],
-            "time_commitment": "1-3 hours/week"
-        }
-        
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Registration successful! You can now log in.', 'success')
-        return redirect(url_for('login'))
+        # Form validation
+        if not username or not email or not password:
+            error = 'All fields are required'
+        elif password != confirm_password:
+            error = 'Passwords do not match'
+        elif len(password) < 8:
+            error = 'Password must be at least 8 characters long'
+        elif User.query.filter_by(username=username).first():
+            error = 'Username already taken'
+        elif User.query.filter_by(email=email).first():
+            error = 'Email already registered'
+        else:
+            # Create new user
+            new_user = User(username=username, email=email)
+            new_user.set_password(password)
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Log in the new user
+            login_user(new_user)
+            flash('Registration successful! Welcome to AI Learning Hub.', 'success')
+            return redirect(url_for('dashboard'))
     
-    return render_template('register.html', title='Register')
+    return render_template('register.html', error=error)
+
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
+
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get user's in-progress courses
-    in_progress_courses = UserCourseProgress.query.filter_by(
-        user_id=current_user.id, 
-        is_completed=False
-    ).order_by(UserCourseProgress.last_accessed.desc()).limit(4).all()
+    # Get user's enrolled courses
+    enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
+    enrolled_courses = []
     
-    # Get recommended courses based on user preferences
-    user_preferences = current_user.learning_preferences
-    recommended_courses = []
-    
-    if 'difficulty_level' in user_preferences:
-        difficulty = user_preferences['difficulty_level']
-        recommended_courses = Course.query.filter_by(
-            difficulty_level=difficulty, 
-            is_published=True
-        ).limit(4).all()
-    
-    # Get recent project submissions
-    recent_submissions = UserProjectSubmission.query.filter_by(
-        user_id=current_user.id
-    ).order_by(UserProjectSubmission.submission_date.desc()).limit(3).all()
-    
-    return render_template('dashboard.html', 
-                           title='My Dashboard',
-                           in_progress_courses=in_progress_courses,
-                           recommended_courses=recommended_courses,
-                           recent_submissions=recent_submissions)
-
-@app.route('/profile', methods=['GET', 'POST'])
-@login_required
-def profile():
-    if request.method == 'POST':
-        # Update user profile
-        current_user.first_name = request.form.get('first_name')
-        current_user.last_name = request.form.get('last_name')
-        
-        # Handle profile image upload
-        if 'profile_image' in request.files:
-            file = request.files['profile_image']
-            if file.filename != '':
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.root_path, 'static/img/profiles', filename)
-                file.save(file_path)
-                current_user.profile_image = f'img/profiles/{filename}'
-        
-        # Update learning preferences
-        learning_preferences = current_user.learning_preferences
-        learning_preferences.update({
-            "difficulty_level": request.form.get('difficulty_level', 'beginner'),
-            "learning_goal": request.form.get('learning_goal', 'explore'),
-            "time_commitment": request.form.get('time_commitment', '1-3 hours/week')
-        })
-        
-        # Handle interests as a multi-select
-        interests = request.form.getlist('interests')
-        learning_preferences['interests'] = interests
-        
-        current_user.learning_preferences = learning_preferences
-        
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('profile'))
-    
-    # Get all categories for interests selection
-    categories = Category.query.all()
-    
-    return render_template('profile.html', 
-                           title='My Profile',
-                           categories=categories)
-
-# Course routes
-@app.route('/courses')
-def courses():
-    # Get query parameters for filtering
-    category = request.args.get('category')
-    difficulty = request.args.get('difficulty')
-    search = request.args.get('search')
-    
-    # Start with the base query
-    query = Course.query.filter_by(is_published=True)
-    
-    # Apply filters
-    if category:
-        query = query.filter_by(category=category)
-    if difficulty:
-        query = query.filter_by(difficulty_level=difficulty)
-    if search:
-        query = query.filter(Course.title.ilike(f'%{search}%') | 
-                            Course.description.ilike(f'%{search}%'))
-    
-    # Get results
-    courses = query.order_by(Course.title).all()
-    
-    # Get all categories for filter options
-    categories = Category.query.all()
-    
-    return render_template('courses.html', 
-                           title='AI & ML Courses',
-                           courses=courses,
-                           categories=categories,
-                           selected_category=category,
-                           selected_difficulty=difficulty,
-                           search_query=search)
-
-@app.route('/course/<slug>')
-def course_detail(slug):
-    # Get the course by slug
-    course = Course.query.filter_by(slug=slug).first_or_404()
-    
-    # Get course modules ordered by their sequence
-    modules = Module.query.filter_by(course_id=course.id).order_by(Module.order).all()
-    
-    # Check if user is enrolled
-    is_enrolled = False
-    user_progress = None
-    
-    if current_user.is_authenticated:
-        user_progress = UserCourseProgress.query.filter_by(
+    for enrollment in enrollments:
+        course = Course.query.get(enrollment.course_id)
+        progress = ProgressRecord.query.filter_by(
             user_id=current_user.id,
             course_id=course.id
         ).first()
         
-        is_enrolled = user_progress is not None
+        progress_percentage = progress.progress_percentage if progress else 0
+        
+        enrolled_courses.append({
+            'course': course,
+            'enrollment': enrollment,
+            'progress': progress_percentage
+        })
     
-    # Get related courses in the same category
-    related_courses = Course.query.filter_by(
-        category=course.category, 
-        is_published=True
-    ).filter(Course.id != course.id).limit(3).all()
+    # Get recommended courses based on user's interests and skill level
+    if current_user.interests:
+        interests = [i.strip() for i in current_user.interests.split(',')]
+        recommended_courses = Course.query.filter(
+            Course.level == current_user.skill_level,
+            Course.id.notin_([e.course_id for e in enrollments])
+        ).limit(4).all()
+    else:
+        recommended_courses = Course.query.filter(
+            Course.id.notin_([e.course_id for e in enrollments])
+        ).order_by(Course.rating.desc()).limit(4).all()
     
-    return render_template('course_detail.html', 
-                           title=course.title,
-                           course=course,
-                           modules=modules,
-                           is_enrolled=is_enrolled,
-                           user_progress=user_progress,
-                           related_courses=related_courses)
+    # Get user's completed certificates
+    certificates = Certificate.query.filter_by(user_id=current_user.id).all()
+    
+    return render_template(
+        'dashboard.html',
+        enrolled_courses=enrolled_courses,
+        recommended_courses=recommended_courses,
+        certificates=certificates
+    )
+
+
+@app.route('/courses')
+def courses():
+    category = request.args.get('category', '')
+    level = request.args.get('level', '')
+    search = request.args.get('search', '')
+    
+    query = Course.query
+    
+    if category:
+        query = query.filter_by(category=category)
+    if level:
+        query = query.filter_by(level=level)
+    if search:
+        query = query.filter(Course.title.ilike(f'%{search}%'))
+    
+    courses = query.order_by(Course.title).all()
+    categories = db.session.query(Course.category).distinct().all()
+    categories = [c[0] for c in categories]
+    
+    return render_template(
+        'courses.html',
+        courses=courses,
+        categories=categories,
+        current_category=category,
+        current_level=level,
+        search_term=search
+    )
+
+
+@app.route('/course/<slug>')
+def course_detail(slug):
+    course = Course.query.filter_by(slug=slug).first_or_404()
+    modules = Module.query.filter_by(course_id=course.id).order_by(Module.order).all()
+    
+    # Check if user is enrolled
+    is_enrolled = False
+    user_progress = 0
+    
+    if current_user.is_authenticated:
+        enrollment = Enrollment.query.filter_by(
+            user_id=current_user.id,
+            course_id=course.id
+        ).first()
+        
+        is_enrolled = enrollment is not None
+        
+        if is_enrolled:
+            progress = ProgressRecord.query.filter_by(
+                user_id=current_user.id,
+                course_id=course.id
+            ).first()
+            
+            if progress:
+                user_progress = progress.progress_percentage
+    
+    # Get reviews
+    reviews = Review.query.filter_by(course_id=course.id).order_by(Review.created_at.desc()).limit(5).all()
+    
+    return render_template(
+        'course_detail.html',
+        course=course,
+        modules=modules,
+        is_enrolled=is_enrolled,
+        user_progress=user_progress,
+        reviews=reviews
+    )
+
 
 @app.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
-def enroll_course(course_id):
+def enroll(course_id):
     course = Course.query.get_or_404(course_id)
     
-    # Check if course is premium and user has required subscription
-    if course.is_premium and current_user.subscription_status != "premium":
-        flash('This is a premium course. Please upgrade your subscription to enroll.', 'warning')
-        return redirect(url_for('subscription_plans'))
-    
     # Check if already enrolled
-    existing_enrollment = UserCourseProgress.query.filter_by(
+    existing_enrollment = Enrollment.query.filter_by(
         user_id=current_user.id,
-        course_id=course_id
+        course_id=course.id
     ).first()
     
     if existing_enrollment:
         flash('You are already enrolled in this course.', 'info')
         return redirect(url_for('course_detail', slug=course.slug))
     
-    # Create new enrollment
-    enrollment = UserCourseProgress(
-        user_id=current_user.id,
-        course_id=course_id,
-        completion_percentage=0.0,
-        is_completed=False,
-        completed_lessons=[],
-        quiz_scores={}
-    )
+    # Check if course is premium and user has subscription
+    if course.is_premium and not current_user.is_subscribed():
+        flash('This is a premium course. Please upgrade your subscription.', 'warning')
+        return redirect(url_for('pricing'))
     
+    # Create enrollment
+    enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
     db.session.add(enrollment)
+    
+    # Create progress record
+    progress = ProgressRecord(
+        user_id=current_user.id,
+        course_id=course.id,
+        progress_percentage=0
+    )
+    db.session.add(progress)
+    
+    # Update course enrollment count
+    course.enrollment_count += 1
+    
     db.session.commit()
     
-    flash('Successfully enrolled in the course!', 'success')
+    flash('You have successfully enrolled in this course!', 'success')
     return redirect(url_for('learn', course_slug=course.slug))
+
 
 @app.route('/learn/<course_slug>')
 @login_required
 def learn(course_slug):
-    # Get the course
     course = Course.query.filter_by(slug=course_slug).first_or_404()
     
     # Check if user is enrolled
-    user_progress = UserCourseProgress.query.filter_by(
+    enrollment = Enrollment.query.filter_by(
         user_id=current_user.id,
         course_id=course.id
     ).first_or_404()
     
-    # Update last_accessed time
-    user_progress.last_accessed = datetime.utcnow()
-    db.session.commit()
-    
-    # Get modules and their lessons
+    # Get course modules and lessons
     modules = Module.query.filter_by(course_id=course.id).order_by(Module.order).all()
     
-    # Determine which lesson to show
-    current_lesson = None
+    # Get user progress
+    progress = ProgressRecord.query.filter_by(
+        user_id=current_user.id,
+        course_id=course.id
+    ).first()
     
-    if request.args.get('lesson_id'):
-        # If a specific lesson is requested
-        lesson_id = int(request.args.get('lesson_id'))
-        current_lesson = Lesson.query.get_or_404(lesson_id)
-        
-        # Check if this lesson belongs to the course
-        lesson_module = Module.query.get(current_lesson.module_id)
-        if lesson_module.course_id != course.id:
-            abort(404)
+    # Get completed lessons
+    completed_lessons = CompletedLesson.query.filter_by(
+        user_id=current_user.id
+    ).all()
+    completed_lesson_ids = [cl.lesson_id for cl in completed_lessons]
+    
+    # If there's a last lesson, get it; otherwise get the first lesson
+    if progress and progress.last_lesson_id:
+        current_lesson = Lesson.query.get(progress.last_lesson_id)
     else:
-        # Find the first uncompleted lesson
-        completed_lessons = user_progress.completed_lessons
+        first_module = modules[0] if modules else None
+        if first_module:
+            current_lesson = Lesson.query.filter_by(module_id=first_module.id).order_by(Lesson.order).first()
+        else:
+            current_lesson = None
+    
+    return render_template(
+        'learn.html',
+        course=course,
+        modules=modules,
+        current_lesson=current_lesson,
+        progress=progress,
+        completed_lesson_ids=completed_lesson_ids
+    )
+
+
+@app.route('/lesson/<int:lesson_id>')
+@login_required
+def lesson(lesson_id):
+    lesson = Lesson.query.get_or_404(lesson_id)
+    module = Module.query.get_or_404(lesson.module_id)
+    course = Course.query.get_or_404(module.course_id)
+    
+    # Check if user is enrolled
+    enrollment = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course.id
+    ).first_or_404()
+    
+    # Check if lesson is premium and user has subscription
+    if not lesson.is_free and course.is_premium and not current_user.is_subscribed():
+        flash('This lesson requires a premium subscription.', 'warning')
+        return redirect(url_for('pricing'))
+    
+    # Update user's last accessed lesson
+    progress = ProgressRecord.query.filter_by(
+        user_id=current_user.id,
+        course_id=course.id
+    ).first()
+    
+    if progress:
+        progress.last_lesson_id = lesson.id
+        progress.updated_at = datetime.utcnow()
+        db.session.commit()
+    
+    # Get next and previous lessons
+    next_lesson = Lesson.query.filter(
+        Lesson.module_id == module.id,
+        Lesson.order > lesson.order
+    ).order_by(Lesson.order).first()
+    
+    if not next_lesson:
+        # Check if there's a next module
+        next_module = Module.query.filter(
+            Module.course_id == course.id,
+            Module.order > module.order
+        ).order_by(Module.order).first()
         
-        for module in modules:
-            lessons = Lesson.query.filter_by(module_id=module.id).order_by(Lesson.order).all()
-            for lesson in lessons:
-                if str(lesson.id) not in completed_lessons:
-                    current_lesson = lesson
-                    break
-            if current_lesson:
-                break
+        if next_module:
+            next_lesson = Lesson.query.filter_by(
+                module_id=next_module.id
+            ).order_by(Lesson.order).first()
+    
+    prev_lesson = Lesson.query.filter(
+        Lesson.module_id == module.id,
+        Lesson.order < lesson.order
+    ).order_by(Lesson.order.desc()).first()
+    
+    if not prev_lesson:
+        # Check if there's a previous module
+        prev_module = Module.query.filter(
+            Module.course_id == course.id,
+            Module.order < module.order
+        ).order_by(Module.order.desc()).first()
         
-        # If all lessons are completed or no lessons found, show the first lesson
-        if not current_lesson and modules and modules[0].lessons:
-            current_lesson = modules[0].lessons[0]
+        if prev_module:
+            prev_lesson = Lesson.query.filter_by(
+                module_id=prev_module.id
+            ).order_by(Lesson.order.desc()).first()
     
-    # Get resources for the current lesson
-    resources = []
-    quiz = None
+    # Check if lesson is completed
+    is_completed = CompletedLesson.query.filter_by(
+        user_id=current_user.id,
+        lesson_id=lesson.id
+    ).first() is not None
     
-    if current_lesson:
-        resources = Resource.query.filter_by(lesson_id=current_lesson.id).all()
-        quiz = Quiz.query.filter_by(lesson_id=current_lesson.id).first()
+    # If this is a quiz lesson, get the questions
+    quiz_questions = []
+    if lesson.lesson_type == 'quiz':
+        quiz_questions = QuizQuestion.query.filter_by(
+            lesson_id=lesson.id
+        ).order_by(QuizQuestion.order).all()
     
-    return render_template('learn.html', 
-                           title=f'Learning: {course.title}',
-                           course=course,
-                           modules=modules,
-                           current_lesson=current_lesson,
-                           resources=resources,
-                           quiz=quiz,
-                           user_progress=user_progress)
+    return render_template(
+        'lesson.html',
+        course=course,
+        module=module,
+        lesson=lesson,
+        next_lesson=next_lesson,
+        prev_lesson=prev_lesson,
+        is_completed=is_completed,
+        quiz_questions=quiz_questions
+    )
+
 
 @app.route('/api/complete-lesson', methods=['POST'])
 @login_required
@@ -368,287 +431,282 @@ def complete_lesson():
     course_id = data.get('course_id')
     
     if not lesson_id or not course_id:
-        return jsonify({'error': 'Missing required data'}), 400
+        return jsonify({'success': False, 'error': 'Missing required parameters'})
     
-    # Get user progress
-    user_progress = UserCourseProgress.query.filter_by(
+    # Check if already completed
+    existing = CompletedLesson.query.filter_by(
+        user_id=current_user.id,
+        lesson_id=lesson_id
+    ).first()
+    
+    if not existing:
+        # Mark lesson as completed
+        completed = CompletedLesson(
+            user_id=current_user.id,
+            lesson_id=lesson_id
+        )
+        db.session.add(completed)
+        
+        # Update progress
+        course = Course.query.get_or_404(course_id)
+        total_lessons = 0
+        
+        # Count total lessons in course
+        for module in Module.query.filter_by(course_id=course_id).all():
+            total_lessons += Lesson.query.filter_by(module_id=module.id).count()
+        
+        # Count completed lessons
+        completed_count = CompletedLesson.query.filter(
+            CompletedLesson.user_id == current_user.id,
+            CompletedLesson.lesson_id.in_([
+                l.id for m in Module.query.filter_by(course_id=course_id).all()
+                for l in Lesson.query.filter_by(module_id=m.id).all()
+            ])
+        ).count() + 1  # +1 for the current lesson
+        
+        # Calculate percentage
+        completion_percentage = (completed_count / total_lessons) * 100 if total_lessons > 0 else 0
+        
+        # Update progress record
+        progress = ProgressRecord.query.filter_by(
+            user_id=current_user.id,
+            course_id=course_id
+        ).first()
+        
+        if progress:
+            progress.progress_percentage = completion_percentage
+            progress.updated_at = datetime.utcnow()
+        else:
+            progress = ProgressRecord(
+                user_id=current_user.id,
+                course_id=course_id,
+                progress_percentage=completion_percentage
+            )
+            db.session.add(progress)
+        
+        # Check if course is completed
+        is_completed = completion_percentage >= 100
+        if is_completed:
+            enrollment = Enrollment.query.filter_by(
+                user_id=current_user.id,
+                course_id=course_id
+            ).first()
+            
+            if enrollment:
+                enrollment.completed = True
+                enrollment.completion_date = datetime.utcnow()
+                
+                # Generate certificate
+                certificate = Certificate.query.filter_by(
+                    user_id=current_user.id,
+                    course_id=course_id
+                ).first()
+                
+                if not certificate:
+                    import uuid
+                    certificate_id = f"{course.slug[:8]}-{uuid.uuid4().hex[:8]}"
+                    certificate = Certificate(
+                        user_id=current_user.id,
+                        course_id=course_id,
+                        certificate_id=certificate_id
+                    )
+                    db.session.add(certificate)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'completion_percentage': completion_percentage,
+            'is_completed': is_completed
+        })
+    
+    # Already completed, just return current progress
+    progress = ProgressRecord.query.filter_by(
         user_id=current_user.id,
         course_id=course_id
-    ).first_or_404()
-    
-    # Update completed lessons
-    completed_lessons = user_progress.completed_lessons
-    if str(lesson_id) not in completed_lessons:
-        completed_lessons.append(str(lesson_id))
-        user_progress.completed_lessons = completed_lessons
-    
-    # Calculate completion percentage
-    total_lessons = db.session.query(Lesson).join(Module).filter(Module.course_id == course_id).count()
-    completion_percentage = (len(completed_lessons) / total_lessons) * 100 if total_lessons > 0 else 0
-    user_progress.completion_percentage = completion_percentage
-    
-    # Check if course is completed
-    if completion_percentage >= 100:
-        user_progress.is_completed = True
-        user_progress.completion_date = datetime.utcnow()
-    
-    db.session.commit()
+    ).first()
     
     return jsonify({
         'success': True,
-        'completion_percentage': completion_percentage,
-        'is_completed': user_progress.is_completed
+        'completion_percentage': progress.progress_percentage if progress else 0,
+        'is_completed': progress.progress_percentage >= 100 if progress else False
     })
+
 
 @app.route('/api/submit-quiz', methods=['POST'])
 @login_required
 def submit_quiz():
     data = request.json
     quiz_id = data.get('quiz_id')
-    course_id = data.get('course_id')
     lesson_id = data.get('lesson_id')
+    course_id = data.get('course_id')
     answers = data.get('answers', {})
     
-    if not quiz_id or not course_id or not lesson_id:
-        return jsonify({'error': 'Missing required data'}), 400
+    if not lesson_id or not course_id:
+        return jsonify({'success': False, 'error': 'Missing required parameters'})
     
-    # Get quiz questions and correct answers
-    quiz = Quiz.query.get_or_404(quiz_id)
-    questions = QuizQuestion.query.filter_by(quiz_id=quiz_id).all()
+    # Get all questions for this quiz
+    questions = QuizQuestion.query.filter_by(lesson_id=lesson_id).all()
     
-    # Calculate score
-    score = 0
-    total_points = sum(question.points for question in questions)
+    total_score = 0
+    total_questions = len(questions)
     
     for question in questions:
-        if str(question.id) in answers and answers[str(question.id)] == question.correct_answer:
-            score += question.points
+        question_id = str(question.id)
+        if question_id in answers:
+            user_answer = answers[question_id]
+            if user_answer == question.correct_answer:
+                total_score += 1
     
-    score_percentage = (score / total_points) * 100 if total_points > 0 else 0
+    # Calculate percentage
+    percentage = (total_score / total_questions) * 100 if total_questions > 0 else 0
+    passed = percentage >= 70  # Pass threshold
     
-    # Update user progress
-    user_progress = UserCourseProgress.query.filter_by(
-        user_id=current_user.id,
-        course_id=course_id
-    ).first_or_404()
-    
-    # Update quiz scores
-    quiz_scores = user_progress.quiz_scores
-    quiz_scores[str(quiz_id)] = {
-        'score': score,
-        'total': total_points,
-        'percentage': score_percentage,
-        'date': datetime.utcnow().isoformat()
-    }
-    user_progress.quiz_scores = quiz_scores
-    
-    # Auto-complete the lesson if score is passing (>= 70%)
-    if score_percentage >= 70:
-        completed_lessons = user_progress.completed_lessons
-        if str(lesson_id) not in completed_lessons:
-            completed_lessons.append(str(lesson_id))
-            user_progress.completed_lessons = completed_lessons
+    # If passed, mark lesson as completed
+    if passed:
+        # Check if already completed
+        existing = CompletedLesson.query.filter_by(
+            user_id=current_user.id,
+            lesson_id=lesson_id
+        ).first()
         
-        # Recalculate completion percentage
-        total_lessons = db.session.query(Lesson).join(Module).filter(Module.course_id == course_id).count()
-        completion_percentage = (len(completed_lessons) / total_lessons) * 100 if total_lessons > 0 else 0
-        user_progress.completion_percentage = completion_percentage
-        
-        # Check if course is completed
-        if completion_percentage >= 100:
-            user_progress.is_completed = True
-            user_progress.completion_date = datetime.utcnow()
-    
-    db.session.commit()
+        if not existing:
+            completed = CompletedLesson(
+                user_id=current_user.id,
+                lesson_id=lesson_id,
+                quiz_score=percentage
+            )
+            db.session.add(completed)
+            db.session.commit()
     
     return jsonify({
         'success': True,
-        'score': score,
-        'total': total_points,
-        'percentage': score_percentage,
-        'passed': score_percentage >= 70
+        'score': total_score,
+        'total': total_questions,
+        'percentage': percentage,
+        'passed': passed
     })
 
-# Learning Paths
-@app.route('/learning-paths')
-def learning_paths():
-    # Get all learning paths
-    paths = LearningPath.query.all()
-    
-    # Get all categories for filter options
-    categories = Category.query.all()
-    
-    return render_template('learning_paths.html', 
-                           title='AI Learning Paths',
-                           learning_paths=paths,
-                           categories=categories)
 
-@app.route('/learning-path/<slug>')
-def learning_path_detail(slug):
-    # Get the learning path
-    path = LearningPath.query.filter_by(slug=slug).first_or_404()
-    
-    # Get the courses in this path
-    course_ids = path.course_sequence
-    courses = []
-    
-    for course_id in course_ids:
-        course = Course.query.get(course_id)
-        if course and course.is_published:
-            courses.append(course)
-    
-    # Get user progress if authenticated
-    user_progress = {}
-    if current_user.is_authenticated:
-        for course in courses:
-            progress = UserCourseProgress.query.filter_by(
-                user_id=current_user.id,
-                course_id=course.id
-            ).first()
-            
-            if progress:
-                user_progress[course.id] = progress
-    
-    return render_template('learning_path_detail.html', 
-                           title=path.title,
-                           path=path,
-                           courses=courses,
-                           user_progress=user_progress)
-
-# Projects
-@app.route('/projects')
-def projects():
-    # Get all projects
-    projects = ProjectAssignment.query.all()
-    
-    # Get all categories for filter options
-    categories = Category.query.all()
-    
-    return render_template('projects.html', 
-                           title='AI Projects',
-                           projects=projects,
-                           categories=categories)
-
-@app.route('/project/<int:project_id>')
-def project_detail(project_id):
-    # Get the project
-    project = ProjectAssignment.query.get_or_404(project_id)
-    
-    # Check if premium project and user is not premium
-    if project.is_premium and (not current_user.is_authenticated or current_user.subscription_status != "premium"):
-        flash('This is a premium project. Please upgrade your subscription to access.', 'warning')
-        return redirect(url_for('subscription_plans'))
-    
-    # Get user submission if exists
-    submission = None
-    if current_user.is_authenticated:
-        submission = UserProjectSubmission.query.filter_by(
-            user_id=current_user.id,
-            project_id=project_id
-        ).first()
-    
-    return render_template('project_detail.html', 
-                           title=project.title,
-                           project=project,
-                           submission=submission)
-
-@app.route('/submit-project/<int:project_id>', methods=['POST'])
+@app.route('/profile')
 @login_required
-def submit_project(project_id):
-    project = ProjectAssignment.query.get_or_404(project_id)
+def profile():
+    return render_template('profile.html')
+
+
+@app.route('/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    user = current_user
     
-    # Check if premium project and user is not premium
-    if project.is_premium and current_user.subscription_status != "premium":
-        flash('This is a premium project. Please upgrade your subscription to access.', 'warning')
-        return redirect(url_for('subscription_plans'))
+    # Update user fields
+    user.full_name = request.form.get('full_name', user.full_name)
+    user.bio = request.form.get('bio', user.bio)
+    user.skill_level = request.form.get('skill_level', user.skill_level)
+    user.interests = request.form.get('interests', user.interests)
+    user.learning_goal = request.form.get('learning_goal', user.learning_goal)
     
-    # Get form data
-    submission_code = request.form.get('submission_code')
-    submission_notes = request.form.get('submission_notes')
-    
-    if not submission_code:
-        flash('Please provide your code submission.', 'danger')
-        return redirect(url_for('project_detail', project_id=project_id))
-    
-    # Check if user already has a submission
-    existing_submission = UserProjectSubmission.query.filter_by(
-        user_id=current_user.id,
-        project_id=project_id
-    ).first()
-    
-    if existing_submission:
-        # Update existing submission
-        existing_submission.submission_code = submission_code
-        existing_submission.submission_notes = submission_notes
-        existing_submission.submission_date = datetime.utcnow()
-        existing_submission.feedback = None
-        existing_submission.score = None
-    else:
-        # Create new submission
-        submission = UserProjectSubmission(
-            user_id=current_user.id,
-            project_id=project_id,
-            submission_code=submission_code,
-            submission_notes=submission_notes
-        )
-        db.session.add(submission)
+    # Handle profile image upload
+    if 'profile_image' in request.files:
+        file = request.files['profile_image']
+        if file and file.filename:
+            # TODO: Add proper file upload handling
+            # For now, we'll set a placeholder
+            user.profile_image = '/static/img/profiles/default.jpg'
     
     db.session.commit()
-    flash('Project submitted successfully! You will receive feedback shortly.', 'success')
-    return redirect(url_for('project_detail', project_id=project_id))
+    flash('Profile updated successfully!', 'success')
+    return redirect(url_for('profile'))
 
-# Subscription
-@app.route('/subscription-plans')
-def subscription_plans():
-    # Get all subscription plans
-    plans = Subscription.query.all()
-    
-    return render_template('subscription_plans.html', 
-                           title='Subscription Plans',
-                           plans=plans)
 
-@app.route('/upgrade/<int:plan_id>', methods=['GET', 'POST'])
+@app.route('/pricing')
+def pricing():
+    return render_template('pricing.html')
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+
+@app.route('/submit-review', methods=['POST'])
 @login_required
-def upgrade_subscription(plan_id):
-    plan = Subscription.query.get_or_404(plan_id)
+def submit_review():
+    course_id = request.form.get('course_id')
+    rating = request.form.get('rating')
+    review_text = request.form.get('review_text')
     
-    if request.method == 'POST':
-        # Handle payment (simplified for now)
-        period = request.form.get('period', 'monthly')
-        
-        # Create a "successful" payment transaction
-        amount = plan.price_monthly if period == 'monthly' else plan.price_yearly
-        
-        transaction = PaymentTransaction(
+    if not course_id or not rating:
+        flash('Missing required fields', 'error')
+        return redirect(request.referrer)
+    
+    # Check if user is enrolled
+    enrollment = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course_id
+    ).first()
+    
+    if not enrollment:
+        flash('You must be enrolled in the course to review it', 'error')
+        return redirect(request.referrer)
+    
+    # Check if user already reviewed
+    existing_review = Review.query.filter_by(
+        user_id=current_user.id,
+        course_id=course_id
+    ).first()
+    
+    if existing_review:
+        # Update existing review
+        existing_review.rating = rating
+        existing_review.review_text = review_text
+        existing_review.updated_at = datetime.utcnow()
+    else:
+        # Create new review
+        review = Review(
             user_id=current_user.id,
-            subscription_id=plan.id,
-            amount=amount,
-            currency="USD",
-            payment_provider="stripe",
-            payment_status="success",
-            subscription_period=period
+            course_id=course_id,
+            rating=rating,
+            review_text=review_text
         )
-        
-        # Update user subscription
-        days = 30 if period == 'monthly' else 365
-        current_user.subscription_status = "premium"
-        current_user.subscription_expiry = datetime.utcnow() + timedelta(days=days)
-        
-        db.session.add(transaction)
-        db.session.commit()
-        
-        flash(f'Thank you for upgrading to {plan.name}!', 'success')
-        return redirect(url_for('dashboard'))
+        db.session.add(review)
     
-    return render_template('upgrade.html', 
-                           title='Upgrade Subscription',
-                           plan=plan)
+    # Update course rating
+    course = Course.query.get(course_id)
+    if course:
+        all_reviews = Review.query.filter_by(course_id=course_id).all()
+        total_rating = sum(r.rating for r in all_reviews)
+        count = len(all_reviews) if existing_review else len(all_reviews) + 1
+        
+        course.rating = total_rating / count if count > 0 else 0
+        course.rating_count = count
+    
+    db.session.commit()
+    flash('Thank you for your review!', 'success')
+    return redirect(request.referrer)
 
-# Error handlers
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html', title='Page Not Found'), 404
 
-@app.errorhandler(500)
-def server_error(e):
-    return render_template('500.html', title='Server Error'), 500
+@app.route('/certificate/<certificate_id>')
+def view_certificate(certificate_id):
+    certificate = Certificate.query.filter_by(certificate_id=certificate_id).first_or_404()
+    course = Course.query.get_or_404(certificate.course_id)
+    user = User.query.get_or_404(certificate.user_id)
+    
+    return render_template(
+        'certificate.html',
+        certificate=certificate,
+        course=course,
+        user=user
+    )
+
+
+# Database initialization command
+@app.cli.command('init-db')
+def init_db_command():
+    db.create_all()
+    print('Initialized the database.')

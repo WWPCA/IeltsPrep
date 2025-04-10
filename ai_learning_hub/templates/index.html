@@ -2,271 +2,317 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero">
+<section class="hero-section">
     <div class="hero-pattern"></div>
     <div class="container hero-content">
-        <h1>Master Artificial Intelligence with Personalized Learning Paths</h1>
-        <p class="hero-subtitle">From beginner to expert, our interactive AI courses and projects guide you through every step of your learning journey. Start building real-world AI skills today.</p>
-        <div class="hero-buttons">
-            <a href="{{ url_for('courses') }}" class="btn btn-primary btn-lg">Explore Courses</a>
-            <a href="{{ url_for('learning_paths') }}" class="btn btn-outline-light btn-lg">View Learning Paths</a>
-        </div>
-        
-        <div class="hero-stats row mt-5">
-            <div class="col-md-3 col-6">
-                <div class="stat-box">
-                    <span class="stat-number">50+</span>
-                    <span class="stat-label">AI & ML Courses</span>
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="hero-title">Master AI Skills for the Future</h1>
+                <p class="hero-subtitle">Learn artificial intelligence, machine learning, and data science with interactive courses designed for all skill levels.</p>
+                <div class="hero-cta">
+                    <a href="{{ url_for('courses') }}" class="btn btn-light hero-btn">Explore Courses</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light hero-btn">Join for Free</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="hero-stat-item">
+                                <span class="hero-stat-number">50+</span>
+                                <span class="hero-stat-label">Courses</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="hero-stat-item">
+                                <span class="hero-stat-number">120K+</span>
+                                <span class="hero-stat-label">Students</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="hero-stat-item">
+                                <span class="hero-stat-number">4.8</span>
+                                <span class="hero-stat-label">Rating</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-box">
-                    <span class="stat-number">10k+</span>
-                    <span class="stat-label">Active Learners</span>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-box">
-                    <span class="stat-number">25+</span>
-                    <span class="stat-label">AI Projects</span>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-box">
-                    <span class="stat-number">4.8</span>
-                    <span class="stat-label">Average Rating</span>
-                </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="{{ url_for('static', filename='img/hero-illustration.svg') }}" alt="AI Learning Illustration" class="img-fluid">
             </div>
         </div>
     </div>
 </section>
 
 <!-- Features Section -->
-<section class="features-section">
+<section class="feature-section">
     <div class="container">
-        <h2 class="section-title">Why Learn AI with Us?</h2>
-        <p class="section-subtitle">Our platform combines expert-crafted curriculum with advanced technology to deliver the most effective learning experience for AI enthusiasts of all levels.</p>
+        <h2 class="section-title">Why Learn with AI Learning Hub?</h2>
+        <p class="section-subtitle">We combine cutting-edge curriculum with effective learning methods to help you master AI skills and advance your career.</p>
         
         <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="feature-icon">
-                    <i class="fas fa-road"></i>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <span class="feature-icon"><i class="fas fa-brain"></i></span>
+                    <h3 class="feature-title">Comprehensive Curriculum</h3>
+                    <p class="feature-text">From foundations to advanced concepts, our courses cover the entire AI and machine learning spectrum with structured learning paths.</p>
                 </div>
-                <h3 class="feature-title">Personalized Learning Paths</h3>
-                <p class="feature-text">Tailored curriculum based on your experience level and goals, from Python basics to advanced neural networks and deep reinforcement learning.</p>
             </div>
             
-            <div class="col-md-4 mb-4">
-                <div class="feature-icon">
-                    <i class="fas fa-project-diagram"></i>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <span class="feature-icon"><i class="fas fa-laptop-code"></i></span>
+                    <h3 class="feature-title">Hands-on Projects</h3>
+                    <p class="feature-text">Apply your knowledge with real-world projects that build your portfolio and prepare you for professional challenges.</p>
                 </div>
-                <h3 class="feature-title">Hands-On Projects</h3>
-                <p class="feature-text">Build your portfolio with real-world projects in computer vision, NLP, recommendation systems, and more - with step-by-step guidance.</p>
             </div>
             
-            <div class="col-md-4 mb-4">
-                <div class="feature-icon">
-                    <i class="fas fa-robot"></i>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <span class="feature-icon"><i class="fas fa-user-graduate"></i></span>
+                    <h3 class="feature-title">Expert Instructors</h3>
+                    <p class="feature-text">Learn from industry professionals and academics who bring real experience and cutting-edge knowledge.</p>
                 </div>
-                <h3 class="feature-title">AI Learning Assistant</h3>
-                <p class="feature-text">Get real-time help from our AI tutor that explains concepts, reviews your code, and provides personalized feedback as you learn.</p>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <span class="feature-icon"><i class="fas fa-users"></i></span>
+                    <h3 class="feature-title">Community Support</h3>
+                    <p class="feature-text">Join our active community of learners to collaborate, solve problems, and expand your professional network.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <span class="feature-icon"><i class="fas fa-certificate"></i></span>
+                    <h3 class="feature-title">Recognized Certificates</h3>
+                    <p class="feature-text">Earn certificates upon course completion to showcase your skills to employers and clients.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <span class="feature-icon"><i class="fas fa-code-branch"></i></span>
+                    <h3 class="feature-title">Flexible Learning Paths</h3>
+                    <p class="feature-text">Customize your learning journey based on your goals, interests, and experience level in AI and machine learning.</p>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Featured Courses -->
-<section class="bg-light-gray py-5">
+<!-- Stats Section -->
+<section class="stats-section">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Featured Courses</h2>
-            <a href="{{ url_for('courses') }}" class="btn btn-outline-primary">View All Courses</a>
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <div class="stat-item">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Courses</span>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <div class="stat-item">
+                    <span class="stat-number">120K+</span>
+                    <span class="stat-label">Students</span>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">25+</span>
+                    <span class="stat-label">Instructors</span>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">98%</span>
+                    <span class="stat-label">Satisfaction</span>
+                </div>
+            </div>
         </div>
+    </div>
+</section>
+
+<!-- Featured Courses Section -->
+<section class="courses-section">
+    <div class="container">
+        <h2 class="section-title">Featured Courses</h2>
+        <p class="section-subtitle">Explore our most popular courses to kickstart your AI learning journey.</p>
         
         <div class="row">
             {% if featured_courses %}
                 {% for course in featured_courses %}
-                    <div class="col-md-6 col-lg-3 mb-4">
-                        <div class="card course-card h-100">
-                            <img src="{{ url_for('static', filename='img/course-' + course.id|string + '.jpg') if course.image_url else url_for('static', filename='img/course-placeholder.jpg') }}" class="card-img-top" alt="{{ course.title }}">
-                            <div class="difficulty-badge difficulty-{{ course.difficulty_level }}">{{ course.difficulty_level|title }}</div>
-                            <div class="card-body">
-                                <h5 class="card-title">{{ course.title }}</h5>
-                                <p class="card-text">{{ course.description|truncate(100) }}</p>
-                            </div>
-                            <div class="card-footer">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="card-meta">
-                                        <i class="fas fa-clock me-1"></i> 
-                                        {{ course.modules|length * 2 }} hours
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="course-card">
+                            {% if course.cover_image %}
+                                <img src="{{ course.cover_image }}" alt="{{ course.title }}" class="course-image">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/course-placeholder.jpg') }}" alt="{{ course.title }}" class="course-image">
+                            {% endif %}
+                            
+                            <div class="course-content">
+                                <span class="course-level">{{ course.level }}</span>
+                                <h3 class="course-title">{{ course.title }}</h3>
+                                
+                                <div class="course-rating">
+                                    <span class="rating-stars">
+                                        {% set stars = course.rating|round|int %}
+                                        {% for i in range(5) %}
+                                            {% if i < stars %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
                                     </span>
-                                    <a href="{{ url_for('course_detail', slug=course.slug) }}" class="btn btn-sm btn-primary">View Course</a>
+                                    <span class="rating-count">({{ course.rating_count }})</span>
+                                </div>
+                                
+                                <p class="course-description">{{ course.short_description }}</p>
+                                
+                                <div class="course-meta">
+                                    <span class="course-instructor">
+                                        By {{ course.instructor().username if course.instructor() else "AI Learning Hub Team" }}
+                                    </span>
+                                    
+                                    {% if course.price > 0 %}
+                                        <span class="course-price">${{ course.price }}</span>
+                                    {% else %}
+                                        <span class="course-price course-free">Free</span>
+                                    {% endif %}
                                 </div>
                             </div>
+                            
+                            <a href="{{ url_for('course_detail', slug=course.slug) }}" class="stretched-link"></a>
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body text-center py-5">
-                            <h3>No Courses Available Yet</h3>
-                            <p>Our team is working on creating amazing AI and ML courses for you.</p>
-                            <p>Check back soon!</p>
-                        </div>
-                    </div>
+                <div class="col-12 text-center py-5">
+                    <p>No courses available at the moment. Check back soon!</p>
                 </div>
             {% endif %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('courses') }}" class="btn btn-primary btn-lg">View All Courses</a>
         </div>
     </div>
 </section>
 
-<!-- Learning Paths -->
-<section class="learning-paths-section">
+<!-- Categories Section -->
+<section class="categories-section bg-light py-5">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Learning Paths</h2>
-            <a href="{{ url_for('learning_paths') }}" class="btn btn-outline-primary">View All Paths</a>
-        </div>
+        <h2 class="section-title">Browse by Category</h2>
+        <p class="section-subtitle">Discover courses in your areas of interest</p>
         
-        <div class="row">
-            {% if learning_paths %}
-                {% for path in learning_paths %}
-                    <div class="col-md-4 mb-4">
-                        <div class="path-card">
-                            <div class="path-inner">
-                                <div class="path-image" style="background-image: url('{{ url_for('static', filename='img/path-' + path.id|string + '.jpg') if path.image_url else url_for('static', filename='img/path-placeholder.jpg') }}')">
-                                    <div class="path-overlay">
-                                        <h3 class="path-title">{{ path.title }}</h3>
-                                        <div class="path-meta">
-                                            <span><i class="fas fa-signal me-1"></i> {{ path.difficulty_level|title }}</span>
-                                            <span><i class="fas fa-clock me-1"></i> {{ path.estimated_completion_time }} hours</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="path-content">
-                                    <p>{{ path.description|truncate(120) }}</p>
-                                    <a href="{{ url_for('learning_path_detail', slug=path.slug) }}" class="btn btn-outline-primary btn-sm">View Path</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body text-center py-5">
-                            <h3>No Learning Paths Available Yet</h3>
-                            <p>Our team is working on creating comprehensive learning paths to guide your AI journey.</p>
-                            <p>Check back soon!</p>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</section>
-
-<!-- Categories/Topics -->
-<section class="categories-section">
-    <div class="container">
-        <h2 class="section-title">Explore AI Topics</h2>
-        <p class="section-subtitle">Dive into any area of AI and machine learning with our specialized courses and resources.</p>
-        
-        <div class="row">
+        <div class="row justify-content-center">
             {% if categories %}
                 {% for category in categories %}
-                    <div class="col-md-3 col-6 mb-4">
-                        <div class="category-card">
-                            <div class="category-icon">
-                                <i class="fas {{ category.icon_class }}"></i>
+                    <div class="col-lg-3 col-md-4 col-6 mb-4">
+                        <a href="{{ url_for('courses', category=category) }}" class="category-card">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <i class="fas fa-folder category-icon mb-3"></i>
+                                    <h5 class="card-title">{{ category }}</h5>
+                                </div>
                             </div>
-                            <h3 class="category-title">{{ category.name }}</h3>
-                            <a href="{{ url_for('courses') }}?category={{ category.slug }}" class="btn btn-sm btn-outline-primary">Explore</a>
-                        </div>
+                        </a>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <h3 class="category-title">Machine Learning</h3>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Explore</a>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-network-wired"></i>
-                        </div>
-                        <h3 class="category-title">Deep Learning</h3>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Explore</a>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <h3 class="category-title">Computer Vision</h3>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Explore</a>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-comment-alt"></i>
-                        </div>
-                        <h3 class="category-title">NLP</h3>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Explore</a>
-                    </div>
+                <div class="col-12 text-center py-3">
+                    <p>No categories available yet.</p>
                 </div>
             {% endif %}
         </div>
     </div>
 </section>
 
-<!-- Testimonials -->
-<section class="testimonials-section">
+<!-- Testimonials Section -->
+<section class="testimonials-section py-5">
     <div class="container">
         <h2 class="section-title">What Our Students Say</h2>
+        <p class="section-subtitle">Hear from people who have transformed their careers with our courses</p>
         
         <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="card testimonial-card">
-                    <div class="card-body">
-                        <div class="testimonial-avatar">
-                            <img src="{{ url_for('static', filename='img/testimonial-1.jpg') }}" alt="Sarah Johnson">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="testimonial-card">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <p class="testimonial-text">"The Machine Learning Specialization completely changed my career path. I went from a data analyst to a machine learning engineer in just 6 months after completing these courses."</p>
+                            <div class="testimonial-author d-flex align-items-center mt-4">
+                                <div class="testimonial-avatar me-3">
+                                    <img src="{{ url_for('static', filename='img/avatar-1.jpg') }}" alt="Avatar" class="rounded-circle" width="50" height="50">
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">Sarah Johnson</h5>
+                                    <p class="text-muted mb-0">ML Engineer at TechCorp</p>
+                                </div>
+                            </div>
                         </div>
-                        <p class="testimonial-quote">AI Learning Hub helped me transition from a data analyst to a machine learning engineer in just 6 months. The project-based approach gave me real skills that employers value.</p>
-                        <h4 class="testimonial-author">Sarah Johnson</h4>
-                        <p class="testimonial-role">ML Engineer at TechCorp</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="card testimonial-card">
-                    <div class="card-body">
-                        <div class="testimonial-avatar">
-                            <img src="{{ url_for('static', filename='img/testimonial-2.jpg') }}" alt="David Chen">
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="testimonial-card">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <p class="testimonial-text">"As someone with no programming background, I was worried AI would be too complex. The beginner courses here made it accessible and I'm now confidently building my own models."</p>
+                            <div class="testimonial-author d-flex align-items-center mt-4">
+                                <div class="testimonial-avatar me-3">
+                                    <img src="{{ url_for('static', filename='img/avatar-2.jpg') }}" alt="Avatar" class="rounded-circle" width="50" height="50">
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">Michael Chen</h5>
+                                    <p class="text-muted mb-0">Data Scientist</p>
+                                </div>
+                            </div>
                         </div>
-                        <p class="testimonial-quote">As someone with no coding background, I was intimidated by AI. The beginner-friendly Python courses and personalized learning path made the journey approachable and enjoyable.</p>
-                        <h4 class="testimonial-author">David Chen</h4>
-                        <p class="testimonial-role">Product Manager</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="card testimonial-card">
-                    <div class="card-body">
-                        <div class="testimonial-avatar">
-                            <img src="{{ url_for('static', filename='img/testimonial-3.jpg') }}" alt="Priya Sharma">
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="testimonial-card">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="testimonial-rating mb-3">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <p class="testimonial-text">"The project-based learning approach helped me build a portfolio that impressed recruiters. Within weeks of completing the Deep Learning path, I had multiple job offers."</p>
+                            <div class="testimonial-author d-flex align-items-center mt-4">
+                                <div class="testimonial-avatar me-3">
+                                    <img src="{{ url_for('static', filename='img/avatar-3.jpg') }}" alt="Avatar" class="rounded-circle" width="50" height="50">
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">Priya Sharma</h5>
+                                    <p class="text-muted mb-0">AI Developer at StartupX</p>
+                                </div>
+                            </div>
                         </div>
-                        <p class="testimonial-quote">The AI assistant helped me debug problems and understand complex concepts that would have taken me weeks to figure out on my own. It's like having a mentor available 24/7.</p>
-                        <h4 class="testimonial-author">Priya Sharma</h4>
-                        <p class="testimonial-role">Data Science Student</p>
                     </div>
                 </div>
             </div>
@@ -275,15 +321,11 @@
 </section>
 
 <!-- CTA Section -->
-<section class="cta-section">
-    <div class="cta-pattern"></div>
-    <div class="container cta-content">
-        <h2 class="cta-title">Ready to Master Artificial Intelligence?</h2>
-        <p class="cta-text">Join thousands of students who are building the skills they need for the AI-powered future. Get started today with our free courses or upgrade to premium for full access.</p>
-        <div class="d-flex justify-content-center gap-3">
-            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">Sign Up Free</a>
-            <a href="{{ url_for('subscription_plans') }}" class="btn btn-outline-light btn-lg">View Pro Plans</a>
-        </div>
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to start your AI learning journey?</h2>
+        <p class="mb-4">Join thousands of students already learning on AI Learning Hub</p>
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">Get Started For Free</a>
     </div>
 </section>
 {% endblock %}
