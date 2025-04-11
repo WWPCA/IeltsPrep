@@ -159,8 +159,8 @@ class User(UserMixin, db.Model):
         }
     
     def is_subscribed(self):
-        # Check if user has an active subscription
-        if self.subscription_status == "active" and self.subscription_expiry:
+        # Check if user has an active or premium subscription
+        if (self.subscription_status in ["active", "premium"]) and self.subscription_expiry:
             # Check if subscription has expired
             if self.subscription_expiry < datetime.utcnow():
                 self.subscription_status = "expired"
