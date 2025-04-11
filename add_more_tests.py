@@ -15,9 +15,12 @@ def add_more_tests():
     
     # Delete existing premium tests to avoid duplication
     with app.app_context():
-        # Delete existing complete tests first (will cascade to sections)
+        # Delete existing practice tests first, then complete tests to respect foreign keys
         try:
             from sqlalchemy import text
+            # First delete child records
+            db.session.execute(text("DELETE FROM practice_test WHERE complete_test_id IN (SELECT id FROM complete_practice_test WHERE is_free = FALSE)"))
+            # Then delete parent records
             db.session.execute(text("DELETE FROM complete_practice_test WHERE is_free = FALSE"))
             db.session.commit()
             print("Cleared existing premium tests.")
@@ -70,7 +73,8 @@ def add_more_tests():
             description=f'IELTS Academic Listening Test about {academic_test_topics[i]} with four sections.',
             _questions=json.dumps(listening_questions["questions"]),
             _answers=json.dumps(listening_questions["answers"]),
-            audio_url=f'audio/listening_test_{test_num % 4 + 1}.mp3',  # Cycle through available audio files
+            # Reference one of the existing audio files instead of non-existent ones
+            audio_url=f'audio/{"accommodation_inquiry.mp3" if test_num % 4 == 0 else "biodiversity_project.mp3" if test_num % 4 == 1 else "community_center.mp3" if test_num % 4 == 2 else "urban_planning_lecture.mp3"}',
             is_free=is_free,
             time_limit=30  # 30 minutes
         )
