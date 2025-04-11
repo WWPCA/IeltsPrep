@@ -219,6 +219,7 @@ class UserTestAttempt(db.Model):
     attempt_date = db.Column(db.DateTime, default=datetime.utcnow)
     _user_answers = db.Column(db.Text, nullable=False)  # JSON string
     score = db.Column(db.Float, nullable=True)
+    assessment = db.Column(db.Text, nullable=True)  # JSON string with full assessment details
     
     @property
     def user_answers(self):
