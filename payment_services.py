@@ -33,12 +33,13 @@ SUBSCRIPTION_PLANS = {
 }
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def create_stripe_checkout(plan='base'):
+def create_stripe_checkout(plan='base', country_code=None):
     """
     Create a Stripe checkout session for subscription.
     
     Args:
         plan (str): Subscription plan ('base', 'intermediate', or 'pro')
+        country_code (str, optional): Two-letter country code for regional payment methods
     
     Returns:
         dict: Contains session_id and checkout_url
@@ -64,33 +65,64 @@ def create_stripe_checkout(plan='base'):
         # Create a Price if it doesn't exist
         price = create_or_get_price(product.id, plan)
         
-        # Get user country from request if available
-        user_country = None
+        # Use the country code if provided
+        user_country = country_code
         # Dynamic payment method types based on user region
         payment_method_types = ['card', 'apple_pay', 'google_pay']
         
         # Add region-specific payment methods
         # These are the payment methods supported by Stripe
         region_payment_mapping = {
+            # East Asia
             'CN': ['alipay', 'wechat_pay'],
-            'JP': ['konbini'],
-            'MY': ['grabpay'],
-            'TH': ['promptpay'],
-            'ID': ['dana'],
-            'PH': ['gcash'],
-            'BR': ['boleto', 'pix'],
-            'IN': ['upi'],
-            'MX': ['oxxo'],
-            'KR': ['kakaopay'],
-            'AE': ['benefit'],
-            'SA': ['stcpay'],
-            'EG': ['fawry'],
-            'KE': ['mpesa'],
-            'NG': ['paystack']
+            'JP': ['konbini', 'paypay', 'jcb'],
+            'KR': ['kakaopay', 'naver_pay'],
+            
+            # Southeast Asia
+            'MY': ['grabpay', 'fpx', 'boost', 'touch_n_go'],
+            'TH': ['promptpay', 'truemoney'],
+            'ID': ['dana', 'ovo', 'gopay', 'linkaja'],
+            'PH': ['gcash', 'paymaya'],
+            'SG': ['grabpay', 'paynow'],
+            'VN': ['momo', 'zalopay', 'vnpay'],
+            
+            # South Asia
+            'IN': ['upi', 'paytm', 'netbanking', 'amazon_pay', 'phonepe'],
+            'PK': ['easypaisa', 'jazzcash'],
+            'BD': ['bkash', 'rocket', 'nagad'],
+            'NP': ['esewa', 'khalti'],
+            
+            # Latin America
+            'BR': ['boleto', 'pix', 'mercado_pago'],
+            'MX': ['oxxo', 'spei', 'mercado_pago'],
+            
+            # Middle East
+            'AE': ['benefit', 'apple_pay'],
+            'SA': ['stcpay', 'mada'],
+            'EG': ['fawry', 'meeza'],
+            'TR': ['troy', 'papara', 'ininal'],
+            
+            # Africa
+            'KE': ['mpesa', 'airtel_money'],
+            'NG': ['paystack', 'flutterwave', 'opay'],
+            'ET': ['cbe_birr', 'telebirr'],
+            'TZ': ['mpesa', 'tigopesa', 'airtel_money'],
+            
+            # Oceania
+            'AU': ['afterpay', 'bpay', 'osko'],
+            'NZ': ['afterpay', 'poli'],
+            
+            # North America
+            'CA': ['interac'],
+            'US': ['affirm', 'us_bank_account', 'venmo'],
+            
+            # Europe
+            'GB': ['bacs_debit', 'ideal', 'sofort'],
+            'RU': ['yandex_pay', 'qiwi', 'sberbank']
         }
         
         # If we have user_country, add the appropriate payment methods
-        if user_country in region_payment_mapping:
+        if user_country and user_country in region_payment_mapping:
             payment_method_types.extend(region_payment_mapping[user_country])
         
         # Create checkout session with all payment options

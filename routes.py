@@ -449,8 +449,12 @@ def create_checkout_session():
     # For now, we only implement Stripe checkout
     if payment_method == 'stripe':
         try:
+            # Detect user's country for region-specific payment methods
+            from geoip_services import get_country_from_ip
+            country_code, _ = get_country_from_ip()
+            
             # Create checkout session and store in session
-            checkout_data = create_stripe_checkout(plan)
+            checkout_data = create_stripe_checkout(plan, country_code)
             session['checkout_session_id'] = checkout_data['session_id']
             session['checkout_url'] = checkout_data['checkout_url']
             
