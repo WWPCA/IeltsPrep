@@ -226,7 +226,7 @@ Note: The 'overall' score is not a simple average but a holistic score based on 
 """
 
 # Full prompt construction
-def construct_assessment_prompt(essay_text: str, task_prompt: str) -> Dict[str, Any]:
+def construct_assessment_prompt(essay_text: str, task_prompt: str) -> List[Dict[str, str]]:
     """
     Constructs the full prompt for GPT-4o assessment.
     
@@ -235,7 +235,7 @@ def construct_assessment_prompt(essay_text: str, task_prompt: str) -> Dict[str, 
         task_prompt: The original task prompt given to the student
         
     Returns:
-        Dict containing system and user messages for the API call
+        List of message dictionaries for the API call
     """
     user_prompt = f"""
 ESSAY TO ASSESS:
@@ -283,12 +283,41 @@ def get_band_description(band_score: float, criterion: str) -> str:
     Returns a description of what a particular band score means for a given criterion.
     Will be implemented based on official IELTS band descriptors.
     """
-    # Implementation pending
-    pass
+    # Simple placeholder implementation until we have the full descriptors
+    general_descriptions = {
+        9: "Expert level performance in this area.",
+        8.5: "Very strong performance with only minor issues.",
+        8: "Very good performance with occasional lapses.",
+        7.5: "Good performance with some inconsistencies.",
+        7: "Good overall performance with noticeable inconsistencies.",
+        6.5: "Competent performance with some limitations.",
+        6: "Generally effective with notable limitations.",
+        5.5: "Modest performance with frequent issues.",
+        5: "Limited performance with significant issues.",
+        4.5: "Basic competence only in familiar contexts.",
+        4: "Very limited competence with serious difficulties.",
+        3.5: "Extremely limited ability to communicate effectively.",
+        3: "Serious communication problems throughout.",
+        2.5: "Severe difficulty with basic communication.",
+        2: "Unable to communicate effectively.",
+        1.5: "Almost no ability to use language meaningfully.",
+        1: "No meaningful language production.",
+        0: "No assessable language produced."
+    }
+    
+    return general_descriptions.get(band_score, "No description available for this band score.")
 
 def format_feedback_for_display(assessment_result: Dict[str, Any]) -> Dict[str, Any]:
     """
     Formats the raw assessment JSON into a more user-friendly format for display.
     """
-    # Implementation pending
-    pass
+    # Simple placeholder implementation
+    formatted_result = {
+        "display_title": f"Writing Assessment - Band {assessment_result.get('scores', {}).get('overall', 'N/A')}",
+        "task_type": assessment_result.get("task_type", "Unknown"),
+        "scores": assessment_result.get("scores", {}),
+        "feedback": assessment_result.get("feedback", {}),
+        "summary": assessment_result.get("feedback", {}).get("summary", "Assessment pending.")
+    }
+    
+    return formatted_result

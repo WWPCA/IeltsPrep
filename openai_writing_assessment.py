@@ -37,7 +37,6 @@ except ImportError:
             return func
         return decorator
 
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def get_openai_response(messages: List[Dict[str, str]]) -> Dict[str, Any]:
     """
     Send a request to the OpenAI API with retry logic for robustness.
@@ -48,18 +47,38 @@ def get_openai_response(messages: List[Dict[str, str]]) -> Dict[str, Any]:
     Returns:
         The API response content
     """
+    # Check if we have initialized OpenAI client
+    if not initialize_openai():
+        # Return mock response if API key is not available
+        return {
+            "error": True,
+            "message": "OpenAI API key not available. Please set the OPENAI_API_KEY environment variable."
+        }
+    
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o",  # Using the latest model for best results
-            messages=messages,
-            temperature=0.2,  # Lower temperature for more consistent results
-            response_format={"type": "json_object"},  # Ensure JSON response
-            max_tokens=1500  # Ensure enough tokens for detailed feedback
-        )
-        return json.loads(response.choices[0].message.content)
+        # Define retry decorator if tenacity is available
+        retry_decorator = retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10)) if has_tenacity else lambda f: f
+        
+        # Define the actual API call function
+        @retry_decorator
+        def call_openai_api():
+            response = client.chat.completions.create(
+                model="gpt-4o",  # Using the latest model for best results
+                messages=messages,
+                temperature=0.2,  # Lower temperature for more consistent results
+                response_format={"type": "json_object"},  # Ensure JSON response
+                max_tokens=1500  # Ensure enough tokens for detailed feedback
+            )
+            return json.loads(response.choices[0].message.content)
+        
+        # Call the API
+        return call_openai_api()
     except Exception as e:
         print(f"Error calling OpenAI API: {str(e)}")
-        raise
+        return {
+            "error": True,
+            "message": f"Error calling OpenAI API: {str(e)}"
+        }
 
 def count_words(text: str) -> int:
     """
@@ -135,7 +154,21 @@ def format_assessment_for_display(assessment_result: Dict[str, Any]) -> Dict[str
     if "error" in assessment_result:
         return {
             "display_title": "Assessment Error",
-            "display_content": f"Sorry, we couldn't assess your writing: {assessment_result.get('message', 'Unknown error')}"
+            "display_content": f"Sorry, we couldn't assess your writing: {assessment_result.get('message', 'Unknown error')}",
+            "task_type": "Unknown",
+            "overall_score": "N/A",
+            "score_description": "Assessment not available",
+            "criteria_scores": {
+                "Task Achievement/Response": "N/A",
+                "Coherence & Cohesion": "N/A",
+                "Lexical Resource": "N/A",
+                "Grammatical Range & Accuracy": "N/A"
+            },
+            "word_count": assessment_result.get("word_count", 0),
+            "meets_requirement": False,
+            "strengths": [],
+            "improvements": [],
+            "summary": "The assessment couldn't be completed. Please check your OpenAI API key configuration or try again later."
         }
     
     # Format overall score with appropriate band description
