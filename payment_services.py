@@ -64,9 +64,38 @@ def create_stripe_checkout(plan='base'):
         # Create a Price if it doesn't exist
         price = create_or_get_price(product.id, plan)
         
-        # Create checkout session with Apple Pay and Google Pay support
+        # Get user country from request if available
+        user_country = None
+        # Dynamic payment method types based on user region
+        payment_method_types = ['card', 'apple_pay', 'google_pay']
+        
+        # Add region-specific payment methods
+        # These are the payment methods supported by Stripe
+        region_payment_mapping = {
+            'CN': ['alipay', 'wechat_pay'],
+            'JP': ['konbini'],
+            'MY': ['grabpay'],
+            'TH': ['promptpay'],
+            'ID': ['dana'],
+            'PH': ['gcash'],
+            'BR': ['boleto', 'pix'],
+            'IN': ['upi'],
+            'MX': ['oxxo'],
+            'KR': ['kakaopay'],
+            'AE': ['benefit'],
+            'SA': ['stcpay'],
+            'EG': ['fawry'],
+            'KE': ['mpesa'],
+            'NG': ['paystack']
+        }
+        
+        # If we have user_country, add the appropriate payment methods
+        if user_country in region_payment_mapping:
+            payment_method_types.extend(region_payment_mapping[user_country])
+        
+        # Create checkout session with all payment options
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card', 'apple_pay', 'google_pay'],
+            payment_method_types=payment_method_types,
             line_items=[
                 {
                     'price': price.id,
