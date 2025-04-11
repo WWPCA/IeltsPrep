@@ -423,6 +423,12 @@ def subscribe():
 def create_checkout_session():
     payment_method = request.form.get('payment_method', 'stripe')
     plan = request.form.get('plan', 'base')
+    terms_accepted = request.form.get('terms_accepted')
+    
+    # Validate that terms and conditions have been accepted
+    if not terms_accepted:
+        flash('You must accept the Terms and Conditions to proceed with payment.', 'danger')
+        return redirect(url_for('subscribe'))
     
     # For now, we only implement Stripe checkout
     if payment_method == 'stripe':
@@ -431,6 +437,10 @@ def create_checkout_session():
             checkout_data = create_stripe_checkout(plan)
             session['checkout_session_id'] = checkout_data['session_id']
             session['checkout_url'] = checkout_data['checkout_url']
+            
+            # Store acceptance of terms in the session
+            session['terms_accepted'] = True
+            session['terms_accepted_time'] = datetime.utcnow().isoformat()
             
             # Redirect to our new checkout page route
             return redirect(url_for('stripe_checkout'))
