@@ -198,6 +198,11 @@ def take_practice_test(test_type, test_id):
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
+    # Check if user has already taken this test during current subscription period
+    if not is_free_sample and current_user.has_taken_test(test_id, test_type):
+        flash('You have already taken this test during your current subscription period. Each test can only be taken once per subscription.', 'warning')
+        return redirect(url_for('practice_test_list', test_type=test_type))
+    
     # Handle new question format for listening tests
     if test_type == 'listening':
         # Convert questions from JSON string to Python list/dict
@@ -257,6 +262,11 @@ def submit_test():
     })
     current_user.test_history = test_history
     
+    # Mark this test as completed so it can't be retaken during current subscription period
+    is_free_sample = (PracticeTest.query.filter_by(test_type=test.test_type).first().id == test_id)
+    if not is_free_sample:
+        current_user.mark_test_completed(test_id, test.test_type)
+    
     db.session.commit()
     
     return jsonify({
@@ -298,6 +308,11 @@ def speaking_assessment(prompt_id):
     if not current_user.is_subscribed():
         flash('Speaking assessment requires a subscription. Please subscribe to access this feature.', 'warning')
         return redirect(url_for('subscribe'))
+    
+    # Check if user has already taken this speaking prompt during current subscription period
+    if current_user.has_taken_test(prompt_id, 'speaking'):
+        flash('You have already taken this speaking assessment during your current subscription period. Each assessment can only be taken once per subscription.', 'warning')
+        return redirect(url_for('speaking_index'))
     
     return render_template('speaking/index.html', title='Speaking Assessment',
                           prompt=prompt, assessment=True, prompts=prompts, sample_prompt=sample_prompt, is_sample=False)

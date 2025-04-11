@@ -31,6 +31,8 @@ class User(UserMixin, db.Model):
     _test_history = db.Column(db.Text, default='[]')
     # Store speaking scores as JSON string
     _speaking_scores = db.Column(db.Text, default='[]')
+    # Store completed tests as JSON string
+    _completed_tests = db.Column(db.Text, default='[]')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -61,6 +63,39 @@ class User(UserMixin, db.Model):
     @activity_history.setter
     def activity_history(self, value):
         self._activity_history = json.dumps(value)
+        
+    @property
+    def completed_tests(self):
+        return json.loads(self._completed_tests)
+    
+    @completed_tests.setter
+    def completed_tests(self, value):
+        self._completed_tests = json.dumps(value)
+    
+    def has_taken_test(self, test_id, test_type=None):
+        """Check if user has already taken a specific test"""
+        for test in self.completed_tests:
+            if test['test_id'] == test_id:
+                if test_type is None or test['test_type'] == test_type:
+                    # Check if taken during current subscription period
+                    if self.subscription_expiry:
+                        test_date = datetime.fromisoformat(test['date'])
+                        # If test was taken before current subscription started, allow retaking
+                        subscription_start = self.subscription_expiry - timedelta(days=30)  # Assume 30-day subscription
+                        if test_date < subscription_start:
+                            return False
+                    return True
+        return False
+        
+    def mark_test_completed(self, test_id, test_type):
+        """Mark a test as completed by this user"""
+        completed = self.completed_tests
+        completed.append({
+            'test_id': test_id,
+            'test_type': test_type,
+            'date': datetime.utcnow().isoformat()
+        })
+        self.completed_tests = completed
     
     def update_streak(self):
         """Update the user's study streak based on their activity"""
