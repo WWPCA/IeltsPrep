@@ -40,111 +40,254 @@
                         </div>
                         <div>
                             <h4>Subscribe for Full Access</h4>
-                            <p>Subscribe now to unlock all practice tests. Choose from our 3, 6, or 12 test packages.</p>
+                            <p>Subscribe now to unlock all practice tests. Choose from our subscription options for full test access.</p>
                             <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
                         </div>
                     </div>
                 </div>
             {% endif %}
+
+            <!-- Test preference info -->
+            {% if current_user.is_authenticated %}
+            <div class="alert alert-success mb-4">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-clipboard-check fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4>Your IELTS Test Preference</h4>
+                        <p class="mb-0">
+                            You are currently preparing for 
+                            <strong>
+                                {% if current_user.test_preference == 'academic' %}
+                                    IELTS Academic
+                                {% elif current_user.test_preference == 'general' %}
+                                    IELTS General Training
+                                {% elif current_user.test_preference == 'ukvi' %}
+                                    IELTS for UK Visas and Immigration
+                                {% elif current_user.test_preference == 'life_skills' %}
+                                    IELTS Life Skills
+                                {% endif %}
+                            </strong>. 
+                            Your practice tests will be customized for this test type.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             
-            <div class="row mt-5">
+            <!-- Complete Practice Tests Section -->
+            <h2 class="mb-4 mt-5">Complete IELTS Practice Tests</h2>
+            <p class="lead mb-4">Each complete practice test includes all required sections, just like the actual IELTS exam.</p>
+            
+            <div class="row">
+                {% if complete_tests %}
+                    {% for test in complete_tests %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 {% if test.is_free %}border-success{% endif %}">
+                                <div class="card-header {% if test.is_free %}bg-success{% else %}bg-primary{% endif %} text-white">
+                                    <h2 class="h4 mb-0">{{ test.title }}</h2>
+                                    {% if test.is_free %}<span class="badge bg-white text-success float-end">Free Sample</span>{% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-4">
+                                        <i class="fas fa-clipboard-list fa-4x text-primary"></i>
+                                    </div>
+                                    
+                                    <h3 class="h5">
+                                        {% if test.ielts_test_type == 'academic' %}
+                                            IELTS Academic Test {{ test.test_number }}
+                                        {% elif test.ielts_test_type == 'general' %}
+                                            IELTS General Training Test {{ test.test_number }}
+                                        {% elif test.ielts_test_type == 'ukvi' %}
+                                            IELTS UKVI Test {{ test.test_number }}
+                                        {% elif test.ielts_test_type == 'life_skills' %}
+                                            IELTS Life Skills Test {{ test.test_number }}
+                                        {% endif %}
+                                    </h3>
+                                    
+                                    <p>{{ test.description }}</p>
+                                    
+                                    <div class="test-sections mt-3">
+                                        <h4 class="h6">Test Sections:</h4>
+                                        <div class="d-flex flex-wrap">
+                                            <span class="badge bg-primary me-2 mb-2 p-2">
+                                                <i class="fas fa-headphones me-1"></i> Listening
+                                            </span>
+                                            {% if test.ielts_test_type != 'life_skills' %}
+                                            <span class="badge bg-primary me-2 mb-2 p-2">
+                                                <i class="fas fa-book-open me-1"></i> Reading
+                                            </span>
+                                            <span class="badge bg-primary me-2 mb-2 p-2">
+                                                <i class="fas fa-pencil-alt me-1"></i> Writing
+                                            </span>
+                                            {% endif %}
+                                            <span class="badge bg-primary me-2 mb-2 p-2">
+                                                <i class="fas fa-microphone me-1"></i> Speaking
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if test_progress and test.id in test_progress %}
+                                        <div class="progress mt-3">
+                                            <div class="progress-bar progress-bar-striped bg-success" 
+                                                 role="progressbar" 
+                                                 style="width: {{ test_progress[test.id].progress_percent }}%;" 
+                                                 aria-valuenow="{{ test_progress[test.id].progress_percent }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ test_progress[test.id].progress_percent }}%
+                                            </div>
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <small>{{ test_progress[test.id].status }}</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-white text-center">
+                                    {% if not current_user.is_authenticated %}
+                                        <a href="{{ url_for('login') }}" class="btn btn-primary">
+                                            <i class="fas fa-sign-in-alt me-1"></i> Login to Access
+                                        </a>
+                                    {% elif not current_user.is_subscribed() and not test.is_free %}
+                                        <a href="{{ url_for('subscribe') }}" class="btn btn-warning">
+                                            <i class="fas fa-crown me-1"></i> Subscribe to Access
+                                        </a>
+                                    {% elif test_progress and test.id in test_progress and test_progress[test.id].is_completed %}
+                                        <span class="badge bg-success p-2">
+                                            <i class="fas fa-check-circle me-1"></i> Completed
+                                        </span>
+                                        <span class="ms-2">Score: {{ test_progress[test.id].score }}</span>
+                                    {% elif test_progress and test.id in test_progress %}
+                                        <a href="{{ url_for('continue_complete_test', test_id=test.id) }}" class="btn btn-primary">
+                                            <i class="fas fa-play me-1"></i> Continue Test
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('start_complete_test', test_id=test.id) }}" class="btn btn-primary">
+                                            <i class="fas fa-play me-1"></i> Start Test
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4>Tests Coming Soon</h4>
+                                    <p class="mb-0">We're currently preparing complete practice tests for your selected test type. Check back soon!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Practice by Individual Section -->
+            <h2 class="mb-4 mt-5">Practice by Individual Section</h2>
+            <p class="lead mb-4">Want to focus on a specific skill? Practice individual test sections below.</p>
+            
+            <div class="row">
                 <!-- Listening Tests -->
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-md-6 col-lg-3 mb-4">
                     <div class="card h-100">
                         <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Listening Practice</h2>
+                            <h2 class="h4 mb-0">Listening</h2>
                         </div>
                         <div class="card-body">
                             <div class="text-center mb-4">
                                 <i class="fas fa-headphones fa-4x text-primary"></i>
                             </div>
                             
-                            <h3 class="h5">IELTS Listening Test</h3>
+                            <h3 class="h5">IELTS Listening</h3>
                             <ul>
                                 <li>4 recordings, 40 questions</li>
                                 <li>30 minutes + 10 minutes transfer time</li>
-                                <li>Conversations and monologues</li>
-                                <li>Multiple choice, matching, fill-in-the-blank questions</li>
                             </ul>
-                            
-                            {% if sample_tests and sample_tests.listening %}
-                                <div class="alert alert-info text-center">
-                                    <p><strong>Available with Subscription:</strong><br>
-                                    {{ sample_tests.listening.title }} and more</p>
-                                </div>
-                            {% endif %}
                         </div>
                         <div class="card-footer bg-white text-center">
                             <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-primary">
-                                Start Listening Practice
+                                Practice Listening
                             </a>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Reading Tests -->
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-md-6 col-lg-3 mb-4">
                     <div class="card h-100">
                         <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Reading Practice</h2>
+                            <h2 class="h4 mb-0">Reading</h2>
                         </div>
                         <div class="card-body">
                             <div class="text-center mb-4">
                                 <i class="fas fa-book-open fa-4x text-primary"></i>
                             </div>
                             
-                            <h3 class="h5">IELTS Reading Test</h3>
+                            <h3 class="h5">IELTS Reading</h3>
                             <ul>
                                 <li>3 passages, 40 questions</li>
                                 <li>60 minutes total time</li>
-                                <li>Academic and General Training versions</li>
-                                <li>Multiple choice, matching, True/False/Not Given questions</li>
                             </ul>
-                            
-                            {% if sample_tests and sample_tests.reading %}
-                                <div class="alert alert-info text-center">
-                                    <p><strong>Available with Subscription:</strong><br>
-                                    {{ sample_tests.reading.title }} and more</p>
-                                </div>
-                            {% endif %}
                         </div>
                         <div class="card-footer bg-white text-center">
                             <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-primary">
-                                Start Reading Practice
+                                Practice Reading
                             </a>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Writing Tests -->
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-md-6 col-lg-3 mb-4">
                     <div class="card h-100">
                         <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Writing Practice</h2>
+                            <h2 class="h4 mb-0">Writing</h2>
                         </div>
                         <div class="card-body">
                             <div class="text-center mb-4">
                                 <i class="fas fa-pencil-alt fa-4x text-primary"></i>
                             </div>
                             
-                            <h3 class="h5">IELTS Writing Test</h3>
+                            <h3 class="h5">IELTS Writing</h3>
                             <ul>
-                                <li>Task 1: 150 words (20 minutes)</li>
-                                <li>Task 2: 250 words essay (40 minutes)</li>
-                                <li>60 minutes total time</li>
-                                <li>Academic and General Training versions</li>
+                                <li>Task 1: 150 words</li>
+                                <li>Task 2: 250 words essay</li>
                             </ul>
-                            
-                            {% if sample_tests and sample_tests.writing %}
-                                <div class="alert alert-info text-center">
-                                    <p><strong>Available with Subscription:</strong><br>
-                                    {{ sample_tests.writing.title }} and more</p>
-                                </div>
-                            {% endif %}
                         </div>
                         <div class="card-footer bg-white text-center">
                             <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-primary">
-                                Start Writing Practice
+                                Practice Writing
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Speaking Tests -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="h4 mb-0">Speaking</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-microphone fa-4x text-primary"></i>
+                            </div>
+                            
+                            <h3 class="h5">IELTS Speaking</h3>
+                            <ul>
+                                <li>11-14 minute interview</li>
+                                <li>3 parts: Introduction, Topic and Discussion</li>
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{{ url_for('speaking_index') }}" class="btn btn-primary">
+                                Practice Speaking
                             </a>
                         </div>
                     </div>
@@ -234,7 +377,7 @@
             
             <div class="text-center mt-5">
                 <h2 class="mb-4">Ready to start practicing?</h2>
-                <p class="lead mb-4">Choose a test type above or explore our subscription options for full access.</p>
+                <p class="lead mb-4">Choose a complete test or individual section above for targeted practice.</p>
                 
                 {% if not current_user.is_authenticated %}
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Create an Account</a>

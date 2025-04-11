@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     subscription_status = db.Column(db.String(20), default="none")
     subscription_expiry = db.Column(db.DateTime, nullable=True)
     preferred_language = db.Column(db.String(10), default="en")
+    test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general, life_skills, ukvi
     
     # Study streak tracking
     current_streak = db.Column(db.Integer, default=0)
@@ -183,15 +184,33 @@ class TestStructure(db.Model):
     def __repr__(self):
         return f'<TestStructure {self.test_type}>'
 
+class CompletePracticeTest(db.Model):
+    """Model for a complete IELTS practice test with all sections"""
+    id = db.Column(db.Integer, primary_key=True)
+    ielts_test_type = db.Column(db.String(20), nullable=False)  # academic, general, life_skills, ukvi
+    test_number = db.Column(db.Integer, nullable=False)  # Test 1, Test 2, etc.
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    is_free = db.Column(db.Boolean, default=False)  # Free sample test
+    subscription_level = db.Column(db.String(20), nullable=False, default="basic")  # basic, intermediate, premium
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<CompletePracticeTest {self.ielts_test_type} Test {self.test_number}: {self.title}>'
+
 class PracticeTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    test_type = db.Column(db.String(20), nullable=False)  # listening, reading, writing
+    complete_test_id = db.Column(db.Integer, db.ForeignKey('complete_practice_test.id'), nullable=True)  # Link to complete test
+    test_type = db.Column(db.String(20), nullable=False)  # listening, reading, writing, speaking
+    ielts_test_type = db.Column(db.String(20), nullable=False, default="academic")  # academic, general, life_skills, ukvi
     section = db.Column(db.Integer, nullable=False)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     _questions = db.Column(db.Text, nullable=False)  # JSON string
     _answers = db.Column(db.Text, nullable=False)  # JSON string
     audio_url = db.Column(db.String(256), nullable=True)  # For listening tests
+    is_free = db.Column(db.Boolean, default=False)  # Free sample test
+    time_limit = db.Column(db.Integer, nullable=True)  # Time limit in minutes
     
     @property
     def questions(self):
@@ -212,10 +231,104 @@ class PracticeTest(db.Model):
     def __repr__(self):
         return f'<PracticeTest {self.test_type} {self.section}: {self.title}>'
 
+class CompleteTestProgress(db.Model):
+    """Track user progress through a complete test with multiple sections"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    complete_test_id = db.Column(db.Integer, db.ForeignKey('complete_practice_test.id'), nullable=False)
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_date = db.Column(db.DateTime, nullable=True)
+    _section_progress = db.Column(db.Text, default='{}')  # JSON tracking completed sections
+    current_section = db.Column(db.String(20), nullable=True)  # Current section (listening, reading, etc.)
+    
+    @property
+    def section_progress(self):
+        return json.loads(self._section_progress)
+    
+    @section_progress.setter
+    def section_progress(self, value):
+        self._section_progress = json.dumps(value)
+        
+    def is_section_completed(self, section_type):
+        """Check if a specific section has been completed"""
+        progress = self.section_progress
+        return section_type in progress and progress[section_type].get('completed', False)
+        
+    def mark_section_completed(self, section_type, score):
+        """Mark a section as completed with its score"""
+        progress = self.section_progress
+        progress[section_type] = {
+            'completed': True,
+            'score': score,
+            'date': datetime.utcnow().isoformat()
+        }
+        self.section_progress = progress
+        
+    def is_test_completed(self):
+        """Check if all test sections are completed"""
+        # Define required sections for different test types
+        test = CompletePracticeTest.query.get(self.complete_test_id)
+        if not test:
+            return False
+            
+        required_sections = ['listening', 'reading', 'writing']
+        # Life Skills only has speaking and listening
+        if test.ielts_test_type == 'life_skills':
+            required_sections = ['listening', 'speaking']
+            
+        progress = self.section_progress
+        for section in required_sections:
+            if section not in progress or not progress[section].get('completed', False):
+                return False
+                
+        # If we got here, all required sections are complete
+        if not self.completed_date:
+            self.completed_date = datetime.utcnow()
+            
+        return True
+        
+    def get_overall_score(self):
+        """Calculate overall band score across all completed sections"""
+        if not self.section_progress:
+            return 0
+            
+        progress = self.section_progress
+        total_score = 0
+        count = 0
+        
+        for section, data in progress.items():
+            if data.get('completed', False) and 'score' in data:
+                total_score += float(data['score'])
+                count += 1
+                
+        return round(total_score / max(1, count), 1)  # Avoid division by zero
+    
+    def get_next_section(self):
+        """Get the next incomplete section for this test"""
+        # Standard section order in IELTS
+        section_order = ['listening', 'reading', 'writing', 'speaking']
+        
+        # Life Skills has different order
+        test = CompletePracticeTest.query.get(self.complete_test_id)
+        if test and test.ielts_test_type == 'life_skills':
+            section_order = ['listening', 'speaking']
+            
+        progress = self.section_progress
+        
+        for section in section_order:
+            if section not in progress or not progress[section].get('completed', False):
+                return section
+                
+        return None  # All sections completed
+        
+    def __repr__(self):
+        return f'<CompleteTestProgress User:{self.user_id} Test:{self.complete_test_id}>'
+
 class UserTestAttempt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     test_id = db.Column(db.Integer, db.ForeignKey('practice_test.id'), nullable=False)
+    complete_test_progress_id = db.Column(db.Integer, db.ForeignKey('complete_test_progress.id'), nullable=True)
     attempt_date = db.Column(db.DateTime, default=datetime.utcnow)
     _user_answers = db.Column(db.Text, nullable=False)  # JSON string
     score = db.Column(db.Float, nullable=True)

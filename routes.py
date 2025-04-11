@@ -110,10 +110,13 @@ def register():
             flash('Username or email already exists!', 'danger')
             return render_template('register.html', title='Register', form=form)
         
+        test_preference = request.form.get('test_preference', 'academic')
+        
         new_user = User(
             username=username,
             email=email,
-            region=region
+            region=region,
+            test_preference=test_preference
         )
         new_user.set_password(password)
         
