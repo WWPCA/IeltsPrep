@@ -11,7 +11,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import app, db
 from models import (User, TestStructure, PracticeTest, UserTestAttempt, 
-                   SpeakingPrompt, SpeakingResponse, PaymentMethod, Translation, CountryPricing)
+                   SpeakingPrompt, SpeakingResponse, PaymentMethod, Translation, CountryPricing,
+                   CompletePracticeTest, CompleteTestProgress)
 from utils import get_user_region, get_translation, compress_audio
 from aws_services import (transcribe_audio, generate_polly_speech, analyze_speaking_response, 
                       analyze_pronunciation, generate_pronunciation_exercises)
@@ -167,8 +168,52 @@ def practice_index():
     for test_type in test_types:
         sample_tests[test_type] = PracticeTest.query.filter_by(test_type=test_type).first()
     
+    # Get complete tests based on user's test preference
+    complete_tests = []
+    test_progress = {}
+    
+    if current_user.is_authenticated:
+        # Filter tests by user's test preference
+        user_test_preference = current_user.test_preference
+        
+        # Get tests (free ones and those matching user's subscription level)
+        if current_user.is_subscribed():
+            complete_tests = CompletePracticeTest.query.filter(
+                CompletePracticeTest.ielts_test_type == user_test_preference
+            ).order_by(CompletePracticeTest.test_number).all()
+        else:
+            # For non-subscribers, only show free tests
+            complete_tests = CompletePracticeTest.query.filter(
+                CompletePracticeTest.ielts_test_type == user_test_preference,
+                CompletePracticeTest.is_free == True
+            ).order_by(CompletePracticeTest.test_number).all()
+            
+        # Get progress for each test
+        if complete_tests:
+            user_progress = CompleteTestProgress.query.filter_by(user_id=current_user.id).all()
+            for progress in user_progress:
+                # Calculate percentage complete
+                if progress.section_progress:
+                    num_sections = len(progress.section_progress)
+                    num_completed = sum(1 for section in progress.section_progress.values() 
+                                      if section.get('completed', False))
+                    progress_percent = int((num_completed / max(1, num_sections)) * 100)
+                    
+                    test_progress[progress.complete_test_id] = {
+                        'progress_percent': progress_percent,
+                        'is_completed': progress.is_test_completed(),
+                        'score': progress.get_overall_score() if progress.is_test_completed() else None,
+                        'status': 'Completed' if progress.is_test_completed() 
+                                else f'{num_completed} of {num_sections} sections completed'
+                    }
+    else:
+        # For anonymous users, just show a sample of free tests
+        complete_tests = CompletePracticeTest.query.filter_by(is_free=True).limit(3).all()
+    
     return render_template('practice/index.html', title='Practice Tests', 
-                          sample_tests=sample_tests)
+                          sample_tests=sample_tests,
+                          complete_tests=complete_tests,
+                          test_progress=test_progress)
 
 @app.route('/practice/<test_type>')
 @login_required
@@ -224,6 +269,178 @@ def take_practice_test(test_type, test_id):
                           test=test,
                           taking_test=True)
 
+# Complete Test Routes
+@app.route('/practice/complete-test/<int:test_id>/start')
+@login_required
+@update_user_streak
+def start_complete_test(test_id):
+    """Start a new complete IELTS practice test"""
+    complete_test = CompletePracticeTest.query.get_or_404(test_id)
+    
+    # Check if user has access to this test
+    if not complete_test.is_free and not current_user.is_subscribed():
+        flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
+        return redirect(url_for('subscribe'))
+    
+    # Check if user's test preference matches this test
+    if complete_test.ielts_test_type != current_user.test_preference:
+        flash(f'This test is designed for {complete_test.ielts_test_type.replace("_", " ").title()} IELTS. Your preference is set to {current_user.test_preference.replace("_", " ").title()}.', 'warning')
+        return redirect(url_for('practice_index'))
+    
+    # Check if user already has an in-progress attempt
+    existing_progress = CompleteTestProgress.query.filter_by(
+        user_id=current_user.id,
+        complete_test_id=test_id
+    ).first()
+    
+    if existing_progress:
+        if existing_progress.is_test_completed():
+            flash('You have already completed this test.', 'info')
+            return redirect(url_for('practice_index'))
+        
+        # Continue existing progress
+        return redirect(url_for('continue_complete_test', test_id=test_id))
+    
+    # Start a new test progress
+    progress = CompleteTestProgress(
+        user_id=current_user.id,
+        complete_test_id=test_id,
+        start_date=datetime.utcnow()
+    )
+    
+    # Set the starting section (always begins with listening for standard IELTS)
+    progress.current_section = 'listening' if complete_test.ielts_test_type != 'life_skills' else 'listening'
+    
+    db.session.add(progress)
+    db.session.commit()
+    
+    # Redirect to the first section
+    return redirect(url_for('take_complete_test_section', 
+                            test_id=test_id, 
+                            section=progress.current_section))
+
+@app.route('/practice/complete-test/<int:test_id>/continue')
+@login_required
+@update_user_streak
+def continue_complete_test(test_id):
+    """Continue an in-progress complete test"""
+    # Get user's progress for this test
+    progress = CompleteTestProgress.query.filter_by(
+        user_id=current_user.id,
+        complete_test_id=test_id
+    ).first_or_404()
+    
+    # If the test is already completed, show results
+    if progress.is_test_completed():
+        return redirect(url_for('complete_test_results', test_id=test_id))
+    
+    # Get the next section to complete
+    next_section = progress.get_next_section()
+    if not next_section:
+        # Test is completed
+        progress.completed_date = datetime.utcnow()
+        db.session.commit()
+        return redirect(url_for('complete_test_results', test_id=test_id))
+    
+    # Update current section
+    progress.current_section = next_section
+    db.session.commit()
+    
+    # Redirect to that section
+    return redirect(url_for('take_complete_test_section', 
+                            test_id=test_id, 
+                            section=next_section))
+
+@app.route('/practice/complete-test/<int:test_id>/<section>')
+@login_required
+@update_user_streak
+def take_complete_test_section(test_id, section):
+    """Take a specific section of a complete test"""
+    if section not in ['listening', 'reading', 'writing', 'speaking']:
+        abort(404)
+    
+    # Verify user has an in-progress test
+    progress = CompleteTestProgress.query.filter_by(
+        user_id=current_user.id,
+        complete_test_id=test_id
+    ).first_or_404()
+    
+    # Ensure the user is on the correct section
+    if progress.current_section != section:
+        flash(f'Please complete the {progress.current_section} section first.', 'warning')
+        return redirect(url_for('continue_complete_test', test_id=test_id))
+    
+    complete_test = CompletePracticeTest.query.get_or_404(test_id)
+    
+    # Get the section test
+    section_test = PracticeTest.query.filter_by(
+        complete_test_id=test_id,
+        test_type=section,
+        ielts_test_type=complete_test.ielts_test_type
+    ).first_or_404()
+    
+    # Handle question format for different test types
+    if section == 'listening':
+        # Convert questions from JSON string to Python list/dict
+        import json
+        section_test.questions = json.loads(section_test.questions)
+    
+    return render_template(f'practice/{section}.html', 
+                          title=f'IELTS {section.capitalize()} Test',
+                          test=section_test,
+                          taking_test=True,
+                          complete_test_id=test_id,
+                          test_progress=progress)
+
+@app.route('/practice/complete-test/<int:test_id>/results')
+@login_required
+def complete_test_results(test_id):
+    """View results of a completed test"""
+    # Get the user's progress for this test
+    progress = CompleteTestProgress.query.filter_by(
+        user_id=current_user.id,
+        complete_test_id=test_id
+    ).first_or_404()
+    
+    if not progress.is_test_completed():
+        flash('Please complete all sections of the test first.', 'warning')
+        return redirect(url_for('continue_complete_test', test_id=test_id))
+    
+    complete_test = CompletePracticeTest.query.get_or_404(test_id)
+    
+    # Get all attempts for this test
+    section_attempts = []
+    for section_type in ['listening', 'reading', 'writing', 'speaking']:
+        # Skip sections not applicable to this test type
+        if complete_test.ielts_test_type == 'life_skills' and section_type in ['reading', 'writing']:
+            continue
+            
+        section_test = PracticeTest.query.filter_by(
+            complete_test_id=test_id,
+            test_type=section_type
+        ).first()
+        
+        if section_test:
+            attempt = UserTestAttempt.query.filter_by(
+                user_id=current_user.id,
+                test_id=section_test.id,
+                complete_test_progress_id=progress.id
+            ).first()
+            
+            section_attempts.append({
+                'section_type': section_type,
+                'test': section_test,
+                'attempt': attempt,
+                'score': progress.section_progress.get(section_type, {}).get('score', 0) if progress.section_progress else 0
+            })
+    
+    return render_template('practice/complete_test_results.html',
+                          title='Test Results',
+                          complete_test=complete_test,
+                          progress=progress,
+                          section_attempts=section_attempts,
+                          overall_score=progress.get_overall_score())
+
 @app.route('/api/submit-test', methods=['POST'])
 @login_required
 @update_user_streak
@@ -231,6 +448,7 @@ def submit_test():
     data = request.json
     test_id = data.get('test_id')
     user_answers = data.get('answers')
+    complete_test_id = data.get('complete_test_id')  # May be None for individual section practice
     
     if not test_id or not user_answers:
         return jsonify({'error': 'Missing required data'}), 400
@@ -251,10 +469,26 @@ def submit_test():
     
     score_percentage = (score / total_questions) * 100 if total_questions > 0 else 0
     
+    # Convert to band score for IELTS (0-9 scale)
+    band_score = (score_percentage / 100) * 9
+    
+    # Get complete test progress if this is part of a complete test
+    complete_test_progress = None
+    if complete_test_id:
+        complete_test_progress = CompleteTestProgress.query.filter_by(
+            user_id=current_user.id,
+            complete_test_id=complete_test_id
+        ).first()
+        
+        if complete_test_progress:
+            # Mark this section as completed
+            complete_test_progress.mark_section_completed(test.test_type, band_score)
+    
     # Save the attempt
     attempt = UserTestAttempt(
         user_id=current_user.id,
         test_id=test_id,
+        complete_test_progress_id=complete_test_progress.id if complete_test_progress else None,
         user_answers=user_answers,
         score=score_percentage
     )
@@ -268,22 +502,36 @@ def submit_test():
         'test_type': test.test_type,
         'title': test.title,
         'date': datetime.utcnow().isoformat(),
-        'score': score_percentage
+        'score': score_percentage,
+        'complete_test_id': complete_test_id
     })
     current_user.test_history = test_history
     
-    # Mark this test as completed so it can't be retaken during current subscription period
-    is_free_sample = (PracticeTest.query.filter_by(test_type=test.test_type).first().id == test_id)
-    if not is_free_sample:
-        current_user.mark_test_completed(test_id, test.test_type)
+    # For individual section practice (not part of complete test)
+    if not complete_test_id:
+        # Mark this test as completed so it can't be retaken during current subscription period
+        is_free_sample = (PracticeTest.query.filter_by(test_type=test.test_type).first().id == test_id)
+        if not is_free_sample:
+            current_user.mark_test_completed(test_id, test.test_type)
     
     db.session.commit()
     
-    return jsonify({
+    response_data = {
         'score': score_percentage,
+        'band_score': round(band_score, 1),
         'correct': score,
         'total': total_questions
-    })
+    }
+    
+    # Check if complete test is now completed
+    if complete_test_progress and complete_test_progress.is_test_completed():
+        response_data['complete_test_finished'] = True
+        response_data['results_url'] = url_for('complete_test_results', test_id=complete_test_id)
+    elif complete_test_progress:
+        response_data['next_section'] = complete_test_progress.get_next_section()
+        response_data['next_section_url'] = url_for('continue_complete_test', test_id=complete_test_id)
+        
+    return jsonify(response_data)
 
 # Speaking Assessment Routes
 @app.route('/speaking')
