@@ -280,3 +280,21 @@ class Translation(db.Model):
     
     def __repr__(self):
         return f'<Translation {self.language}:{self.page}.{self.element}>'
+
+
+class CountryPricing(db.Model):
+    """Table for storing country-specific pricing information."""
+    id = db.Column(db.Integer, primary_key=True)
+    country_code = db.Column(db.String(2), nullable=False, unique=True)
+    country_name = db.Column(db.String(100), nullable=False)
+    
+    # Pricing for different subscription levels (in USD)
+    monthly_price = db.Column(db.Float, nullable=False)
+    quarterly_price = db.Column(db.Float, nullable=False)
+    yearly_price = db.Column(db.Float, nullable=False)
+    
+    # Default country flag (for showing as default option)
+    is_default = db.Column(db.Boolean, default=False)
+    
+    def __repr__(self):
+        return f"<CountryPricing {self.country_name} - ${self.monthly_price}/month>"
