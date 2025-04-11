@@ -11,11 +11,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import app, db
 from models import (User, TestStructure, PracticeTest, UserTestAttempt, 
-                   SpeakingPrompt, SpeakingResponse, PaymentMethod, Translation)
+                   SpeakingPrompt, SpeakingResponse, PaymentMethod, Translation, CountryPricing)
 from utils import get_user_region, get_translation, compress_audio
 from aws_services import (transcribe_audio, generate_polly_speech, analyze_speaking_response, 
                       analyze_pronunciation, generate_pronunciation_exercises)
 from payment_services import create_stripe_checkout, verify_payment
+from geoip_services import get_country_from_ip, get_pricing_for_country
 
 # Helper functions
 def subscription_required(f):
