@@ -64,9 +64,9 @@ def create_stripe_checkout(plan='base'):
         # Create a Price if it doesn't exist
         price = create_or_get_price(product.id, plan)
         
-        # Create checkout session
+        # Create checkout session with Apple Pay and Google Pay support
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=['card', 'apple_pay', 'google_pay'],
             line_items=[
                 {
                     'price': price.id,
@@ -76,6 +76,14 @@ def create_stripe_checkout(plan='base'):
             mode='payment',  # Using one-time payment instead of subscription
             success_url=f'https://{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'https://{domain}/payment-cancel',
+            payment_method_options={
+                'card': {
+                    'wallet': {
+                        'applePay': 'auto',
+                        'googlePay': 'auto',
+                    }
+                }
+            },
             metadata={
                 'plan': plan,
                 'tests': str(SUBSCRIPTION_PLANS[plan]['tests']),
