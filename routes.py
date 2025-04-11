@@ -182,12 +182,12 @@ def practice_index():
         
         # For each test number, get the maximum ID (latest version)
         if current_user.is_subscribed():
-            # First get the latest ID for each test number
+            # First get the latest ID for each test number - show all academic tests regardless of preference
             subquery = db.session.query(
                 CompletePracticeTest.test_number,
                 func.max(CompletePracticeTest.id).label('max_id')
             ).filter(
-                CompletePracticeTest.ielts_test_type == user_test_preference
+                CompletePracticeTest.ielts_test_type == 'academic'  # Always show academic tests for now
             ).group_by(CompletePracticeTest.test_number).subquery()
             
             # Then get the complete test records using those IDs
@@ -269,8 +269,10 @@ def practice_test_list(test_type):
     if test_type not in ['listening', 'reading', 'writing']:
         abort(404)
         
+    # Get all tests of this type, but filter to just show ones with complete questions and answers
     tests = PracticeTest.query.filter_by(test_type=test_type).all()
     
+    # If we have premium users, show all tests
     if not current_user.is_subscribed():
         # For non-subscribers, only show the first test
         tests = tests[:1] if tests else []
