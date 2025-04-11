@@ -3,25 +3,8 @@ Create a country-specific pricing table for the IELTS preparation app.
 """
 
 from app import app, db
-from sqlalchemy import Column, Integer, String, Float, Boolean
 from sqlalchemy.exc import SQLAlchemyError
-
-class CountryPricing(db.Model):
-    """Table for storing country-specific pricing information."""
-    id = Column(Integer, primary_key=True)
-    country_code = Column(String(2), nullable=False, unique=True)
-    country_name = Column(String(100), nullable=False)
-    
-    # Pricing for different subscription levels (in USD)
-    monthly_price = Column(Float, nullable=False)
-    quarterly_price = Column(Float, nullable=False)
-    yearly_price = Column(Float, nullable=False)
-    
-    # Default country flag (for showing as default option)
-    is_default = Column(Boolean, default=False)
-    
-    def __repr__(self):
-        return f"<CountryPricing {self.country_name} - ${self.monthly_price}/month>"
+from models import CountryPricing
 
 # Sample country pricing data with a wide range of countries and appropriate pricing
 COUNTRIES = [
