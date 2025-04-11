@@ -171,93 +171,9 @@
                 </div>
             </div>
             
-            <!-- Payment Icons and Descriptions -->
-            <div class="card mt-4">
-                <div class="card-header bg-light">
-                    <h3 class="h5 mb-0">Accepted Payment Methods</h3>
-                    <p class="text-muted small mb-0 mt-1"><i class="fas fa-info-circle"></i> All prices are charged in USD regardless of payment method or region.</p>
-                </div>
-                <div class="card-body">
-                    <!-- Global Payment Methods -->
-                    <h4 class="h6 text-uppercase mb-3">Global Options</h4>
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <div class="payment-logos d-flex flex-wrap justify-content-center">
-                                <div class="payment-logo m-2 p-2 border rounded">
-                                    <i class="fab fa-cc-stripe fa-2x me-2"></i> Stripe
-                                </div>
-                                <div class="payment-logo m-2 p-2 border rounded">
-                                    <i class="fab fa-paypal fa-2x me-2"></i> PayPal
-                                </div>
-                                <div class="payment-logo m-2 p-2 border rounded">
-                                    <i class="fab fa-google-pay fa-2x me-2"></i> Google Pay
-                                </div>
-                                <div class="payment-logo m-2 p-2 border rounded">
-                                    <i class="fab fa-apple-pay fa-2x me-2"></i> Apple Pay
-                                </div>
-                                <div class="payment-logo m-2 p-2 border rounded">
-                                    <i class="fas fa-credit-card fa-2x me-2"></i> Qiwi
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Regional Payment Methods -->
-                    <h4 class="h6 text-uppercase mb-3">Regional Options</h4>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100">
-                                <div class="card-header">
-                                    <h5 class="h6 mb-0">South Asia</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-unstyled mb-0">
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> India: Razorpay</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Pakistan: JazzCash, Easypaisa</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Bangladesh: bKash, Nagad</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Sri Lanka: LankaPay, Direct Pay</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Nepal: ConnectIPS, PrabhuPAY, eSewa</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100">
-                                <div class="card-header">
-                                    <h5 class="h6 mb-0">East Asia & Middle East</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-unstyled mb-0">
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Japan: LINE Pay, PayPay, Suica/PASMO</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> South Korea: KakaoPay, Naver Pay, ZeroPay</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Saudi Arabia: STC Pay</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> UAE: Amazon Payment Services</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100">
-                                <div class="card-header">
-                                    <h5 class="h6 mb-0">Europe</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-unstyled mb-0">
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Eastern Europe: Revolut</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Poland: BLIK</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Netherlands: iDEAL</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> Germany: Sofort</li>
-                                        <li><i class="fas fa-check-circle text-success me-2"></i> France: Cartes Bancaires</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         {% else %}
             <div class="alert alert-warning">
-                <p class="mb-0">No payment methods available. Please try again later.</p>
+                <p class="mb-0">Payment processing temporarily unavailable. Please try again later.</p>
             </div>
         {% endif %}
     </div>
@@ -441,7 +357,7 @@
                     </h2>
                     <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            We accept all major credit cards through Stripe, which provides secure payment processing. We also support regional payment methods in certain countries. All charges are processed in USD regardless of your selected payment method or location.
+                            We accept all major credit cards through Stripe, which provides secure payment processing. All charges are processed in USD regardless of your selected payment method or location.
                         </div>
                     </div>
                 </div>
