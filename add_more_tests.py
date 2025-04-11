@@ -43,8 +43,8 @@ def add_more_tests():
     for i in range(12):
         # Create the complete test record
         test_num = i + 1
-        is_free = (test_num == 1)  # First test is free, others require subscription
-        subscription_level = "basic" if test_num == 1 else "premium"
+        is_free = False  # No free tests, all are premium
+        subscription_level = "premium"
         
         academic_test = CompletePracticeTest(
             ielts_test_type='academic',

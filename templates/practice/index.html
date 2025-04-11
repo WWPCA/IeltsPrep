@@ -84,10 +84,9 @@
                 {% if complete_tests %}
                     {% for test in complete_tests %}
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100 {% if test.is_free %}border-success{% endif %}">
-                                <div class="card-header {% if test.is_free %}bg-success{% else %}bg-primary{% endif %} text-white">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
                                     <h2 class="h4 mb-0">{{ test.title }}</h2>
-                                    {% if test.is_free %}<span class="badge bg-white text-success float-end">Free Sample</span>{% endif %}
                                 </div>
                                 <div class="card-body">
                                     <div class="text-center mb-4">
@@ -149,7 +148,7 @@
                                         <a href="{{ url_for('login') }}" class="btn btn-primary">
                                             <i class="fas fa-sign-in-alt me-1"></i> Login to Access
                                         </a>
-                                    {% elif not current_user.is_subscribed() and not test.is_free %}
+                                    {% elif not current_user.is_subscribed() %}
                                         <a href="{{ url_for('subscribe') }}" class="btn btn-warning">
                                             <i class="fas fa-crown me-1"></i> Subscribe to Access
                                         </a>
