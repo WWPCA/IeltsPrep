@@ -828,3 +828,40 @@ a:hover {
     position: static;
   }
 }
+
+/* Microphone Test Styles */
+.mic-level-container {
+  margin: 1rem 0;
+}
+
+.mic-level-meter {
+  width: 100%;
+  height: 20px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.mic-level-bar {
+  height: 100%;
+  width: 0%;
+  background-color: #007bff;
+  border-radius: 10px;
+  transition: width 0.15s ease, background-color 0.3s ease;
+}
+
+.mic-status {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.test-timer {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.mic-test-results {
+  margin-top: 1.5rem;
+}
