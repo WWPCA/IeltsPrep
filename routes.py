@@ -168,6 +168,7 @@ def practice_index():
 
 @app.route('/practice/<test_type>')
 @login_required
+@update_user_streak
 def practice_test_list(test_type):
     if test_type not in ['listening', 'reading', 'writing']:
         abort(404)
@@ -178,9 +179,14 @@ def practice_test_list(test_type):
         # For non-subscribers, only show the first test
         tests = tests[:1] if tests else []
     
+    # Get a list of test IDs the user has already completed
+    completed_test_ids = [test['test_id'] for test in current_user.completed_tests 
+                         if test['test_type'] == test_type]
+    
     return render_template(f'practice/{test_type}.html', 
                           title=f'IELTS {test_type.capitalize()} Practice',
-                          tests=tests)
+                          tests=tests,
+                          completed_test_ids=completed_test_ids)
 
 @app.route('/practice/<test_type>/<int:test_id>')
 @login_required
@@ -371,6 +377,9 @@ def submit_speaking():
         })
         current_user.speaking_scores = speaking_scores
         
+        # Mark this speaking prompt as completed so it can't be retaken during current subscription period
+        current_user.mark_test_completed(int(prompt_id), 'speaking')
+        
         db.session.commit()
         
         return jsonify({
@@ -560,6 +569,11 @@ def sync_data():
             'score': score_percentage
         })
         current_user.test_history = test_history
+        
+        # Mark this test as completed so it can't be retaken during current subscription period
+        is_free_sample = (PracticeTest.query.filter_by(test_type=test.test_type).first().id == test_id)
+        if not is_free_sample:
+            current_user.mark_test_completed(test_id, test.test_type)
     
     db.session.commit()
     
