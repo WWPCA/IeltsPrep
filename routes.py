@@ -293,15 +293,13 @@ def take_practice_test(test_type, test_id):
     
     test = PracticeTest.query.get_or_404(test_id)
     
-    # Check if this is the free sample or if user is subscribed
-    is_free_sample = (PracticeTest.query.filter_by(test_type=test_type).first().id == test_id)
-    
-    if not is_free_sample and not current_user.is_subscribed():
+    # All tests require subscription
+    if not current_user.is_subscribed():
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
     # Check if user has already taken this test during current subscription period
-    if not is_free_sample and current_user.has_taken_test(test_id, test_type):
+    if current_user.has_taken_test(test_id, test_type):
         flash('You have already taken this test during your current subscription period. Each test can only be taken once per subscription.', 'warning')
         return redirect(url_for('practice_test_list', test_type=test_type))
     
@@ -309,7 +307,8 @@ def take_practice_test(test_type, test_id):
     if test_type == 'listening':
         # Convert questions from JSON string to Python list/dict
         import json
-        test.questions = json.loads(test.questions)
+        if isinstance(test.questions, str):
+            test.questions = json.loads(test.questions)
     
     return render_template(f'practice/{test_type}.html', 
                           title=f'IELTS {test_type.capitalize()} Practice',
@@ -325,7 +324,7 @@ def start_complete_test(test_id):
     complete_test = CompletePracticeTest.query.get_or_404(test_id)
     
     # Check if user has access to this test
-    if not complete_test.is_free and not current_user.is_subscribed():
+    if not current_user.is_subscribed():
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
@@ -428,9 +427,10 @@ def take_complete_test_section(test_id, section):
     
     # Handle question format for different test types
     if section == 'listening':
-        # Convert questions from JSON string to Python list/dict
+        # Convert questions from JSON string to Python list/dict if not already parsed
         import json
-        section_test.questions = json.loads(section_test.questions)
+        if isinstance(section_test.questions, str):
+            section_test.questions = json.loads(section_test.questions)
     
     return render_template(f'practice/{section}.html', 
                           title=f'IELTS {section.capitalize()} Test',
@@ -557,9 +557,7 @@ def submit_test():
     # For individual section practice (not part of complete test)
     if not complete_test_id:
         # Mark this test as completed so it can't be retaken during current subscription period
-        is_free_sample = (PracticeTest.query.filter_by(test_type=test.test_type).first().id == test_id)
-        if not is_free_sample:
-            current_user.mark_test_completed(test_id, test.test_type)
+        current_user.mark_test_completed(test_id, test.test_type)
     
     db.session.commit()
     
@@ -906,9 +904,7 @@ def sync_data():
         current_user.test_history = test_history
         
         # Mark this test as completed so it can't be retaken during current subscription period
-        is_free_sample = (PracticeTest.query.filter_by(test_type=test.test_type).first().id == test_id)
-        if not is_free_sample:
-            current_user.mark_test_completed(test_id, test.test_type)
+        current_user.mark_test_completed(test_id, test.test_type)
     
     db.session.commit()
     
