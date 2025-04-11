@@ -7,14 +7,35 @@ import json
 import os
 import time
 from typing import Dict, Any, List, Optional, Tuple
-from openai import OpenAI
-from tenacity import retry, stop_after_attempt, wait_exponential
 
 # Import the prompt construction module
 from openai_assessment_prompts import construct_assessment_prompt
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Initialize OpenAI client lazily when API key is provided
+client = None
+
+def initialize_openai():
+    """Initialize OpenAI client when API key is available"""
+    from openai import OpenAI
+    global client
+    
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if api_key:
+        client = OpenAI(api_key=api_key)
+        return True
+    return False
+
+# Import tenacity for retry logic
+try:
+    from tenacity import retry, stop_after_attempt, wait_exponential
+    has_tenacity = True
+except ImportError:
+    has_tenacity = False
+    # Define a simple decorator if tenacity is not available
+    def retry(stop=None, wait=None):
+        def decorator(func):
+            return func
+        return decorator
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def get_openai_response(messages: List[Dict[str, str]]) -> Dict[str, Any]:

@@ -1,0 +1,197 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card mb-5">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">{{ assessment.display_title }}</h1>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="h5 mb-0">{{ test.title }}</h2>
+                        <div class="badge bg-info text-white p-2">
+                            <i class="fas fa-file-alt"></i> {{ assessment.task_type }}
+                        </div>
+                    </div>
+
+                    <!-- Overall Score Display -->
+                    <div class="overall-score text-center mb-4 p-4 bg-light rounded">
+                        <div class="row">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <div class="score-circle mx-auto" 
+                                     style="background: conic-gradient(var(--primary-color) {{ assessment.overall_score/9*100 }}%, #f2f2f2 0);">
+                                    <div class="score-number">{{ assessment.overall_score }}</div>
+                                </div>
+                                <div class="mt-2 fw-bold">Overall Band Score</div>
+                            </div>
+                            <div class="col-md-8 text-md-start">
+                                <h3 class="h6 fw-bold">Band Descriptor</h3>
+                                <p>{{ assessment.score_description }}</p>
+                                <div class="word-count mt-2">
+                                    <span class="badge {{ 'bg-success' if assessment.meets_requirement else 'bg-warning' }}">
+                                        {{ assessment.word_count }} words
+                                    </span>
+                                    {% if not assessment.meets_requirement %}
+                                    <small class="text-danger ms-2">Below minimum requirement</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Individual Criteria Scores -->
+                    <h3 class="h5 mb-3">Criteria Scores</h3>
+                    <div class="row mb-4">
+                        {% for criterion, score in assessment.criteria_scores.items() %}
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <div class="criteria-score mb-2">{{ score }}</div>
+                                    <div class="criteria-name">{{ criterion }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Detailed Feedback -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h3 class="h6 mb-0">Strengths</h3>
+                                </div>
+                                <div class="card-body">
+                                    {% if assessment.strengths %}
+                                        <ul class="list-group list-group-flush">
+                                            {% for strength in assessment.strengths %}
+                                            <li class="list-group-item">
+                                                <strong>{{ strength.aspect }}</strong>
+                                                <p class="mb-0">{{ strength.explanation }}</p>
+                                                {% if strength.example %}
+                                                <div class="example mt-2 p-2 bg-light rounded">
+                                                    <small><em>Example: "{{ strength.example }}"</em></small>
+                                                </div>
+                                                {% endif %}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="mb-0">No specific strengths highlighted.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-warning text-dark">
+                                    <h3 class="h6 mb-0">Areas for Improvement</h3>
+                                </div>
+                                <div class="card-body">
+                                    {% if assessment.improvements %}
+                                        <ul class="list-group list-group-flush">
+                                            {% for area in assessment.improvements %}
+                                            <li class="list-group-item">
+                                                <strong>{{ area.aspect }}</strong>
+                                                <p class="mb-0">{{ area.suggestion }}</p>
+                                                {% if area.example %}
+                                                <div class="example mt-2 p-2 bg-light rounded">
+                                                    <small><em>Example: "{{ area.example }}"</em></small>
+                                                </div>
+                                                {% endif %}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="mb-0">No specific areas for improvement highlighted.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Feedback -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="h6 mb-0">Assessment Summary</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ assessment.summary }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Your Essay -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-dark text-white">
+                            <h3 class="h6 mb-0">Your Essay</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="user-essay p-3 border rounded" style="white-space: pre-wrap;">{{ essay_text }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center">
+                        <a href="{{ url_for('writing_assessment.writing_tests') }}" class="btn btn-primary me-2">Practice Another Test</a>
+                        <a href="{{ url_for('writing_assessment.assessment_history') }}" class="btn btn-outline-primary">View Assessment History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .score-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .score-circle::before {
+        content: '';
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: white;
+    }
+
+    .score-number {
+        position: relative;
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .criteria-score {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .criteria-name {
+        font-size: 0.9rem;
+    }
+
+    .user-essay {
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+    }
+
+    .example {
+        font-size: 0.85rem;
+        border-left: 3px solid var(--secondary-color);
+    }
+</style>
+{% endblock %}
