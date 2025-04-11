@@ -208,8 +208,7 @@ def get_app_config():
                     'offline_mode': True,
                     'push_notifications': True
                 },
-                'media_cdn': request.url_root + 'static/',
-                'support_email': 'support@ailearninghub.example.com'
+                'media_cdn': request.url_root + 'static/'
             }
         )
     except Exception as e:
