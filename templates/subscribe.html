@@ -164,8 +164,41 @@
                             </select>
                         </div>
                         
+                        <div class="card my-4">
+                            <div class="card-header bg-light">
+                                <h3 class="h5 mb-0">Terms and Conditions</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="terms-container p-3 border rounded bg-light mb-3" style="max-height: 200px; overflow-y: auto;">
+                                    <h4 class="h6">Payment and Refund Policy</h4>
+                                    <p>By subscribing to IELTS AI Prep, you agree to the following terms:</p>
+                                    <ol>
+                                        <li>All payments are <strong>non-refundable</strong> except as explicitly provided in these terms.</li>
+                                        <li>A 7-day money-back guarantee is provided only if the service is completely non-functional. Dissatisfaction with test results or scores does not qualify for a refund.</li>
+                                        <li>Subscription fees are charged immediately upon confirmation.</li>
+                                        <li>Your subscription provides access for 30 days from the date of purchase.</li>
+                                        <li>We do not store credit card information on our servers.</li>
+                                        <li>All disputes must be raised within 7 days of purchase.</li>
+                                    </ol>
+                                    
+                                    <h4 class="h6">Usage Restrictions</h4>
+                                    <p>Your subscription is for personal use only and cannot be shared. Each test may only be taken once to ensure operational efficiency and cost control.</p>
+                                    
+                                    <h4 class="h6">Content Copyright</h4>
+                                    <p>All content provided through the IELTS AI Prep platform is protected by copyright and may not be reproduced, distributed, or used for commercial purposes.</p>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="termsAccepted" name="terms_accepted" required>
+                                    <label class="form-check-label" for="termsAccepted">
+                                        I have read and agree to the Terms and Conditions, including the non-refundable payment policy.
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Proceed to Payment</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="proceedButton">Proceed to Payment</button>
                         </div>
                     </form>
                 </div>
@@ -404,4 +437,44 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get references to the checkbox and submit button
+        const termsCheckbox = document.getElementById('termsAccepted');
+        const submitButton = document.getElementById('proceedButton');
+        
+        // Function to validate form before submission
+        function validateForm() {
+            if (!termsCheckbox.checked) {
+                alert('You must accept the Terms and Conditions to proceed.');
+                return false;
+            }
+            return true;
+        }
+        
+        // Add event listener to the form
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                if (!validateForm()) {
+                    event.preventDefault();
+                }
+            });
+        }
+        
+        // Focus and scroll effects for terms
+        const termsContainer = document.querySelector('.terms-container');
+        if (termsContainer) {
+            termsContainer.addEventListener('scroll', function() {
+                // If user has scrolled to the bottom of terms, highlight the checkbox
+                if (termsContainer.scrollHeight - termsContainer.scrollTop <= termsContainer.clientHeight + 50) {
+                    termsCheckbox.parentElement.classList.add('border', 'border-primary', 'p-2', 'rounded');
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
