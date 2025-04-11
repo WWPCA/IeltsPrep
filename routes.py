@@ -417,8 +417,23 @@ def subscribe():
     # Combine and sort
     payment_methods = sorted(regional_methods + global_methods, key=lambda x: x.display_order)
     
+    # Get country-specific pricing based on user's location
+    country_code = None
+    if current_user.is_authenticated and current_user.region:
+        # Try to get country code from user's stored region
+        # This is a simplified approach - in production you would have a proper mapping
+        country_code = current_user.region[:2].upper() if len(current_user.region) >= 2 else None
+    
+    # If no country code from user profile, detect from IP
+    if not country_code:
+        country_code, _ = get_country_from_ip()
+    
+    # Get pricing for the detected country
+    pricing = get_pricing_for_country(country_code)
+    
     return render_template('subscribe.html', title='Subscribe',
-                          payment_methods=payment_methods)
+                          payment_methods=payment_methods,
+                          pricing=pricing)
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
