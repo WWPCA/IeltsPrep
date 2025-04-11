@@ -108,9 +108,9 @@
         </div>
     </div>
     
-    <!-- Payment Methods -->
-    <div class="payment-methods mt-5">
-        <h2 class="text-center mb-4">Payment Methods</h2>
+    <!-- Subscription Options -->
+    <div class="subscription-options mt-5">
+        <h2 class="text-center mb-4">Complete Your Subscription</h2>
         
         {% if payment_methods %}
             <div class="row">
@@ -118,7 +118,7 @@
                     <form method="POST" action="{{ url_for('create_checkout_session') }}" class="mb-4">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group mb-4">
-                            <label for="plan" class="form-label"><strong>1. Select Your Plan:</strong></label>
+                            <label for="plan" class="form-label"><strong>Select Your Plan:</strong></label>
                             <select id="plan" name="plan" class="form-select form-select-lg">
                                 <option value="base">Base ({{ pricing.monthly_price }} USD) - 3 tests - 30 days access</option>
                                 <option value="intermediate">Intermediate ({{ pricing.quarterly_price }} USD) - 6 tests - 30 days access</option>
@@ -126,43 +126,8 @@
                             </select>
                         </div>
                         
-                        <div class="form-group mb-4">
-                            <label for="payment_method" class="form-label"><strong>2. Select Payment Method:</strong></label>
-                            
-                            <!-- Group payment methods by region -->
-                            {% set regional_methods = [] %}
-                            {% set global_methods = [] %}
-                            
-                            {% for method in payment_methods %}
-                                {% if method.region %}
-                                    {% set _ = regional_methods.append(method) %}
-                                {% else %}
-                                    {% set _ = global_methods.append(method) %}
-                                {% endif %}
-                            {% endfor %}
-                            
-                            <select id="payment_method" name="payment_method" class="form-select form-select-lg">
-                                {% if regional_methods %}
-                                    <optgroup label="Regional Payment Options">
-                                        {% for method in regional_methods %}
-                                            <option value="{{ method.name|lower }}" data-region="{{ method.region }}">
-                                                {{ method.name }} ({{ method.region }})
-                                            </option>
-                                        {% endfor %}
-                                    </optgroup>
-                                {% endif %}
-                                
-                                {% if global_methods %}
-                                    <optgroup label="Global Payment Options">
-                                        {% for method in global_methods %}
-                                            <option value="{{ method.name|lower }}">
-                                                {{ method.name }}
-                                            </option>
-                                        {% endfor %}
-                                    </optgroup>
-                                {% endif %}
-                            </select>
-                        </div>
+                        <!-- Hidden payment method - defaults to Stripe -->
+                        <input type="hidden" name="payment_method" value="stripe">
                         
                         <div class="card my-4">
                             <div class="card-header bg-light">
