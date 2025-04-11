@@ -25,8 +25,8 @@
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
     
-    <!-- Google Ads Script - Replace 'YOUR-GOOGLE-ADS-CLIENT-ID' with actual client ID -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR-GOOGLE-ADS-CLIENT-ID" crossorigin="anonymous"></script>
+    <!-- Google Ads Script commented out until proper client ID is configured -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR-GOOGLE-ADS-CLIENT-ID" crossorigin="anonymous"></script> -->
 </head>
 <body>
     <!-- Header -->
@@ -79,8 +79,8 @@
     <main class="main-content">
         {% block content %}{% endblock %}
         
-        <!-- Bottom Ad Container - Appears on all pages -->
-        {% if not current_user.is_authenticated or (current_user.is_authenticated and not current_user.is_subscribed()) %}
+        <!-- Bottom Ad Container - Commented out until proper client ID is configured -->
+        {% if false and (not current_user.is_authenticated or (current_user.is_authenticated and not current_user.is_subscribed())) %}
         <div class="container my-4 ad-container">
             <div class="ad-label">Advertisement</div>
             <!-- Google Ads - Responsive Ad Unit -->
