@@ -177,15 +177,43 @@ def practice_index():
         user_test_preference = current_user.test_preference
         
         # Get tests (free ones and those matching user's subscription level)
+        # Use subquery to get only the latest version of each test number (to avoid duplicates)
+        from sqlalchemy import func
+        
+        # For each test number, get the maximum ID (latest version)
         if current_user.is_subscribed():
-            complete_tests = CompletePracticeTest.query.filter(
+            # First get the latest ID for each test number
+            subquery = db.session.query(
+                CompletePracticeTest.test_number,
+                func.max(CompletePracticeTest.id).label('max_id')
+            ).filter(
                 CompletePracticeTest.ielts_test_type == user_test_preference
+            ).group_by(CompletePracticeTest.test_number).subquery()
+            
+            # Then get the complete test records using those IDs
+            complete_tests = CompletePracticeTest.query.join(
+                subquery,
+                db.and_(
+                    CompletePracticeTest.id == subquery.c.max_id,
+                    CompletePracticeTest.test_number == subquery.c.test_number
+                )
             ).order_by(CompletePracticeTest.test_number).all()
         else:
-            # For non-subscribers, only show free tests
-            complete_tests = CompletePracticeTest.query.filter(
+            # For non-subscribers, only show free tests (also avoid duplicates)
+            subquery = db.session.query(
+                CompletePracticeTest.test_number,
+                func.max(CompletePracticeTest.id).label('max_id')
+            ).filter(
                 CompletePracticeTest.ielts_test_type == user_test_preference,
                 CompletePracticeTest.is_free == True
+            ).group_by(CompletePracticeTest.test_number).subquery()
+            
+            complete_tests = CompletePracticeTest.query.join(
+                subquery,
+                db.and_(
+                    CompletePracticeTest.id == subquery.c.max_id,
+                    CompletePracticeTest.test_number == subquery.c.test_number
+                )
             ).order_by(CompletePracticeTest.test_number).all()
             
         # Get progress for each test
@@ -207,8 +235,27 @@ def practice_index():
                                 else f'{num_completed} of {num_sections} sections completed'
                     }
     else:
-        # For anonymous users, just show a sample of free tests
-        complete_tests = CompletePracticeTest.query.filter_by(is_free=True).limit(3).all()
+        # For anonymous users, just show a sample of free tests (avoiding duplicates)
+        from sqlalchemy import func
+        
+        # First get the latest ID for each test number
+        subquery = db.session.query(
+            CompletePracticeTest.test_number,
+            CompletePracticeTest.ielts_test_type,
+            func.max(CompletePracticeTest.id).label('max_id')
+        ).filter(
+            CompletePracticeTest.is_free == True
+        ).group_by(CompletePracticeTest.test_number, CompletePracticeTest.ielts_test_type).subquery()
+        
+        # Then get the complete test records using those IDs
+        complete_tests = CompletePracticeTest.query.join(
+            subquery,
+            db.and_(
+                CompletePracticeTest.id == subquery.c.max_id,
+                CompletePracticeTest.test_number == subquery.c.test_number,
+                CompletePracticeTest.ielts_test_type == subquery.c.ielts_test_type
+            )
+        ).limit(4).all()
     
     return render_template('practice/index.html', title='Practice Tests', 
                           sample_tests=sample_tests,
