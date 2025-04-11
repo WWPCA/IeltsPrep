@@ -291,10 +291,17 @@ def speaking_index():
         # Flag to indicate if this is a sample view (not subscribed)
         is_sample = not (current_user.is_authenticated and current_user.is_subscribed())
         
+        # Get a list of prompt IDs the user has already completed
+        completed_prompt_ids = []
+        if current_user.is_authenticated:
+            completed_prompt_ids = [test['test_id'] for test in current_user.completed_tests 
+                                   if test['test_type'] == 'speaking']
+        
         # Set assessment to False for the index page, only set to True for specific prompt pages
         return render_template('speaking/index.html', title='Speaking Assessment',
                             prompts=prompts, sample_prompt=sample_prompt, 
-                            is_sample=is_sample, assessment=False)
+                            is_sample=is_sample, assessment=False,
+                            completed_prompt_ids=completed_prompt_ids)
     except Exception as e:
         app.logger.error(f"Error in speaking_index: {str(e)}")
         flash('An error occurred while loading the speaking assessment page. Please try again.', 'danger')

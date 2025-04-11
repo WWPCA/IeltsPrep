@@ -540,11 +540,22 @@
                                         </div>
                                         <div class="card-body">
                                             <p>{{ prompt.prompt_text|truncate(80) }}</p>
+                                            {% if current_user.is_authenticated and prompt.id in completed_prompt_ids %}
+                                                <div class="mt-2 text-success">
+                                                    <i class="fas fa-check-circle"></i> Completed
+                                                </div>
+                                            {% endif %}
                                         </div>
                                         <div class="card-footer bg-white text-center">
-                                            <a href="{{ url_for('speaking_assessment', prompt_id=prompt.id) }}" class="btn btn-primary">
-                                                Start Assessment
-                                            </a>
+                                            {% if current_user.is_authenticated and prompt.id in completed_prompt_ids %}
+                                                <button class="btn btn-secondary" disabled>
+                                                    <i class="fas fa-check-circle me-1"></i> Completed
+                                                </button>
+                                            {% else %}
+                                                <a href="{{ url_for('speaking_assessment', prompt_id=prompt.id) }}" class="btn btn-primary">
+                                                    Start Assessment
+                                                </a>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
