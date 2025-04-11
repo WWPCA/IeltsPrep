@@ -10,6 +10,7 @@ from datetime import datetime
 
 from ai_learning_hub.api.utils import api_response, error_response, handle_api_exception, get_device_info
 from ai_learning_hub.api.auth import token_required, generate_token
+from ai_learning_hub.api.ad_services import get_ad_config_for_platform, should_show_ads, user_ad_preferences
 
 # Create a blueprint for the API
 api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
@@ -209,6 +210,99 @@ def get_app_config():
                 },
                 'media_cdn': request.url_root + 'static/',
                 'support_email': 'support@ailearninghub.example.com'
+            }
+        )
+    except Exception as e:
+        return handle_api_exception(e)
+        
+# ------------------- Ad-related endpoints -------------------
+@api_bp.route('/ads/config', methods=['GET'])
+@token_required
+def get_ads_config():
+    """Get ads configuration for mobile apps"""
+    try:
+        # Get user ID from the request (added by the token_required decorator)
+        user_id = request.user_id
+        
+        # Get device info to determine the platform
+        device_info = get_device_info(request)
+        platform = device_info.get('platform', 'unknown')
+        
+        # Get the ad configuration for the platform
+        ad_config = get_ad_config_for_platform(platform)
+        
+        # TODO: Retrieve user object to check subscription status 
+        # For now, assume ads should be shown to all users
+        show_ads = True  # In production, use should_show_ads(user)
+        
+        return api_response(
+            data={
+                'show_ads': show_ads,
+                'ad_config': ad_config,
+                'user_preferences': user_ad_preferences(user_id)
+            }
+        )
+    except Exception as e:
+        return handle_api_exception(e)
+
+@api_bp.route('/ads/impression', methods=['POST'])
+@token_required
+def record_ad_impression():
+    """Record an ad impression from a mobile app"""
+    try:
+        data = request.get_json()
+        if not data:
+            return error_response('Invalid request format', 400)
+        
+        # Get user ID from the request (added by the token_required decorator)
+        user_id = request.user_id
+        
+        # Extract ad data
+        ad_unit_id = data.get('ad_unit_id')
+        ad_format = data.get('ad_format')
+        platform = data.get('platform')
+        
+        if not ad_unit_id or not ad_format or not platform:
+            return error_response('Missing required ad impression fields', 400)
+        
+        # TODO: Record the ad impression in the database
+        
+        return api_response(
+            message='Ad impression recorded successfully',
+            data={
+                'impression_id': f"imp_{datetime.utcnow().timestamp()}"
+            }
+        )
+    except Exception as e:
+        return handle_api_exception(e)
+
+@api_bp.route('/ads/click', methods=['POST'])
+@token_required
+def record_ad_click():
+    """Record an ad click from a mobile app"""
+    try:
+        data = request.get_json()
+        if not data:
+            return error_response('Invalid request format', 400)
+        
+        # Get user ID from the request (added by the token_required decorator)
+        user_id = request.user_id
+        
+        # Extract ad data
+        ad_unit_id = data.get('ad_unit_id')
+        ad_format = data.get('ad_format')
+        platform = data.get('platform')
+        impression_id = data.get('impression_id')
+        
+        if not ad_unit_id or not ad_format or not platform:
+            return error_response('Missing required ad click fields', 400)
+        
+        # TODO: Record the ad click in the database
+        
+        return api_response(
+            message='Ad click recorded successfully',
+            data={
+                'click_id': f"click_{datetime.utcnow().timestamp()}"
             }
         )
     except Exception as e:
