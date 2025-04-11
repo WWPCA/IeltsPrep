@@ -31,6 +31,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const speakingTest = document.querySelector('.speaking-test');
     if (speakingTest) {
         initializeSpeakingTest();
+        
+        // Initialize microphone test button
+        const micTestButton = document.getElementById('test-microphone-button');
+        if (micTestButton) {
+            // Create modal only once and reuse it
+            const micTestModal = initMicrophoneTest();
+            
+            // Show modal when button is clicked
+            micTestButton.addEventListener('click', function() {
+                micTestModal.show();
+            });
+        }
     }
 });
 
