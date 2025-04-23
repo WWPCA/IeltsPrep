@@ -793,7 +793,7 @@ def payment_success():
             
             expiry_date = datetime.utcnow() + timedelta(days=days)
             
-            current_user.subscription_status = 'active'
+            current_user.subscription_status = plan  # Use actual plan level (base, intermediate, pro)
             current_user.subscription_expiry = expiry_date
             
             # Save the number of tests the user has access to
