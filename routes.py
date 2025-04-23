@@ -320,10 +320,9 @@ def start_complete_test(test_id):
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
-    # Check if user's test preference matches this test
-    if complete_test.ielts_test_type != current_user.test_preference:
-        flash(f'This test is designed for {complete_test.ielts_test_type.replace("_", " ").title()} IELTS. Your preference is set to {current_user.test_preference.replace("_", " ").title()}.', 'warning')
-        return redirect(url_for('practice_index'))
+    # We now allow users to access all test types regardless of preference
+    # Keep a comment explaining the change for future reference
+    # Previously, we were restricting users to only take tests that matched their preference
     
     # Check if user already has an in-progress attempt
     existing_progress = CompleteTestProgress.query.filter_by(
