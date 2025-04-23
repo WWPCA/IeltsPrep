@@ -66,7 +66,7 @@ def login():
         
         if not email or not password:
             flash('Please provide both email and password.', 'danger')
-            return render_template('login.html')
+            return render_template('login.html', title='Login')
             
         user = User.query.filter_by(email=email).first()
         
@@ -78,7 +78,7 @@ def login():
         else:
             flash('Invalid email or password.', 'danger')
             
-    return render_template('login.html', title='Login', form=form)
+    return render_template('login.html', title='Login')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
