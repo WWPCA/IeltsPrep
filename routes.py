@@ -179,12 +179,10 @@ def practice_index():
         
         # For each test number, get the maximum ID (latest version)
         if current_user.is_subscribed():
-            # First get the latest ID for each test number - show all academic tests regardless of preference
+            # Show all tests for subscribed users regardless of type
             subquery = db.session.query(
                 CompletePracticeTest.test_number,
                 func.max(CompletePracticeTest.id).label('max_id')
-            ).filter(
-                CompletePracticeTest.ielts_test_type == 'academic'  # Always show academic tests for now
             ).group_by(CompletePracticeTest.test_number).subquery()
             
             # Then get the complete test records using those IDs
