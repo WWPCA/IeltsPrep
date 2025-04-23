@@ -181,10 +181,6 @@ def practice_index():
         if current_user.is_subscribed():
             # Show all tests for subscribed users regardless of type or subscription level
             complete_tests = CompletePracticeTest.query.order_by(CompletePracticeTest.test_number).all()
-            return render_template('practice/index.html', title='Practice Tests',
-                                 sample_tests=sample_tests,
-                                 complete_tests=complete_tests,
-                                 test_progress=test_progress)
             complete_tests = CompletePracticeTest.query.join(
                 subquery,
                 db.and_(
