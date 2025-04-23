@@ -162,13 +162,15 @@ class User(UserMixin, db.Model):
     def is_subscribed(self):
         # Check if user has an active or premium subscription
         if (self.subscription_status in ["active", "premium"]) and self.subscription_expiry:
-            # Check if subscription has expired
+            # For premium users, always return True
+            if self.subscription_status == "premium":
+                return True
+            # For active users, check expiry
             if self.subscription_expiry < datetime.utcnow():
                 self.subscription_status = "expired"
                 db.session.commit()
                 return False
             return True
-        
         return False
     
     def __repr__(self):
