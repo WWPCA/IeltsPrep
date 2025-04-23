@@ -46,11 +46,7 @@
                     <li><a href="{{ url_for('speaking_index') }}">Speaking Assessment</a></li>
                     <li><a href="{{ url_for('device_specs') }}">Device Requirements</a></li>
                     {% if current_user.is_authenticated %}
-                        {% if current_user.is_subscribed() %}
-                            <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-                        {% else %}
-                            <li><a href="{{ url_for('subscribe') }}" class="btn btn-accent btn-sm">Subscribe</a></li>
-                        {% endif %}
+                        <li><a href="{{ url_for('profile') }}">My Profile</a></li>
                         <li><a href="{{ url_for('logout') }}">Logout</a></li>
                     {% else %}
                         <li><a href="{{ url_for('login') }}">Login</a></li>
