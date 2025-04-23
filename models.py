@@ -160,14 +160,13 @@ class User(UserMixin, db.Model):
         }
     
     def is_subscribed(self):
-        # Check if user has an active subscription
+        """Check if user has an active subscription"""
         if self.subscription_status in ["base", "intermediate", "pro"] and self.subscription_expiry:
-            # Check expiry
-            if self.subscription_expiry < datetime.utcnow():
-                self.subscription_status = "expired"
-                db.session.commit()
-                return False
-            return True
+            if self.subscription_expiry > datetime.utcnow():
+                return True
+            # Only update status if expired
+            self.subscription_status = "expired"
+            db.session.commit()
         return False
     
     def __repr__(self):
