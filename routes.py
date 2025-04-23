@@ -58,28 +58,25 @@ def index():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
-    class LoginForm:
-        # Simple form class to enable CSRF protection
-        def __init__(self):
-            pass
-    
-    form = LoginForm()
-    
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         remember = 'remember' in request.form
         
+        if not email or not password:
+            flash('Please provide both email and password.', 'danger')
+            return render_template('login.html')
+            
         user = User.query.filter_by(email=email).first()
         
-        if user and user.check_password(password):
+        if user and check_password_hash(user.password_hash, password):
             login_user(user, remember=remember)
             next_page = request.args.get('next')
             flash('Login successful!', 'success')
             return redirect(next_page if next_page else url_for('index'))
         else:
-            flash('Login failed. Please check your email and password.', 'danger')
+            flash('Invalid email or password.', 'danger')
             
     return render_template('login.html', title='Login', form=form)
 
