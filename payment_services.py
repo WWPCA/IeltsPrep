@@ -85,6 +85,133 @@ SUBSCRIPTION_PLANS = {
 }
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+def create_stripe_checkout_session(product_name, description, price, success_url, cancel_url, country_code=None):
+    """
+    Create a Stripe checkout session.
+    
+    Args:
+        product_name (str): Name of the product
+        description (str): Description of the product
+        price (float): Price in USD
+        success_url (str): URL to redirect to on successful payment
+        cancel_url (str): URL to redirect to if payment is canceled
+        country_code (str, optional): Two-letter country code for regional payment methods
+        
+    Returns:
+        stripe.checkout.Session: The created Stripe checkout session
+    """
+    try:
+        if not stripe.api_key:
+            logging.error("Stripe API key not found. Cannot create checkout session.")
+            raise ValueError("Stripe API key is required")
+        
+        # Create a product
+        product = create_or_get_product_for_purchase(product_name, description)
+        
+        # Create a price (convert price from dollars to cents)
+        price_in_cents = int(price * 100)
+        price_obj = create_or_get_price_for_purchase(
+            product.id,
+            price_in_cents,
+            product_name.lower().replace(' ', '_'),
+            1,  # tests
+            30  # days
+        )
+        
+        # Dynamic payment method types based on user region
+        payment_method_types = ['card', 'apple_pay', 'google_pay']
+        
+        # Add region-specific payment methods
+        # These are the payment methods supported by Stripe
+        region_payment_mapping = {
+            # East Asia
+            'CN': ['alipay', 'wechat_pay'],
+            'JP': ['konbini', 'paypay', 'jcb'],
+            'KR': ['kakaopay', 'naver_pay'],
+            
+            # Southeast Asia
+            'MY': ['grabpay', 'fpx', 'boost', 'touch_n_go'],
+            'TH': ['promptpay', 'truemoney'],
+            'ID': ['dana', 'ovo', 'gopay', 'linkaja'],
+            'PH': ['gcash', 'paymaya'],
+            'SG': ['grabpay', 'paynow'],
+            'VN': ['momo', 'zalopay', 'vnpay'],
+            
+            # South Asia
+            'IN': ['upi', 'paytm', 'netbanking', 'amazon_pay', 'phonepe'],
+            'PK': ['easypaisa', 'jazzcash'],
+            'BD': ['bkash', 'rocket', 'nagad'],
+            'NP': ['esewa', 'khalti'],
+            
+            # Latin America
+            'BR': ['boleto', 'pix', 'mercado_pago'],
+            'MX': ['oxxo', 'spei', 'mercado_pago'],
+            
+            # Middle East
+            'AE': ['benefit', 'apple_pay'],
+            'SA': ['stcpay', 'mada'],
+            'EG': ['fawry', 'meeza'],
+            'TR': ['troy', 'papara', 'ininal'],
+            
+            # Africa
+            'KE': ['mpesa', 'airtel_money'],
+            'NG': ['paystack', 'flutterwave', 'opay'],
+            'ET': ['cbe_birr', 'telebirr'],
+            'TZ': ['mpesa', 'tigopesa', 'airtel_money'],
+            
+            # Oceania
+            'AU': ['afterpay', 'bpay', 'osko'],
+            'NZ': ['afterpay', 'poli'],
+            
+            # North America
+            'CA': ['interac'],
+            'US': ['affirm', 'us_bank_account', 'venmo'],
+            
+            # Europe
+            'GB': ['bacs_debit', 'ideal', 'sofort'],
+            'RU': ['yandex_pay', 'qiwi', 'sberbank']
+        }
+        
+        # If we have user_country, add the appropriate payment methods
+        if country_code and country_code in region_payment_mapping:
+            payment_method_types.extend(region_payment_mapping[country_code])
+        
+        metadata = {
+            'product_name': product_name,
+            'price': str(price),
+            'description': description
+        }
+        
+        # Create checkout session with all payment options
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=payment_method_types,
+            line_items=[
+                {
+                    'price': price_obj.id,
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',  # Using one-time payment instead of subscription
+            success_url=success_url,
+            cancel_url=cancel_url,
+            payment_method_options={
+                'card': {
+                    'wallet': {
+                        'applePay': 'auto',
+                        'googlePay': 'auto',
+                    }
+                }
+            },
+            metadata=metadata
+        )
+        
+        return checkout_session
+        
+    except Exception as e:
+        logging.error(f"Error creating Stripe checkout: {str(e)}")
+        raise
+
+# For backward compatibility
 def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_package=None):
     """
     Create a Stripe checkout session for test purchase.
@@ -333,6 +460,58 @@ def create_or_get_price(product_id, plan):
         logging.error(f"Error creating/getting Stripe price: {str(e)}")
         raise
 
+def create_payment_record(user_id, amount, package, session_id):
+    """
+    Create a payment record for audit and tracking purposes.
+    
+    Args:
+        user_id (int): User ID making the payment
+        amount (float): Payment amount
+        package (str): Package purchased ('single', 'double', 'pack')
+        session_id (str): Stripe session ID for reference
+        
+    Returns:
+        dict: Payment record data
+    """
+    # This is a placeholder function - in a real implementation, you would 
+    # save this information to a database. For now, we just return a dict.
+    payment_record = {
+        'user_id': user_id,
+        'amount': amount,
+        'package': package,
+        'session_id': session_id,
+        'timestamp': datetime.utcnow().isoformat()
+    }
+    
+    logging.info(f"Payment record created: {payment_record}")
+    return payment_record
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+def verify_stripe_payment(session_id):
+    """
+    Verify a Stripe payment using the session ID.
+    
+    Args:
+        session_id (str): Stripe checkout session ID
+        
+    Returns:
+        bool: True if payment was successful, False otherwise
+    """
+    try:
+        if not stripe.api_key:
+            logging.error("Stripe API key not found. Cannot verify payment.")
+            return False
+        
+        # Retrieve the session
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        # Check payment status
+        return session.payment_status == 'paid'
+    except Exception as e:
+        logging.error(f"Error verifying Stripe payment: {str(e)}")
+        return False
+
+# For backward compatibility
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 def verify_payment(session_id):
     """

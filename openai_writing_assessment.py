@@ -235,3 +235,97 @@ def get_band_description(band_score: float) -> str:
     }
     
     return descriptions.get(band_score, "No description available for this band score.")
+
+# Functions needed by routes.py 
+def assess_writing_response(essay_text: str, task_prompt: str, task_type: str = None) -> Dict[str, Any]:
+    """
+    Alias for assess_writing to maintain compatibility with routes.py.
+    """
+    return assess_writing(essay_text, task_prompt, task_type)
+
+def generate_writing_feedback(essay_text: str, task_prompt: str) -> Dict[str, Any]:
+    """
+    Generate detailed feedback for a writing submission without scoring.
+    
+    Args:
+        essay_text: The student's essay text
+        task_prompt: The original task instruction
+        
+    Returns:
+        Detailed feedback dictionary
+    """
+    assessment = assess_writing(essay_text, task_prompt)
+    # Return only the feedback portion
+    if "error" in assessment:
+        return assessment
+    return {
+        "feedback": assessment["feedback"],
+        "timestamp": assessment.get("timestamp", time.strftime("%Y-%m-%d %H:%M:%S")),
+        "word_count": assessment.get("word_count", count_words(essay_text))
+    }
+
+def generate_personalized_study_plan(assessment_result: Dict[str, Any], user_goals: str = None) -> Dict[str, Any]:
+    """
+    Generate a personalized study plan based on writing assessment results.
+    
+    Args:
+        assessment_result: The assessment result from assess_writing
+        user_goals: Optional string describing user's learning goals
+        
+    Returns:
+        Study plan dictionary with recommendations
+    """
+    if "error" in assessment_result:
+        return {
+            "error": True,
+            "message": "Cannot generate study plan from failed assessment",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    
+    # Construct prompt for study plan generation
+    messages = [
+        {"role": "system", "content": "You are an expert IELTS writing tutor. Generate a personalized study plan based on the student's assessment results."},
+        {"role": "user", "content": f"Create a personalized IELTS writing study plan based on these assessment results:\n\n{json.dumps(assessment_result, indent=2)}"}
+    ]
+    
+    # Add user goals if provided
+    if user_goals:
+        messages[1]["content"] += f"\n\nStudent's goals: {user_goals}"
+    
+    try:
+        # Get study plan from OpenAI
+        study_plan_result = get_openai_response(messages)
+        
+        # Add timestamp
+        study_plan_result["timestamp"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        return study_plan_result
+    
+    except Exception as e:
+        # Error handling
+        print(f"Study plan generation failed: {str(e)}")
+        return {
+            "error": True,
+            "message": f"Study plan generation failed: {str(e)}",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+def get_openai_models_list() -> List[str]:
+    """
+    Get the list of available OpenAI models.
+    
+    Returns:
+        List of model names
+    """
+    # Check if we have initialized OpenAI client
+    if not initialize_openai():
+        # Return mock response if API key is not available
+        return ["API key not available"]
+    
+    try:
+        # Get available models
+        models = client.models.list()
+        return [model.id for model in models.data]
+    except Exception as e:
+        print(f"Error getting OpenAI models: {str(e)}")
+        return ["Error getting models"]

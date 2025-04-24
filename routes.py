@@ -1,60 +1,47 @@
 import os
 import json
-import uuid
-import logging
 import time
-from functools import wraps
+import uuid
+import base64
+import urllib
+import logging
+import random
 from datetime import datetime, timedelta
-
-from flask import render_template, url_for, flash, redirect, request, jsonify, session, abort
-from flask_login import login_user, current_user, logout_user, login_required
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, session, abort, send_file
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from functools import wraps
 from app import app, db
-from models import (User, TestStructure, PracticeTest, UserTestAttempt, 
-                   SpeakingPrompt, SpeakingResponse, PaymentMethod, Translation, CountryPricing,
-                   CompletePracticeTest, CompleteTestProgress)
+from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress
+from utils import get_user_region, get_translation, compress_audio
+from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment
+from openai_writing_assessment import assess_writing_response, generate_writing_feedback, generate_personalized_study_plan, get_openai_models_list
+from aws_services import analyze_speaking_response, analyze_pronunciation, transcribe_audio, generate_polly_speech
+from geoip_services import get_country_from_ip, get_pricing_for_country
 
-# Add context processor to provide cache_buster to all templates
+# Custom cache buster to force browsers to reload CSS, JS on new deployments
 @app.context_processor
 def inject_cache_buster():
     """Add cache_buster variable to all templates to prevent browser caching"""
-    return dict(cache_buster=int(time.time()))
+    cache_buster = int(time.time())
+    return dict(cache_buster=cache_buster)
 
-from utils import get_user_region, get_translation, compress_audio
-from aws_services import (transcribe_audio, generate_polly_speech, analyze_speaking_response, 
-                      analyze_pronunciation, generate_pronunciation_exercises)
-from payment_services import create_stripe_checkout, verify_payment
-from geoip_services import get_country_from_ip, get_pricing_for_country
-
-# Helper functions
 def subscription_required(f):
+    """Decorator to check if user has an active subscription"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_subscribed():
-            flash('This feature requires a subscription. Please subscribe to continue.', 'warning')
+        if not current_user.is_authenticated:
+            flash('Please log in to access this feature.', 'warning')
+            return redirect(url_for('login'))
+            
+        if not current_user.is_subscribed():
+            flash('This feature requires a subscription. Please subscribe to access all features.', 'warning')
             return redirect(url_for('subscribe'))
+            
         return f(*args, **kwargs)
     return decorated_function
 
-def update_user_streak(f):
-    """Decorator to update a user's study streak when they perform activities"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # First execute the route function
-        response = f(*args, **kwargs)
-        
-        # Then update the user's streak if they're logged in
-        if current_user.is_authenticated:
-            try:
-                current_user.update_streak()
-                db.session.commit()
-            except Exception as e:
-                app.logger.error(f"Error updating user streak: {str(e)}")
-                db.session.rollback()
-                
-        return response
-    return decorated_function
+# Streak tracking removed as requested
 
 # Home route
 @app.route('/')
@@ -142,11 +129,9 @@ def logout():
 
 @app.route('/profile')
 @login_required
-@update_user_streak
 def profile():
-    # Get streak data for visualization
-    streak_data = current_user.get_streak_data()
-    return render_template('profile.html', title='My Profile', streak_data=streak_data)
+    # Profile page is now simplified, no streak data needed
+    return render_template('profile.html', title='My Profile')
 
 # Test Structure Routes
 @app.route('/test-structure')
@@ -292,7 +277,6 @@ def practice_index():
 
 @app.route('/practice/<test_type>')
 @login_required
-@update_user_streak
 def practice_test_list(test_type):
     if test_type not in ['listening', 'reading', 'writing']:
         abort(404)
@@ -316,7 +300,6 @@ def practice_test_list(test_type):
 
 @app.route('/practice/<test_type>/<int:test_id>')
 @login_required
-@update_user_streak
 def take_practice_test(test_type, test_id):
     if test_type not in ['listening', 'reading', 'writing']:
         abort(404)
@@ -348,7 +331,6 @@ def take_practice_test(test_type, test_id):
 # Complete Test Routes
 @app.route('/practice/complete-test/<int:test_id>/start')
 @login_required
-@update_user_streak
 def start_complete_test(test_id):
     """Start a new complete IELTS practice test"""
     complete_test = CompletePracticeTest.query.get_or_404(test_id)
@@ -396,7 +378,6 @@ def start_complete_test(test_id):
 
 @app.route('/practice/complete-test/<int:test_id>/continue')
 @login_required
-@update_user_streak
 def continue_complete_test(test_id):
     """Continue an in-progress complete test"""
     # Get user's progress for this test
@@ -428,7 +409,6 @@ def continue_complete_test(test_id):
 
 @app.route('/practice/complete-test/<int:test_id>/<section>')
 @login_required
-@update_user_streak
 def take_complete_test_section(test_id, section):
     """Take a specific section of a complete test"""
     if section not in ['listening', 'reading', 'writing', 'speaking']:
@@ -516,7 +496,6 @@ def complete_test_results(test_id):
 
 @app.route('/api/submit-test', methods=['POST'])
 @login_required
-@update_user_streak
 def submit_test():
     data = request.json
     test_id = data.get('test_id')
@@ -600,29 +579,130 @@ def submit_test():
         response_data['results_url'] = url_for('complete_test_results', test_id=complete_test_id)
     elif complete_test_progress:
         response_data['next_section'] = complete_test_progress.get_next_section()
-        response_data['next_section_url'] = url_for('continue_complete_test', test_id=complete_test_id)
-        
+        response_data['next_section_url'] = url_for(
+            'take_complete_test_section', 
+            test_id=complete_test_id, 
+            section=complete_test_progress.get_next_section()
+        )
+    
     return jsonify(response_data)
 
-# Speaking Assessment Routes
-# Speaking routes removed as requested
-# @app.route('/speaking')
-# def speaking_index():
-#     # Redirect to the practice test list page for complete tests
-#     flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
-#     return redirect(url_for('practice_index'))
-# 
-# @app.route('/speaking/<int:prompt_id>')
-# @login_required
-# def speaking_assessment(prompt_id):
-#     # Redirect to the practice test list page for complete tests
-#     flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
-#     return redirect(url_for('practice_index'))
-
-@app.route('/practice/submit-speaking/<int:test_id>', methods=['POST'])
+@app.route('/api/submit-writing', methods=['POST'])
 @login_required
-@update_user_streak
-def submit_speaking_response(test_id):
+def submit_writing():
+    data = request.json
+    test_id = data.get('test_id')
+    essay_text = data.get('essay_text')
+    complete_test_id = data.get('complete_test_id')  # May be None for individual section practice
+    
+    if not test_id or not essay_text:
+        return jsonify({'error': 'Missing required data'}), 400
+    
+    test = PracticeTest.query.get_or_404(test_id)
+    
+    # Save the user's writing response
+    user_answers = {'essay': essay_text}
+    
+    # Check for OpenAI API key for AI assessment
+    if 'OPENAI_API_KEY' in os.environ:
+        # Assess the writing using OpenAI
+        try:
+            evaluation = assess_writing_response(
+                essay_text, 
+                test.questions.get('task_description', ''),
+                test.test_type, 
+                test.ielts_test_type
+            )
+            
+            # Calculate band score (0-9 scale)
+            band_score = evaluation.get('band_score', 0)
+            
+            # Convert band score to percentage for consistency with other tests (0-100%)
+            score_percentage = (band_score / 9) * 100
+            
+            # Add feedback to user_answers
+            user_answers['assessment'] = evaluation
+        except Exception as e:
+            app.logger.error(f"Error in OpenAI writing assessment: {str(e)}")
+            score_percentage = 0  # Default if assessment fails
+            band_score = 0
+            user_answers['assessment_error'] = str(e)
+    else:
+        # No OpenAI API key, use placeholder score
+        score_percentage = 70  # Default score
+        band_score = 6.0
+        user_answers['assessment'] = {
+            'band_score': band_score,
+            'feedback': 'AI assessment not available. Please contact support.'
+        }
+    
+    # Get complete test progress if this is part of a complete test
+    complete_test_progress = None
+    if complete_test_id:
+        complete_test_progress = CompleteTestProgress.query.filter_by(
+            user_id=current_user.id,
+            complete_test_id=complete_test_id
+        ).first()
+        
+        if complete_test_progress:
+            # Mark this section as completed
+            complete_test_progress.mark_section_completed(test.test_type, band_score)
+    
+    # Save the attempt
+    attempt = UserTestAttempt(
+        user_id=current_user.id,
+        test_id=test_id,
+        complete_test_progress_id=complete_test_progress.id if complete_test_progress else None,
+        user_answers=user_answers,
+        score=score_percentage,
+        assessment=json.dumps(user_answers.get('assessment', {}))
+    )
+    
+    db.session.add(attempt)
+    
+    # Update user's test history
+    test_history = current_user.test_history
+    test_history.append({
+        'test_id': test_id,
+        'test_type': test.test_type,
+        'title': test.title,
+        'date': datetime.utcnow().isoformat(),
+        'score': score_percentage,
+        'complete_test_id': complete_test_id
+    })
+    current_user.test_history = test_history
+    
+    # For individual section practice (not part of complete test)
+    if not complete_test_id:
+        # Mark this test as completed so it can't be retaken during current subscription period
+        current_user.mark_test_completed(test_id, test.test_type)
+    
+    db.session.commit()
+    
+    response_data = {
+        'score': score_percentage,
+        'band_score': band_score,
+        'assessment': user_answers.get('assessment', {})
+    }
+    
+    # Check if complete test is now completed
+    if complete_test_progress and complete_test_progress.is_test_completed():
+        response_data['complete_test_finished'] = True
+        response_data['results_url'] = url_for('complete_test_results', test_id=complete_test_id)
+    elif complete_test_progress:
+        response_data['next_section'] = complete_test_progress.get_next_section()
+        response_data['next_section_url'] = url_for(
+            'take_complete_test_section', 
+            test_id=complete_test_id, 
+            section=complete_test_progress.get_next_section()
+        )
+    
+    return jsonify(response_data)
+
+# Speaking routes
+@app.route('/api/submit-speaking-response', methods=['POST'])
+@login_required
+def submit_speaking_response(test_id=None):
     """Submit a speaking response for a complete test section"""
     audio_blob = request.form.get('audio_blob')
     complete_test_id = request.form.get('complete_test_id')
@@ -645,107 +725,114 @@ def submit_speaking_response(test_id):
     os.makedirs(os.path.dirname(audio_path), exist_ok=True)
     
     with open(audio_path, 'wb') as f:
-        f.write(audio_data)
+        f.save(audio_data)
     
-    # Compress the audio
+    # Compress the audio file
     compressed_path = compress_audio(audio_path)
     
+    # Get the test
+    test = PracticeTest.query.get_or_404(test_id)
+    
+    # Transcribe using AWS Transcribe
+    transcription = None
     try:
-        # Get the test
-        test = PracticeTest.query.get_or_404(test_id)
-        
-        # Transcribe and analyze the response
         transcription = transcribe_audio(compressed_path)
-        scores, feedback = analyze_speaking_response(transcription)
-        
-        # Generate audio feedback
-        feedback_audio_filename = f"feedback_{os.path.basename(compressed_path)}"
-        feedback_audio_path = os.path.join('static', 'uploads', 'feedback', feedback_audio_filename)
-        os.makedirs(os.path.dirname(feedback_audio_path), exist_ok=True)
-        
-        polly_result = generate_polly_speech(feedback, feedback_audio_path)
-        
-        # Create a speaking response record
-        response = SpeakingResponse(
-            user_id=current_user.id,
-            prompt_id=test_id,  # Using the test ID as the prompt ID
-            audio_url=compressed_path.replace('static/', ''),
-            transcription=transcription,
-            scores=scores,
-            feedback_audio_url=feedback_audio_path.replace('static/', '') if polly_result else None
-        )
-        
-        db.session.add(response)
-        
-        # Create a test attempt record
-        new_attempt = UserTestAttempt(
-            user_id=current_user.id,
-            test_id=test_id,
-            user_answers={'transcription': transcription},
-            score=scores.get('overall', 0) if isinstance(scores, dict) else 0,
-            assessment=json.dumps({
-                'transcription': transcription,
-                'scores': scores,
-                'feedback': feedback
-            })
-        )
-        
-        if complete_test_id:
-            # Get the user's progress for this complete test
-            progress = CompleteTestProgress.query.filter_by(
-                user_id=current_user.id,
-                complete_test_id=complete_test_id
-            ).first()
-            
-            if progress:
-                new_attempt.complete_test_progress_id = progress.id
-                
-                # Mark speaking section as completed
-                progress.mark_section_completed('speaking', scores.get('overall', 0))
-                
-                # Check if all sections are completed
-                if progress.is_test_completed():
-                    progress.completed_date = datetime.utcnow()
-        
-        db.session.add(new_attempt)
-        
-        # Update user's speaking scores
-        speaking_scores = current_user.speaking_scores
-        speaking_scores.append({
-            'prompt_id': test_id,
-            'date': datetime.utcnow().isoformat(),
-            'scores': scores
-        })
-        current_user.speaking_scores = speaking_scores
-        
-        # Mark this test as completed
-        current_user.mark_test_completed(test_id, 'speaking')
-        
-        db.session.commit()
-        
-        flash('Your speaking response has been submitted and assessed.', 'success')
-        
-        if complete_test_id:
-            # Check if this was the last section
-            if progress.is_test_completed():
-                return redirect(url_for('complete_test_results', test_id=complete_test_id))
-            else:
-                return redirect(url_for('continue_complete_test', test_id=complete_test_id))
-        else:
-            return redirect(url_for('practice_index'))
-            
     except Exception as e:
-        app.logger.error(f"Error processing speaking assessment: {str(e)}")
-        flash(f'An error occurred while processing your speaking response: {str(e)}', 'danger')
+        app.logger.error(f"Error transcribing audio: {str(e)}")
+        transcription = "Transcription failed. Please try again."
+    
+    # Analyze the speaking response
+    assessment = {}
+    band_score = 0
+    try:
+        assessment, feedback = analyze_speaking_response(transcription)
+        band_score = assessment.get('overall_band', 0)
+    except Exception as e:
+        app.logger.error(f"Error analyzing speaking response: {str(e)}")
+        assessment = {"error": str(e)}
+        band_score = 5.0  # Default band score
+    
+    # Convert band score to percentage for consistency
+    score_percentage = (band_score / 9) * 100
+    
+    # Get complete test progress if this is part of a complete test
+    complete_test_progress = None
+    if complete_test_id:
+        complete_test_progress = CompleteTestProgress.query.filter_by(
+            user_id=current_user.id,
+            complete_test_id=complete_test_id
+        ).first()
         
-        if complete_test_id:
-            return redirect(url_for('continue_complete_test', test_id=complete_test_id))
-        else:
-            return redirect(url_for('practice_index'))
+        if complete_test_progress:
+            # Mark this section as completed
+            complete_test_progress.mark_section_completed('speaking', band_score)
+    
+    # Save the user's response
+    user_answers = {
+        'audio_url': url_for('static', filename=f'uploads/audio/{filename}'),
+        'transcription': transcription,
+        'assessment': assessment
+    }
+    
+    # Save the attempt
+    attempt = UserTestAttempt(
+        user_id=current_user.id,
+        test_id=test_id,
+        complete_test_progress_id=complete_test_progress.id if complete_test_progress else None,
+        user_answers=user_answers,
+        score=score_percentage,
+        assessment=json.dumps(assessment)
+    )
+    
+    db.session.add(attempt)
+    
+    # Update the user's speaking scores
+    speaking_scores = current_user.speaking_scores
+    speaking_scores.append({
+        'date': datetime.utcnow().isoformat(),
+        'band_score': band_score,
+        'fluency': assessment.get('fluency', 0),
+        'pronunciation': assessment.get('pronunciation', 0),
+        'grammar': assessment.get('grammar', 0),
+        'vocabulary': assessment.get('vocabulary', 0)
+    })
+    current_user.speaking_scores = speaking_scores
+    
+    # Update test history
+    test_history = current_user.test_history
+    test_history.append({
+        'test_id': test_id,
+        'test_type': 'speaking',
+        'title': test.title,
+        'date': datetime.utcnow().isoformat(),
+        'score': score_percentage,
+        'complete_test_id': complete_test_id
+    })
+    current_user.test_history = test_history
+    
+    # For individual section practice (not part of complete test)
+    if not complete_test_id:
+        # Mark this test as completed so it can't be retaken during current subscription period
+        current_user.mark_test_completed(test_id, 'speaking')
+    
+    db.session.commit()
+    
+    response_data = {
+        'score': score_percentage,
+        'band_score': band_score,
+        'transcription': transcription,
+        'assessment': assessment
+    }
+    
+    # Check if complete test is now completed
+    if complete_test_progress and complete_test_progress.is_test_completed():
+        response_data['complete_test_finished'] = True
+        response_data['results_url'] = url_for('complete_test_results', test_id=complete_test_id)
+    
+    return jsonify(response_data)
 
-@app.route('/api/speaking/submit', methods=['POST'])
+@app.route('/api/submit-speaking', methods=['POST'])
 @login_required
-@update_user_streak
 def submit_speaking():
     prompt_id = request.form.get('prompt_id')
     audio_file = request.files.get('audio')
@@ -766,488 +853,392 @@ def submit_speaking():
     try:
         transcription = transcribe_audio(compressed_path)
         
-        # Analyze the response using IELTS criteria
+        # Get the prompt
+        prompt = SpeakingPrompt.query.get_or_404(prompt_id)
+        
+        # Analyze the transcription against IELTS speaking criteria
         scores, feedback = analyze_speaking_response(transcription)
         
-        # Generate audio feedback using Amazon Polly
-        feedback_audio_filename = f"feedback_{os.path.basename(compressed_path)}"
-        feedback_audio_path = os.path.join('static', 'uploads', 'feedback', feedback_audio_filename)
-        os.makedirs(os.path.dirname(feedback_audio_path), exist_ok=True)
-        
-        polly_result = generate_polly_speech(feedback, feedback_audio_path)
-        
-        # Save the response
+        # Create a new speaking response
         response = SpeakingResponse(
             user_id=current_user.id,
             prompt_id=prompt_id,
-            audio_url=compressed_path.replace('static/', ''),
+            audio_url=url_for('static', filename=f'uploads/audio/{filename}'),
             transcription=transcription,
-            scores=scores,
-            feedback_audio_url=feedback_audio_path.replace('static/', '') if polly_result else None
+            scores=scores  # Stored as JSON
         )
         
         db.session.add(response)
         
-        # Update user's speaking scores
+        # Update the user's speaking scores
         speaking_scores = current_user.speaking_scores
         speaking_scores.append({
-            'prompt_id': prompt_id,
             'date': datetime.utcnow().isoformat(),
-            'scores': scores
+            'prompt_id': prompt_id,
+            'band_score': scores.get('overall_band', 0),
+            'fluency': scores.get('fluency', 0),
+            'pronunciation': scores.get('pronunciation', 0),
+            'grammar': scores.get('grammar', 0),
+            'vocabulary': scores.get('vocabulary', 0)
         })
         current_user.speaking_scores = speaking_scores
         
-        # Mark this speaking prompt as completed so it can't be retaken during current subscription period
-        current_user.mark_test_completed(int(prompt_id), 'speaking')
-        
+        # Generate audio feedback using Polly
+        try:
+            feedback_filename = f"feedback_user_{current_user.id}_prompt_{prompt_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp3"
+            feedback_path = os.path.join('static', 'uploads', 'audio', feedback_filename)
+            generate_polly_speech(feedback, feedback_path)
+            response.feedback_audio_url = url_for('static', filename=f'uploads/audio/{feedback_filename}')
+        except Exception as e:
+            app.logger.error(f"Error generating feedback audio: {str(e)}")
+            
         db.session.commit()
         
-        return jsonify({
+        # Return the assessment results
+        result = {
             'success': True,
             'transcription': transcription,
             'scores': scores,
-            'feedback': feedback,
-            'feedback_audio_url': url_for('static', filename=feedback_audio_path.replace('static/', '')) if polly_result else None
-        })
+            'audio_url': response.audio_url,
+            'feedback_audio_url': response.feedback_audio_url if hasattr(response, 'feedback_audio_url') else None,
+            'feedback': feedback
+        }
         
+        return jsonify(result)
+    
     except Exception as e:
-        logging.error(f"Error processing speaking assessment: {str(e)}")
+        app.logger.error(f"Error in speaking submission: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# Subscription Routes
+# @login_required
+# def speaking_assessment(prompt_id):
+#     """Get a speaking assessment for a specific prompt."""
+#     prompt = SpeakingPrompt.query.get_or_404(prompt_id)
+#     
+#     # Get previous responses for this prompt by this user
+#     previous_responses = SpeakingResponse.query.filter_by(
+#         user_id=current_user.id,
+#         prompt_id=prompt_id
+#     ).order_by(SpeakingResponse.response_date.desc()).all()
+#     
+#     return render_template('speaking_assessment.html',
+#                           title='Speaking Assessment',
+#                           prompt=prompt,
+#                           previous_responses=previous_responses)
+
 @app.route('/subscribe')
 def subscribe():
-    # Get payment methods based on user's region
-    region = get_user_region() if not current_user.is_authenticated else current_user.region
+    # Check if user is already subscribed, and handle expired subscriptions
+    if current_user.is_authenticated:
+        if current_user.subscription_expiry and current_user.subscription_expiry <= datetime.utcnow():
+            # Subscription has expired
+            current_user.subscription_status = "expired"
+            db.session.commit()
+            flash('Your subscription has expired. Please purchase a new one.', 'info')
     
-    # Get regional payment methods
-    regional_methods = PaymentMethod.query.filter_by(region=region).order_by(PaymentMethod.display_order).all()
-    
-    # Get global payment methods
-    global_methods = PaymentMethod.query.filter_by(region=None).order_by(PaymentMethod.display_order).all()
-    
-    # Combine and sort
-    payment_methods = sorted(regional_methods + global_methods, key=lambda x: x.display_order)
-    
-    # Get country-specific pricing based on user's location
-    country_code = None
+    # Detect country for pricing
     if current_user.is_authenticated and current_user.region:
-        # Try to get country code from user's stored region
-        # This is a simplified approach - in production you would have a proper mapping
-        country_code = current_user.region[:2].upper() if len(current_user.region) >= 2 else None
+        country_code = current_user.region[:2].upper()  # Use the first two characters of region
+    else:
+        # Get country from IP address
+        client_ip = request.remote_addr
+        country_code, country_name = get_country_from_ip(client_ip)
     
-    # If no country code from user profile, detect from IP
-    if not country_code:
-        country_code, _ = get_country_from_ip()
-    
-    # Get pricing for the detected country
+    # Get pricing based on country
     pricing = get_pricing_for_country(country_code)
     
-    return render_template('subscribe.html', title='Subscribe',
-                          payment_methods=payment_methods,
-                          pricing=pricing)
+    # Get user's test preference for subscription package selection
+    test_preference = "academic"  # Default
+    if current_user.is_authenticated:
+        test_preference = current_user.test_preference
+    
+    return render_template('subscribe.html', 
+                          title='Subscribe', 
+                          pricing=pricing,
+                          test_preference=test_preference,
+                          country_code=country_code)
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
-    payment_method = request.form.get('payment_method', 'stripe')
-    plan = request.form.get('plan', 'base')
-    terms_accepted = request.form.get('terms_accepted')
+    data = request.json
+    package = data.get('package')
+    test_preference = data.get('test_preference', 'academic')
     
-    # Get test-specific parameters for the new pricing structure
-    test_type = request.form.get('test_type')  # 'academic' or 'general'
-    test_package = request.form.get('test_package')  # 'single', 'double', or 'pack'
+    if not package:
+        return jsonify({'error': 'No package selected'}), 400
     
-    # For forms that don't directly include terms_accepted (like the card buttons)
-    # Allow them to bypass if they've previously accepted terms
-    if not terms_accepted and not session.get('terms_accepted'):
-        flash('You must accept the Terms and Conditions to proceed with payment.', 'warning')
-        return redirect(url_for('subscribe'))
+    # Free test doesn't need payment
+    if package == 'free':
+        return jsonify({'url': url_for('practice_index')}), 200
     
-    # For now, we only implement Stripe checkout
-    if payment_method == 'stripe':
-        try:
-            # Detect user's country for region-specific payment methods
-            from geoip_services import get_country_from_ip
-            country_code, _ = get_country_from_ip()
+    # Create a Stripe checkout session
+    success_url = url_for('payment_success', package=package, test_preference=test_preference, _external=True)
+    cancel_url = url_for('payment_cancel', _external=True)
+    
+    # Package pricing and details
+    package_details = {
+        'single': {
+            'name': 'Single Test Package',
+            'description': '1 IELTS Practice Test with AI Assessment (15-day access)',
+            'price': 25.00,  # in USD
+            'duration_days': 15
+        },
+        'double': {
+            'name': 'Double Test Package',
+            'description': '2 IELTS Practice Tests with AI Assessment (15-day access)',
+            'price': 35.00,  # in USD
+            'duration_days': 15
+        },
+        'pack': {
+            'name': 'Value Pack',
+            'description': '4 IELTS Practice Tests with AI Assessment (30-day access)',
+            'price': 50.00,  # in USD
+            'duration_days': 30
+        }
+    }
+    
+    if package not in package_details:
+        return jsonify({'error': 'Invalid package selected'}), 400
+    
+    # Create Stripe checkout session
+    try:
+        checkout_session = create_stripe_checkout_session(
+            package_details[package]['name'],
+            package_details[package]['description'],
+            package_details[package]['price'],
+            success_url,
+            cancel_url
+        )
+        
+        # Store session_id for later verification
+        if current_user.is_authenticated:
+            # Save in session for authenticated users
+            session['checkout_session_id'] = checkout_session.id
+            session['checkout_package'] = package
+            session['checkout_test_preference'] = test_preference
+        else:
+            # For non-logged in users, include in success URL
+            success_url = f"{success_url}?session_id={checkout_session.id}"
             
-            # Create checkout session based on whether it's a subscription or test purchase
-            if plan == 'purchase' and test_type and test_package:
-                # New test purchase flow
-                checkout_data = create_stripe_checkout(
-                    plan_info='purchase',
-                    country_code=country_code,
-                    test_type=test_type,
-                    test_package=test_package
-                )
-            else:
-                # Legacy subscription flow
-                checkout_data = create_stripe_checkout(
-                    plan_info=plan,
-                    country_code=country_code
-                )
-            
-            # Store checkout information in session
-            session['checkout_session_id'] = checkout_data['session_id']
-            session['checkout_url'] = checkout_data['checkout_url']
-            
-            # Store test purchase details if applicable
-            if plan == 'purchase':
-                session['test_purchase'] = {
-                    'test_type': test_type,
-                    'test_package': test_package
-                }
-            
-            # Store acceptance of terms in the session
-            session['terms_accepted'] = True
-            session['terms_accepted_time'] = datetime.utcnow().isoformat()
-            
-            # Redirect to our new checkout page route
-            return redirect(url_for('stripe_checkout'))
-        except Exception as e:
-            flash(f'Error creating checkout session: {str(e)}', 'danger')
-            return redirect(url_for('subscribe'))
-    else:
-        flash('This payment method is not yet implemented', 'warning')
-        return redirect(url_for('subscribe'))
+        return jsonify({'url': checkout_session.url})
+    
+    except Exception as e:
+        app.logger.error(f"Error creating checkout session: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/stripe-checkout')
+@app.route('/stripe-checkout', methods=['POST'])
 def stripe_checkout():
-    # Get checkout URL from session
-    checkout_url = session.get('checkout_url')
+    """Alternative route for payment that uses server-side redirect"""
+    package = request.form.get('package')
+    test_preference = request.form.get('test_preference', 'academic')
     
-    if not checkout_url:
-        flash('Checkout session not found', 'danger')
+    if not package or package == 'free':
+        return redirect(url_for('practice_index'))
+    
+    # Create a Stripe checkout session
+    success_url = url_for('payment_success', package=package, test_preference=test_preference, _external=True)
+    cancel_url = url_for('payment_cancel', _external=True)
+    
+    # Package pricing and details
+    package_details = {
+        'single': {
+            'name': 'Single Test Package',
+            'description': '1 IELTS Practice Test with AI Assessment (15-day access)',
+            'price': 25.00,  # in USD
+            'duration_days': 15
+        },
+        'double': {
+            'name': 'Double Test Package',
+            'description': '2 IELTS Practice Tests with AI Assessment (15-day access)',
+            'price': 35.00,  # in USD
+            'duration_days': 15
+        },
+        'pack': {
+            'name': 'Value Pack',
+            'description': '4 IELTS Practice Tests with AI Assessment (30-day access)',
+            'price': 50.00,  # in USD
+            'duration_days': 30
+        }
+    }
+    
+    if package not in package_details:
+        flash('Invalid package selected.', 'danger')
         return redirect(url_for('subscribe'))
     
-    return render_template('stripe_checkout.html', 
-                          checkout_url=checkout_url,
-                          title='Stripe Checkout')
+    # Create Stripe checkout session
+    try:
+        checkout_session = create_stripe_checkout_session(
+            package_details[package]['name'],
+            package_details[package]['description'],
+            package_details[package]['price'],
+            success_url,
+            cancel_url
+        )
+        
+        # Store session_id for later verification
+        if current_user.is_authenticated:
+            # Save in session for authenticated users
+            session['checkout_session_id'] = checkout_session.id
+            session['checkout_package'] = package
+            session['checkout_test_preference'] = test_preference
+        
+        # Redirect to Stripe
+        return redirect(checkout_session.url)
+    
+    except Exception as e:
+        app.logger.error(f"Error creating checkout session: {str(e)}")
+        flash(f'Payment error: {str(e)}', 'danger')
+        return redirect(url_for('subscribe'))
 
 @app.route('/payment-success')
 def payment_success():
-    # Verify payment and update subscription status
-    session_id = request.args.get('session_id')
+    """Handle successful payments from Stripe"""
+    package = request.args.get('package')
+    test_preference = request.args.get('test_preference', 'academic')
+    session_id = request.args.get('session_id') or session.get('checkout_session_id')
     
-    if not session_id:
-        flash('Invalid payment session', 'danger')
-        return redirect(url_for('subscribe'))
+    if not current_user.is_authenticated:
+        # Store details in session and redirect to login
+        session['pending_payment'] = {
+            'session_id': session_id,
+            'package': package,
+            'test_preference': test_preference
+        }
+        flash('Please log in or register to complete your purchase.', 'info')
+        return redirect(url_for('login'))
     
-    try:
-        # Verify the payment with Stripe
-        payment_info = verify_payment(session_id)
-        
-        if payment_info and payment_info.get('paid') and current_user.is_authenticated:
-            plan = payment_info.get('plan', 'base')
-            tests = int(payment_info.get('tests', 3))  # Default to 3 tests if not specified
-            days = int(payment_info.get('days', 15))   # Default to 15 days if not specified
+    # Package duration and details
+    package_details = {
+        'single': {'days': 15, 'tests': 1, 'name': 'Single Test'},
+        'double': {'days': 15, 'tests': 2, 'name': 'Double Package'},
+        'pack': {'days': 30, 'tests': 4, 'name': 'Value Pack'}
+    }
+    
+    # Verify the session_id with Stripe if available
+    if session_id:
+        try:
+            # Verify payment with Stripe
+            payment_verified = verify_stripe_payment(session_id)
             
-            # Check if this is a test purchase or a legacy subscription
-            is_test_purchase = 'test_type' in payment_info and 'test_package' in payment_info
+            if not payment_verified:
+                flash('Payment verification failed. Please contact support.', 'danger')
+                return redirect(url_for('subscribe'))
+                
+            # Create a payment record
+            payment_record = create_payment_record(
+                user_id=current_user.id,
+                amount=package_details[package].get('price', 0),
+                package=package,
+                session_id=session_id
+            )
             
-            if is_test_purchase:
-                # Test purchase flow
-                test_type = payment_info.get('test_type')
-                test_package = payment_info.get('test_package')
-                
-                # Map 'pack' to 'value_pack' for consistency
-                if test_package == 'pack':
-                    test_package = 'value_pack'
-                
-                # Set the expiry date based on package type (30 days for Value Pack, 15 days for others)
-                if test_package == 'value_pack':
-                    days = 30  # Value Pack (4 tests) gets 30 days access
-                    status_display = "Value Pack"
-                elif test_package == 'double':
-                    days = 15  # Double package gets 15 days access
-                    status_display = "Double Package"
-                else:
-                    days = 15  # Single test package gets 15 days access
-                    status_display = "Single Test"
-                
-                expiry_date = datetime.utcnow() + timedelta(days=days)
-                
-                # Update user's subscription status and expiry date
-                current_user.subscription_status = status_display
-                current_user.subscription_expiry = expiry_date
-                
-                # Update user's test preferences based on purchase if not already set
-                if not current_user.test_preference:
-                    current_user.test_preference = test_type
-                
-                # Create purchase record
-                purchase_data = {
-                    'plan': f"{test_type}_{test_package}",
-                    'test_type': test_type,
-                    'total_tests': tests,
-                    'tests_remaining': tests,
-                    'purchase_date': datetime.utcnow().isoformat(),
-                    'expiry_date': expiry_date.isoformat()
-                }
-                
-                # Update user's test_history to include purchase data
-                test_history = current_user.test_history
-                test_history.append({"test_purchase": purchase_data})
-                current_user.test_history = test_history
-                
-                db.session.commit()
-                
-                flash(f'Thank you for purchasing {tests} {test_type.capitalize()} practice tests! You have access for {days} days.', 'success')
-            else:
-                # Legacy subscription flow
-                # Set the expiry date based on plan type (30 days for 'pro', 15 days for others)
-                if plan == 'pro':
-                    days = 30  # Pro plan (value pack) gets 30 days access
-                else:
-                    days = 15  # Base/intermediate plans get 15 days access
-                
-                expiry_date = datetime.utcnow() + timedelta(days=days)
-                
-                current_user.subscription_status = plan  # Use actual plan level (base, intermediate, pro)
-                current_user.subscription_expiry = expiry_date
-                
-                # Save the number of tests the user has access to
-                user_subscription_data = {
-                    'plan': plan,
-                    'total_tests': tests,
-                    'tests_remaining': tests,
-                    'purchase_date': datetime.utcnow().isoformat()
-                }
-                
-                # Update user's test_history to include subscription data
-                test_history = current_user.test_history
-                test_history.append({"subscription_data": user_subscription_data})
-                current_user.test_history = test_history
-                
-                db.session.commit()
-                
-                flash(f'Thank you for purchasing the {plan} plan!', 'success')
-        else:
-            flash('Payment verification failed', 'danger')
-            
-    except Exception as e:
-        flash(f'Error processing payment: {str(e)}', 'danger')
+        except Exception as e:
+            app.logger.error(f"Error verifying payment: {str(e)}")
+            flash('Error processing payment. Please contact support.', 'danger')
+            return redirect(url_for('subscribe'))
     
-    return render_template('payment_success.html', title='Payment Successful', datetime=datetime)
-
-@app.route('/payment-cancel')
-def payment_cancel():
-    flash('Payment was cancelled', 'info')
-    return render_template('payment_cancel.html', title='Payment Cancelled')
-
-# Device Specs Route
-@app.route('/device-specs')
-def device_specs():
-    return render_template('device_specs.html', title='Device Requirements')
-
-# Terms and Payment Policy Route
-@app.route('/terms-and-payment')
-def terms_and_payment():
-    return render_template('terms_and_payment.html', title='Terms and Payment Policy')
-
-# API Routes for data sync
-@app.route('/api/sync', methods=['POST'])
-@login_required
-def sync_data():
-    data = request.json
-    
-    if not data:
-        return jsonify({'error': 'No data to sync'}), 400
-    
-    test_attempts = data.get('test_attempts', [])
-    
-    for attempt in test_attempts:
-        test_id = attempt.get('test_id')
-        user_answers = attempt.get('answers')
+    # Update user's subscription
+    if package in package_details:
+        # Calculate expiry date
+        expiry_date = datetime.utcnow() + timedelta(days=package_details[package]['days'])
         
-        if not test_id or not user_answers:
-            continue
+        # Update user's subscription status
+        current_user.subscription_status = package_details[package]['name']
+        current_user.subscription_expiry = expiry_date
+        current_user.test_preference = test_preference
         
-        # Check if this attempt already exists
-        existing_attempt = UserTestAttempt.query.filter_by(
-            user_id=current_user.id,
-            test_id=test_id,
-            _user_answers=json.dumps(user_answers)
-        ).first()
-        
-        if existing_attempt:
-            continue
-        
-        # Process new attempt
-        test = PracticeTest.query.get(test_id)
-        if not test:
-            continue
-            
-        # Calculate score
-        score = 0
-        total_questions = len(test.answers)
-        
-        for q_id, user_answer in user_answers.items():
-            if q_id in test.answers and user_answer.lower() == test.answers[q_id].lower():
-                score += 1
-        
-        score_percentage = (score / total_questions) * 100 if total_questions > 0 else 0
-        
-        # Save the attempt
-        new_attempt = UserTestAttempt(
-            user_id=current_user.id,
-            test_id=test_id,
-            user_answers=user_answers,
-            score=score_percentage,
-            attempt_date=datetime.fromisoformat(attempt.get('date', datetime.utcnow().isoformat()))
-        )
-        
-        db.session.add(new_attempt)
-        
-        # Update user's test history
+        # Add to user's test history
         test_history = current_user.test_history
         test_history.append({
-            'test_id': test_id,
-            'test_type': test.test_type,
-            'title': test.title,
-            'date': new_attempt.attempt_date.isoformat(),
-            'score': score_percentage
+            'date': datetime.utcnow().isoformat(),
+            'action': 'subscription',
+            'test_purchase': {
+                'package': package,
+                'test_preference': test_preference,
+                'num_tests': package_details[package]['tests'],
+                'purchase_date': datetime.utcnow().isoformat(),
+                'expiry_date': expiry_date.isoformat()
+            }
         })
         current_user.test_history = test_history
         
-        # Mark this test as completed so it can't be retaken during current subscription period
-        current_user.mark_test_completed(test_id, test.test_type)
+        db.session.commit()
+        
+        flash(f'Thank you for your purchase! Your {package_details[package]["name"]} is now active.', 'success')
+    else:
+        flash('Invalid package selected.', 'danger')
     
-    db.session.commit()
+    # Clean up session variables
+    if 'checkout_session_id' in session:
+        session.pop('checkout_session_id')
+    if 'checkout_package' in session:
+        session.pop('checkout_package')
+    if 'checkout_test_preference' in session:
+        session.pop('checkout_test_preference')
+    if 'pending_payment' in session:
+        session.pop('pending_payment')
     
-    return jsonify({'success': True})
+    return render_template('payment_success.html', 
+                          title='Payment Successful',
+                          package=package,
+                          package_details=package_details.get(package, {}),
+                          test_preference=test_preference)
+
+@app.route('/payment-cancel')
+def payment_cancel():
+    """Handle cancelled Stripe checkout sessions"""
+    flash('Payment was cancelled. Your subscription has not been processed.', 'info')
+    
+    # Clean up session variables
+    if 'checkout_session_id' in session:
+        session.pop('checkout_session_id')
+    if 'checkout_package' in session:
+        session.pop('checkout_package')
+    if 'checkout_test_preference' in session:
+        session.pop('checkout_test_preference')
+    
+    return redirect(url_for('subscribe'))
+
+@app.route('/device-specs')
+def device_specs():
+    """Display device specifications and test capabilities"""
+    return render_template('device_specs.html', title='Device Specifications')
+
+@app.route('/terms-and-payment')
+def terms_and_payment():
+    """Show terms and payment information"""
+    return render_template('terms_and_payment.html', title='Terms and Payment')
+
+@app.route('/api/sync-data', methods=['POST'])
+@login_required
+def sync_data():
+    """Synchronize user data for mobile apps"""
+    # Get the user's data
+    user_data = {
+        'username': current_user.username,
+        'email': current_user.email,
+        'subscription_status': current_user.subscription_status,
+        'subscription_expiry': current_user.subscription_expiry.isoformat() if current_user.subscription_expiry else None,
+        'test_preference': current_user.test_preference,
+        'test_history': current_user.test_history,
+        'speaking_scores': current_user.speaking_scores,
+    }
+    
+    return jsonify(user_data)
 
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('errors/404.html', title='Page Not Found'), 404
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('500.html'), 500
+    return render_template('errors/500.html', title='Server Error'), 500
 
-# Initialize database with sample data
+# Database initialization command
 @app.cli.command('init-db')
 def init_db_command():
-    # Add sample data for test structure
-    if TestStructure.query.count() == 0:
-        test_structures = [
-            TestStructure(
-                test_type='academic',
-                description='IELTS Academic is designed for those applying to study at undergraduate or postgraduate levels, and for those seeking professional registration.',
-                format_details=json.dumps({
-                    'listening': 'Listening: 30 minutes + 10 minutes transfer time, 4 sections, 40 questions',
-                    'reading': 'Reading: 60 minutes, 3 passages, 40 questions',
-                    'writing': 'Writing: 60 minutes, Task 1 (150 words describing visual data), Task 2 (250 word essay)',
-                    'speaking': 'Speaking: 11-14 minutes, face-to-face interview with examiner, 3 parts'
-                }),
-                sample_image_url='https://takeielts.britishcouncil.org/sites/default/files/styles/bc_image_1x1/public/ielts_academic_0.jpg'
-            ),
-            TestStructure(
-                test_type='general_training',
-                description='IELTS General Training is for those migrating to Australia, Canada, New Zealand and the UK, or applying for secondary education, training programmes or work experience in an English-speaking environment.',
-                format_details=json.dumps({
-                    'listening': 'Listening: 30 minutes + 10 minutes transfer time, 4 sections, 40 questions',
-                    'reading': 'Reading: 60 minutes, 3 sections, 40 questions',
-                    'writing': 'Writing: 60 minutes, Task 1 (150 words letter), Task 2 (250 word essay)',
-                    'speaking': 'Speaking: 11-14 minutes, face-to-face interview with examiner, 3 parts'
-                }),
-                sample_image_url='https://takeielts.britishcouncil.org/sites/default/files/styles/bc_image_1x1/public/ielts_general_training.jpg'
-            )
-        ]
-        
-        for structure in test_structures:
-            db.session.add(structure)
-        
-        # Add sample practice tests
-        sample_listening_test = PracticeTest(
-            test_type='listening',
-            section=1,
-            title='Booking a holiday',
-            description='A conversation between a customer and a travel agent',
-            questions=json.dumps({
-                '1': 'When does the customer want to travel?',
-                '2': 'What is the customer\'s budget?',
-                '3': 'How many people are traveling?'
-            }),
-            answers=json.dumps({
-                '1': 'June',
-                '2': '£1000',
-                '3': '2'
-            }),
-            audio_url='https://example.com/sample-listening.mp3'
-        )
-        
-        sample_reading_test = PracticeTest(
-            test_type='reading',
-            section=1,
-            title='Global Warming',
-            description='An article about climate change and its effects',
-            questions=json.dumps({
-                '1': 'What is the main cause of global warming according to the passage?',
-                '2': 'Which country has the highest carbon emissions?',
-                '3': 'What year did the Kyoto Protocol come into effect?'
-            }),
-            answers=json.dumps({
-                '1': 'Greenhouse gases',
-                '2': 'China',
-                '3': '2005'
-            })
-        )
-        
-        sample_writing_test = PracticeTest(
-            test_type='writing',
-            section=1,
-            title='Task 1: Bar Chart',
-            description='The chart below shows the percentage of households with internet access in four different countries between 2000 and 2020.',
-            questions=json.dumps({
-                'task': 'Summarize the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.'
-            }),
-            answers=json.dumps({
-                'sample_answer': 'The bar chart illustrates the proportion of homes with internet access in four nations over a twenty-year period from 2000 to 2020...'
-            })
-        )
-        
-        db.session.add(sample_listening_test)
-        db.session.add(sample_reading_test)
-        db.session.add(sample_writing_test)
-        
-        # Add sample speaking prompts
-        sample_prompts = [
-            SpeakingPrompt(
-                part=1,
-                prompt_text='Tell me about your hometown.'
-            ),
-            SpeakingPrompt(
-                part=2,
-                prompt_text='Describe a time when you helped someone. You should say: who you helped, what you did to help, why the person needed help, and explain how you felt about helping them.'
-            )
-        ]
-        
-        for prompt in sample_prompts:
-            db.session.add(prompt)
-        
-        # Add payment methods
-        payment_methods = [
-            # Regional methods
-            PaymentMethod(name='Razorpay', region='India', display_order=1),
-            PaymentMethod(name='JazzCash', region='Pakistan', display_order=1),
-            PaymentMethod(name='bKash', region='Bangladesh', display_order=1),
-            PaymentMethod(name='STC Pay', region='Saudi Arabia', display_order=1),
-            PaymentMethod(name='LINE Pay', region='Japan', display_order=1),
-            PaymentMethod(name='KakaoPay', region='South Korea', display_order=1),
-            PaymentMethod(name='BLIK', region='Poland', display_order=1),
-            PaymentMethod(name='iDEAL', region='Netherlands', display_order=1),
-            PaymentMethod(name='Sofort', region='Germany', display_order=1),
-            
-            # Global methods
-            PaymentMethod(name='Stripe', region=None, display_order=2),
-            PaymentMethod(name='PayPal', region=None, display_order=2),
-            PaymentMethod(name='Google Pay', region=None, display_order=2),
-            PaymentMethod(name='Apple Pay', region=None, display_order=2)
-        ]
-        
-        for method in payment_methods:
-            db.session.add(method)
-        
-        db.session.commit()
-        print('Database initialized with sample data')
+    """Clear the existing data and create new tables."""
+    db.drop_all()
+    db.create_all()
+    app.logger.info('Initialized the database.')
