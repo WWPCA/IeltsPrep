@@ -238,6 +238,16 @@ wheels = [
 ]
 
 [[package]]
+name = "flask-recaptcha"
+version = "0.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "flask" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1d/77/980dd481ef66770a33ccf49440db7a2d4a3a64eb51a79339fd2ea89d8ef9/Flask-ReCaptcha-0.4.2.tar.gz", hash = "sha256:6fe9bc971cc72cbc055b46653a86274dcfc88df4ddce7b6c10d5fbe5dbee0f2e", size = 2443 }
+
+[[package]]
 name = "flask-sqlalchemy"
 version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -855,6 +865,7 @@ dependencies = [
     { name = "email-validator" },
     { name = "flask" },
     { name = "flask-login" },
+    { name = "flask-recaptcha" },
     { name = "flask-sqlalchemy" },
     { name = "flask-wtf" },
     { name = "gunicorn" },
@@ -878,6 +889,7 @@ requires-dist = [
     { name = "email-validator", specifier = ">=2.2.0" },
     { name = "flask", specifier = ">=3.1.0" },
     { name = "flask-login", specifier = ">=0.6.3" },
+    { name = "flask-recaptcha", specifier = ">=0.4.2" },
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "flask-wtf", specifier = ">=1.2.2" },
     { name = "gunicorn", specifier = ">=23.0.0" },
