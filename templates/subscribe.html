@@ -4,106 +4,221 @@
 <div class="container py-5">
     <div class="row">
         <div class="col-md-12 text-center">
-            <h1 class="mb-2">Choose Your IELTS AI Prep Plan</h1>
-            <p class="lead mb-4">Select the plan that fits your preparation needs</p>
+            <h1 class="mb-2">IELTS Practice Test Pricing</h1>
+            <p class="lead mb-4">Select the test package that fits your preparation needs</p>
             <p class="text-info mb-5"><i class="fas fa-info-circle"></i> Prices are shown in USD for your region: <span class="fw-bold">{{ pricing.country_name }} ({{ pricing.country_code }})</span>.</p>
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb me-2"></i> Each test can only be taken once to ensure cost-efficiency and authentic test experience.
+            </div>
         </div>
     </div>
     
-    <div class="pricing-table">
-        <div class="pricing-card">
-            <div class="pricing-header">
-                <h3 class="pricing-name">Base</h3>
-                <div class="pricing-price">{{ pricing.monthly_price }} USD</div>
-                <div class="pricing-duration">30 days access</div>
+    <!-- IELTS Academic Test Packages -->
+    <div class="mb-5">
+        <h2 class="text-center mb-4">IELTS Academic Test Packages</h2>
+        <div class="pricing-table">
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <div class="pricing-badge">Academic</div>
+                    <h3 class="pricing-name">Single Test</h3>
+                    <div class="pricing-price">$25 USD</div>
+                    <div class="pricing-duration">15 days access</div>
+                </div>
+                <div class="pricing-features">
+                    <ul>
+                        <li><strong>1</strong> full Academic practice test</li>
+                        <li>AI writing assessment</li>
+                        <li>AI speaking assessment</li>
+                        <li>Performance analytics</li>
+                        <li>Offline mode for practicing</li>
+                        <li>15 days of access</li>
+                        <li>Take each test only once</li>
+                    </ul>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="plan" value="purchase">
+                            <input type="hidden" name="test_type" value="academic">
+                            <input type="hidden" name="test_package" value="single">
+                            <input type="hidden" name="payment_method" value="stripe">
+                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
-            <div class="pricing-features">
-                <ul>
-                    <li><strong>3</strong> full practice tests</li>
-                    <li>AI speaking assessments</li>
-                    <li>Complete test history</li>
-                    <li>Basic performance analytics</li>
-                    <li>Offline mode for practicing anywhere</li>
-                    <li>Audio feedback on speaking</li>
-                    <li>30 days of access</li>
-                </ul>
-                {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
-                {% elif current_user.is_subscribed() %}
-                    <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
-                {% else %}
-                    <form method="POST" action="{{ url_for('create_checkout_session') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="plan" value="base">
-                        <input type="hidden" name="payment_method" value="stripe">
-                        <button type="submit" class="btn btn-primary w-100">Buy Now</button>
-                    </form>
-                {% endif %}
+            
+            <div class="pricing-card pricing-popular">
+                <div class="pricing-header">
+                    <div class="pricing-badge">Academic</div>
+                    <h3 class="pricing-name">Double Package</h3>
+                    <div class="pricing-price">$35 USD</div>
+                    <div class="pricing-duration">15 days access</div>
+                </div>
+                <div class="pricing-features">
+                    <ul>
+                        <li><strong>2</strong> full Academic practice tests</li>
+                        <li>AI writing assessment</li>
+                        <li>AI speaking assessment</li>
+                        <li>Detailed performance analytics</li>
+                        <li>Offline mode for practicing</li>
+                        <li>15 days of access</li>
+                        <li>Take each test only once</li>
+                        <li><strong>Save $15</strong> compared to buying individually</li>
+                    </ul>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="plan" value="purchase">
+                            <input type="hidden" name="test_type" value="academic">
+                            <input type="hidden" name="test_package" value="double">
+                            <input type="hidden" name="payment_method" value="stripe">
+                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <div class="pricing-badge">Academic</div>
+                    <h3 class="pricing-name">Value Pack</h3>
+                    <div class="pricing-price">$50 USD</div>
+                    <div class="pricing-duration">15 days access</div>
+                </div>
+                <div class="pricing-features">
+                    <ul>
+                        <li><strong>4</strong> full Academic practice tests</li>
+                        <li>AI writing assessment</li>
+                        <li>AI speaking assessment</li>
+                        <li>Advanced performance analytics</li>
+                        <li>Offline mode for practicing</li>
+                        <li>15 days of access</li>
+                        <li>Take each test only once</li>
+                        <li><strong>Save $50</strong> compared to buying individually</li>
+                        <li>Test-day strategy guide</li>
+                    </ul>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="plan" value="purchase">
+                            <input type="hidden" name="test_type" value="academic">
+                            <input type="hidden" name="test_package" value="pack">
+                            <input type="hidden" name="payment_method" value="stripe">
+                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        
-        <div class="pricing-card pricing-popular">
-            <div class="pricing-header">
-                <h3 class="pricing-name">Intermediate</h3>
-                <div class="pricing-price">{{ pricing.quarterly_price }} USD</div>
-                <div class="pricing-duration">30 days access</div>
+    </div>
+    
+    <!-- IELTS General Training Test Packages -->
+    <div class="mb-5">
+        <h2 class="text-center mb-4">IELTS General Training Test Packages</h2>
+        <div class="pricing-table">
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <div class="pricing-badge">General Training</div>
+                    <h3 class="pricing-name">Single Test</h3>
+                    <div class="pricing-price">$25 USD</div>
+                    <div class="pricing-duration">15 days access</div>
+                </div>
+                <div class="pricing-features">
+                    <ul>
+                        <li><strong>1</strong> full General Training practice test</li>
+                        <li>AI writing assessment</li>
+                        <li>AI speaking assessment</li>
+                        <li>Performance analytics</li>
+                        <li>Offline mode for practicing</li>
+                        <li>15 days of access</li>
+                        <li>Take each test only once</li>
+                    </ul>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="plan" value="purchase">
+                            <input type="hidden" name="test_type" value="general">
+                            <input type="hidden" name="test_package" value="single">
+                            <input type="hidden" name="payment_method" value="stripe">
+                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
-            <div class="pricing-features">
-                <ul>
-                    <li><strong>6</strong> full practice tests</li>
-                    <li>AI speaking assessments</li>
-                    <li>Complete test history</li>
-                    <li>Detailed performance analytics</li>
-                    <li>Offline mode for practicing anywhere</li>
-                    <li>Audio feedback on speaking</li>
-                    <li>30 days of access</li>
-                    <li>Enhanced analytics features</li>
-                </ul>
-                {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
-                {% elif current_user.is_subscribed() %}
-                    <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
-                {% else %}
-                    <form method="POST" action="{{ url_for('create_checkout_session') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="plan" value="intermediate">
-                        <input type="hidden" name="payment_method" value="stripe">
-                        <button type="submit" class="btn btn-primary w-100">Buy Now</button>
-                    </form>
-                {% endif %}
+            
+            <div class="pricing-card pricing-popular">
+                <div class="pricing-header">
+                    <div class="pricing-badge">General Training</div>
+                    <h3 class="pricing-name">Double Package</h3>
+                    <div class="pricing-price">$35 USD</div>
+                    <div class="pricing-duration">15 days access</div>
+                </div>
+                <div class="pricing-features">
+                    <ul>
+                        <li><strong>2</strong> full General Training practice tests</li>
+                        <li>AI writing assessment</li>
+                        <li>AI speaking assessment</li>
+                        <li>Detailed performance analytics</li>
+                        <li>Offline mode for practicing</li>
+                        <li>15 days of access</li>
+                        <li>Take each test only once</li>
+                        <li><strong>Save $15</strong> compared to buying individually</li>
+                    </ul>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="plan" value="purchase">
+                            <input type="hidden" name="test_type" value="general">
+                            <input type="hidden" name="test_package" value="double">
+                            <input type="hidden" name="payment_method" value="stripe">
+                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-        
-        <div class="pricing-card">
-            <div class="pricing-header">
-                <h3 class="pricing-name">Pro</h3>
-                <div class="pricing-price">{{ pricing.yearly_price }} USD</div>
-                <div class="pricing-duration">30 days access</div>
-            </div>
-            <div class="pricing-features">
-                <ul>
-                    <li><strong>12</strong> full practice tests</li>
-                    <li>AI speaking assessments</li>
-                    <li>Complete test history</li>
-                    <li>Advanced performance analytics</li>
-                    <li>Offline mode for practicing anywhere</li>
-                    <li>Audio feedback on speaking</li>
-                    <li>30 days of access</li>
-                    <li>Premium analytics dashboard</li>
-                    <li>Exam day tips and strategies</li>
-                </ul>
-                {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
-                {% elif current_user.is_subscribed() %}
-                    <button class="btn btn-outline-secondary w-100" disabled>Already Subscribed</button>
-                {% else %}
-                    <form method="POST" action="{{ url_for('create_checkout_session') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="plan" value="pro">
-                        <input type="hidden" name="payment_method" value="stripe">
-                        <button type="submit" class="btn btn-primary w-100">Buy Now</button>
-                    </form>
-                {% endif %}
+            
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <div class="pricing-badge">General Training</div>
+                    <h3 class="pricing-name">Value Pack</h3>
+                    <div class="pricing-price">$50 USD</div>
+                    <div class="pricing-duration">15 days access</div>
+                </div>
+                <div class="pricing-features">
+                    <ul>
+                        <li><strong>4</strong> full General Training practice tests</li>
+                        <li>AI writing assessment</li>
+                        <li>AI speaking assessment</li>
+                        <li>Advanced performance analytics</li>
+                        <li>Offline mode for practicing</li>
+                        <li>15 days of access</li>
+                        <li>Take each test only once</li>
+                        <li><strong>Save $50</strong> compared to buying individually</li>
+                        <li>Test-day strategy guide</li>
+                    </ul>
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="plan" value="purchase">
+                            <input type="hidden" name="test_type" value="general">
+                            <input type="hidden" name="test_package" value="pack">
+                            <input type="hidden" name="payment_method" value="stripe">
+                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
