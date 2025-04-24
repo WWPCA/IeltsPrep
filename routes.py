@@ -821,9 +821,14 @@ def create_checkout_session():
     plan = request.form.get('plan', 'base')
     terms_accepted = request.form.get('terms_accepted')
     
-    # Validate that terms and conditions have been accepted
-    if not terms_accepted:
-        flash('You must accept the Terms and Conditions to proceed with payment.', 'danger')
+    # Get test-specific parameters for the new pricing structure
+    test_type = request.form.get('test_type')  # 'academic' or 'general'
+    test_package = request.form.get('test_package')  # 'single', 'double', or 'pack'
+    
+    # For forms that don't directly include terms_accepted (like the card buttons)
+    # Allow them to bypass if they've previously accepted terms
+    if not terms_accepted and not session.get('terms_accepted'):
+        flash('You must accept the Terms and Conditions to proceed with payment.', 'warning')
         return redirect(url_for('subscribe'))
     
     # For now, we only implement Stripe checkout
@@ -833,10 +838,32 @@ def create_checkout_session():
             from geoip_services import get_country_from_ip
             country_code, _ = get_country_from_ip()
             
-            # Create checkout session and store in session
-            checkout_data = create_stripe_checkout(plan, country_code)
+            # Create checkout session based on whether it's a subscription or test purchase
+            if plan == 'purchase' and test_type and test_package:
+                # New test purchase flow
+                checkout_data = create_stripe_checkout(
+                    plan_info='purchase',
+                    country_code=country_code,
+                    test_type=test_type,
+                    test_package=test_package
+                )
+            else:
+                # Legacy subscription flow
+                checkout_data = create_stripe_checkout(
+                    plan_info=plan,
+                    country_code=country_code
+                )
+            
+            # Store checkout information in session
             session['checkout_session_id'] = checkout_data['session_id']
             session['checkout_url'] = checkout_data['checkout_url']
+            
+            # Store test purchase details if applicable
+            if plan == 'purchase':
+                session['test_purchase'] = {
+                    'test_type': test_type,
+                    'test_package': test_package
+                }
             
             # Store acceptance of terms in the session
             session['terms_accepted'] = True
@@ -878,32 +905,66 @@ def payment_success():
         payment_info = verify_payment(session_id)
         
         if payment_info and payment_info.get('paid') and current_user.is_authenticated:
-            # Update user subscription
             plan = payment_info.get('plan', 'base')
-            tests = payment_info.get('tests', 3)  # Default to 3 tests if not specified
-            days = payment_info.get('days', 30)   # Default to 30 days if not specified
+            tests = int(payment_info.get('tests', 3))  # Default to 3 tests if not specified
+            days = int(payment_info.get('days', 15))   # Default to 15 days if not specified
             
-            expiry_date = datetime.utcnow() + timedelta(days=days)
+            # Check if this is a test purchase or a legacy subscription
+            is_test_purchase = 'test_type' in payment_info and 'test_package' in payment_info
             
-            current_user.subscription_status = plan  # Use actual plan level (base, intermediate, pro)
-            current_user.subscription_expiry = expiry_date
-            
-            # Save the number of tests the user has access to
-            user_subscription_data = {
-                'plan': plan,
-                'total_tests': tests,
-                'tests_remaining': tests,
-                'purchase_date': datetime.utcnow().isoformat()
-            }
-            
-            # Update user's test_history to include subscription data
-            test_history = current_user.test_history
-            test_history.append({"subscription_data": user_subscription_data})
-            current_user.test_history = test_history
-            
-            db.session.commit()
-            
-            flash(f'Thank you for purchasing the {plan.capitalize()} plan!', 'success')
+            if is_test_purchase:
+                # Test purchase flow
+                test_type = payment_info.get('test_type')
+                test_package = payment_info.get('test_package')
+                
+                # Set the expiry date
+                expiry_date = datetime.utcnow() + timedelta(days=days)
+                
+                # Update user's test preferences based on purchase if not already set
+                if not current_user.test_preference:
+                    current_user.test_preference = test_type
+                
+                # Create purchase record
+                purchase_data = {
+                    'plan': f"{test_type}_{test_package}",
+                    'test_type': test_type,
+                    'total_tests': tests,
+                    'tests_remaining': tests,
+                    'purchase_date': datetime.utcnow().isoformat(),
+                    'expiry_date': expiry_date.isoformat()
+                }
+                
+                # Update user's test_history to include purchase data
+                test_history = current_user.test_history
+                test_history.append({"test_purchase": purchase_data})
+                current_user.test_history = test_history
+                
+                db.session.commit()
+                
+                flash(f'Thank you for purchasing {tests} {test_type.capitalize()} practice tests! You have access for {days} days.', 'success')
+            else:
+                # Legacy subscription flow
+                expiry_date = datetime.utcnow() + timedelta(days=days)
+                
+                current_user.subscription_status = plan  # Use actual plan level (base, intermediate, pro)
+                current_user.subscription_expiry = expiry_date
+                
+                # Save the number of tests the user has access to
+                user_subscription_data = {
+                    'plan': plan,
+                    'total_tests': tests,
+                    'tests_remaining': tests,
+                    'purchase_date': datetime.utcnow().isoformat()
+                }
+                
+                # Update user's test_history to include subscription data
+                test_history = current_user.test_history
+                test_history.append({"subscription_data": user_subscription_data})
+                current_user.test_history = test_history
+                
+                db.session.commit()
+                
+                flash(f'Thank you for purchasing the {plan.capitalize()} plan!', 'success')
         else:
             flash('Payment verification failed', 'danger')
             

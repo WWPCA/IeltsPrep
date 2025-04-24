@@ -354,17 +354,45 @@ def verify_payment(session_id):
         
         # Check payment status
         if session.payment_status == 'paid':
+            # Get metadata from the session
             plan = session.metadata.get('plan', 'base')
-            tests = int(session.metadata.get('tests', SUBSCRIPTION_PLANS[plan]['tests']))
-            days = int(session.metadata.get('days', SUBSCRIPTION_PLANS[plan]['days']))
             
-            return {
-                'paid': True,
-                'plan': plan,
-                'tests': tests,
-                'days': days,
-                'customer': session.customer
-            }
+            # Check if this is a test purchase by looking for test_type in metadata
+            is_test_purchase = 'test_type' in session.metadata and 'test_package' in session.metadata
+            
+            if is_test_purchase:
+                # Test purchase flow
+                test_type = session.metadata.get('test_type')
+                test_package = session.metadata.get('test_package')
+                tests = int(session.metadata.get('tests', 1))
+                days = int(session.metadata.get('days', 15))
+                
+                return {
+                    'paid': True,
+                    'plan': plan,
+                    'test_type': test_type,
+                    'test_package': test_package,
+                    'tests': tests,
+                    'days': days,
+                    'customer': session.customer
+                }
+            else:
+                # Legacy subscription flow
+                try:
+                    tests = int(session.metadata.get('tests', SUBSCRIPTION_PLANS[plan]['tests']))
+                    days = int(session.metadata.get('days', SUBSCRIPTION_PLANS[plan]['days']))
+                except KeyError:
+                    # Fallback to defaults if plan info not found
+                    tests = int(session.metadata.get('tests', 3))
+                    days = int(session.metadata.get('days', 30))
+                
+                return {
+                    'paid': True,
+                    'plan': plan,
+                    'tests': tests,
+                    'days': days,
+                    'customer': session.customer
+                }
         else:
             return None
             
