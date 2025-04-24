@@ -1436,24 +1436,36 @@ def serve_audio(filename):
     Serve audio files directly to avoid Replit embedded page issues.
     This route handles both static/audio/ and static/uploads/audio/ directories.
     """
-    # Check static/audio first
-    audio_path = f"static/audio/{filename}"
-    if os.path.exists(audio_path):
-        response = send_file(audio_path)
-    else:
-        # Then check static/uploads/audio
-        audio_path = f"static/uploads/audio/{filename}"
-        if os.path.exists(audio_path):
-            response = send_file(audio_path)
-        else:
-            abort(404)
+    app.logger.info(f"Serving audio file: {filename}")
     
-    # Add headers to prevent Replit embedded page detection
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+    # Sanitize filename to prevent directory traversal attacks
+    filename = os.path.basename(filename)
     
-    return response
+    # Search for the file in possible locations
+    possible_paths = [
+        os.path.join("static", "audio", filename),
+        os.path.join("static", "uploads", "audio", filename)
+    ]
+    
+    for path in possible_paths:
+        try:
+            if os.path.isfile(path) and os.access(path, os.R_OK):
+                app.logger.info(f"Found audio file at: {path}")
+                response = send_file(path)
+                
+                # Add headers to prevent Replit embedded page detection
+                response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+                response.headers['X-Content-Type-Options'] = 'nosniff'
+                response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+                response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+                
+                return response
+        except Exception as e:
+            app.logger.error(f"Error serving audio from {path}: {str(e)}")
+    
+    # If we get here, the file wasn't found
+    app.logger.warning(f"Audio file not found: {filename}")
+    abort(404)
 
 # Error handlers
 @app.errorhandler(404)

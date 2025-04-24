@@ -403,6 +403,26 @@ function initializeAudioPlayer(audioPlayer) {
                 return;
             }
             
+            // Show error message and fallback option
+            const errorMessage = document.getElementById('audio-error-message');
+            if (errorMessage) {
+                errorMessage.classList.remove('d-none');
+                
+                // Set up fallback link
+                const fallbackLink = document.getElementById('audio-fallback-link');
+                if (fallbackLink) {
+                    fallbackLink.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        
+                        // Try opening audio in a new tab
+                        const audioSrc = audioPlayer.getAttribute('data-src') || audioPlayer.getAttribute('src');
+                        if (audioSrc) {
+                            window.open(audioSrc, '_blank');
+                        }
+                    });
+                }
+            }
+            
             playButton.disabled = true;
             playButton.textContent = 'Audio unavailable';
         });

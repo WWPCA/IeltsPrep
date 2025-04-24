@@ -26,7 +26,8 @@
                         </div>
                         <div class="card-body">
                             <div class="audio-player mb-3">
-                                <audio id="listening-audio" data-src="{{ url_for('serve_audio', filename=test.audio_url.split('/')[-1]) }}" preload="none"></audio>
+                                <audio id="listening-audio" data-src="{{ url_for('serve_audio', filename=test.audio_url.split('/')[-1]) }}" preload="none" crossorigin="anonymous"></audio>
+                                <p id="audio-error-message" class="text-danger d-none">There was an error loading the audio. <a href="#" id="audio-fallback-link">Click here to try an alternative method</a>.</p>
                                 <div class="audio-controls">
                                     <button id="play-audio" class="btn btn-primary">
                                         <i class="fas fa-play"></i> Play
