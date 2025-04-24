@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check device capabilities
     checkDeviceCapabilities();
     
-    // Check for offline status
-    checkOfflineStatus();
+    // Connection status monitoring
+    checkConnectionStatus();
     
     // Check for slow connection and enable low-bandwidth mode if needed
     checkConnectionSpeed();
@@ -101,32 +101,35 @@ function showDeviceWarning(message) {
 }
 
 /**
- * Check if the user is offline and show offline indicator
+ * Check connection status and show an indicator when connection is lost
  */
-function checkOfflineStatus() {
-    const offlineIndicator = document.createElement('div');
-    offlineIndicator.className = 'offline-indicator';
-    offlineIndicator.textContent = 'You are offline. Some features may be limited.';
-    document.body.appendChild(offlineIndicator);
+function checkConnectionStatus() {
+    const connectionIndicator = document.createElement('div');
+    connectionIndicator.className = 'connection-indicator';
+    connectionIndicator.textContent = 'Connection lost. Please reconnect to continue.';
+    document.body.appendChild(connectionIndicator);
     
-    function updateOfflineStatus() {
+    function updateConnectionStatus() {
         if (!navigator.onLine) {
-            offlineIndicator.classList.add('visible');
-            document.body.classList.add('offline');
+            connectionIndicator.classList.add('visible');
+            document.body.classList.add('connection-lost');
         } else {
-            offlineIndicator.classList.remove('visible');
-            document.body.classList.remove('offline');
+            connectionIndicator.classList.remove('visible');
+            document.body.classList.remove('connection-lost');
             
-            // If we're back online, try to sync any cached data
-            if (typeof syncOfflineData === 'function') {
-                syncOfflineData();
+            // If we're back online, reload if on a test page
+            if (window.location.pathname.includes('/practice/')) {
+                // Only reload if we're on a test page to ensure test data integrity
+                if (confirm('Your connection has been restored. Reload the page to continue?')) {
+                    window.location.reload();
+                }
             }
         }
     }
     
-    window.addEventListener('online', updateOfflineStatus);
-    window.addEventListener('offline', updateOfflineStatus);
-    updateOfflineStatus();
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    updateConnectionStatus();
 }
 
 /**

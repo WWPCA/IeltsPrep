@@ -1007,7 +1007,7 @@ def payment_cancel():
 def device_specs():
     return render_template('device_specs.html', title='Device Requirements')
 
-# API Routes for offline sync
+# API Routes for data sync
 @app.route('/api/sync', methods=['POST'])
 @login_required
 def sync_data():

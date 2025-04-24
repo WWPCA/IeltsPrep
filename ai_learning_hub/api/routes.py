@@ -159,7 +159,7 @@ def get_user_progress():
 @api_bp.route('/sync', methods=['POST'])
 @token_required
 def sync_data():
-    """Synchronize offline data with the server"""
+    """Synchronize local data with the server"""
     try:
         data = request.get_json()
         if not data:
@@ -205,8 +205,8 @@ def get_app_config():
                     'android': '1.0.0'
                 },
                 'features': {
-                    'offline_mode': True,
-                    'push_notifications': True
+                    'push_notifications': True,
+                    'local_storage': True
                 },
                 'media_cdn': request.url_root + 'static/'
             }

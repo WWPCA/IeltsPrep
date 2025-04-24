@@ -57,7 +57,7 @@ class LocalSync(db.Model):
         self._sync_data = json.dumps(value)
     
     def __repr__(self):
-        return f'<OfflineSync {self.sync_type} {self.sync_date}>'
+        return f'<LocalSync {self.sync_type} {self.sync_date}>'
 
 class ApiAccessToken(db.Model):
     """Model for API access tokens"""
