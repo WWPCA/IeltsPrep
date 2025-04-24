@@ -197,14 +197,18 @@ class User(UserMixin, db.Model):
                     if expiry_date > datetime.utcnow():
                         return True
             
-        # Check for the current value "premium" used in our database
-        if self.subscription_status == "premium" and (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow()):
-            return True
+        # Check for the new subscription status values
+        valid_subscriptions = [
+            "Value Pack", "Single Test", "Double Package",  # New naming convention
+            "premium", "base", "intermediate", "pro"        # Legacy naming convention
+        ]
             
-        # Also check for other possible subscription values
-        if self.subscription_status in ["base", "intermediate", "pro"] and self.subscription_expiry:
-            if self.subscription_expiry > datetime.utcnow():
-                return True
+        # Verify that subscription status is not "none" or "expired" and hasn't expired
+        if (self.subscription_status in valid_subscriptions and 
+                self.subscription_status != "none" and
+                self.subscription_status != "expired" and
+                (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
+            return True
                 
         return False
     
