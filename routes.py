@@ -964,7 +964,7 @@ def payment_success():
                 
                 db.session.commit()
                 
-                flash(f'Thank you for purchasing the {plan.capitalize()} plan!', 'success')
+                flash(f'Thank you for purchasing the {plan} plan!', 'success')
         else:
             flash('Payment verification failed', 'danger')
             
