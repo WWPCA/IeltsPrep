@@ -159,7 +159,7 @@ def get_user_progress():
 @api_bp.route('/sync', methods=['POST'])
 @token_required
 def sync_data():
-    """Synchronize local data with the server"""
+    """Synchronize local storage data with the server for real-time updates"""
     try:
         data = request.get_json()
         if not data:
@@ -206,7 +206,7 @@ def get_app_config():
                 },
                 'features': {
                     'push_notifications': True,
-                    'local_storage': True
+                    'connection_status': True
                 },
                 'media_cdn': request.url_root + 'static/'
             }
