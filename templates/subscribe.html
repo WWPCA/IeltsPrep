@@ -14,10 +14,23 @@
     </div>
     
     <!-- IELTS Academic Test Packages -->
-    <div class="mb-5">
-        <h2 class="text-center mb-4">IELTS Academic Test Packages</h2>
+    <div class="subscription-section academic mb-5">
+        <div class="section-title-container">
+            <i class="fas fa-university section-icon"></i>
+            <h2 class="section-title mb-4">IELTS Academic Test Packages</h2>
+        </div>
+        
+        <div class="alert alert-primary mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fa-2x"></i>
+                <div>
+                    <strong>Academic Tests</strong> are designed for students seeking admission to universities or professional registration. These tests focus on academic language and contexts.
+                </div>
+            </div>
+        </div>
+        
         <div class="pricing-table">
-            <div class="pricing-card">
+            <div class="pricing-card academic">
                 <div class="pricing-header">
                     <div class="pricing-badge">Academic</div>
                     <h3 class="pricing-name">Single Test</h3>
@@ -30,7 +43,6 @@
                         <li>AI writing assessment</li>
                         <li>AI speaking assessment</li>
                         <li>Instant score results</li>
-                        <li>Connection status monitoring</li>
                         <li>15 days of access</li>
                         <li>Take each test only once</li>
                     </ul>
@@ -49,7 +61,7 @@
                 </div>
             </div>
             
-            <div class="pricing-card pricing-popular">
+            <div class="pricing-card pricing-popular academic">
                 <div class="pricing-header">
                     <div class="pricing-badge">Academic</div>
                     <h3 class="pricing-name">Double Package</h3>
@@ -81,7 +93,7 @@
                 </div>
             </div>
             
-            <div class="pricing-card">
+            <div class="pricing-card academic">
                 <div class="pricing-header">
                     <div class="pricing-badge">Academic</div>
                     <h3 class="pricing-name">Value Pack</h3>
@@ -117,10 +129,23 @@
     </div>
     
     <!-- IELTS General Training Test Packages -->
-    <div class="mb-5">
-        <h2 class="text-center mb-4">IELTS General Training Test Packages</h2>
+    <div class="subscription-section general mb-5">
+        <div class="section-title-container">
+            <i class="fas fa-briefcase section-icon"></i>
+            <h2 class="section-title mb-4">IELTS General Training Test Packages</h2>
+        </div>
+        
+        <div class="alert alert-success mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fa-2x"></i>
+                <div>
+                    <strong>General Training Tests</strong> are suitable for those migrating to English-speaking countries or seeking work experience. These tests focus on everyday language and practical situations.
+                </div>
+            </div>
+        </div>
+        
         <div class="pricing-table">
-            <div class="pricing-card">
+            <div class="pricing-card general">
                 <div class="pricing-header">
                     <div class="pricing-badge">General Training</div>
                     <h3 class="pricing-name">Single Test</h3>
@@ -137,7 +162,7 @@
                         <li>Take each test only once</li>
                     </ul>
                     {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                        <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
                         <form method="POST" action="{{ url_for('create_checkout_session') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -145,13 +170,13 @@
                             <input type="hidden" name="test_type" value="general">
                             <input type="hidden" name="test_package" value="single">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-success w-100">Buy Now</button>
                         </form>
                     {% endif %}
                 </div>
             </div>
             
-            <div class="pricing-card pricing-popular">
+            <div class="pricing-card pricing-popular general">
                 <div class="pricing-header">
                     <div class="pricing-badge">General Training</div>
                     <h3 class="pricing-name">Double Package</h3>
@@ -169,7 +194,7 @@
                         <li><strong>Save $15</strong> compared to buying individually</li>
                     </ul>
                     {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                        <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
                         <form method="POST" action="{{ url_for('create_checkout_session') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -177,13 +202,13 @@
                             <input type="hidden" name="test_type" value="general">
                             <input type="hidden" name="test_package" value="double">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-success w-100">Buy Now</button>
                         </form>
                     {% endif %}
                 </div>
             </div>
             
-            <div class="pricing-card">
+            <div class="pricing-card general">
                 <div class="pricing-header">
                     <div class="pricing-badge">General Training</div>
                     <h3 class="pricing-name">Value Pack</h3>
@@ -202,7 +227,7 @@
                         <li>Test-day strategy guide</li>
                     </ul>
                     {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
+                        <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
                         <form method="POST" action="{{ url_for('create_checkout_session') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -210,7 +235,7 @@
                             <input type="hidden" name="test_type" value="general">
                             <input type="hidden" name="test_package" value="pack">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-success w-100">Buy Now</button>
                         </form>
                     {% endif %}
                 </div>
