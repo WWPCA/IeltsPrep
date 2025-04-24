@@ -1429,6 +1429,23 @@ def sync_data():
     
     return jsonify(user_data)
 
+# Audio file serving route to avoid embedded page issues
+@app.route('/audio/<path:filename>')
+def serve_audio(filename):
+    """
+    Serve audio files directly to avoid Replit embedded page issues.
+    This route handles both static/audio/ and static/uploads/audio/ directories.
+    """
+    try:
+        # First check in static/audio
+        return send_file(f"static/audio/{filename}")
+    except:
+        try:
+            # Then check in static/uploads/audio
+            return send_file(f"static/uploads/audio/{filename}")
+        except:
+            abort(404)
+
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):

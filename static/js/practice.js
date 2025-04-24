@@ -301,16 +301,50 @@ function initializeAudioPlayer(audioPlayer) {
     const durationDisplay = document.getElementById('duration');
     
     if (playButton && progressBar) {
-        // Set up play/pause functionality
-        playButton.addEventListener('click', function() {
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                playButton.innerHTML = '<i class="fa fa-pause"></i> Pause';
-            } else {
-                audioPlayer.pause();
-                playButton.innerHTML = '<i class="fa fa-play"></i> Play';
-            }
-        });
+        // Lazy load the audio to avoid Replit embedded page issues
+        if (audioPlayer.hasAttribute('data-src') && !audioPlayer.hasAttribute('src')) {
+            const audioSrc = audioPlayer.getAttribute('data-src');
+            
+            // Set up play/pause functionality
+            playButton.addEventListener('click', function() {
+                // If audio source not loaded yet, load it first
+                if (!audioPlayer.hasAttribute('src')) {
+                    console.log('Loading audio from:', audioSrc);
+                    audioPlayer.setAttribute('src', audioSrc);
+                    
+                    // Wait for it to be ready before playing
+                    audioPlayer.addEventListener('canplay', function onCanPlay() {
+                        audioPlayer.play();
+                        playButton.innerHTML = '<i class="fa fa-pause"></i> Pause';
+                        audioPlayer.removeEventListener('canplay', onCanPlay);
+                    });
+                    
+                    // Load the audio
+                    audioPlayer.load();
+                    return;
+                }
+                
+                // Normal play/pause behavior
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    playButton.innerHTML = '<i class="fa fa-pause"></i> Pause';
+                } else {
+                    audioPlayer.pause();
+                    playButton.innerHTML = '<i class="fa fa-play"></i> Play';
+                }
+            });
+        } else {
+            // Traditional approach if data-src isn't used
+            playButton.addEventListener('click', function() {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    playButton.innerHTML = '<i class="fa fa-pause"></i> Pause';
+                } else {
+                    audioPlayer.pause();
+                    playButton.innerHTML = '<i class="fa fa-play"></i> Play';
+                }
+            });
+        }
         
         // Update progress bar as audio plays
         audioPlayer.addEventListener('timeupdate', function() {
@@ -339,8 +373,8 @@ function initializeAudioPlayer(audioPlayer) {
         });
         
         // Handle errors
-        audioPlayer.addEventListener('error', function() {
-            console.error('Error loading audio');
+        audioPlayer.addEventListener('error', function(e) {
+            console.error('Error loading audio:', e);
             playButton.disabled = true;
             playButton.textContent = 'Audio unavailable';
         });
