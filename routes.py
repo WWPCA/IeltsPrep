@@ -362,9 +362,38 @@ def start_complete_test(test_id):
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
-    # We now allow users to access all test types regardless of preference
-    # Keep a comment explaining the change for future reference
-    # Previously, we were restricting users to only take tests that matched their preference
+    # Verify that this test should be accessible based on the user's package
+    # Get all tests for this user's preference
+    from sqlalchemy import func
+    
+    # Determine number of tests to show based on user's subscription
+    num_tests_to_show = 1  # Default for single test package
+    if current_user.subscription_status == 'Value Pack':
+        num_tests_to_show = 4
+    elif current_user.subscription_status == 'Double Package':
+        num_tests_to_show = 2
+    
+    # Get the latest version of each test number
+    subquery = db.session.query(
+        CompletePracticeTest.test_number,
+        func.max(CompletePracticeTest.id).label('max_id')
+    ).filter(
+        CompletePracticeTest.ielts_test_type == current_user.test_preference
+    ).group_by(CompletePracticeTest.test_number).subquery()
+    
+    # Get all tests the user should have access to
+    allowed_tests = CompletePracticeTest.query.join(
+        subquery,
+        db.and_(
+            CompletePracticeTest.id == subquery.c.max_id,
+            CompletePracticeTest.test_number == subquery.c.test_number
+        )
+    ).order_by(CompletePracticeTest.test_number).limit(num_tests_to_show).all()
+    
+    # Check if the requested test is in the allowed tests list
+    if complete_test not in allowed_tests:
+        flash(f'This test is not available with your current {current_user.subscription_status} package.', 'warning')
+        return redirect(url_for('practice_index'))
     
     # Check if user already has an in-progress attempt
     existing_progress = CompleteTestProgress.query.filter_by(
@@ -408,6 +437,44 @@ def continue_complete_test(test_id):
         complete_test_id=test_id
     ).first_or_404()
     
+    # Get the complete test
+    complete_test = CompletePracticeTest.query.get_or_404(test_id)
+    
+    # Verify this test should be available to this user (only check if test not already completed)
+    # This allows users to see their results even if their package has been downgraded
+    if not progress.is_test_completed():
+        # Verify the user has the appropriate package for this test
+        from sqlalchemy import func
+        
+        # Determine number of tests allowed based on user's subscription
+        num_tests_allowed = 1  # Default for single test package
+        if current_user.subscription_status == 'Value Pack':
+            num_tests_allowed = 4
+        elif current_user.subscription_status == 'Double Package':
+            num_tests_allowed = 2
+        
+        # Get the latest version of each test number
+        subquery = db.session.query(
+            CompletePracticeTest.test_number,
+            func.max(CompletePracticeTest.id).label('max_id')
+        ).filter(
+            CompletePracticeTest.ielts_test_type == current_user.test_preference
+        ).group_by(CompletePracticeTest.test_number).subquery()
+        
+        # Get all tests the user should have access to
+        allowed_tests = CompletePracticeTest.query.join(
+            subquery,
+            db.and_(
+                CompletePracticeTest.id == subquery.c.max_id,
+                CompletePracticeTest.test_number == subquery.c.test_number
+            )
+        ).order_by(CompletePracticeTest.test_number).limit(num_tests_allowed).all()
+        
+        # Check if the requested test is in the allowed tests list
+        if complete_test not in allowed_tests:
+            flash(f'This test is not available with your current {current_user.subscription_status} package.', 'warning')
+            return redirect(url_for('practice_index'))
+    
     # If the test is already completed, show results
     if progress.is_test_completed():
         return redirect(url_for('complete_test_results', test_id=test_id))
@@ -442,12 +509,47 @@ def take_complete_test_section(test_id, section):
         complete_test_id=test_id
     ).first_or_404()
     
+    # Get the complete test
+    complete_test = CompletePracticeTest.query.get_or_404(test_id)
+    
+    # Verify the user can access this test based on their current package (if not already completed)
+    if not progress.is_test_completed():
+        # Verify the user has the appropriate package for this test
+        from sqlalchemy import func
+        
+        # Determine number of tests allowed based on user's subscription
+        num_tests_allowed = 1  # Default for single test package
+        if current_user.subscription_status == 'Value Pack':
+            num_tests_allowed = 4
+        elif current_user.subscription_status == 'Double Package':
+            num_tests_allowed = 2
+        
+        # Get the latest version of each test number
+        subquery = db.session.query(
+            CompletePracticeTest.test_number,
+            func.max(CompletePracticeTest.id).label('max_id')
+        ).filter(
+            CompletePracticeTest.ielts_test_type == current_user.test_preference
+        ).group_by(CompletePracticeTest.test_number).subquery()
+        
+        # Get all tests the user should have access to
+        allowed_tests = CompletePracticeTest.query.join(
+            subquery,
+            db.and_(
+                CompletePracticeTest.id == subquery.c.max_id,
+                CompletePracticeTest.test_number == subquery.c.test_number
+            )
+        ).order_by(CompletePracticeTest.test_number).limit(num_tests_allowed).all()
+        
+        # Check if the requested test is in the allowed tests list
+        if complete_test not in allowed_tests:
+            flash(f'This test is not available with your current {current_user.subscription_status} package.', 'warning')
+            return redirect(url_for('practice_index'))
+    
     # Ensure the user is on the correct section
     if progress.current_section != section:
         flash(f'Please complete the {progress.current_section} section first.', 'warning')
         return redirect(url_for('continue_complete_test', test_id=test_id))
-    
-    complete_test = CompletePracticeTest.query.get_or_404(test_id)
     
     # Get the section test
     section_test = PracticeTest.query.filter_by(
@@ -480,10 +582,48 @@ def complete_test_results(test_id):
         complete_test_id=test_id
     ).first_or_404()
     
+    # If test is not completed, check if user has access to continue it and redirect to continue
     if not progress.is_test_completed():
+        # Verify the user has the appropriate package for this test
+        from sqlalchemy import func
+        
+        # Determine number of tests allowed based on user's subscription
+        num_tests_allowed = 1  # Default for single test package
+        if current_user.subscription_status == 'Value Pack':
+            num_tests_allowed = 4
+        elif current_user.subscription_status == 'Double Package':
+            num_tests_allowed = 2
+        
+        # Get the complete test
+        complete_test = CompletePracticeTest.query.get_or_404(test_id)
+        
+        # Get the latest version of each test number
+        subquery = db.session.query(
+            CompletePracticeTest.test_number,
+            func.max(CompletePracticeTest.id).label('max_id')
+        ).filter(
+            CompletePracticeTest.ielts_test_type == current_user.test_preference
+        ).group_by(CompletePracticeTest.test_number).subquery()
+        
+        # Get all tests the user should have access to
+        allowed_tests = CompletePracticeTest.query.join(
+            subquery,
+            db.and_(
+                CompletePracticeTest.id == subquery.c.max_id,
+                CompletePracticeTest.test_number == subquery.c.test_number
+            )
+        ).order_by(CompletePracticeTest.test_number).limit(num_tests_allowed).all()
+        
+        # Check if the requested test is in the allowed tests list
+        if complete_test not in allowed_tests:
+            flash(f'This incomplete test is not available with your current {current_user.subscription_status} package.', 'warning')
+            return redirect(url_for('practice_index'))
+            
+        # If they have access but haven't completed it, send them to continue
         flash('Please complete all sections of the test first.', 'warning')
         return redirect(url_for('continue_complete_test', test_id=test_id))
     
+    # For completed tests, always show results regardless of current package
     complete_test = CompletePracticeTest.query.get_or_404(test_id)
     
     # Get all attempts for this test
