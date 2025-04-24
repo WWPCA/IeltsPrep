@@ -36,11 +36,11 @@
                         {% if current_user.is_subscribed() %}
                         <div class="row mb-2">
                             <div class="col-5 text-muted">Subscription:</div>
-                            <div class="col-7">{{ current_user.subscription_status|capitalize }}</div>
+                            <div class="col-7">{{ current_user.subscription_status|default('')|capitalize }}</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-5 text-muted">Expires:</div>
-                            <div class="col-7">{{ current_user.subscription_expiry.strftime('%B %d, %Y') }}</div>
+                            <div class="col-7">{{ current_user.subscription_expiry.strftime('%B %d, %Y') if current_user.subscription_expiry else 'N/A' }}</div>
                         </div>
                         {% endif %}
                     </div>
