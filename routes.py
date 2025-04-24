@@ -195,22 +195,33 @@ def practice_index():
         
         # For each test number, get the maximum ID (latest version)
         if current_user.is_subscribed():
+            # Determine number of tests to show based on user's subscription
+            num_tests_to_show = 1  # Default for single test package
+            
+            if current_user.subscription_status == 'Value Pack':
+                num_tests_to_show = 4
+            elif current_user.subscription_status == 'Double Package':
+                num_tests_to_show = 2
+            
             # First get the latest ID for each test number - show academic tests for premium users
             subquery = db.session.query(
                 CompletePracticeTest.test_number,
                 func.max(CompletePracticeTest.id).label('max_id')
             ).filter(
-                CompletePracticeTest.ielts_test_type == 'academic'  # Always show academic tests 
+                CompletePracticeTest.ielts_test_type == user_test_preference  # Show tests based on user preference
             ).group_by(CompletePracticeTest.test_number).subquery()
             
             # Then join to get the complete test records
-            complete_tests = CompletePracticeTest.query.join(
+            all_tests = CompletePracticeTest.query.join(
                 subquery,
                 db.and_(
                     CompletePracticeTest.id == subquery.c.max_id,
                     CompletePracticeTest.test_number == subquery.c.test_number
                 )
             ).order_by(CompletePracticeTest.test_number).all()
+            
+            # Limit the number of tests based on subscription
+            complete_tests = all_tests[:num_tests_to_show]
         else:
             # For non-subscribers, only show free tests (also avoid duplicates)
             subquery = db.session.query(
@@ -284,8 +295,19 @@ def practice_test_list(test_type):
     # Get all tests of this type, but filter to just show ones with complete questions and answers
     tests = PracticeTest.query.filter_by(test_type=test_type).all()
     
-    # If we have premium users, show all tests
-    if not current_user.is_subscribed():
+    # Determine how many tests to show based on subscription
+    if current_user.is_subscribed():
+        # Determine number of tests to show based on user's subscription
+        num_tests_to_show = 1  # Default for single test package
+            
+        if current_user.subscription_status == 'Value Pack':
+            num_tests_to_show = 4
+        elif current_user.subscription_status == 'Double Package':
+            num_tests_to_show = 2
+            
+        # Limit tests based on subscription level
+        tests = tests[:num_tests_to_show] if tests else []
+    else:
         # For non-subscribers, only show the first test
         tests = tests[:1] if tests else []
     
