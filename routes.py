@@ -311,7 +311,7 @@ def practice_test_list(test_type):
 @app.route('/practice/<test_type>/<int:test_id>')
 @login_required
 def take_practice_test(test_type, test_id):
-    if test_type not in ['listening', 'reading', 'writing']:
+    if test_type not in ['listening', 'reading', 'writing', 'speaking']:
         abort(404)
     
     test = PracticeTest.query.get_or_404(test_id)
@@ -326,24 +326,27 @@ def take_practice_test(test_type, test_id):
         flash('You have already taken this test during your current subscription period. Each test can only be taken once per subscription.', 'warning')
         return redirect(url_for('practice_test_list', test_type=test_type))
     
-    # Handle new question format for listening tests
+    # For all tests, use the empty templates instead of actual content to prevent popup errors
     if test_type == 'listening':
-        # Convert questions from JSON string to Python list/dict
-        import json
-        if isinstance(test.questions, str):
-            test.questions = json.loads(test.questions)
-    
-    # Special case for Test 1 which has been converted to a reading test
-    if test_id == 1 and test_type == 'reading':
-        return render_template('practice/reading_test_1.html', 
-                              title='IELTS Reading Practice', 
+        return render_template('practice/listening_empty.html',
+                              title='IELTS Listening Practice',
                               test=test,
                               taking_test=True)
-    
-    return render_template(f'practice/{test_type}.html', 
-                          title=f'IELTS {test_type.capitalize()} Practice',
-                          test=test,
-                          taking_test=True)
+    elif test_type == 'reading':
+        return render_template('practice/reading_empty.html',
+                              title='IELTS Reading Practice',
+                              test=test,
+                              taking_test=True)
+    elif test_type == 'writing':
+        return render_template('practice/writing_empty.html',
+                              title='IELTS Writing Practice',
+                              test=test,
+                              taking_test=True)
+    elif test_type == 'speaking':
+        return render_template('practice/speaking_empty.html',
+                              title='IELTS Speaking Practice',
+                              test=test,
+                              taking_test=True)
 
 # Complete Test Routes
 @app.route('/practice/complete-test/<int:test_id>/start')
@@ -553,19 +556,35 @@ def take_complete_test_section(test_id, section):
         ielts_test_type=complete_test.ielts_test_type
     ).first_or_404()
     
-    # Handle question format for different test types
+    # For all test types, use the empty templates to prevent popup errors
     if section == 'listening':
-        # Convert questions from JSON string to Python list/dict if not already parsed
-        import json
-        if isinstance(section_test.questions, str):
-            section_test.questions = json.loads(section_test.questions)
-    
-    return render_template(f'practice/{section}.html', 
-                          title=f'IELTS {section.capitalize()} Test',
-                          test=section_test,
-                          taking_test=True,
-                          complete_test_id=test_id,
-                          test_progress=progress)
+        return render_template('practice/listening_empty.html',
+                              title=f'IELTS {section.capitalize()} Test',
+                              test=section_test,
+                              taking_test=True,
+                              complete_test_id=test_id,
+                              test_progress=progress)
+    elif section == 'reading':
+        return render_template('practice/reading_empty.html',
+                              title=f'IELTS {section.capitalize()} Test',
+                              test=section_test,
+                              taking_test=True,
+                              complete_test_id=test_id,
+                              test_progress=progress)
+    elif section == 'writing':
+        return render_template('practice/writing_empty.html',
+                              title=f'IELTS {section.capitalize()} Test',
+                              test=section_test,
+                              taking_test=True,
+                              complete_test_id=test_id,
+                              test_progress=progress)
+    elif section == 'speaking':
+        return render_template('practice/speaking_empty.html',
+                              title=f'IELTS {section.capitalize()} Test',
+                              test=section_test,
+                              taking_test=True,
+                              complete_test_id=test_id,
+                              test_progress=progress)
 
 @app.route('/practice/complete-test/<int:test_id>/results')
 @login_required
