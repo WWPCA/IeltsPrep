@@ -352,8 +352,8 @@ def start_complete_test(test_id):
         start_date=datetime.utcnow()
     )
     
-    # Set the starting section (always begins with listening for standard IELTS)
-    progress.current_section = 'listening' if complete_test.ielts_test_type != 'life_skills' else 'listening'
+    # All IELTS tests start with the listening section
+    progress.current_section = 'listening'
     
     db.session.add(progress)
     db.session.commit()

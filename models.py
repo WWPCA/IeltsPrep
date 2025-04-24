@@ -274,10 +274,7 @@ class CompleteTestProgress(db.Model):
         if not test:
             return False
             
-        required_sections = ['listening', 'reading', 'writing']
-        # Life Skills only has speaking and listening
-        if test.ielts_test_type == 'life_skills':
-            required_sections = ['listening', 'speaking']
+        required_sections = ['listening', 'reading', 'writing', 'speaking']
             
         progress = self.section_progress
         for section in required_sections:
@@ -310,11 +307,6 @@ class CompleteTestProgress(db.Model):
         """Get the next incomplete section for this test"""
         # Standard section order in IELTS
         section_order = ['listening', 'reading', 'writing', 'speaking']
-        
-        # Life Skills has different order
-        test = CompletePracticeTest.query.get(self.complete_test_id)
-        if test and test.ielts_test_type == 'life_skills':
-            section_order = ['listening', 'speaking']
             
         progress = self.section_progress
         

@@ -25,9 +25,6 @@
     <div class="test-structure-nav">
         <a href="{{ url_for('test_structure_detail', test_type='academic') }}">Academic</a>
         <a href="{{ url_for('test_structure_detail', test_type='general_training') }}">General Training</a>
-        <a href="{{ url_for('test_structure_detail', test_type='ukvi') }}">UKVI</a>
-        <a href="{{ url_for('test_structure_detail', test_type='life_skills') }}">Life Skills</a>
-        <a href="{{ url_for('test_structure_detail', test_type='ielts_online') }}">IELTS Online</a>
     </div>
     
     <div class="row mt-5">
@@ -112,77 +109,7 @@
                 </div>
             </div>
         </div>
-        
-        <!-- UKVI IELTS -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">IELTS for UKVI</h3>
-                </div>
-                <div class="card-body">
-                    <p>A Secure English Language Test (SELT) approved by UK Visas and Immigration.</p>
-                    <div class="alert alert-light">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Same format as Academic and General Training tests, but taken at UKVI approved test centers.
-                    </div>
-                    <div class="text-center mt-4">
-                        <a href="{{ url_for('test_structure_detail', test_type='ukvi') }}" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Life Skills IELTS -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">IELTS Life Skills</h3>
-                </div>
-                <div class="card-body">
-                    <p>Specifically designed for UK visa applications for 'family of a settled person' and 'settlement' categories.</p>
-                    <ul class="list-group list-group-flush mb-3">
-                        <li class="list-group-item">
-                            <strong>Tests speaking and listening only</strong>
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Available at levels:</strong> A1, B1
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Duration:</strong> 16-22 minutes
-                        </li>
-                    </ul>
-                    <div class="text-center">
-                        <a href="{{ url_for('test_structure_detail', test_type='life_skills') }}" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Online IELTS -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">IELTS Online</h3>
-                </div>
-                <div class="card-body">
-                    <p>Take the IELTS Academic test remotely from the comfort of your home.</p>
-                    <ul class="list-group list-group-flush mb-3">
-                        <li class="list-group-item">
-                            <strong>Same format as in-person Academic test</strong>
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Results:</strong> Available in 3-6 days
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Note:</strong> Not accepted for some immigration purposes
-                        </li>
-                    </ul>
-                    <div class="text-center">
-                        <a href="{{ url_for('test_structure_detail', test_type='ielts_online') }}" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
     
     <div class="row mt-4">
@@ -204,8 +131,6 @@
                                     <ul>
                                         <li><strong>IELTS Academic:</strong> For university admission or professional registration.</li>
                                         <li><strong>IELTS General Training:</strong> For work experience, training programs, or migration to English-speaking countries.</li>
-                                        <li><strong>IELTS for UKVI:</strong> For UK visa applications requiring proof of English proficiency.</li>
-                                        <li><strong>IELTS Life Skills:</strong> For specific UK visa categories requiring only speaking and listening assessment.</li>
                                     </ul>
                                     <p>Always check with your receiving organization (university, employer, immigration authority) to confirm which test they require.</p>
                                 </div>
