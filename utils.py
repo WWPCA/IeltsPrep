@@ -78,26 +78,11 @@ def get_translation(page, element, language=None):
     """
     Get a translation for a specific page element.
     If no translation is available, returns None.
+    
+    Note: App is only available in English, so this always returns None.
     """
-    if not language:
-        # Use the user's preferred language if available
-        if current_user.is_authenticated:
-            language = current_user.preferred_language
-        else:
-            language = session.get('language', 'en')
-    
-    # If language is English or not specified, return None (use default text)
-    if language == 'en':
-        return None
-    
-    # Try to find the translation
-    translation = Translation.query.filter_by(
-        page=page, 
-        element=element,
-        language=language
-    ).first()
-    
-    return translation.text if translation else None
+    # App is only available in English
+    return None
 
 def compress_audio(audio_path, target_bitrate="64k"):
     """

@@ -17,6 +17,8 @@ class User(UserMixin, db.Model):
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
     subscription_status = db.Column(db.String(20), default="none")
     subscription_expiry = db.Column(db.DateTime, nullable=True)
+    # App only available in English - preferred_language column retained for database compatibility
+    # but not used in UI
     preferred_language = db.Column(db.String(10), default="en")
     test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
     
