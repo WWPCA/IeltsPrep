@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import logging
+import time
 from functools import wraps
 from datetime import datetime, timedelta
 
@@ -13,6 +14,13 @@ from app import app, db
 from models import (User, TestStructure, PracticeTest, UserTestAttempt, 
                    SpeakingPrompt, SpeakingResponse, PaymentMethod, Translation, CountryPricing,
                    CompletePracticeTest, CompleteTestProgress)
+
+# Add context processor to provide cache_buster to all templates
+@app.context_processor
+def inject_cache_buster():
+    """Add cache_buster variable to all templates to prevent browser caching"""
+    return dict(cache_buster=int(time.time()))
+
 from utils import get_user_region, get_translation, compress_audio
 from aws_services import (transcribe_audio, generate_polly_speech, analyze_speaking_response, 
                       analyze_pronunciation, generate_pronunciation_exercises)
