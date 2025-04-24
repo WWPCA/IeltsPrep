@@ -153,20 +153,8 @@ def test_day():
         flash('Please log in to access the Test Day Guide.', 'warning')
         return redirect(url_for('login'))
     
-    # Check if user has the 4-test value pack
-    has_value_pack = False
-    test_history = current_user.test_history
-    
-    for entry in test_history:
-        # Check for test purchases with the "pack" package (4 tests)
-        if 'test_purchase' in entry and entry['test_purchase'].get('test_package') == 'pack':
-            # Check if the purchase is still valid (not expired)
-            purchase_expiry = datetime.fromisoformat(entry['test_purchase'].get('expiry_date'))
-            if purchase_expiry > datetime.utcnow():
-                has_value_pack = True
-                break
-    
-    if not has_value_pack:
+    # Check if user has Value Pack subscription
+    if current_user.subscription_status != 'Value Pack':
         flash('The Test Day Guide is only available with the Value Pack (4 tests) subscription.', 'warning')
         return redirect(url_for('subscribe'))
     
