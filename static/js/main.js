@@ -33,16 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for slow connection and enable low-bandwidth mode if needed
     checkConnectionSpeed();
     
-    // Language selector
-    const languageSelector = document.getElementById('language-selector');
-    if (languageSelector) {
-        languageSelector.addEventListener('change', function() {
-            const form = this.closest('form');
-            if (form) {
-                form.submit();
-            }
-        });
-    }
+    // App only available in English - no language selector
 });
 
 /**
