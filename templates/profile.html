@@ -35,8 +35,8 @@
                         </div>
                         {% if current_user.is_subscribed() %}
                         <div class="row mb-2">
-                            <div class="col-5 text-muted">Subscription:</div>
-                            <div class="col-7">{{ current_user.subscription_status|default('')|capitalize }}</div>
+                            <div class="col-5 text-muted">Plan:</div>
+                            <div class="col-7">{{ current_user.test_preference|capitalize }} Tests</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-5 text-muted">Expires:</div>
