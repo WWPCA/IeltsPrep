@@ -372,16 +372,17 @@ function displayFeedback(data) {
 }
 
 /**
- * Show offline feedback message
+ * Show connection lost feedback message
  */
-function showOfflineFeedback() {
+function showConnectionLostFeedback() {
     const feedbackContainer = document.getElementById('feedback-container');
     if (feedbackContainer) {
         feedbackContainer.innerHTML = `
             <div class="alert alert-warning">
-                <h4>You are currently offline</h4>
-                <p>Speaking assessment requires an internet connection. Please connect to the internet and try again.</p>
-                <p>Your recording has been saved and will be available when you reconnect.</p>
+                <h4>Connection Lost</h4>
+                <p>Speaking assessment requires an active internet connection. Please check your connection and try again.</p>
+                <p>Your recording is still available. Click the button below once your connection is restored.</p>
+                <button class="btn btn-primary mt-3" onclick="window.location.reload()">Try Again</button>
             </div>
         `;
     }
