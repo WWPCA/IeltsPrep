@@ -456,9 +456,6 @@ def complete_test_results(test_id):
     # Get all attempts for this test
     section_attempts = []
     for section_type in ['listening', 'reading', 'writing', 'speaking']:
-        # Skip sections not applicable to this test type
-        if complete_test.ielts_test_type == 'life_skills' and section_type in ['reading', 'writing']:
-            continue
             
         section_test = PracticeTest.query.filter_by(
             complete_test_id=test_id,

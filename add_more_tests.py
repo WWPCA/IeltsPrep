@@ -1,6 +1,6 @@
 """
 Add practice tests to support premium users with 12 tests per category.
-This script creates detailed test content for Academic IELTS tests.
+This script creates detailed test content for both Academic and General Training IELTS tests.
 """
 
 import json
@@ -143,6 +143,117 @@ def add_more_tests():
             print("Test user updated to premium subscription with academic test preference.")
     
     print("Added 12 Academic IELTS practice tests successfully.")
+    
+    # Now add General Training tests
+    print("\nAdding General Training IELTS practice tests...")
+    
+    general_test_topics = [
+        "Workplace Communication and Professional Skills",
+        "Travel and Tourism",
+        "Community Services and Public Facilities",
+        "Housing and Accommodation",
+        "Health and Wellbeing",
+        "Training Programs and Career Development",
+        "Environmental Issues in Daily Life",
+        "Transport and Navigation",
+        "Consumer Rights and Shopping",
+        "Entertainment and Leisure Activities",
+        "Immigration and Settlement",
+        "Family Life and Social Relations"
+    ]
+    
+    for i in range(12):
+        # Create the complete test record
+        test_num = i + 1
+        is_free = False  # No free tests, all are premium
+        subscription_level = "premium"
+        
+        general_test = CompletePracticeTest(
+            ielts_test_type='general',
+            test_number=test_num,
+            title=f'Complete General Training IELTS Practice Test {test_num}',
+            description=f'Full IELTS General Training test focusing on {general_test_topics[i]} with all four test sections.',
+            is_free=is_free,
+            subscription_level=subscription_level
+        )
+        
+        db.session.add(general_test)
+        db.session.flush()  # Get the ID without committing
+        
+        # Create the listening section - reuse the same listening content
+        listening_questions = get_listening_questions(test_num)
+        
+        listening_test = PracticeTest(
+            complete_test_id=general_test.id,
+            test_type='listening',
+            ielts_test_type='general',
+            section=1,
+            title=f'General Training Listening Test {test_num}',
+            description=f'IELTS General Training Listening Test about {general_test_topics[i]} with four sections.',
+            _questions=json.dumps(listening_questions["questions"]),
+            _answers=json.dumps(listening_questions["answers"]),
+            # Reference one of the existing audio files
+            audio_url=f'audio/{"accommodation_inquiry.mp3" if test_num % 4 == 0 else "biodiversity_project.mp3" if test_num % 4 == 1 else "community_center.mp3" if test_num % 4 == 2 else "urban_planning_lecture.mp3"}',
+            is_free=is_free,
+            time_limit=30  # 30 minutes
+        )
+        
+        # Create the reading section - for General Training, use slightly different format
+        reading_questions = get_reading_questions(test_num)
+        
+        reading_test = PracticeTest(
+            complete_test_id=general_test.id,
+            test_type='reading',
+            ielts_test_type='general',
+            section=2,
+            title=f'General Training Reading Test {test_num}',
+            description=f'IELTS General Training Reading Test with everyday texts related to {general_test_topics[i]}.',
+            _questions=json.dumps(reading_questions["questions"]),
+            _answers=json.dumps(reading_questions["answers"]),
+            is_free=is_free,
+            time_limit=60  # 60 minutes
+        )
+        
+        # Create the writing section - for General Training, use letter writing and essay
+        writing_questions = get_writing_questions(test_num)
+        
+        writing_test = PracticeTest(
+            complete_test_id=general_test.id,
+            test_type='writing',
+            ielts_test_type='general',
+            section=3,
+            title=f'General Training Writing Test {test_num}',
+            description=f'IELTS General Training Writing Test with Task 1 (letter) and Task 2 (essay) related to {general_test_topics[i]}.',
+            _questions=json.dumps(writing_questions["questions"]),
+            _answers=json.dumps(writing_questions["answers"]),
+            is_free=is_free,
+            time_limit=60  # 60 minutes
+        )
+        
+        # Create the speaking section - speaking is the same for both Academic and General
+        speaking_questions = get_speaking_questions(test_num)
+        
+        speaking_test = PracticeTest(
+            complete_test_id=general_test.id,
+            test_type='speaking',
+            ielts_test_type='general',
+            section=4,
+            title=f'General Training Speaking Test {test_num}',
+            description=f'IELTS General Training Speaking Test with topics related to {general_test_topics[i]}.',
+            _questions=json.dumps(speaking_questions["questions"]),
+            _answers=json.dumps(speaking_questions["answers"]),
+            is_free=is_free,
+            time_limit=14  # 14 minutes
+        )
+        
+        # Add sections to session
+        db.session.add_all([listening_test, reading_test, writing_test, speaking_test])
+    
+    # Commit all changes
+    db.session.commit()
+    
+    print("Added 12 General Training IELTS practice tests successfully.")
+    print("All practice tests have been added to the database.")
 
 def get_listening_questions(test_num):
     """Generate detailed listening test questions and answers."""
