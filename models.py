@@ -180,17 +180,32 @@ class User(UserMixin, db.Model):
     
     def is_subscribed(self):
         """Check if user has an active subscription"""
+        # Check if subscription has expired first
+        if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
+            # Subscription has expired - update status
+            self.subscription_status = "expired"
+            db.session.commit()
+            return False
+            
+        # Check for test purchases in test_history
+        for history_item in self.test_history:
+            if "test_purchase" in history_item:
+                purchase_data = history_item["test_purchase"]
+                if "expiry_date" in purchase_data:
+                    # Check if purchase is still valid
+                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
+                    if expiry_date > datetime.utcnow():
+                        return True
+            
         # Check for the current value "premium" used in our database
-        if self.subscription_status == "premium":
+        if self.subscription_status == "premium" and (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow()):
             return True
             
         # Also check for other possible subscription values
         if self.subscription_status in ["base", "intermediate", "pro"] and self.subscription_expiry:
             if self.subscription_expiry > datetime.utcnow():
                 return True
-            # Only update status if expired
-            self.subscription_status = "expired"
-            db.session.commit()
+                
         return False
     
     def __repr__(self):

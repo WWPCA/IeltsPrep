@@ -973,6 +973,12 @@ def payment_success():
                 flash(f'Thank you for purchasing {tests} {test_type.capitalize()} practice tests! You have access for {days} days.', 'success')
             else:
                 # Legacy subscription flow
+                # Set the expiry date based on plan type (30 days for 'pro', 15 days for others)
+                if plan == 'pro':
+                    days = 30  # Pro plan (value pack) gets 30 days access
+                else:
+                    days = 15  # Base/intermediate plans get 15 days access
+                
                 expiry_date = datetime.utcnow() + timedelta(days=days)
                 
                 current_user.subscription_status = plan  # Use actual plan level (base, intermediate, pro)
@@ -1000,7 +1006,7 @@ def payment_success():
     except Exception as e:
         flash(f'Error processing payment: {str(e)}', 'danger')
     
-    return render_template('payment_success.html', title='Payment Successful')
+    return render_template('payment_success.html', title='Payment Successful', datetime=datetime)
 
 @app.route('/payment-cancel')
 def payment_cancel():

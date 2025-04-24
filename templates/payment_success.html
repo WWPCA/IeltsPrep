@@ -22,6 +22,26 @@
                                     <p><strong>Plan:</strong> {{ entry.subscription_data.plan.capitalize() }}</p>
                                     <p><strong>Tests Available:</strong> {{ entry.subscription_data.tests_remaining }} / {{ entry.subscription_data.total_tests }}</p>
                                     <p><strong>Access Until:</strong> {{ current_user.subscription_expiry.strftime('%B %d, %Y') }}</p>
+                                    <p class="mt-2 small">
+                                        {% if "pro" in entry.subscription_data.plan or "value_pack" in entry.subscription_data.plan %}
+                                            Value Pack subscriptions provide access for 30 days.
+                                        {% else %}
+                                            Single and Double test packages provide access for 15 days.
+                                        {% endif %}
+                                    </p>
+                                    {% break %}
+                                {% elif entry.test_purchase %}
+                                    <p><strong>Test Type:</strong> {{ entry.test_purchase.test_type.capitalize() }}</p>
+                                    <p><strong>Package:</strong> {{ entry.test_purchase.plan.split('_')[1]|replace('_', ' ')|capitalize }}</p>
+                                    <p><strong>Tests Available:</strong> {{ entry.test_purchase.tests_remaining }} / {{ entry.test_purchase.total_tests }}</p>
+                                    <p><strong>Access Until:</strong> {{ datetime.fromisoformat(entry.test_purchase.expiry_date).strftime('%B %d, %Y') }}</p>
+                                    <p class="mt-2 small">
+                                        {% if "value_pack" in entry.test_purchase.plan %}
+                                            Value Pack subscriptions provide access for 30 days.
+                                        {% else %}
+                                            Single and Double test packages provide access for 15 days.
+                                        {% endif %}
+                                    </p>
                                     {% break %}
                                 {% endif %}
                             {% endfor %}
