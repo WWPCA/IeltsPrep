@@ -63,10 +63,6 @@
                                     IELTS Academic
                                 {% elif current_user.test_preference == 'general' %}
                                     IELTS General Training
-                                {% elif current_user.test_preference == 'ukvi' %}
-                                    IELTS for UK Visas and Immigration
-                                {% elif current_user.test_preference == 'life_skills' %}
-                                    IELTS Life Skills
                                 {% endif %}
                             </strong>. 
                             Your practice tests will be customized for this test type.
@@ -109,14 +105,12 @@
                                             <span class="badge bg-primary me-2 mb-2 p-2">
                                                 <i class="fas fa-headphones me-1"></i> Listening
                                             </span>
-                                            {% if test.ielts_test_type != 'life_skills' %}
                                             <span class="badge bg-primary me-2 mb-2 p-2">
                                                 <i class="fas fa-book-open me-1"></i> Reading
                                             </span>
                                             <span class="badge bg-primary me-2 mb-2 p-2">
                                                 <i class="fas fa-pencil-alt me-1"></i> Writing
                                             </span>
-                                            {% endif %}
                                             <span class="badge bg-primary me-2 mb-2 p-2">
                                                 <i class="fas fa-microphone me-1"></i> Speaking
                                             </span>
