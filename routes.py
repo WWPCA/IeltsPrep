@@ -960,16 +960,43 @@ def subscribe():
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
-    data = request.json
-    package = data.get('package')
-    test_preference = data.get('test_preference', 'academic')
+    # Handle both form data and JSON requests
+    if request.is_json:
+        data = request.json
+        plan = data.get('plan')
+        test_type = data.get('test_type')
+        test_package = data.get('test_package')
+        package = data.get('package')
+    else:
+        data = request.form
+        plan = data.get('plan')
+        test_type = data.get('test_type')
+        test_package = data.get('test_package')
+        package = data.get('package')
     
-    if not package:
-        return jsonify({'error': 'No package selected'}), 400
+    # Check if we're using new plan format
+    if plan == 'purchase' and test_type and test_package:
+        # For new subscription format
+        package = test_package
+        test_preference = test_type
+    else:
+        # For old format
+        test_preference = data.get('test_preference', 'academic')
+    
+    # Validate required fields
+    if not package and not test_package:
+        if request.is_json:
+            return jsonify({'error': 'No package selected'}), 400
+        else:
+            flash('No package selected', 'danger')
+            return redirect(url_for('subscribe'))
     
     # Free test doesn't need payment
     if package == 'free':
-        return jsonify({'url': url_for('practice_index')}), 200
+        if request.is_json:
+            return jsonify({'url': url_for('practice_index')}), 200
+        else:
+            return redirect(url_for('practice_index'))
     
     # Create a Stripe checkout session
     success_url = url_for('payment_success', package=package, test_preference=test_preference, _external=True)
@@ -978,27 +1005,31 @@ def create_checkout_session():
     # Package pricing and details
     package_details = {
         'single': {
-            'name': 'Single Test Package',
-            'description': '1 IELTS Practice Test with AI Assessment (15-day access)',
+            'name': f'IELTS {test_preference.capitalize()} - Single Test Package',
+            'description': f'1 IELTS {test_preference.capitalize()} Practice Test with AI Assessment (15-day access)',
             'price': 25.00,  # in USD
             'duration_days': 15
         },
         'double': {
-            'name': 'Double Test Package',
-            'description': '2 IELTS Practice Tests with AI Assessment (15-day access)',
+            'name': f'IELTS {test_preference.capitalize()} - Double Test Package',
+            'description': f'2 IELTS {test_preference.capitalize()} Practice Tests with AI Assessment (15-day access)',
             'price': 35.00,  # in USD
             'duration_days': 15
         },
         'pack': {
-            'name': 'Value Pack',
-            'description': '4 IELTS Practice Tests with AI Assessment (30-day access)',
+            'name': f'IELTS {test_preference.capitalize()} - Value Pack',
+            'description': f'4 IELTS {test_preference.capitalize()} Practice Tests with AI Assessment (30-day access)',
             'price': 50.00,  # in USD
             'duration_days': 30
         }
     }
     
     if package not in package_details:
-        return jsonify({'error': 'Invalid package selected'}), 400
+        if request.is_json:
+            return jsonify({'error': 'Invalid package selected'}), 400
+        else:
+            flash('Invalid package selected', 'danger')
+            return redirect(url_for('subscribe'))
     
     # Create Stripe checkout session
     try:
@@ -1019,12 +1050,20 @@ def create_checkout_session():
         else:
             # For non-logged in users, include in success URL
             success_url = f"{success_url}?session_id={checkout_session.id}"
-            
-        return jsonify({'url': checkout_session.url})
+        
+        # Return appropriate response based on request type
+        if request.is_json:
+            return jsonify({'url': checkout_session.url})
+        else:
+            return redirect(checkout_session.url)
     
     except Exception as e:
         app.logger.error(f"Error creating checkout session: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        if request.is_json:
+            return jsonify({'error': str(e)}), 500
+        else:
+            flash(f'Error creating checkout session: {str(e)}', 'danger')
+            return redirect(url_for('subscribe'))
 
 @app.route('/stripe-checkout', methods=['POST'])
 def stripe_checkout():

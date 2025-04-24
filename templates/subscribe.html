@@ -115,7 +115,7 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <form method="POST" action="{{ url_for('create_checkout_session') }}" enctype="application/x-www-form-urlencoded">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
                             <input type="hidden" name="test_type" value="academic">
