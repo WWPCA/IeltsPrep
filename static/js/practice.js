@@ -295,10 +295,24 @@ function initializeWordCounter(textarea) {
  * Initialize audio player for listening tests
  */
 function initializeAudioPlayer(audioPlayer) {
+    // Wait for DOM to be fully loaded
+    if (!document.getElementById('play-audio')) {
+        console.warn('Audio player elements not found, retrying in 500ms...');
+        setTimeout(() => initializeAudioPlayer(audioPlayer), 500);
+        return;
+    }
+    
     const playButton = document.getElementById('play-audio');
     const progressBar = document.getElementById('audio-progress');
     const currentTimeDisplay = document.getElementById('current-time');
     const durationDisplay = document.getElementById('duration');
+    
+    // Add error handling for embedded context
+    window.addEventListener('message', function(event) {
+        if (event.data === 'connection-restored') {
+            location.reload();
+        }
+    });
     
     if (playButton && progressBar) {
         // Lazy load the audio to avoid Replit embedded page issues
