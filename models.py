@@ -81,8 +81,27 @@ class User(UserMixin, db.Model):
                     # Check if taken during current subscription period
                     if self.subscription_expiry:
                         test_date = datetime.fromisoformat(test['date'])
+                        # Get subscription duration from test_history
+                        subscription_days = 30  # Default to 30 days
+                        
+                        for history_item in self.test_history:
+                            if "test_purchase" in history_item:
+                                purchase_data = history_item["test_purchase"]
+                                if "expiry_date" in purchase_data:
+                                    # Calculate days between purchase and expiry
+                                    purchase_date = datetime.fromisoformat(purchase_data["purchase_date"])
+                                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
+                                    subscription_days = (expiry_date - purchase_date).days
+                                    break
+                            elif "subscription_data" in history_item:
+                                sub_data = history_item["subscription_data"]
+                                if "plan" in sub_data:
+                                    # Value pack (4 tests) = 30 days, others = 15 days
+                                    subscription_days = 30 if "pro" in sub_data["plan"] else 15
+                                    break
+                        
                         # If test was taken before current subscription started, allow retaking
-                        subscription_start = self.subscription_expiry - timedelta(days=30)  # Assume 30-day subscription
+                        subscription_start = self.subscription_expiry - timedelta(days=subscription_days)
                         if test_date < subscription_start:
                             return False
                     return True

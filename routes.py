@@ -941,7 +941,12 @@ def payment_success():
                 test_type = payment_info.get('test_type')
                 test_package = payment_info.get('test_package')
                 
-                # Set the expiry date
+                # Set the expiry date based on package type (30 days for Value Pack, 15 days for others)
+                if test_package == 'value_pack':
+                    days = 30  # Value Pack (4 tests) gets 30 days access
+                else:
+                    days = 15  # Single test or double package gets 15 days access
+                
                 expiry_date = datetime.utcnow() + timedelta(days=days)
                 
                 # Update user's test preferences based on purchase if not already set
