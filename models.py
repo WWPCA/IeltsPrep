@@ -18,7 +18,7 @@ class User(UserMixin, db.Model):
     subscription_status = db.Column(db.String(20), default="none")
     subscription_expiry = db.Column(db.DateTime, nullable=True)
     preferred_language = db.Column(db.String(10), default="en")
-    test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general, life_skills, ukvi
+    test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
     
     # Study streak tracking
     current_streak = db.Column(db.Integer, default=0)
@@ -190,7 +190,7 @@ class TestStructure(db.Model):
 class CompletePracticeTest(db.Model):
     """Model for a complete IELTS practice test with all sections"""
     id = db.Column(db.Integer, primary_key=True)
-    ielts_test_type = db.Column(db.String(20), nullable=False)  # academic, general, life_skills, ukvi
+    ielts_test_type = db.Column(db.String(20), nullable=False)  # academic, general
     test_number = db.Column(db.Integer, nullable=False)  # Test 1, Test 2, etc.
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -205,7 +205,7 @@ class PracticeTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     complete_test_id = db.Column(db.Integer, db.ForeignKey('complete_practice_test.id'), nullable=True)  # Link to complete test
     test_type = db.Column(db.String(20), nullable=False)  # listening, reading, writing, speaking
-    ielts_test_type = db.Column(db.String(20), nullable=False, default="academic")  # academic, general, life_skills, ukvi
+    ielts_test_type = db.Column(db.String(20), nullable=False, default="academic")  # academic, general
     section = db.Column(db.Integer, nullable=False)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
