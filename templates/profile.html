@@ -29,10 +29,6 @@
                             <div class="col-5 text-muted">Joined:</div>
                             <div class="col-7">{{ current_user.join_date.strftime('%B %d, %Y') }}</div>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-5 text-muted">Language:</div>
-                            <div class="col-7">{{ current_user.preferred_language|upper }}</div>
-                        </div>
                         {% if current_user.is_subscribed() %}
                         <div class="row mb-2">
                             <div class="col-5 text-muted">Plan:</div>
