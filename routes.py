@@ -576,51 +576,140 @@ def submit_test():
 # Speaking Assessment Routes
 @app.route('/speaking')
 def speaking_index():
-    try:
-        prompts = SpeakingPrompt.query.all()
-        sample_prompt = prompts[0] if prompts else None
-        
-        # Flag to indicate if this is a sample view (not subscribed)
-        is_sample = not (current_user.is_authenticated and current_user.is_subscribed())
-        
-        # Get a list of prompt IDs the user has already completed
-        completed_prompt_ids = []
-        if current_user.is_authenticated:
-            completed_prompt_ids = [test['test_id'] for test in current_user.completed_tests 
-                                   if test['test_type'] == 'speaking']
-        
-        # Set assessment to False for the index page, only set to True for specific prompt pages
-        return render_template('speaking/index.html', title='Speaking Assessment',
-                            prompts=prompts, sample_prompt=sample_prompt, 
-                            is_sample=is_sample, assessment=False,
-                            completed_prompt_ids=completed_prompt_ids)
-    except Exception as e:
-        app.logger.error(f"Error in speaking_index: {str(e)}")
-        flash('An error occurred while loading the speaking assessment page. Please try again.', 'danger')
-        return redirect(url_for('index'))
+    # Redirect to the practice test list page for complete tests
+    flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
+    return redirect(url_for('practice_index'))
 
 @app.route('/speaking/<int:prompt_id>')
 @login_required
-@update_user_streak
 def speaking_assessment(prompt_id):
-    prompt = SpeakingPrompt.query.get_or_404(prompt_id)
+    # Redirect to the practice test list page for complete tests
+    flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
+    return redirect(url_for('practice_index'))
+
+@app.route('/practice/submit-speaking/<int:test_id>', methods=['POST'])
+@login_required
+@update_user_streak
+def submit_speaking_response(test_id):
+    """Submit a speaking response for a complete test section"""
+    audio_blob = request.form.get('audio_blob')
+    complete_test_id = request.form.get('complete_test_id')
     
-    # Get all prompts to display in the information section
-    prompts = SpeakingPrompt.query.all()
-    sample_prompt = prompts[0] if prompts else None
+    if not audio_blob:
+        flash('No audio recording was provided.', 'danger')
+        if complete_test_id:
+            return redirect(url_for('take_complete_test_section', 
+                                   test_id=complete_test_id, 
+                                   section='speaking'))
+        return redirect(url_for('practice_index'))
     
-    # Don't allow non-subscribers to access any speaking prompt
-    if not current_user.is_subscribed():
-        flash('Speaking assessment requires a subscription. Please subscribe to access this feature.', 'warning')
-        return redirect(url_for('subscribe'))
+    # Process the audio file from the blob data
+    import base64
+    audio_data = base64.b64decode(audio_blob.split(',')[1])
     
-    # Check if user has already taken this speaking prompt during current subscription period
-    if current_user.has_taken_test(prompt_id, 'speaking'):
-        flash('You have already taken this speaking assessment during your current subscription period. Each assessment can only be taken once per subscription.', 'warning')
-        return redirect(url_for('speaking_index'))
+    # Save the audio file
+    filename = f"user_{current_user.id}_test_{test_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp3"
+    audio_path = os.path.join('static', 'uploads', 'audio', filename)
+    os.makedirs(os.path.dirname(audio_path), exist_ok=True)
     
-    return render_template('speaking/index.html', title='Speaking Assessment',
-                          prompt=prompt, assessment=True, prompts=prompts, sample_prompt=sample_prompt, is_sample=False)
+    with open(audio_path, 'wb') as f:
+        f.write(audio_data)
+    
+    # Compress the audio
+    compressed_path = compress_audio(audio_path)
+    
+    try:
+        # Get the test
+        test = PracticeTest.query.get_or_404(test_id)
+        
+        # Transcribe and analyze the response
+        transcription = transcribe_audio(compressed_path)
+        scores, feedback = analyze_speaking_response(transcription)
+        
+        # Generate audio feedback
+        feedback_audio_filename = f"feedback_{os.path.basename(compressed_path)}"
+        feedback_audio_path = os.path.join('static', 'uploads', 'feedback', feedback_audio_filename)
+        os.makedirs(os.path.dirname(feedback_audio_path), exist_ok=True)
+        
+        polly_result = generate_polly_speech(feedback, feedback_audio_path)
+        
+        # Create a speaking response record
+        response = SpeakingResponse(
+            user_id=current_user.id,
+            prompt_id=test_id,  # Using the test ID as the prompt ID
+            audio_url=compressed_path.replace('static/', ''),
+            transcription=transcription,
+            scores=scores,
+            feedback_audio_url=feedback_audio_path.replace('static/', '') if polly_result else None
+        )
+        
+        db.session.add(response)
+        
+        # Create a test attempt record
+        new_attempt = UserTestAttempt(
+            user_id=current_user.id,
+            test_id=test_id,
+            user_answers={'transcription': transcription},
+            score=scores.get('overall', 0) if isinstance(scores, dict) else 0,
+            assessment=json.dumps({
+                'transcription': transcription,
+                'scores': scores,
+                'feedback': feedback
+            })
+        )
+        
+        if complete_test_id:
+            # Get the user's progress for this complete test
+            progress = CompleteTestProgress.query.filter_by(
+                user_id=current_user.id,
+                complete_test_id=complete_test_id
+            ).first()
+            
+            if progress:
+                new_attempt.complete_test_progress_id = progress.id
+                
+                # Mark speaking section as completed
+                progress.mark_section_completed('speaking', scores.get('overall', 0))
+                
+                # Check if all sections are completed
+                if progress.is_test_completed():
+                    progress.completed_date = datetime.utcnow()
+        
+        db.session.add(new_attempt)
+        
+        # Update user's speaking scores
+        speaking_scores = current_user.speaking_scores
+        speaking_scores.append({
+            'prompt_id': test_id,
+            'date': datetime.utcnow().isoformat(),
+            'scores': scores
+        })
+        current_user.speaking_scores = speaking_scores
+        
+        # Mark this test as completed
+        current_user.mark_test_completed(test_id, 'speaking')
+        
+        db.session.commit()
+        
+        flash('Your speaking response has been submitted and assessed.', 'success')
+        
+        if complete_test_id:
+            # Check if this was the last section
+            if progress.is_test_completed():
+                return redirect(url_for('complete_test_results', test_id=complete_test_id))
+            else:
+                return redirect(url_for('continue_complete_test', test_id=complete_test_id))
+        else:
+            return redirect(url_for('practice_index'))
+            
+    except Exception as e:
+        app.logger.error(f"Error processing speaking assessment: {str(e)}")
+        flash(f'An error occurred while processing your speaking response: {str(e)}', 'danger')
+        
+        if complete_test_id:
+            return redirect(url_for('continue_complete_test', test_id=complete_test_id))
+        else:
+            return redirect(url_for('practice_index'))
 
 @app.route('/api/speaking/submit', methods=['POST'])
 @login_required
