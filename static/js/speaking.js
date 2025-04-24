@@ -249,9 +249,9 @@ function submitSpeakingRecording(promptId) {
     formData.append('prompt_id', promptId);
     formData.append('audio', window.recordedAudioBlob, 'recording.mp3');
     
-    // Check if we're offline
+    // Check connection status
     if (!navigator.onLine) {
-        showOfflineFeedback();
+        showConnectionLostFeedback();
         return;
     }
     

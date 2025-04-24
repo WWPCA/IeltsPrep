@@ -61,19 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeAudioPlayer(audioPlayer);
     }
     
-    // Check for offline mode and enable caching if needed
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/static/js/service-worker.js')
-            .then(registration => {
-                console.log('ServiceWorker registration successful');
-            })
-            .catch(error => {
-                console.error('ServiceWorker registration failed:', error);
-            });
+    // Set up connection status monitoring
+    if (typeof setupConnectionHandling === 'function') {
+        setupConnectionHandling();
     }
-    
-    // Cache test data for offline use
-    cacheTestDataForOffline();
 });
 
 /**
@@ -168,9 +159,9 @@ function submitTest(event) {
     // Save answers to localStorage as backup
     saveAnswersToLocalStorage(testId, answers);
     
-    // Check if we're offline
+    // Check connection status
     if (!navigator.onLine) {
-        showOfflineMessage();
+        showConnectionLostMessage();
         return;
     }
     
@@ -216,33 +207,30 @@ function saveAnswersToLocalStorage(testId, answers) {
 }
 
 /**
- * Save test for later submission when online
+ * Save current test session temporarily 
  */
 function saveTestForLater(testId, answers) {
-    const offlineTests = JSON.parse(localStorage.getItem('offlineTests') || '[]');
-    
-    offlineTests.push({
+    sessionStorage.setItem(`testSession_${testId}`, JSON.stringify({
         testId: testId,
         answers: answers,
         date: new Date().toISOString()
-    });
+    }));
     
-    localStorage.setItem('offlineTests', JSON.stringify(offlineTests));
-    
-    showOfflineMessage();
+    showConnectionLostMessage();
 }
 
 /**
- * Show offline message when test can't be submitted
+ * Show connection lost message when test can't be submitted
  */
-function showOfflineMessage() {
+function showConnectionLostMessage() {
     const resultContainer = document.getElementById('test-results');
     if (resultContainer) {
         resultContainer.innerHTML = `
             <div class="alert alert-warning">
-                <h4>You are currently offline</h4>
-                <p>Your answers have been saved locally and will be submitted automatically when you're back online.</p>
-                <p>You can safely leave this page and come back later.</p>
+                <h4>Connection Lost</h4>
+                <p>We couldn't submit your test because the connection was lost.</p>
+                <p>Please check your internet connection and try again.</p>
+                <button class="btn btn-primary mt-3" onclick="window.location.reload()">Reload Page</button>
             </div>
         `;
     }
@@ -359,51 +347,4 @@ function initializeAudioPlayer(audioPlayer) {
     }
 }
 
-/**
- * Cache test data for offline use
- */
-function cacheTestDataForOffline() {
-    // Only cache if we're in an actual test
-    const testForm = document.getElementById('practice-test-form');
-    if (!testForm) {
-        return;
-    }
-    
-    const testId = testForm.dataset.testId;
-    const testType = testForm.dataset.testType;
-    
-    // Get all test content
-    const testContent = document.querySelector('.practice-test').innerHTML;
-    
-    // Save to localStorage
-    localStorage.setItem(`cachedTest_${testId}`, JSON.stringify({
-        id: testId,
-        type: testType,
-        content: testContent,
-        cachedAt: new Date().toISOString()
-    }));
-    
-    console.log(`Test ID ${testId} cached for offline use`);
-    
-    // If it's a listening test, try to cache the audio too
-    const audioPlayer = document.getElementById('listening-audio');
-    if (audioPlayer && audioPlayer.src) {
-        cacheAudioForOffline(audioPlayer.src, testId);
-    }
-}
-
-/**
- * Cache audio for offline listening tests
- */
-function cacheAudioForOffline(audioUrl, testId) {
-    // Only proceed if Cache API is available
-    if ('caches' in window) {
-        caches.open('ielts-prep-audio-cache').then(cache => {
-            cache.add(audioUrl).then(() => {
-                console.log(`Audio for test ID ${testId} cached for offline use`);
-            }).catch(error => {
-                console.error('Failed to cache audio:', error);
-            });
-        });
-    }
-}
+// End of practice.js
