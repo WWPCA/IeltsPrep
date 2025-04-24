@@ -1,0 +1,255 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('practice_test_list', test_type='reading') }}">Reading</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ test.title }}</li>
+                </ol>
+            </nav>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">{{ test.title }}</h2>
+                    <div id="test-timer" data-test-type="reading">01:00:00</div>
+                </div>
+                <div class="card-body">
+                    <div class="reading-passage mb-5">
+                        <h3 class="reading-title mb-3">Sustainability: Balancing Present and Future Needs</h3>
+                        
+                        <div class="passage-text">
+                            <p>Sustainability has become one of the most crucial concepts of the 21st century. At its core, sustainability represents a delicate balance between meeting the needs of the present without compromising the ability of future generations to meet their own needs. This concept encompasses three interconnected pillars: environmental protection, social equity, and economic development.</p>
+                            
+                            <p>Environmental sustainability focuses on maintaining the natural world and its resources. This includes the conservation of biodiversity, the protection of ecosystems, and the responsible use of natural resources. Renewable energy sources such as solar, wind, and hydroelectric power play a significant role in environmental sustainability as they can be naturally replenished. Unlike fossil fuels, which are finite and produce harmful emissions, renewable energy provides a cleaner alternative that can support long-term energy needs.</p>
+                            
+                            <p>Economic sustainability involves creating a stable economy that meets the needs of society while operating within the carrying capacity of the environment. Businesses are increasingly adopting eco-friendly practices not only to reduce their environmental impact but also to improve their long-term viability. Sustainable business models often focus on resource efficiency, waste reduction, and innovation in products and processes. Many companies now recognize that sustainability is not just an ethical consideration but also a competitive advantage in a market where consumers increasingly value environmental responsibility.</p>
+                            
+                            <p>Social sustainability addresses issues related to human rights, labor rights, community development, and social equity. It emphasizes the importance of creating systems that are fair and beneficial to all people, regardless of their background or circumstances. Sustainable social practices include providing fair wages, ensuring safe working conditions, promoting diversity and inclusion, and supporting local communities. Education about sustainability should begin at an early age to instill values that will lead to more informed decisions throughout life.</p>
+                            
+                            <p>Sustainable agriculture represents one of the most important applications of sustainability principles. Traditional farming methods often deplete soil resources, consume excessive water, and rely heavily on chemical inputs. In contrast, sustainable agriculture focuses on producing food in ways that preserve the environment, enhance social equity, and are economically viable. This may include practices such as crop rotation, integrated pest management, and the use of organic fertilizers.</p>
+                            
+                            <p>Urban planning also plays a crucial role in sustainability. As cities continue to grow, the way they are designed and built significantly impacts resource consumption and quality of life. Sustainable urban planning incorporates green spaces, efficient public transportation, renewable energy systems, and waste management programs to create livable cities with minimal environmental footprints.</p>
+                            
+                            <p>One of the main challenges of sustainability is balancing immediate needs with long-term planning. Short-term economic gains often come at the expense of long-term environmental health. Similarly, social programs that address immediate needs may not be economically sustainable in the long run. Finding the right balance requires collaboration among governments, businesses, communities, and individuals.</p>
+                            
+                            <p>Consumers can contribute to sustainability by making informed purchasing decisions, reducing waste, conserving energy and water, and supporting companies and policies that promote sustainable practices. Even small individual actions, when multiplied across millions of people, can have significant positive impacts.</p>
+                            
+                            <p>As we face increasing environmental challenges such as climate change, biodiversity loss, and resource depletion, the importance of sustainability continues to grow. By adopting sustainable practices at all levels—from individual choices to global policies—we can work toward a future where human needs are met while preserving the planet for generations to come.</p>
+                        </div>
+                    </div>
+                    
+                    <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="reading">
+                        <div class="questions">
+                            {% for question_group in test.questions %}
+                                <div class="question-group mb-5">
+                                    <h3 class="question-group-header">Questions {{ question_group.number }}</h3>
+                                    
+                                    <div class="instruction-box mb-3 p-3 bg-light">
+                                        <p class="instruction-text mb-0">{{ question_group.instructions }}</p>
+                                    </div>
+                                    
+                                    {% if question_group.questions is defined %}
+                                        {% for q in question_group.questions %}
+                                            <div class="question mb-4">
+                                                <p class="question-text mb-2">{{ q.number }}. {{ q.text }}</p>
+                                                
+                                                {% if q.options is defined %}
+                                                    <!-- Multiple choice question -->
+                                                    <div class="options mt-2">
+                                                        {% for key, value in q.options.items() %}
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="question-{{ q.number }}" 
+                                                                       id="option-{{ q.number }}-{{ key }}" value="{{ key }}"
+                                                                       data-question-id="{{ q.number }}">
+                                                                <label class="form-check-label" for="option-{{ q.number }}-{{ key }}">
+                                                                    {{ key }}. {{ value }}
+                                                                </label>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <!-- Short answer question -->
+                                                    <div class="form-group">
+                                                        <input type="text" class="form-control answer-input" 
+                                                              placeholder="Your answer" data-question-id="{{ q.number }}">
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Answers</button>
+                        </div>
+                    </form>
+                    
+                    <div id="test-results" class="mt-5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function formatTime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the timer
+    const timerElement = document.getElementById('test-timer');
+    if (timerElement) {
+        const timeLimit = 60 * 60; // 60 min for reading
+        let timeRemaining = timeLimit;
+        
+        // Update timer display
+        function updateTimer() {
+            timerElement.textContent = formatTime(timeRemaining);
+            
+            // Add warning class when less than 5 minutes remaining
+            if (timeRemaining <= 300) {
+                timerElement.classList.add('timer-warning');
+            }
+            
+            // Add danger class when less than 1 minute remaining
+            if (timeRemaining <= 60) {
+                timerElement.classList.add('timer-danger');
+            }
+        }
+        
+        // Initial display
+        updateTimer();
+        
+        // Update every second
+        const timerInterval = setInterval(function() {
+            timeRemaining--;
+            updateTimer();
+            
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                timerElement.textContent = 'Time\'s up!';
+                
+                // Auto-submit the test
+                const testForm = document.getElementById('practice-test-form');
+                if (testForm) {
+                    testForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        }, 1000);
+    }
+    
+    // Add event listener to the form submission
+    const testForm = document.getElementById('practice-test-form');
+    if (testForm) {
+        testForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // Get test ID
+            const testId = this.dataset.testId;
+            
+            // Collect all answers
+            const answers = {};
+            
+            // Get answers from radio buttons (multiple choice)
+            document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                const questionId = radio.dataset.questionId;
+                answers[questionId] = radio.value;
+            });
+            
+            // Get answers from text inputs
+            document.querySelectorAll('.answer-input').forEach(input => {
+                const questionId = input.dataset.questionId;
+                const answer = input.value.trim();
+                if (answer) {
+                    answers[questionId] = answer;
+                }
+            });
+            
+            // Show loading indicator
+            const resultContainer = document.getElementById('test-results');
+            if (resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Processing your answers...</p>
+                    </div>
+                `;
+            }
+            
+            // Submit the form using fetch
+            fetch('/submit-test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    test_id: testId,
+                    answers: answers
+                }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Display results
+                if (resultContainer) {
+                    resultContainer.innerHTML = `
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h3>Test Results</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="score-circle">
+                                    <div class="score-number">${data.score.toFixed(1)}%</div>
+                                </div>
+                                <div class="score-details">
+                                    <p>You answered ${data.correct} out of ${data.total} questions correctly.</p>
+                                </div>
+                                <div class="mt-4">
+                                    <a href="/practice" class="btn btn-primary">Back to Practice Tests</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Scroll to results
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting test:', error);
+                if (resultContainer) {
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4>Error</h4>
+                            <p>There was a problem submitting your test. Please try again.</p>
+                            <button class="btn btn-primary mt-3" onclick="window.location.reload()">Reload Page</button>
+                        </div>
+                    `;
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
