@@ -36,10 +36,6 @@
                                         IELTS Academic
                                     {% elif complete_test.ielts_test_type == 'general' %}
                                         IELTS General Training
-                                    {% elif complete_test.ielts_test_type == 'ukvi' %}
-                                        IELTS for UK Visas and Immigration
-                                    {% else %}
-                                        IELTS Life Skills
                                     {% endif %}
                                 </h3>
                                 <p>{{ complete_test.description }}</p>
