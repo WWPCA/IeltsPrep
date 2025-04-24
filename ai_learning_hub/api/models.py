@@ -33,8 +33,8 @@ class MobileDevice(db.Model):
             'last_sync': self.last_sync.isoformat() if self.last_sync else None
         }
 
-class OfflineSync(db.Model):
-    """Model for tracking offline data synchronization"""
+class LocalSync(db.Model):
+    """Model for tracking local data synchronization with the server"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
     device_id = db.Column(db.Integer, db.ForeignKey('mobile_device.id'), nullable=False)
