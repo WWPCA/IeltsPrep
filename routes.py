@@ -1433,7 +1433,7 @@ def sync_data():
 @app.route('/audio/<path:filename>')
 def serve_audio(filename):
     """
-    Serve audio files directly to avoid Replit embedded page issues.
+    Serve audio files as a direct download to avoid Replit embedded page issues.
     This route handles both static/audio/ and static/uploads/audio/ directories.
     """
     app.logger.info(f"Serving audio file: {filename}")
@@ -1451,15 +1451,15 @@ def serve_audio(filename):
         try:
             if os.path.isfile(path) and os.access(path, os.R_OK):
                 app.logger.info(f"Found audio file at: {path}")
-                response = send_file(path)
                 
-                # Add headers to prevent Replit embedded page detection
-                response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-                response.headers['X-Content-Type-Options'] = 'nosniff'
-                response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
-                response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+                # Force download to avoid Replit embedded page detection
+                return send_file(
+                    path,
+                    as_attachment=True,
+                    download_name=filename,
+                    mimetype='audio/mpeg'
+                )
                 
-                return response
         except Exception as e:
             app.logger.error(f"Error serving audio from {path}: {str(e)}")
     
