@@ -1007,6 +1007,11 @@ def payment_cancel():
 def device_specs():
     return render_template('device_specs.html', title='Device Requirements')
 
+# Terms and Payment Policy Route
+@app.route('/terms-and-payment')
+def terms_and_payment():
+    return render_template('terms_and_payment.html', title='Terms and Payment Policy')
+
 # API Routes for data sync
 @app.route('/api/sync', methods=['POST'])
 @login_required
