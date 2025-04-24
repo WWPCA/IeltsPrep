@@ -7,7 +7,59 @@ from datetime import datetime, timedelta
 # Set Stripe API key
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 
-# Subscription plans details
+# New purchase options following the updated pricing structure
+TEST_PURCHASE_OPTIONS = {
+    # Academic Test Type
+    'academic': {
+        'single': {
+            'name': 'IELTS Academic - 1 Test',
+            'price': 2500,  # $25.00 in cents
+            'tests': 1,
+            'days': 15,
+            'description': 'Access to 1 Academic test for 15 days'
+        },
+        'double': {
+            'name': 'IELTS Academic - 2 Tests',
+            'price': 3500,  # $35.00 in cents
+            'tests': 2,
+            'days': 15,
+            'description': 'Access to 2 Academic tests for 15 days'
+        },
+        'pack': {
+            'name': 'IELTS Academic - 4 Tests',
+            'price': 5000,  # $50.00 in cents
+            'tests': 4,
+            'days': 15,
+            'description': 'Access to 4 Academic tests for 15 days'
+        }
+    },
+    # General Training Test Type
+    'general': {
+        'single': {
+            'name': 'IELTS General Training - 1 Test',
+            'price': 2500,  # $25.00 in cents
+            'tests': 1,
+            'days': 15,
+            'description': 'Access to 1 General Training test for 15 days'
+        },
+        'double': {
+            'name': 'IELTS General Training - 2 Tests',
+            'price': 3500,  # $35.00 in cents
+            'tests': 2,
+            'days': 15,
+            'description': 'Access to 2 General Training tests for 15 days'
+        },
+        'pack': {
+            'name': 'IELTS General Training - 4 Tests',
+            'price': 5000,  # $50.00 in cents
+            'tests': 4,
+            'days': 15,
+            'description': 'Access to 4 General Training tests for 15 days'
+        }
+    }
+}
+
+# Legacy subscription plans (keeping for backward compatibility)
 SUBSCRIPTION_PLANS = {
     'base': {
         'name': 'IELTS AI Prep Base - 3 Tests',
@@ -33,13 +85,16 @@ SUBSCRIPTION_PLANS = {
 }
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def create_stripe_checkout(plan='base', country_code=None):
+def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_package=None):
     """
-    Create a Stripe checkout session for subscription.
+    Create a Stripe checkout session for test purchase.
     
     Args:
-        plan (str): Subscription plan ('base', 'intermediate', or 'pro')
+        plan_info (str): Either a legacy plan ('base', 'intermediate', 'pro') 
+                        or 'purchase' for the new test purchase flow
         country_code (str, optional): Two-letter country code for regional payment methods
+        test_type (str, optional): 'academic' or 'general' - required if plan_info is 'purchase'
+        test_package (str, optional): 'single', 'double', or 'pack' - required if plan_info is 'purchase'
     
     Returns:
         dict: Contains session_id and checkout_url
@@ -49,8 +104,27 @@ def create_stripe_checkout(plan='base', country_code=None):
             logging.error("Stripe API key not found. Cannot create checkout session.")
             raise ValueError("Stripe API key is required")
         
-        if plan not in SUBSCRIPTION_PLANS:
-            plan = 'base'  # Default to base if invalid plan
+        # Check if we're using the new purchase system or legacy subscription
+        using_new_purchase = plan_info == 'purchase' and test_type and test_package
+        
+        # Validate parameters for new purchase system
+        if using_new_purchase:
+            if test_type not in TEST_PURCHASE_OPTIONS:
+                raise ValueError(f"Invalid test type: {test_type}. Must be 'academic' or 'general'")
+            if test_package not in TEST_PURCHASE_OPTIONS[test_type]:
+                raise ValueError(f"Invalid package: {test_package}. Must be 'single', 'double', or 'pack'")
+            
+            # Get the purchase details
+            purchase_details = TEST_PURCHASE_OPTIONS[test_type][test_package]
+            plan_code = f"{test_type}_{test_package}"  # Create a unique plan code
+        else:
+            # Legacy subscription handling
+            if plan_info not in SUBSCRIPTION_PLANS:
+                plan_info = 'base'  # Default to base if invalid plan
+            
+            # Get the subscription details
+            purchase_details = SUBSCRIPTION_PLANS[plan_info]
+            plan_code = plan_info
         
         # Get domain for success and cancel URLs
         domain = os.environ.get('REPLIT_DEV_DOMAIN') 
@@ -60,10 +134,21 @@ def create_stripe_checkout(plan='base', country_code=None):
             domain = 'localhost:5000'
         
         # Create a Product if it doesn't exist
-        product = create_or_get_product(plan)
-        
-        # Create a Price if it doesn't exist
-        price = create_or_get_price(product.id, plan)
+        if using_new_purchase:
+            product = create_or_get_product_for_purchase(purchase_details['name'], purchase_details['description'])
+            
+            # Create a Price if it doesn't exist
+            price = create_or_get_price_for_purchase(
+                product.id, 
+                purchase_details['price'],
+                plan_code,
+                purchase_details['tests'],
+                purchase_details['days']
+            )
+        else:
+            # Legacy product and price handling
+            product = create_or_get_product(plan_info)
+            price = create_or_get_price(product.id, plan_info)
         
         # Use the country code if provided
         user_country = country_code
@@ -125,6 +210,22 @@ def create_stripe_checkout(plan='base', country_code=None):
         if user_country and user_country in region_payment_mapping:
             payment_method_types.extend(region_payment_mapping[user_country])
         
+        metadata = {}
+        if using_new_purchase:
+            metadata = {
+                'plan': plan_code,
+                'test_type': test_type,
+                'test_package': test_package,
+                'tests': str(purchase_details['tests']),
+                'days': str(purchase_details['days'])
+            }
+        else:
+            metadata = {
+                'plan': plan_info,
+                'tests': str(purchase_details['tests']),
+                'days': str(purchase_details['days'])
+            }
+            
         # Create checkout session with all payment options
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=payment_method_types,
@@ -145,11 +246,7 @@ def create_stripe_checkout(plan='base', country_code=None):
                     }
                 }
             },
-            metadata={
-                'plan': plan,
-                'tests': str(SUBSCRIPTION_PLANS[plan]['tests']),
-                'days': str(SUBSCRIPTION_PLANS[plan]['days'])
-            }
+            metadata=metadata
         )
         
         return {
@@ -274,5 +371,78 @@ def verify_payment(session_id):
     except Exception as e:
         logging.error(f"Error verifying payment: {str(e)}")
         return None
+
+def create_or_get_product_for_purchase(product_name, product_description):
+    """
+    Create a Stripe product for the new purchase system if it doesn't exist, or get the existing one.
+    
+    Args:
+        product_name (str): The name of the product
+        product_description (str): The description of the product
+        
+    Returns:
+        stripe.Product: The Stripe product
+    """
+    try:
+        # List products with the given name
+        products = stripe.Product.list(
+            active=True,
+            limit=10
+        )
+        
+        for product in products.data:
+            if product.name == product_name:
+                return product
+        
+        # If no product found, create one
+        return stripe.Product.create(
+            name=product_name,
+            description=product_description
+        )
+    except Exception as e:
+        logging.error(f"Error creating/getting Stripe product: {str(e)}")
+        raise
+
+def create_or_get_price_for_purchase(product_id, price_amount, plan_code, tests, days):
+    """
+    Create a Stripe price for the new purchase system if it doesn't exist, or get the existing one.
+    
+    Args:
+        product_id (str): The Stripe product ID
+        price_amount (int): The price amount in cents
+        plan_code (str): The unique plan code (e.g., 'academic_single')
+        tests (int): Number of tests included
+        days (int): Number of days of access
+        
+    Returns:
+        stripe.Price: The Stripe price
+    """
+    try:
+        # List prices for the given product
+        prices = stripe.Price.list(
+            product=product_id,
+            active=True,
+            limit=10
+        )
+        
+        # Find a price with the correct amount and matching metadata
+        for price in prices.data:
+            if price.unit_amount == price_amount and price.metadata.get('plan') == plan_code:
+                return price
+        
+        # If no price found, create one
+        return stripe.Price.create(
+            product=product_id,
+            unit_amount=price_amount,
+            currency='usd',
+            metadata={
+                'plan': plan_code,
+                'tests': str(tests),
+                'days': str(days)
+            }
+        )
+    except Exception as e:
+        logging.error(f"Error creating/getting Stripe price: {str(e)}")
+        raise
 
 # Additional payment methods could be implemented here for regional options
