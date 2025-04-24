@@ -375,6 +375,20 @@ function initializeAudioPlayer(audioPlayer) {
         // Handle errors
         audioPlayer.addEventListener('error', function(e) {
             console.error('Error loading audio:', e);
+            
+            // Try alternative URL format if normal loading fails
+            if (!audioPlayer.retryAttempted && audioPlayer.hasAttribute('src')) {
+                audioPlayer.retryAttempted = true;
+                const currentSrc = audioPlayer.getAttribute('src');
+                const audioFilename = currentSrc.split('/').pop();
+                
+                // Try direct URL to audio
+                console.log('Trying alternative audio source:', '/audio/' + audioFilename);
+                audioPlayer.setAttribute('src', '/audio/' + audioFilename);
+                audioPlayer.load();
+                return;
+            }
+            
             playButton.disabled = true;
             playButton.textContent = 'Audio unavailable';
         });

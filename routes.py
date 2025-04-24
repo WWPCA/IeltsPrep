@@ -1436,15 +1436,24 @@ def serve_audio(filename):
     Serve audio files directly to avoid Replit embedded page issues.
     This route handles both static/audio/ and static/uploads/audio/ directories.
     """
-    try:
-        # First check in static/audio
-        return send_file(f"static/audio/{filename}")
-    except:
-        try:
-            # Then check in static/uploads/audio
-            return send_file(f"static/uploads/audio/{filename}")
-        except:
+    # Check static/audio first
+    audio_path = f"static/audio/{filename}"
+    if os.path.exists(audio_path):
+        response = send_file(audio_path)
+    else:
+        # Then check static/uploads/audio
+        audio_path = f"static/uploads/audio/{filename}"
+        if os.path.exists(audio_path):
+            response = send_file(audio_path)
+        else:
             abort(404)
+    
+    # Add headers to prevent Replit embedded page detection
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"
+    
+    return response
 
 # Error handlers
 @app.errorhandler(404)
