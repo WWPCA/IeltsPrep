@@ -50,6 +50,23 @@
                         </ul>
                     </div>
                     
+                    {% if test.section == 'listening' %}
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Special Note for Listening Tests</h5>
+                        <p>Due to technical limitations, listening tests follow a modified format:</p>
+                        <ol>
+                            <li>You'll need to download the audio file using the button below</li>
+                            <li>Use your device's audio player to listen to the file</li>
+                            <li>Then proceed to the test page to answer questions</li>
+                        </ol>
+                        <div class="text-center mt-3">
+                            <a href="/static/{{ test.audio_url }}" download class="btn btn-success">
+                                <i class="fas fa-download me-2"></i> Download Audio File
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <div class="text-center mt-4">
                         <a href="{{ url_for('take_practice_test', test_type=test_type, test_id=test.id) }}" class="btn btn-primary btn-lg">
                             Start Test Now
