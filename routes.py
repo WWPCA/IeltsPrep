@@ -597,18 +597,19 @@ def submit_test():
     return jsonify(response_data)
 
 # Speaking Assessment Routes
-@app.route('/speaking')
-def speaking_index():
-    # Redirect to the practice test list page for complete tests
-    flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
-    return redirect(url_for('practice_index'))
-
-@app.route('/speaking/<int:prompt_id>')
-@login_required
-def speaking_assessment(prompt_id):
-    # Redirect to the practice test list page for complete tests
-    flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
-    return redirect(url_for('practice_index'))
+# Speaking routes removed as requested
+# @app.route('/speaking')
+# def speaking_index():
+#     # Redirect to the practice test list page for complete tests
+#     flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
+#     return redirect(url_for('practice_index'))
+# 
+# @app.route('/speaking/<int:prompt_id>')
+# @login_required
+# def speaking_assessment(prompt_id):
+#     # Redirect to the practice test list page for complete tests
+#     flash('Speaking assessments are now available as part of complete IELTS practice tests.', 'info')
+#     return redirect(url_for('practice_index'))
 
 @app.route('/practice/submit-speaking/<int:test_id>', methods=['POST'])
 @login_required
