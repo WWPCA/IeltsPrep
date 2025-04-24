@@ -333,6 +333,13 @@ def take_practice_test(test_type, test_id):
         if isinstance(test.questions, str):
             test.questions = json.loads(test.questions)
     
+    # Special case for Test 1 which has been converted to a reading test
+    if test_id == 1 and test_type == 'reading':
+        return render_template('practice/reading_test_1.html', 
+                              title='IELTS Reading Practice', 
+                              test=test,
+                              taking_test=True)
+    
     return render_template(f'practice/{test_type}.html', 
                           title=f'IELTS {test_type.capitalize()} Practice',
                           test=test,
