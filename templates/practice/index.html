@@ -177,111 +177,7 @@
                 {% endif %}
             </div>
             
-            <!-- Practice by Individual Section -->
-            <h2 class="mb-4 mt-5">Practice by Individual Section</h2>
-            <p class="lead mb-4">Want to focus on a specific skill? Practice individual test sections below.</p>
-            
-            <div class="row">
-                <!-- Listening Tests -->
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Listening</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-headphones fa-4x text-primary"></i>
-                            </div>
-                            
-                            <h3 class="h5">IELTS Listening</h3>
-                            <ul>
-                                <li>4 recordings, 40 questions</li>
-                                <li>30 minutes + 10 minutes transfer time</li>
-                            </ul>
-                        </div>
-                        <div class="card-footer bg-white text-center">
-                            <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-primary">
-                                Practice Listening
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Reading Tests -->
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Reading</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-book-open fa-4x text-primary"></i>
-                            </div>
-                            
-                            <h3 class="h5">IELTS Reading</h3>
-                            <ul>
-                                <li>3 passages, 40 questions</li>
-                                <li>60 minutes total time</li>
-                            </ul>
-                        </div>
-                        <div class="card-footer bg-white text-center">
-                            <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-primary">
-                                Practice Reading
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Writing Tests -->
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Writing</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-pencil-alt fa-4x text-primary"></i>
-                            </div>
-                            
-                            <h3 class="h5">IELTS Writing</h3>
-                            <ul>
-                                <li>Task 1: 150 words</li>
-                                <li>Task 2: 250 words essay</li>
-                            </ul>
-                        </div>
-                        <div class="card-footer bg-white text-center">
-                            <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-primary">
-                                Practice Writing
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Speaking Tests -->
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Speaking</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-microphone fa-4x text-primary"></i>
-                            </div>
-                            
-                            <h3 class="h5">IELTS Speaking</h3>
-                            <ul>
-                                <li>11-14 minute interview</li>
-                                <li>3 parts: Introduction, Topic and Discussion</li>
-                            </ul>
-                        </div>
-                        <div class="card-footer bg-white text-center">
-                            <a href="{{ url_for('practice_index') }}" class="btn btn-primary">
-                                Practice Speaking
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Individual section practice has been removed as requested -->
             
             <div class="card mt-5">
                 <div class="card-header bg-primary text-white">
@@ -366,7 +262,7 @@
             
             <div class="text-center mt-5">
                 <h2 class="mb-4">Ready to start practicing?</h2>
-                <p class="lead mb-4">Choose a complete test or individual section above for targeted practice.</p>
+                <p class="lead mb-4">Choose a complete test above to start your IELTS preparation.</p>
                 
                 {% if not current_user.is_authenticated %}
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Create an Account</a>
