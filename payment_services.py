@@ -118,8 +118,8 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             30  # days
         )
         
-        # Dynamic payment method types based on user region
-        payment_method_types = ['card', 'apple_pay', 'google_pay']
+        # Use only 'card' payment method to avoid compatibility issues
+        payment_method_types = ['card']
         
         # Add region-specific payment methods
         # These are the payment methods supported by Stripe
@@ -280,7 +280,8 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         # Use the country code if provided
         user_country = country_code
         # Dynamic payment method types based on user region
-        payment_method_types = ['card', 'apple_pay', 'google_pay']
+        # Only use 'card' to avoid compatibility issues
+        payment_method_types = ['card']
         
         # Add region-specific payment methods
         # These are the payment methods supported by Stripe

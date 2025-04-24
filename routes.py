@@ -998,6 +998,15 @@ def create_checkout_session():
         else:
             return redirect(url_for('practice_index'))
     
+    # Check if user already has a Value Pack (cannot purchase additional packages)
+    if current_user.is_authenticated and current_user.subscription_status == 'Value Pack' and current_user.is_subscribed():
+        error_message = 'You already have an active Value Pack subscription. You cannot purchase additional test packages while your Value Pack is active.'
+        if request.is_json:
+            return jsonify({'error': error_message}), 400
+        else:
+            flash(error_message, 'info')
+            return redirect(url_for('subscribe'))
+    
     # Create a Stripe checkout session
     success_url = url_for('payment_success', package=package, test_preference=test_preference, _external=True)
     cancel_url = url_for('payment_cancel', _external=True)
@@ -1059,10 +1068,15 @@ def create_checkout_session():
     
     except Exception as e:
         app.logger.error(f"Error creating checkout session: {str(e)}")
+        # Check for common Stripe errors and provide user-friendly messages
+        error_message = str(e)
+        if "RetryError" in error_message or "InvalidRequestError" in error_message:
+            error_message = "There was an issue processing your payment request. Please try again later or contact support if the problem persists."
+        
         if request.is_json:
-            return jsonify({'error': str(e)}), 500
+            return jsonify({'error': error_message}), 500
         else:
-            flash(f'Error creating checkout session: {str(e)}', 'danger')
+            flash(error_message, 'danger')
             return redirect(url_for('subscribe'))
 
 @app.route('/stripe-checkout', methods=['POST'])
