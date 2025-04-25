@@ -1134,6 +1134,103 @@ def subscribe():
                           test_preference=test_preference,
                           country_code=country_code)
 
+@app.route('/checkout-review', methods=['POST'])
+def checkout_review():
+    """Review page before finalizing payment"""
+    # Handle both form data and JSON requests
+    if request.is_json:
+        data = request.json
+    else:
+        data = request.form
+    
+    plan = data.get('plan')
+    test_type = data.get('test_type', 'academic')
+    test_package = data.get('test_package')
+    
+    # Check if we're using new plan format
+    if plan == 'purchase' and test_type and test_package:
+        # For new subscription format
+        package = test_package
+    else:
+        # For old format
+        package = data.get('package')
+        if not package and test_package:
+            package = test_package
+    
+    # Validate required fields
+    if not package:
+        if request.is_json:
+            return jsonify({'error': 'No package selected'}), 400
+        else:
+            flash('No package selected', 'danger')
+            return redirect(url_for('subscribe'))
+    
+    # Free test doesn't need payment
+    if package == 'free':
+        if request.is_json:
+            return jsonify({'url': url_for('practice_index')}), 200
+        else:
+            return redirect(url_for('practice_index'))
+    
+    # Package pricing and details
+    package_details = {
+        'single': {
+            'name': f'IELTS {test_type.capitalize()} - Single Test Package',
+            'description': f'1 IELTS {test_type.capitalize()} Practice Test with AI Assessment (15-day access)',
+            'price': 2500,  # in cents
+            'discount': 0,  # No discount by default
+            'tests': 1,
+            'days': 15
+        },
+        'double': {
+            'name': f'IELTS {test_type.capitalize()} - Double Test Package',
+            'description': f'2 IELTS {test_type.capitalize()} Practice Tests with AI Assessment (15-day access)',
+            'price': 3500,  # in cents
+            'discount': 0,  # No discount by default
+            'tests': 2,
+            'days': 15
+        },
+        'pack': {
+            'name': f'IELTS {test_type.capitalize()} - Value Pack',
+            'description': f'4 IELTS {test_type.capitalize()} Practice Tests with AI Assessment (30-day access)',
+            'price': 5000,  # in cents
+            'discount': 0,  # No discount by default
+            'tests': 4,
+            'days': 30
+        }
+    }
+    
+    if package not in package_details:
+        if request.is_json:
+            return jsonify({'error': 'Invalid package selected'}), 400
+        else:
+            flash('Invalid package selected', 'danger')
+            return redirect(url_for('subscribe'))
+    
+    # Format the test type for display (academic -> Academic, general -> General Training)
+    if test_type.lower() == 'general':
+        test_type_formatted = 'General Training'
+    else:
+        test_type_formatted = test_type.capitalize()
+    
+    # Store package data in session
+    session['checkout_package'] = package
+    session['checkout_test_type'] = test_type
+    
+    # Render the checkout review page
+    return render_template('checkout_review.html',
+                          title='Review Your Purchase',
+                          plan=plan or 'purchase',
+                          test_type=test_type,
+                          test_type_formatted=test_type_formatted,
+                          test_package=package,
+                          package_name=package_details[package]['name'],
+                          description=package_details[package]['description'],
+                          price=package_details[package]['price'],
+                          discount=package_details[package]['discount'],
+                          tests=package_details[package]['tests'],
+                          days=package_details[package]['days'])
+
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     # Handle both form data and JSON requests
