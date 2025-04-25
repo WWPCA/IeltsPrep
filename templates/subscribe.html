@@ -147,13 +147,13 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
                             <input type="hidden" name="test_type" value="academic">
                             <input type="hidden" name="test_package" value="double">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-primary w-100">Select Package</button>
                         </form>
                     {% endif %}
                 </div>
@@ -180,13 +180,13 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
                             <input type="hidden" name="test_type" value="academic">
                             <input type="hidden" name="test_package" value="pack">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-primary w-100">Select Package</button>
                         </form>
                     {% endif %}
                 </div>
@@ -230,13 +230,13 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
                             <input type="hidden" name="test_type" value="general">
                             <input type="hidden" name="test_package" value="single">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-success w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-success w-100">Select Package</button>
                         </form>
                     {% endif %}
                 </div>
@@ -262,13 +262,13 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
                             <input type="hidden" name="test_type" value="general">
                             <input type="hidden" name="test_package" value="double">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-success w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-success w-100">Select Package</button>
                         </form>
                     {% endif %}
                 </div>
@@ -295,13 +295,13 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                        <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
                             <input type="hidden" name="test_type" value="general">
                             <input type="hidden" name="test_package" value="pack">
                             <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-success w-100">Buy Now</button>
+                            <button type="submit" class="btn btn-success w-100">Select Package</button>
                         </form>
                     {% endif %}
                 </div>
@@ -326,7 +326,7 @@
         {% if payment_methods %}
             <div class="row">
                 <div class="col-md-8 offset-md-2">
-                    <form method="POST" action="{{ url_for('create_checkout_session') }}" class="mb-4">
+                    <form method="POST" action="{{ url_for('checkout_review') }}" class="mb-4">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group mb-4">
                             <label for="plan" class="form-label"><strong>Select Your Plan:</strong></label>
@@ -373,7 +373,7 @@
                         </div>
                         
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" id="proceedButton">Proceed to Payment</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="proceedButton">Review Order</button>
                         </div>
                     </form>
                 </div>
