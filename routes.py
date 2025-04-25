@@ -1217,9 +1217,13 @@ def checkout_review():
     session['checkout_package'] = package
     session['checkout_test_type'] = test_type
     
+    # Get Stripe publishable key from environment
+    stripe_publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+    
     # Render the checkout review page
     return render_template('checkout_review.html',
                           title='Review Your Purchase',
+                          stripe_publishable_key=stripe_publishable_key,
                           plan=plan or 'purchase',
                           test_type=test_type,
                           test_type_formatted=test_type_formatted,
