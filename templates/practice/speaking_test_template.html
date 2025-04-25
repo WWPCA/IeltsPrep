@@ -1,0 +1,788 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('practice_test_list', test_type='speaking') }}">Speaking</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ test.title }}</li>
+                </ol>
+            </nav>
+            
+            <!-- Test Content -->
+            <div class="practice-test">
+                <h1 class="mb-4">{{ test.title }}</h1>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="h4 mb-0">Speaking Test Instructions</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h4><i class="fas fa-info-circle me-2"></i> Test Format</h4>
+                            <p>This IELTS Speaking test consists of 3 parts:</p>
+                            <ul>
+                                <li><strong>Part 1:</strong> Introduction and interview (4-5 minutes)</li>
+                                <li><strong>Part 2:</strong> Individual long turn (3-4 minutes)</li>
+                                <li><strong>Part 3:</strong> Two-way discussion (4-5 minutes)</li>
+                            </ul>
+                            <p>The total test time is 11-14 minutes.</p>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <h4><i class="fas fa-exclamation-triangle me-2"></i> Device Requirements</h4>
+                            <ul>
+                                <li>This test requires a working microphone on your device.</li>
+                                <li>You should be in a quiet environment with minimal background noise.</li>
+                                <li>Test your microphone before starting the speaking test.</li>
+                            </ul>
+                            <div class="text-center mt-3">
+                                <button id="test-microphone-button" class="btn btn-outline-primary">
+                                    <i class="fas fa-microphone me-2"></i> Test Your Microphone
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="mic-test-container" class="mt-4 d-none">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="mb-3">Microphone Test</h5>
+                                    <p class="mb-4">Speak into your microphone to see if it's working correctly.</p>
+                                    
+                                    <div class="mic-level-container mb-4">
+                                        <div id="mic-level" class="mic-level"></div>
+                                    </div>
+                                    
+                                    <div class="mic-status mb-3">
+                                        <span id="mic-status-text">Please grant microphone access to continue</span>
+                                    </div>
+                                    
+                                    <button id="stop-mic-test-button" class="btn btn-outline-secondary d-none">
+                                        <i class="fas fa-stop-circle me-2"></i> Stop Test
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="speaking-test-form" data-test-id="{{ test.id }}" data-test-type="speaking">
+                    <!-- Part 1: Introduction and Interview -->
+                    <div class="card mb-5">
+                        <div class="card-header bg-secondary text-white">
+                            <h3 class="h5 mb-0">Part 1: Introduction and Interview</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="speaking-task mb-4">
+                                <p>In this part, the examiner introduces themselves and asks you to introduce yourself. They will ask general questions about familiar topics such as home, family, work, studies, and interests.</p>
+                                
+                                <div class="part-instructions alert alert-light">
+                                    <p><strong>Instructions:</strong></p>
+                                    <ul>
+                                        <li>You will hear questions about several topics.</li>
+                                        <li>Answer each question naturally and fully (but not too long).</li>
+                                        <li>Try to provide details and examples where appropriate.</li>
+                                        <li>This part lasts 4-5 minutes.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="speaking-prompts mt-4 mb-4">
+                                    <h5>Sample Topics:</h5>
+                                    <div class="topic-section mb-3">
+                                        <h6>Home</h6>
+                                        <ul>
+                                            <li>What kind of accommodation do you live in?</li>
+                                            <li>How long have you lived there?</li>
+                                            <li>What do you like about where you live?</li>
+                                            <li>What would you change about where you live?</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="topic-section mb-3">
+                                        <h6>Work/Studies</h6>
+                                        <ul>
+                                            <li>What do you do? Do you work or are you a student?</li>
+                                            <li>Why did you choose this field?</li>
+                                            <li>What do you enjoy most about your work/studies?</li>
+                                            <li>What are your future plans for your career/education?</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="topic-section">
+                                        <h6>Free Time</h6>
+                                        <ul>
+                                            <li>What do you enjoy doing in your free time?</li>
+                                            <li>How did you become interested in this activity?</li>
+                                            <li>Do you prefer indoor or outdoor activities?</li>
+                                            <li>What activities would you like to try in the future?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="recording-section">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5>Part 1 Recording</h5>
+                                            
+                                            <div class="active-question mb-3 p-3 border rounded">
+                                                <p id="part1-question" class="mb-0 fw-bold">What kind of accommodation do you live in?</p>
+                                            </div>
+                                            
+                                            <div class="text-center mb-3">
+                                                <button type="button" id="start-part1-recording" class="btn btn-primary">
+                                                    <i class="fas fa-microphone me-2"></i> Start Recording
+                                                </button>
+                                                <button type="button" id="stop-part1-recording" class="btn btn-danger d-none">
+                                                    <i class="fas fa-stop-circle me-2"></i> Stop Recording
+                                                </button>
+                                            </div>
+                                            
+                                            <div id="part1-recording-status" class="recording-status text-center">
+                                                <span>Click "Start Recording" when you're ready to answer</span>
+                                            </div>
+                                            
+                                            <div id="part1-recorder-container" class="d-none">
+                                                <div class="audio-visualizer my-3">
+                                                    <div id="part1-visualizer" class="visualizer-inner"></div>
+                                                </div>
+                                                <div class="recording-timer" id="part1-timer">00:00</div>
+                                            </div>
+                                            
+                                            <div id="part1-audio-playback" class="audio-playback d-none mt-3">
+                                                <h6>Your Recording:</h6>
+                                                <audio id="part1-audio-element" controls class="w-100"></audio>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Part 2: Individual Long Turn (Cue Card) -->
+                    <div class="card mb-5">
+                        <div class="card-header bg-secondary text-white">
+                            <h3 class="h5 mb-0">Part 2: Individual Long Turn</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="speaking-task mb-4">
+                                <p>In this part, the examiner gives you a task card with a topic and some points to include in your talk. You have 1 minute to prepare, and then you need to speak for 1-2 minutes on the topic.</p>
+                                
+                                <div class="part-instructions alert alert-light">
+                                    <p><strong>Instructions:</strong></p>
+                                    <ul>
+                                        <li>You will see a cue card with a topic and bullet points.</li>
+                                        <li>You have 1 minute to prepare your answer.</li>
+                                        <li>Try to cover all the points on the card.</li>
+                                        <li>Speak for 1-2 minutes without interruption.</li>
+                                        <li>The examiner will tell you when to stop.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="cue-card-section my-4 p-4 border rounded">
+                                    <h5 class="card-title mb-3">Describe a place you have visited that you found interesting.</h5>
+                                    <p>You should say:</p>
+                                    <ul>
+                                        <li>where this place is</li>
+                                        <li>when you visited this place</li>
+                                        <li>what you did there</li>
+                                    </ul>
+                                    <p>and explain why you found this place interesting.</p>
+                                </div>
+                                
+                                <div class="preparation-timer mb-4 text-center">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h5>Preparation Time</h5>
+                                            <div id="prep-timer" class="timer-display">01:00</div>
+                                            <button type="button" id="start-prep-timer" class="btn btn-outline-primary mt-2">
+                                                <i class="fas fa-clock me-2"></i> Start Preparation Timer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="recording-section">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5>Part 2 Recording</h5>
+                                            <p class="text-muted">Speak for 1-2 minutes about the topic on the cue card.</p>
+                                            
+                                            <div class="text-center mb-3">
+                                                <button type="button" id="start-part2-recording" class="btn btn-primary">
+                                                    <i class="fas fa-microphone me-2"></i> Start Recording
+                                                </button>
+                                                <button type="button" id="stop-part2-recording" class="btn btn-danger d-none">
+                                                    <i class="fas fa-stop-circle me-2"></i> Stop Recording
+                                                </button>
+                                            </div>
+                                            
+                                            <div id="part2-recording-status" class="recording-status text-center">
+                                                <span>Click "Start Recording" when you're ready to begin your talk</span>
+                                            </div>
+                                            
+                                            <div id="part2-recorder-container" class="d-none">
+                                                <div class="audio-visualizer my-3">
+                                                    <div id="part2-visualizer" class="visualizer-inner"></div>
+                                                </div>
+                                                <div class="recording-timer" id="part2-timer">00:00</div>
+                                            </div>
+                                            
+                                            <div id="part2-audio-playback" class="audio-playback d-none mt-3">
+                                                <h6>Your Recording:</h6>
+                                                <audio id="part2-audio-element" controls class="w-100"></audio>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Part 3: Two-way Discussion -->
+                    <div class="card mb-5">
+                        <div class="card-header bg-secondary text-white">
+                            <h3 class="h5 mb-0">Part 3: Two-way Discussion</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="speaking-task mb-4">
+                                <p>In this part, the examiner asks you further questions connected to the topic in Part 2. These questions allow you to discuss more abstract ideas and issues.</p>
+                                
+                                <div class="part-instructions alert alert-light">
+                                    <p><strong>Instructions:</strong></p>
+                                    <ul>
+                                        <li>You will hear questions related to the topic from Part 2.</li>
+                                        <li>The questions become more abstract and require deeper thinking.</li>
+                                        <li>Express and justify opinions, evaluate and speculate about issues.</li>
+                                        <li>This part lasts 4-5 minutes.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="speaking-prompts mt-4 mb-4">
+                                    <h5>Sample Discussion Questions (related to travel and interesting places):</h5>
+                                    <ul>
+                                        <li>Why do you think some places attract more tourists than others?</li>
+                                        <li>How has tourism changed in your country in recent years?</li>
+                                        <li>In what ways do you think tourism might affect local communities?</li>
+                                        <li>Do you think the government should protect certain areas from tourism? Why/Why not?</li>
+                                        <li>How might travel and tourism change in the future?</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="recording-section">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5>Part 3 Recording</h5>
+                                            
+                                            <div class="active-question mb-3 p-3 border rounded">
+                                                <p id="part3-question" class="mb-0 fw-bold">Why do you think some places attract more tourists than others?</p>
+                                            </div>
+                                            
+                                            <div class="text-center mb-3">
+                                                <button type="button" id="start-part3-recording" class="btn btn-primary">
+                                                    <i class="fas fa-microphone me-2"></i> Start Recording
+                                                </button>
+                                                <button type="button" id="stop-part3-recording" class="btn btn-danger d-none">
+                                                    <i class="fas fa-stop-circle me-2"></i> Stop Recording
+                                                </button>
+                                            </div>
+                                            
+                                            <div id="part3-recording-status" class="recording-status text-center">
+                                                <span>Click "Start Recording" when you're ready to answer</span>
+                                            </div>
+                                            
+                                            <div id="part3-recorder-container" class="d-none">
+                                                <div class="audio-visualizer my-3">
+                                                    <div id="part3-visualizer" class="visualizer-inner"></div>
+                                                </div>
+                                                <div class="recording-timer" id="part3-timer">00:00</div>
+                                            </div>
+                                            
+                                            <div id="part3-audio-playback" class="audio-playback d-none mt-3">
+                                                <h6>Your Recording:</h6>
+                                                <audio id="part3-audio-element" controls class="w-100"></audio>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden audio blobs for form submission -->
+                    <input type="hidden" id="part1-audio-blob" name="part1_audio">
+                    <input type="hidden" id="part2-audio-blob" name="part2_audio">
+                    <input type="hidden" id="part3-audio-blob" name="part3_audio">
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submit-speaking-test">
+                            Submit Recordings for Assessment
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="test-results" class="mt-5"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Audio recording configuration
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordingTimer = null;
+    let seconds = 0;
+    let activePart = null;
+    
+    // DOM elements for microphone test
+    const testMicButton = document.getElementById('test-microphone-button');
+    const micTestContainer = document.getElementById('mic-test-container');
+    const micLevel = document.getElementById('mic-level');
+    const micStatusText = document.getElementById('mic-status-text');
+    const stopMicTestButton = document.getElementById('stop-mic-test-button');
+    
+    // DOM elements for Part 1
+    const startPart1Button = document.getElementById('start-part1-recording');
+    const stopPart1Button = document.getElementById('stop-part1-recording');
+    const part1Status = document.getElementById('part1-recording-status');
+    const part1RecorderContainer = document.getElementById('part1-recorder-container');
+    const part1Timer = document.getElementById('part1-timer');
+    const part1Visualizer = document.getElementById('part1-visualizer');
+    const part1AudioPlayback = document.getElementById('part1-audio-playback');
+    const part1AudioElement = document.getElementById('part1-audio-element');
+    const part1AudioBlob = document.getElementById('part1-audio-blob');
+    
+    // DOM elements for Part 2
+    const prepTimerDisplay = document.getElementById('prep-timer');
+    const startPrepTimerButton = document.getElementById('start-prep-timer');
+    const startPart2Button = document.getElementById('start-part2-recording');
+    const stopPart2Button = document.getElementById('stop-part2-recording');
+    const part2Status = document.getElementById('part2-recording-status');
+    const part2RecorderContainer = document.getElementById('part2-recorder-container');
+    const part2Timer = document.getElementById('part2-timer');
+    const part2Visualizer = document.getElementById('part2-visualizer');
+    const part2AudioPlayback = document.getElementById('part2-audio-playback');
+    const part2AudioElement = document.getElementById('part2-audio-element');
+    const part2AudioBlob = document.getElementById('part2-audio-blob');
+    
+    // DOM elements for Part 3
+    const startPart3Button = document.getElementById('start-part3-recording');
+    const stopPart3Button = document.getElementById('stop-part3-recording');
+    const part3Status = document.getElementById('part3-recording-status');
+    const part3RecorderContainer = document.getElementById('part3-recorder-container');
+    const part3Timer = document.getElementById('part3-timer');
+    const part3Visualizer = document.getElementById('part3-visualizer');
+    const part3AudioPlayback = document.getElementById('part3-audio-playback');
+    const part3AudioElement = document.getElementById('part3-audio-element');
+    const part3AudioBlob = document.getElementById('part3-audio-blob');
+    
+    // Form element
+    const speakingForm = document.getElementById('speaking-test-form');
+    const submitButton = document.getElementById('submit-speaking-test');
+    
+    // Mic test button click handler
+    testMicButton.addEventListener('click', function() {
+        micTestContainer.classList.remove('d-none');
+        testMicButton.classList.add('d-none');
+        
+        // Request microphone access
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                // Show the stop button
+                stopMicTestButton.classList.remove('d-none');
+                
+                // Update status text
+                micStatusText.textContent = 'Microphone is working! Speak to see the level change.';
+                
+                // Create audio context for visualization
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioSource = audioContext.createMediaStreamSource(stream);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                audioSource.connect(analyser);
+                
+                // Visualize microphone input
+                function visualizeMic() {
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    
+                    function draw() {
+                        if (!micTestContainer.classList.contains('d-none')) {
+                            requestAnimationFrame(draw);
+                        }
+                        
+                        analyser.getByteFrequencyData(dataArray);
+                        let average = 0;
+                        for (let i = 0; i < bufferLength; i++) {
+                            average += dataArray[i];
+                        }
+                        average = average / bufferLength;
+                        
+                        // Adjust the level meter
+                        const levelHeight = Math.min(100, average * 2);
+                        micLevel.style.height = levelHeight + '%';
+                        
+                        // Change color based on level
+                        if (levelHeight < 30) {
+                            micLevel.style.backgroundColor = '#4CAF50'; // Low (green)
+                        } else if (levelHeight < 70) {
+                            micLevel.style.backgroundColor = '#FFC107'; // Medium (yellow)
+                        } else {
+                            micLevel.style.backgroundColor = '#F44336'; // High (red)
+                        }
+                    }
+                    
+                    draw();
+                }
+                
+                visualizeMic();
+                
+                // Store the stream to stop it later
+                window.micTestStream = stream;
+            })
+            .catch(error => {
+                console.error('Error accessing microphone:', error);
+                micStatusText.textContent = 'Error accessing microphone. Please check your browser permissions.';
+                micStatusText.style.color = 'red';
+            });
+    });
+    
+    // Stop mic test button click handler
+    stopMicTestButton.addEventListener('click', function() {
+        // Stop the microphone stream
+        if (window.micTestStream) {
+            window.micTestStream.getTracks().forEach(track => track.stop());
+        }
+        
+        // Hide the mic test container
+        micTestContainer.classList.add('d-none');
+        
+        // Show the mic test button again
+        testMicButton.classList.remove('d-none');
+        
+        // Hide the stop button
+        stopMicTestButton.classList.add('d-none');
+    });
+    
+    // Preparation timer for Part 2
+    let prepTimerInterval = null;
+    let prepTimeLeft = 60; // 1 minute
+    
+    startPrepTimerButton.addEventListener('click', function() {
+        startPrepTimerButton.disabled = true;
+        
+        prepTimerInterval = setInterval(function() {
+            prepTimeLeft--;
+            
+            // Format the time as MM:SS
+            const minutes = Math.floor(prepTimeLeft / 60);
+            const seconds = prepTimeLeft % 60;
+            prepTimerDisplay.textContent = 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+            
+            // Change color to red when time is running out
+            if (prepTimeLeft <= 10) {
+                prepTimerDisplay.style.color = 'red';
+            }
+            
+            // End the timer when it reaches 0
+            if (prepTimeLeft <= 0) {
+                clearInterval(prepTimerInterval);
+                prepTimerDisplay.textContent = 'Time\'s up!';
+                
+                // Optionally auto-start the recording for Part 2
+                // startPart2Button.click();
+            }
+        }, 1000);
+    });
+    
+    // Function to start recording
+    function startRecording(part) {
+        // Reset variables
+        audioChunks = [];
+        seconds = 0;
+        activePart = part;
+        
+        // Set up recorder UI based on active part
+        let statusElement, recorderContainer, timerElement, visualizerElement, startButton, stopButton;
+        
+        if (part === 'part1') {
+            statusElement = part1Status;
+            recorderContainer = part1RecorderContainer;
+            timerElement = part1Timer;
+            visualizerElement = part1Visualizer;
+            startButton = startPart1Button;
+            stopButton = stopPart1Button;
+        } else if (part === 'part2') {
+            statusElement = part2Status;
+            recorderContainer = part2RecorderContainer;
+            timerElement = part2Timer;
+            visualizerElement = part2Visualizer;
+            startButton = startPart2Button;
+            stopButton = stopPart2Button;
+        } else if (part === 'part3') {
+            statusElement = part3Status;
+            recorderContainer = part3RecorderContainer;
+            timerElement = part3Timer;
+            visualizerElement = part3Visualizer;
+            startButton = startPart3Button;
+            stopButton = stopPart3Button;
+        }
+        
+        // Show the recorder container and hide the start button
+        recorderContainer.classList.remove('d-none');
+        startButton.classList.add('d-none');
+        stopButton.classList.remove('d-none');
+        
+        // Update status text
+        statusElement.innerHTML = '<span class="text-danger"><i class="fas fa-circle-notch fa-spin me-2"></i> Recording...</span>';
+        
+        // Request microphone access
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                // Create media recorder
+                mediaRecorder = new MediaRecorder(stream);
+                
+                // Set up event handlers
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    // Create blob from audio chunks
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    
+                    // Create URL for the audio blob
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Set up audio playback
+                    let audioElement, audioPlayback, audioBlobInput;
+                    
+                    if (part === 'part1') {
+                        audioElement = part1AudioElement;
+                        audioPlayback = part1AudioPlayback;
+                        audioBlobInput = part1AudioBlob;
+                    } else if (part === 'part2') {
+                        audioElement = part2AudioElement;
+                        audioPlayback = part2AudioPlayback;
+                        audioBlobInput = part2AudioBlob;
+                    } else if (part === 'part3') {
+                        audioElement = part3AudioElement;
+                        audioPlayback = part3AudioPlayback;
+                        audioBlobInput = part3AudioBlob;
+                    }
+                    
+                    // Show the audio playback element
+                    audioPlayback.classList.remove('d-none');
+                    
+                    // Set the audio source and enable controls
+                    audioElement.src = audioUrl;
+                    
+                    // Convert blob to base64 for form submission
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = function() {
+                        const base64data = reader.result;
+                        audioBlobInput.value = base64data;
+                    };
+                    
+                    // Update status text
+                    statusElement.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-2"></i> Recording complete. You can listen to your answer and re-record if needed.</span>';
+                    
+                    // Enable the start button for re-recording
+                    startButton.textContent = 'Record Again';
+                    startButton.classList.remove('d-none');
+                    
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                // Start recording
+                mediaRecorder.start();
+                
+                // Start timer
+                recordingTimer = setInterval(() => {
+                    seconds++;
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    timerElement.textContent = 
+                        String(minutes).padStart(2, '0') + ':' + 
+                        String(remainingSeconds).padStart(2, '0');
+                    
+                    // For Part 2, show a warning when approaching 2 minutes
+                    if (part === 'part2' && seconds >= 110) { // 1 minute 50 seconds
+                        timerElement.style.color = 'red';
+                    }
+                    
+                    // For Parts 1 and 3, show a warning after 1 minute
+                    if ((part === 'part1' || part === 'part3') && seconds >= 55) {
+                        timerElement.style.color = 'red';
+                    }
+                    
+                    // Optional auto-stop for Part 2 after 2 minutes
+                    // if (part === 'part2' && seconds >= 120) {
+                    //     stopRecording();
+                    // }
+                }, 1000);
+                
+                // Create audio context for visualization
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioSource = audioContext.createMediaStreamSource(stream);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                audioSource.connect(analyser);
+                
+                // Visualize audio
+                function visualizeAudio() {
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    
+                    function draw() {
+                        if (mediaRecorder && mediaRecorder.state === 'recording') {
+                            requestAnimationFrame(draw);
+                            
+                            analyser.getByteFrequencyData(dataArray);
+                            
+                            // Get the average frequency
+                            let sum = 0;
+                            for (let i = 0; i < bufferLength; i++) {
+                                sum += dataArray[i];
+                            }
+                            const average = sum / bufferLength;
+                            
+                            // Create visualization bars
+                            visualizerElement.innerHTML = '';
+                            const numBars = 20;
+                            
+                            for (let i = 0; i < numBars; i++) {
+                                const bar = document.createElement('div');
+                                bar.className = 'visualizer-bar';
+                                
+                                // Calculate height based on frequency data with some randomness
+                                const index = Math.floor(i * bufferLength / numBars);
+                                const frequency = dataArray[index];
+                                const randomFactor = 0.7 + Math.random() * 0.6; // Random value between 0.7 and 1.3
+                                
+                                // Calculate height: base on average and add specific frequency data
+                                let height = (average * 0.4 + frequency * 0.6) * randomFactor;
+                                height = Math.min(100, height); // Cap at 100%
+                                
+                                bar.style.height = height + '%';
+                                visualizerElement.appendChild(bar);
+                            }
+                        }
+                    }
+                    
+                    draw();
+                }
+                
+                visualizeAudio();
+            })
+            .catch(error => {
+                console.error('Error accessing microphone:', error);
+                statusElement.innerHTML = '<span class="text-danger">Error accessing microphone. Please check your permissions.</span>';
+                
+                // Re-enable the start button
+                startButton.classList.remove('d-none');
+                stopButton.classList.add('d-none');
+            });
+    }
+    
+    // Function to stop recording
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            clearInterval(recordingTimer);
+            
+            let stopButton;
+            if (activePart === 'part1') {
+                stopButton = stopPart1Button;
+            } else if (activePart === 'part2') {
+                stopButton = stopPart2Button;
+            } else if (activePart === 'part3') {
+                stopButton = stopPart3Button;
+            }
+            
+            stopButton.classList.add('d-none');
+        }
+    }
+    
+    // Event listeners for Part 1
+    startPart1Button.addEventListener('click', function() {
+        startRecording('part1');
+    });
+    
+    stopPart1Button.addEventListener('click', function() {
+        stopRecording();
+    });
+    
+    // Event listeners for Part 2
+    startPart2Button.addEventListener('click', function() {
+        startRecording('part2');
+    });
+    
+    stopPart2Button.addEventListener('click', function() {
+        stopRecording();
+    });
+    
+    // Event listeners for Part 3
+    startPart3Button.addEventListener('click', function() {
+        startRecording('part3');
+    });
+    
+    stopPart3Button.addEventListener('click', function() {
+        stopRecording();
+    });
+    
+    // Form submission
+    speakingForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Check if all parts have been recorded
+        if (!part1AudioBlob.value || !part2AudioBlob.value || !part3AudioBlob.value) {
+            alert('Please record all three parts before submitting.');
+            return;
+        }
+        
+        // Submit form data using fetch API
+        const formData = new FormData(speakingForm);
+        
+        // Show loading indicator
+        submitButton.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i> Processing...';
+        submitButton.disabled = true;
+        
+        fetch('/api/submit-speaking-test', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Redirect to results page or display results
+            window.location.href = data.redirect_url || '/practice/speaking/results';
+        })
+        .catch(error => {
+            console.error('Error submitting test:', error);
+            alert('There was a problem submitting your test. Please try again.');
+            submitButton.innerHTML = 'Submit Recordings for Assessment';
+            submitButton.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}
