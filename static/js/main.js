@@ -108,13 +108,7 @@ function checkConnectionStatus() {
             connectionIndicator.classList.remove('visible');
             document.body.classList.remove('connection-lost');
             
-            // If we're back online, reload if on a test page
-            if (window.location.pathname.includes('/practice/')) {
-                // Only reload if we're on a test page to ensure test data integrity
-                if (confirm('Your connection has been restored. Reload the page to continue?')) {
-                    window.location.reload();
-                }
-            }
+            // We've removed the automatic reload confirmation to prevent popup errors
         }
     }
     
