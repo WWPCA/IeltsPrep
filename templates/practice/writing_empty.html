@@ -1,97 +1,93 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-lg-12 mx-auto">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url_for('practice_test_list', test_type='writing') }}">Writing</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ test.title }}</li>
-                </ol>
-            </nav>
+<div class="container-fluid p-0">
+    <!-- IELTS Header -->
+    <div class="bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <img src="/static/images/ielts-logo.svg" alt="IELTS" height="30" class="me-2">
+            <span class="fw-bold">Test taker ID</span>
+        </div>
+        <div id="test-timer" class="timer badge bg-primary" data-test-type="writing">60:00</div>
+        <div>
+            <i class="fas fa-wifi me-3"></i>
+            <i class="fas fa-bell me-3"></i>
+            <i class="fas fa-bars"></i>
+        </div>
+    </div>
+    
+    <!-- Part Indicator -->
+    <div class="bg-light border-bottom p-2">
+        <div class="container-fluid">
+            <h6 class="mb-1">Part 1</h6>
+            <p class="mb-0 small">You should spend about 20 minutes on this task. Write at least 150 words.</p>
+        </div>
+    </div>
 
-            <!-- Test Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="mb-0">{{ test.title }}</h3>
-                <div id="test-timer" class="timer" data-test-type="writing">60:00</div>
+    <!-- Main Content -->
+    <div class="row g-0">
+        <!-- Left Column - Task and Chart -->
+        <div class="col-md-6 border-end">
+            <div class="task-container p-3" style="height: calc(100vh - 110px); overflow-y: auto;">
+                <!-- Task Description -->
+                <p class="mb-3">The chart below shows the number of adults participating in different major sports in one area, in 1997 and 2017.</p>
+                <p class="mb-4">Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</p>
+                
+                <!-- Chart/Image -->
+                <div class="chart-container mb-4 text-center">
+                    <img src="/static/images/ielts_chart.svg" alt="Chart showing number of adults participating in sports" class="img-fluid border rounded" style="max-width: 100%;">
+                </div>
+                
+                <!-- Additional Instructions (Optional) -->
+                <div class="instructions mt-4">
+                    <h6>Tips:</h6>
+                    <ul class="small text-muted">
+                        <li>Begin with an introduction that clearly states what the chart shows.</li>
+                        <li>Identify 2-3 key trends or patterns in the data.</li>
+                        <li>Compare the most significant changes between 1997 and 2017.</li>
+                        <li>Group similar information (e.g., sports that increased vs. decreased).</li>
+                        <li>Use appropriate language for describing trends (increased, declined, remained stable).</li>
+                        <li>Include specific details from the chart to support your observations.</li>
+                        <li>Provide a brief overview paragraph after your introduction.</li>
+                        <li>Don't include your own opinions or information not shown in the chart.</li>
+                    </ul>
+                </div>
             </div>
+        </div>
 
-            <!-- Test Content -->
-            <div class="card mb-4">
-                <div class="card-body p-0">
-                    <div class="row g-0">
-                        <!-- Left Column - Question -->
-                        <div class="col-md-6 border-end">
-                            <div class="p-4">
-                                <!-- Task Header -->
-                                <div class="alert alert-light mb-3">
-                                    <h5 class="mb-1">Part 1</h5>
-                                    <p class="mb-0">You should spend about 20 minutes on this task. Write at least 150 words.</p>
-                                </div>
-
-                                <!-- Task Prompt -->
-                                <p class="mb-4">The chart below shows the number of adults participating in different major sports in one area, in 1997 and 2017.</p>
-                                <p class="mb-4">Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</p>
-
-                                <!-- Visual Information (chart, graph, etc.) -->
-                                <div class="text-center mb-4">
-                                    <!-- The image would be dynamically loaded from test data -->
-                                    <div class="border rounded p-5 bg-light text-center">
-                                        <h5>Number of adults participating in major sports, 1997 and 2017</h5>
-                                        <div class="chart-placeholder" style="height: 300px; display: flex; align-items: center; justify-content: center;">
-                                            <p class="text-muted">[Chart showing sport participation data would appear here]</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Additional Instructions -->
-                                <div class="mt-4">
-                                    <small class="text-muted">
-                                        Remember to:
-                                        <ul>
-                                            <li>Identify key trends and patterns</li>
-                                            <li>Compare the most significant changes</li>
-                                            <li>Group related information logically</li>
-                                            <li>Use appropriate linking words</li>
-                                        </ul>
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right Column - Answer Area -->
-                        <div class="col-md-6">
-                            <div class="p-4">
-                                <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="writing">
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <label for="response" class="form-label">Your Response</label>
-                                            <span id="word-count" class="text-muted">Words: 0</span>
-                                        </div>
-                                        <textarea class="form-control writing-textarea" id="response" 
-                                                rows="20" placeholder="Type your answer here..."
-                                                data-min-words="150" data-question-id="response"></textarea>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between mt-4">
-                                        <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-outline-secondary">
-                                            <i class="fas fa-arrow-left"></i> Back to Tests
-                                        </a>
-                                        <button type="submit" class="btn btn-primary">
-                                            Submit <i class="fas fa-check"></i>
-                                        </button>
-                                    </div>
-                                </form>
+        <!-- Right Column - Answer Area -->
+        <div class="col-md-6">
+            <div class="response-container" style="height: calc(100vh - 110px); display: flex; flex-direction: column;">
+                <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="writing" style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="p-3 flex-grow-1 d-flex flex-column">
+                        <!-- Text Area Container -->
+                        <div class="flex-grow-1 d-flex flex-column">
+                            <textarea class="form-control writing-textarea flex-grow-1 mb-2" 
+                                    style="resize: none; min-height: 350px;" 
+                                    placeholder="Type your answer here..."
+                                    data-min-words="150" 
+                                    data-question-id="response"></textarea>
+                            <div class="d-flex justify-content-end">
+                                <span id="word-count" class="text-muted small">Words: 0</span>
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
-            
-            <!-- Test Results (shown after submission) -->
-            <div id="test-results" class="mt-5"></div>
+        </div>
+    </div>
+    
+    <!-- Navigation Footer -->
+    <div class="bg-light border-top p-2 d-flex justify-content-between align-items-center">
+        <div class="part-navigation">
+            <span class="badge bg-secondary mx-1">Part 1</span>
+        </div>
+        <div class="test-navigation d-flex align-items-center">
+            <span class="me-2">Part 2</span>
+            <span class="badge bg-light text-dark me-3">0 of 1</span>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('practice-test-form').submit()">
+                <i class="fas fa-check"></i>
+            </button>
         </div>
     </div>
 </div>
