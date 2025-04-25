@@ -11,7 +11,7 @@ from openai import OpenAI
 from assessment_criteria.speaking_criteria import SPEAKING_BAND_DESCRIPTORS, SPEAKING_ASSESSMENT_CRITERIA
 
 # Initialize API Clients
-ASSEMBLY_API_KEY = os.environ.get("ASSEMBLY_API_KEY")
+ASSEMBLY_API_KEY = os.environ.get("ASSEMBLYAI_IELTS_API")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
