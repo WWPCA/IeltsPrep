@@ -1,37 +1,274 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container-fluid py-4">
     <div class="row">
-        <div class="col-lg-10 mx-auto">
+        <div class="col-lg-12 mx-auto">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ url_for('practice_test_list', test_type='listening') }}">Listening</a>
-                    </li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('practice_test_list', test_type='listening') }}">Listening</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ test.title }}</li>
                 </ol>
             </nav>
-            
+
+            <!-- Test Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">{{ test.title }}</h3>
+                <div id="test-timer" class="timer" data-test-type="listening">40:00</div>
+            </div>
+
+            <!-- Test Content -->
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h4 mb-0">{{ test.title }}</h2>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <h4 class="alert-heading">Test Temporarily Unavailable</h4>
-                        <p>This test content is currently being updated to provide you with the best learning experience.</p>
-                        <hr>
-                        <p class="mb-0">Please check back soon or try one of our other practice tests.</p>
-                    </div>
-                    
-                    <div class="text-center mt-4">
-                        <a href="{{ url_for('practice_index') }}" class="btn btn-primary">Return to Practice Tests</a>
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <!-- Top Section - Audio Player -->
+                        <div class="col-12 p-4 border-bottom">
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="fas fa-headphones fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h4>IELTS Listening Test Instructions</h4>
+                                        <p>In the actual IELTS test, you will hear the recording ONCE only. For practice purposes, you may play the recording multiple times, but for the most authentic experience, try listening only once.</p>
+                                        <p class="mb-0">You will have 10 minutes at the end to transfer your answers to the answer sheet.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="audio-player-container">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="mb-3">Audio Player</h5>
+                                        
+                                        <audio id="listening-audio" class="w-100" controls data-src="{{ test.audio_url }}">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <span id="current-time">00:00</span>
+                                            <div class="progress flex-grow-1 mx-2" style="height: 8px;">
+                                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <span id="duration">00:00</span>
+                                        </div>
+                                        
+                                        <div class="text-center mt-3">
+                                            <button id="play-audio" class="btn btn-primary">
+                                                <i class="fas fa-play me-2"></i> Play Audio
+                                            </button>
+                                            
+                                            <a href="{{ test.audio_url }}" download class="btn btn-outline-secondary ms-2">
+                                                <i class="fas fa-download me-2"></i> Download Audio
+                                            </a>
+                                        </div>
+                                        
+                                        <div id="audio-error-message" class="alert alert-warning mt-3 d-none">
+                                            <p><strong>Having trouble with the audio?</strong> Try downloading the file and playing it with your device's audio player.</p>
+                                            <p class="mb-0">If you still have issues, please <a href="#" id="audio-fallback-link">click here</a> to open the audio in a new tab.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bottom Section - Questions -->
+                        <div class="col-12">
+                            <div class="p-4">
+                                <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="listening">
+                                    <h4 class="mb-4">Questions</h4>
+                                    
+                                    <!-- Questions Section -->
+                                    <div class="questions-section">
+                                        <!-- Section 1 -->
+                                        <div class="question-section mb-5">
+                                            <h5 class="p-2 bg-light rounded">Section 1: Conversation between a student and a housing advisor</h5>
+                                            
+                                            <div class="question-group mb-4">
+                                                <p class="fw-bold">Questions 1-5</p>
+                                                <p>Complete the form below.</p>
+                                                <p>Write <strong>NO MORE THAN THREE WORDS AND/OR A NUMBER</strong> for each answer.</p>
+                                                
+                                                <div class="form-completion p-3 bg-light rounded mb-3">
+                                                    <h6 class="text-center mb-3">STUDENT HOUSING APPLICATION</h6>
+                                                    
+                                                    <div class="mb-2 row">
+                                                        <label class="col-sm-4 col-form-label">Name:</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" class="form-control answer-input" value="Sarah Williams" readonly>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2 row">
+                                                        <label class="col-sm-4 col-form-label">Student ID:</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" class="form-control answer-input" data-question-id="q1" placeholder="(1)">
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2 row">
+                                                        <label class="col-sm-4 col-form-label">Current Address:</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" class="form-control answer-input" value="45 Oak Street" readonly>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2 row">
+                                                        <label class="col-sm-4 col-form-label">Phone Number:</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" class="form-control answer-input" data-question-id="q2" placeholder="(2)">
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2 row">
+                                                        <label class="col-sm-4 col-form-label">Preferred Building:</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" class="form-control answer-input" data-question-id="q3" placeholder="(3)">
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2 row">
+                                                        <label class="col-sm-4 col-form-label">Maximum Budget:</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" class="form-control answer-input" data-question-id="q4" placeholder="(4)">
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2 row">
+                                                        <label class="col-sm-4 col-form-label">Special Requirement:</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" class="form-control answer-input" data-question-id="q5" placeholder="(5)">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Section 2 -->
+                                        <div class="question-section mb-5">
+                                            <h5 class="p-2 bg-light rounded">Section 2: Information about campus facilities</h5>
+                                            
+                                            <div class="question-group mb-4">
+                                                <p class="fw-bold">Questions 6-10</p>
+                                                <p>Complete the notes below.</p>
+                                                <p>Write <strong>ONE WORD ONLY</strong> for each answer.</p>
+                                                
+                                                <div class="notes-completion p-3 bg-light rounded">
+                                                    <h6>CAMPUS LIBRARY SERVICES</h6>
+                                                    <ul>
+                                                        <li>Opening hours: 8 AM to 10 PM (Monday to <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q6" placeholder="(6)">)</li>
+                                                        <li>Weekend hours: 10 AM to 6 PM</li>
+                                                        <li>Study rooms must be <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q7" placeholder="(7)"> at least 24 hours in advance</li>
+                                                        <li>New <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q8" placeholder="(8)"> center located on the second floor</li>
+                                                        <li>Printing costs: 10 cents per <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q9" placeholder="(9)"></li>
+                                                        <li>Student ID card needed to <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q10" placeholder="(10)"> books</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <a href="{{ url_for('practice_test_list', test_type='listening') }}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left"></i> Back to Tests
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            Submit Answers <i class="fas fa-check"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Test Results (shown after submission) -->
+            <div id="test-results" class="mt-5"></div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize audio player when the audio element is loaded
+        const audioElement = document.getElementById('listening-audio');
+        const playButton = document.getElementById('play-audio');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const durationDisplay = document.getElementById('duration');
+        const progressBar = document.querySelector('.progress-bar');
+        
+        if (audioElement && playButton) {
+            // Set up audio source
+            if (audioElement.hasAttribute('data-src')) {
+                const audioSrc = audioElement.getAttribute('data-src');
+                
+                // Set up play/pause functionality
+                playButton.addEventListener('click', function() {
+                    // If audio source not loaded yet, load it first
+                    if (!audioElement.hasAttribute('src')) {
+                        console.log('Loading audio from:', audioSrc);
+                        audioElement.setAttribute('src', audioSrc);
+                        
+                        // Wait for it to be ready before playing
+                        audioElement.addEventListener('canplay', function onCanPlay() {
+                            audioElement.play();
+                            playButton.innerHTML = '<i class="fas fa-pause me-2"></i> Pause Audio';
+                            audioElement.removeEventListener('canplay', onCanPlay);
+                        });
+                        
+                        // Load the audio
+                        audioElement.load();
+                        return;
+                    }
+                    
+                    // Normal play/pause behavior
+                    if (audioElement.paused) {
+                        audioElement.play();
+                        playButton.innerHTML = '<i class="fas fa-pause me-2"></i> Pause Audio';
+                    } else {
+                        audioElement.pause();
+                        playButton.innerHTML = '<i class="fas fa-play me-2"></i> Play Audio';
+                    }
+                });
+            }
+            
+            // Update progress bar as audio plays
+            audioElement.addEventListener('timeupdate', function() {
+                const progress = (audioElement.currentTime / audioElement.duration) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                // Update time display
+                currentTimeDisplay.textContent = formatTime(Math.floor(audioElement.currentTime));
+            });
+            
+            // Display duration when metadata is loaded
+            audioElement.addEventListener('loadedmetadata', function() {
+                durationDisplay.textContent = formatTime(Math.floor(audioElement.duration));
+            });
+            
+            // Reset button when audio ends
+            audioElement.addEventListener('ended', function() {
+                playButton.innerHTML = '<i class="fas fa-play me-2"></i> Play Audio';
+                progressBar.style.width = '0%';
+            });
+            
+            // Handle errors
+            audioElement.addEventListener('error', function(e) {
+                console.error('Error loading audio:', e);
+                document.getElementById('audio-error-message').classList.remove('d-none');
+            });
+        }
+        
+        // Format time as mm:ss
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+    });
+</script>
 {% endblock %}

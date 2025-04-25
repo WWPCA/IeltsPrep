@@ -1,36 +1,143 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container-fluid py-4">
     <div class="row">
-        <div class="col-lg-10 mx-auto">
+        <div class="col-lg-12 mx-auto">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ url_for('practice_test_list', test_type='reading') }}">Reading</a>
-                    </li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('practice_test_list', test_type='reading') }}">Reading</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ test.title }}</li>
                 </ol>
             </nav>
-            
+
+            <!-- Test Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">{{ test.title }}</h3>
+                <div id="test-timer" class="timer" data-test-type="reading">60:00</div>
+            </div>
+
+            <!-- Test Content -->
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h4 mb-0">{{ test.title }}</h2>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <h4 class="alert-heading">Test Temporarily Unavailable</h4>
-                        <p>This test content is currently being updated to provide you with the best learning experience.</p>
-                        <hr>
-                        <p class="mb-0">Please check back soon or try one of our other practice tests.</p>
-                    </div>
-                    
-                    <div class="text-center mt-4">
-                        <a href="{{ url_for('practice_index') }}" class="btn btn-primary">Return to Practice Tests</a>
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <!-- Left Column - Reading Passage -->
+                        <div class="col-md-6 border-end">
+                            <div class="p-4 reading-passage" style="height: 700px; overflow-y: auto;">
+                                <h4 class="mb-4">Reading Passage</h4>
+                                
+                                <div class="passage-content">
+                                    <h5>The Evolution of Urban Transportation</h5>
+                                    
+                                    <p>Throughout history, the development of transportation systems has been closely tied to urban growth and the changing needs of city dwellers. From the earliest horse-drawn carriages to modern automated metro systems, transportation has shaped how cities expand and how people interact with urban environments.</p>
+                                    
+                                    <p>In the early 19th century, most cities were compact entities where residents typically traveled on foot. Distances were short, and most necessities could be found within walking distance. The industrial revolution changed this pattern dramatically as factories drew large populations to urban centers, creating a need for more efficient transportation systems.</p>
+                                    
+                                    <p>The first significant innovation in urban mass transit was the omnibus, a horse-drawn carriage that followed fixed routes and allowed passengers to board and alight at designated stops. By the 1830s, omnibuses were common features in major European and American cities. Shortly afterward, the horse-drawn tram was introduced, running on rails embedded in the street surface. This innovation reduced friction, allowing horses to pull larger vehicles and more passengers.</p>
+                                    
+                                    <p>The late 19th century saw two major technological advancements that revolutionized urban transportation. First, the development of steam-powered vehicles, although these proved impractical in congested urban environments due to noise and pollution. Second, and more successfully, electric traction was applied to tramways. Electric trams quickly replaced horse-drawn vehicles, allowing for faster travel, greater capacity, and cleaner operation. Cities expanded along tram lines, creating the first suburbs connected to urban centers by public transportation.</p>
+                                    
+                                    <p>The early 20th century marked the rise of the automobile, which would eventually transform cities more profoundly than any previous transportation technology. Initially a luxury for the wealthy, cars became increasingly accessible to the middle class, especially after Henry Ford's introduction of assembly line production methods. Urban planners began designing cities around automobile use, with wider streets, parking facilities, and eventually extensive highway systems.</p>
+                                    
+                                    <p>The mid-20th century saw the decline of many public transportation systems as automobile ownership surged. Cities spread outward in patterns of low-density development that made effective public transportation difficult to maintain. This trend was particularly pronounced in American cities, where extensive highway construction and suburban development created automobile-dependent communities.</p>
+                                    
+                                    <p>However, by the late 20th century, the limitations of automobile-centric development became increasingly apparent. Traffic congestion, air pollution, and energy consumption emerged as serious concerns. Many cities began reinvesting in public transportation, with new or expanded metro systems, light rail, and bus networks. Some urban areas also implemented policies to discourage automobile use, such as congestion pricing, limited parking, and car-free zones.</p>
+                                    
+                                    <p>The 21st century has seen a continuation of these trends, with additional focus on sustainability and technology integration. Many cities now promote walking and cycling with dedicated infrastructure. Shared mobility services, including bike-sharing and car-sharing programs, have become common features of urban transportation ecosystems. The emergence of ride-hailing services has further diversified transportation options, though their long-term impact on traffic and public transit usage remains debated.</p>
+                                    
+                                    <p>Looking ahead, autonomous vehicles and advanced traffic management systems may represent the next major evolution in urban transportation. These technologies promise to increase safety and efficiency while potentially reducing the number of vehicles needed to serve a population. However, they also raise questions about infrastructure requirements, privacy, and how urban space will be allocated.</p>
+                                    
+                                    <p>The history of urban transportation demonstrates that technological innovations do not merely offer new ways to travel; they reshape cities and influence how people live, work, and interact. Each advancement has brought benefits but also challenges and unintended consequences. As cities continue to grow and evolve, finding transportation solutions that are efficient, equitable, and environmentally sustainable remains a critical challenge for urban planners and policymakers worldwide.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Questions -->
+                        <div class="col-md-6">
+                            <div class="p-4">
+                                <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="reading">
+                                    <h4 class="mb-4">Questions</h4>
+                                    
+                                    <!-- Questions Section -->
+                                    <div class="questions-section" style="height: 650px; overflow-y: auto;">
+                                        <div class="question-group mb-4">
+                                            <p class="fw-bold">Questions 1-4</p>
+                                            <p>Complete the summary below.</p>
+                                            <p>Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</p>
+                                            
+                                            <div class="summary-completion p-3 bg-light rounded mb-3">
+                                                <p>In early cities, most people traveled on <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q1" placeholder="(1)"> because distances were short. The first mass transit was the <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q2" placeholder="(2)">, a horse-drawn vehicle with fixed routes. Later, <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q3" placeholder="(3)"> were introduced with rails in the street, which reduced friction and allowed more passengers. In the late 19th century, <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q4" placeholder="(4)"> was applied to tramways, making them faster and cleaner.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="question-group mb-4">
+                                            <p class="fw-bold">Questions 5-9</p>
+                                            <p>Do the following statements agree with the information given in the passage?</p>
+                                            <p>Choose:</p>
+                                            <ul class="list-unstyled ms-4">
+                                                <li><strong>TRUE</strong> if the statement agrees with the information</li>
+                                                <li><strong>FALSE</strong> if the statement contradicts the information</li>
+                                                <li><strong>NOT GIVEN</strong> if there is no information on this</li>
+                                            </ul>
+                                            
+                                            <div class="true-false-group">
+                                                <div class="mb-3">
+                                                    <p>5. Steam-powered vehicles became the dominant form of urban transportation in the late 19th century.</p>
+                                                    <div class="d-flex">
+                                                        <div class="form-check me-3">
+                                                            <input class="form-check-input answer-input" type="radio" name="q5" id="q5-true" value="TRUE" data-question-id="q5">
+                                                            <label class="form-check-label" for="q5-true">TRUE</label>
+                                                        </div>
+                                                        <div class="form-check me-3">
+                                                            <input class="form-check-input answer-input" type="radio" name="q5" id="q5-false" value="FALSE" data-question-id="q5">
+                                                            <label class="form-check-label" for="q5-false">FALSE</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input answer-input" type="radio" name="q5" id="q5-ng" value="NOT GIVEN" data-question-id="q5">
+                                                            <label class="form-check-label" for="q5-ng">NOT GIVEN</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- More true/false questions would be similar -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="question-group mb-4">
+                                            <p class="fw-bold">Questions 10-13</p>
+                                            <p>Complete the notes below.</p>
+                                            <p>Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+                                            
+                                            <div class="notes-completion p-3 bg-light rounded">
+                                                <h6>21st Century Urban Transportation:</h6>
+                                                <ul>
+                                                    <li>Focus on <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q10" placeholder="(10)"> and technology</li>
+                                                    <li>Infrastructure for walking and <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q11" placeholder="(11)"></li>
+                                                    <li>Emergence of ride-<input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q12" placeholder="(12)"> services</li>
+                                                    <li>Future: <input type="text" class="form-control d-inline answer-input" style="width: 120px;" data-question-id="q13" placeholder="(13)"> vehicles</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <a href="{{ url_for('practice_test_list', test_type='reading') }}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left"></i> Back to Tests
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            Submit Answers <i class="fas fa-check"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Test Results (shown after submission) -->
+            <div id="test-results" class="mt-5"></div>
         </div>
     </div>
 </div>

@@ -1,0 +1,678 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('practice_test_list', test_type='reading') }}">Reading</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ test.title }}</li>
+                </ol>
+            </nav>
+            
+            <!-- Timer Display -->
+            <div id="test-timer" class="timer" data-test-type="reading">60:00</div>
+            
+            <!-- Test Content -->
+            <div class="practice-test">
+                <h1 class="mb-4">{{ test.title }}</h1>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="h4 mb-0">Reading Test Instructions</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h4><i class="fas fa-info-circle me-2"></i> Test Format</h4>
+                            <p>This IELTS Reading test consists of 3 passages with 40 questions in total.</p>
+                            <ul>
+                                <li>You have 60 minutes to complete the test.</li>
+                                <li>Each passage becomes increasingly difficult.</li>
+                                <li>The test includes a variety of question types.</li>
+                                <li>All answers must be written on the answer sheet during the test time.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="reading">
+                    <!-- Passage 1 -->
+                    <div class="card mb-5">
+                        <div class="card-header bg-secondary text-white">
+                            <h3 class="h5 mb-0">Passage 1</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="reading-passage mb-4">
+                                <h4 class="passage-title">THE HISTORY OF SALT</h4>
+                                
+                                <div class="passage-text">
+                                    <p>Salt, a simple compound composed of sodium and chloride, has played a crucial role in human civilization for thousands of years. Its ability to preserve food made it one of the world's most sought-after commodities and even led to the establishment of trade routes and the emergence of cities. Salt was so valuable that it was once used as currency, giving rise to the phrase "worth one's salt." In fact, the word "salary" comes from the Latin word "salarium," which referred to the money paid to Roman soldiers for salt.</p>
+                                    
+                                    <p>Archaeological evidence suggests that humans have been harvesting salt for at least 8,000 years. One of the earliest verified salt works operation was in the Chinese province of Shanxi around 6000 BCE. Ancient texts from China, Egypt, and the Middle East all reference salt production and its importance. In Egypt, salt was used in religious offerings and for mummification, while the Hebrews used it in their sacrificial offerings. By 2700 BCE, the Chinese had written the first known treatise on pharmacology, with a discussion of more than 40 kinds of salt, including descriptions of how to extract and produce salt.</p>
+                                    
+                                    <p>Salt production techniques varied widely depending on geography. In coastal regions, salt was often produced by evaporating seawater. In inland areas, salt lakes, salt springs, or mineral deposits were the primary sources. Salt mining became an important industry in many regions, with underground mines extending for miles. One of the oldest operating salt mines in the world is the Wieliczka Salt Mine in Poland, which has been producing table salt since the 13th century.</p>
+                                    
+                                    <p>The economic importance of salt cannot be overstated. Its necessity for food preservation made it a critical economic commodity. Governments across the world have attempted to monopolize salt production throughout history. For example, in imperial China, salt was a government monopoly as early as the 3rd century BCE. In France, salt was subjected to special taxes called the "gabelle" from the 14th to the 18th century. The gabelle was unequally applied, with some regions paying a hundred times more than others. This tax inequality was one of the contributing factors to the French Revolution.</p>
+                                    
+                                    <p>In India, control over salt production was a major factor in the British colonial government's power. When Mahatma Gandhi led his followers on the Salt March in 1930, he was challenging British authority over a basic necessity of life. The Salt March, a nonviolent protest against the salt tax imposed by the British, became a significant step toward India's independence.</p>
+                                    
+                                    <p>Despite its historical significance, modern industrialization has made salt a relatively inexpensive commodity. Today, salt is produced on every continent except Antarctica. China is the world's largest producer, followed by the United States. Salt is now used for countless purposes beyond food preservation, including de-icing roads, chemical production, and water treatment. Nonetheless, this simple compound remains essential to life itself, with the human body requiring a small amount of salt to function properly.</p>
+                                    
+                                    <p>The story of salt is truly the story of civilization itself—from its role in ancient religions and economies to its impact on modern industry and politics. As we shake a bit of salt onto our food today, it serves as a reminder of this humble compound's extraordinary journey through human history.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Questions -->
+                            <div class="question-container">
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 1-7</strong></p>
+                                    <p>Do the following statements agree with the information given in the passage?</p>
+                                    <p>Choose <strong>TRUE</strong> if the statement agrees with the information, <strong>FALSE</strong> if the statement contradicts the information, or <strong>NOT GIVEN</strong> if there is no information on this.</p>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">1. The word "salary" is derived from the Latin term for salt.</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question1" id="q1a" value="TRUE" data-question-id="1">
+                                            <label class="form-check-label" for="q1a">TRUE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question1" id="q1b" value="FALSE" data-question-id="1">
+                                            <label class="form-check-label" for="q1b">FALSE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question1" id="q1c" value="NOT GIVEN" data-question-id="1">
+                                            <label class="form-check-label" for="q1c">NOT GIVEN</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">2. Humans started using salt around 10,000 years ago.</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question2" id="q2a" value="TRUE" data-question-id="2">
+                                            <label class="form-check-label" for="q2a">TRUE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question2" id="q2b" value="FALSE" data-question-id="2">
+                                            <label class="form-check-label" for="q2b">FALSE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question2" id="q2c" value="NOT GIVEN" data-question-id="2">
+                                            <label class="form-check-label" for="q2c">NOT GIVEN</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">3. In ancient Egypt, salt was used for preserving mummies.</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question3" id="q3a" value="TRUE" data-question-id="3">
+                                            <label class="form-check-label" for="q3a">TRUE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question3" id="q3b" value="FALSE" data-question-id="3">
+                                            <label class="form-check-label" for="q3b">FALSE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question3" id="q3c" value="NOT GIVEN" data-question-id="3">
+                                            <label class="form-check-label" for="q3c">NOT GIVEN</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">4. The Wieliczka Salt Mine is located in Russia.</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question4" id="q4a" value="TRUE" data-question-id="4">
+                                            <label class="form-check-label" for="q4a">TRUE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question4" id="q4b" value="FALSE" data-question-id="4">
+                                            <label class="form-check-label" for="q4b">FALSE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question4" id="q4c" value="NOT GIVEN" data-question-id="4">
+                                            <label class="form-check-label" for="q4c">NOT GIVEN</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">5. The French salt tax was applied equally throughout all regions of France.</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question5" id="q5a" value="TRUE" data-question-id="5">
+                                            <label class="form-check-label" for="q5a">TRUE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question5" id="q5b" value="FALSE" data-question-id="5">
+                                            <label class="form-check-label" for="q5b">FALSE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question5" id="q5c" value="NOT GIVEN" data-question-id="5">
+                                            <label class="form-check-label" for="q5c">NOT GIVEN</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">6. Gandhi's Salt March contributed to India's independence movement.</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question6" id="q6a" value="TRUE" data-question-id="6">
+                                            <label class="form-check-label" for="q6a">TRUE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question6" id="q6b" value="FALSE" data-question-id="6">
+                                            <label class="form-check-label" for="q6b">FALSE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question6" id="q6c" value="NOT GIVEN" data-question-id="6">
+                                            <label class="form-check-label" for="q6c">NOT GIVEN</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">7. The United States is currently the world's largest salt producer.</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question7" id="q7a" value="TRUE" data-question-id="7">
+                                            <label class="form-check-label" for="q7a">TRUE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question7" id="q7b" value="FALSE" data-question-id="7">
+                                            <label class="form-check-label" for="q7b">FALSE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question7" id="q7c" value="NOT GIVEN" data-question-id="7">
+                                            <label class="form-check-label" for="q7c">NOT GIVEN</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 8-13</strong></p>
+                                    <p>Complete the summary below using words from the passage.</p>
+                                    <p>Write <strong>NO MORE THAN THREE WORDS</strong> for each answer.</p>
+                                    
+                                    <div class="summary-completion mb-3">
+                                        <div class="summary-text p-3 border rounded">
+                                            <h5 class="mb-3">The Importance of Salt Throughout History</h5>
+                                            <p>
+                                                Salt has been a vital commodity throughout human history primarily because of its ability to 
+                                                <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="8" placeholder="Your answer"> (8).
+                                                It was considered so valuable that ancient Romans paid their soldiers with 
+                                                <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="9" placeholder="Your answer"> (9),
+                                                a term related to salt. Archaeological findings indicate that salt harvesting dates back to at least 
+                                                <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="10" placeholder="Your answer"> (10) ago.
+                                            </p>
+                                            <p>
+                                                Salt was produced through different methods depending on geography. In coastal areas, it was obtained by 
+                                                <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="11" placeholder="Your answer"> (11),
+                                                while inland regions relied on salt mines or mineral deposits.
+                                            </p>
+                                            <p>
+                                                Governments often sought to control salt production. In France, special taxes on salt known as the 
+                                                <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="12" placeholder="Your answer"> (12)
+                                                were implemented for several centuries. In India, Mahatma Gandhi's protest against the British salt tax, called the 
+                                                <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="13" placeholder="Your answer"> (13),
+                                                became a significant event in the country's path to independence.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Passage 2 -->
+                    <div class="card mb-5">
+                        <div class="card-header bg-secondary text-white">
+                            <h3 class="h5 mb-0">Passage 2</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="reading-passage mb-4">
+                                <h4 class="passage-title">URBAN AGRICULTURE: GROWING CITIES, GROWING FOOD</h4>
+                                
+                                <div class="passage-text">
+                                    <p><strong>A.</strong> As our world becomes increasingly urbanized, with over half of the global population now living in cities, the question of how to feed growing urban populations sustainably has become more pressing. Urban agriculture—the practice of cultivating, processing, and distributing food in or around urban areas—has emerged as a potential solution to this challenge. From rooftop gardens in New York to vertical farms in Singapore, urban agriculture is transforming how cities approach food security, environmental sustainability, and community development.</p>
+                                    
+                                    <p><strong>B.</strong> Urban agriculture is not a new phenomenon. Throughout history, cities have incorporated food production into their landscapes. During World War II, "Victory Gardens" in the United States, United Kingdom, and Canada produced substantial amounts of vegetables to supplement food rationing and boost morale. In Cuba, a nationwide urban agriculture program developed in response to food shortages after the fall of the Soviet Union in the 1990s. Today, Havana produces nearly 90% of its fresh produce within the city limits. These historical examples demonstrate that urban agriculture can be a resilient response to food insecurity during times of crisis.</p>
+                                    
+                                    <p><strong>C.</strong> The environmental benefits of urban agriculture are numerous. By producing food closer to where people live, urban agriculture can significantly reduce the "food miles"—the distance food travels from farm to consumer—thereby decreasing transportation emissions. Urban farms can also improve air quality and reduce urban heat island effects, as plants absorb carbon dioxide and release oxygen. Many urban agriculture projects implement sustainable growing methods such as organic farming, water recycling systems, and composting, further reducing their environmental footprint. Additionally, urban agriculture can enhance biodiversity in city spaces by creating habitats for pollinators and other beneficial organisms.</p>
+                                    
+                                    <p><strong>D.</strong> Beyond environmental benefits, urban agriculture has significant social impacts. Community gardens and urban farms can become gathering spaces that strengthen social ties and foster a sense of community ownership. For immigrant communities, growing culturally appropriate foods can help maintain connections to their heritage. Urban agriculture initiatives also provide educational opportunities, teaching people about food systems, nutrition, and environmental stewardship. Furthermore, urban farms can generate employment in areas with limited job opportunities. In Detroit, where economic decline left vast tracts of vacant land, urban farming has become a tool for community revitalization, with more than 1,500 urban gardens and farms throughout the city.</p>
+                                    
+                                    <p><strong>E.</strong> The economic potential of urban agriculture should not be underestimated. Urban farms can create jobs and entrepreneurial opportunities, especially for disadvantaged communities. In New York City, the nonprofit organization GrowNYC trains and employs young people from low-income communities to work in urban agriculture. Some urban farms have developed innovative business models, such as subscription-based community-supported agriculture (CSA) programs or partnerships with local restaurants. Additionally, property values often increase in neighborhoods with urban green spaces, including community gardens and farms.</p>
+                                    
+                                    <p><strong>F.</strong> Despite its benefits, urban agriculture faces significant challenges. Land availability and tenure security are major constraints in densely populated cities where real estate is expensive. Soil contamination from previous industrial use is a common problem in urban areas, requiring remediation or alternative growing methods such as raised beds or hydroponics. Water access and quality can also be problematic. Furthermore, urban farmers often face regulatory barriers, as many cities have zoning laws that restrict agricultural activities. Climate change presents additional challenges, with urban areas particularly vulnerable to extreme weather events.</p>
+                                    
+                                    <p><strong>G.</strong> Innovative technologies are helping to address some of these challenges. Vertical farming, which uses stacked layers to maximize growing space, allows for higher yields in smaller areas. Hydroponic, aeroponic, and aquaponic systems enable soil-less cultivation, addressing soil contamination issues while using water more efficiently. Controlled environment agriculture, such as greenhouse farming with climate control systems, can extend growing seasons and protect crops from extreme weather. Smart sensors and automated systems can optimize resource use, while renewable energy sources like solar panels can power these operations sustainably.</p>
+                                    
+                                    <p><strong>H.</strong> Policy support is crucial for scaling up urban agriculture. Some cities have integrated urban agriculture into their sustainability plans and food policies. Toronto, for example, has a city-wide food strategy that includes supporting urban agriculture initiatives. Singapore has set a "30 by 30" goal, aiming to produce 30% of its nutritional needs locally by 2030, up from less than 10% currently. This ambitious target has spurred innovation in high-tech urban farming. Governments can support urban agriculture through various mechanisms, including grants, tax incentives, favorable zoning regulations, and technical assistance programs.</p>
+                                    
+                                    <p><strong>I.</strong> Looking ahead, urban agriculture will likely play an increasingly important role in sustainable city planning. As technologies advance and policy support grows, urban agriculture has the potential to contribute significantly to food security, environmental sustainability, and social well-being in cities worldwide. However, it is important to recognize that urban agriculture is not a panacea for all food system challenges. It should be viewed as one component of a broader strategy for building sustainable, resilient food systems that include rural agriculture, food distribution networks, and waste management. By integrating urban agriculture into comprehensive food policies, cities can move toward more sustainable and equitable food futures.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Questions -->
+                            <div class="question-container">
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 14-18</strong></p>
+                                    <p>The reading passage has nine paragraphs, A-I. Which paragraph contains the following information?</p>
+                                    <p>Write the correct letter, A-I, in boxes 14-18 on your answer sheet.</p>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">14. Examples of urban agriculture throughout history</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="14" placeholder="A-I">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">15. Ways in which urban agriculture can create economic opportunities</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="15" placeholder="A-I">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">16. The limitations and obstacles facing urban agriculture</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="16" placeholder="A-I">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">17. Modern technological solutions for urban farming challenges</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="17" placeholder="A-I">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">18. The importance of incorporating urban agriculture into broader food system strategies</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="18" placeholder="A-I">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 19-22</strong></p>
+                                    <p>Choose the correct letter, A, B, C, or D.</p>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">19. According to the passage, urban agriculture in Cuba</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question19" id="q19a" value="A" data-question-id="19">
+                                            <label class="form-check-label" for="q19a">A. was promoted primarily for its environmental benefits.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question19" id="q19b" value="B" data-question-id="19">
+                                            <label class="form-check-label" for="q19b">B. began as a response to economic difficulties.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question19" id="q19c" value="C" data-question-id="19">
+                                            <label class="form-check-label" for="q19c">C. has been less successful than similar programs in other countries.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question19" id="q19d" value="D" data-question-id="19">
+                                            <label class="form-check-label" for="q19d">D. produces mainly ornamental plants rather than food crops.</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">20. The passage suggests that urban agriculture can benefit immigrant communities by</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question20" id="q20a" value="A" data-question-id="20">
+                                            <label class="form-check-label" for="q20a">A. providing export opportunities for specialty crops.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question20" id="q20b" value="B" data-question-id="20">
+                                            <label class="form-check-label" for="q20b">B. creating jobs exclusively for immigrant workers.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question20" id="q20c" value="C" data-question-id="20">
+                                            <label class="form-check-label" for="q20c">C. helping them maintain cultural connections through food.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question20" id="q20d" value="D" data-question-id="20">
+                                            <label class="form-check-label" for="q20d">D. teaching them about local agricultural traditions.</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">21. The author's view on using hydroponic systems in urban agriculture is that they</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question21" id="q21a" value="A" data-question-id="21">
+                                            <label class="form-check-label" for="q21a">A. are too expensive for practical implementation.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question21" id="q21b" value="B" data-question-id="21">
+                                            <label class="form-check-label" for="q21b">B. help address problems with contaminated urban soil.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question21" id="q21c" value="C" data-question-id="21">
+                                            <label class="form-check-label" for="q21c">C. produce lower quality food than traditional farming.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question21" id="q21d" value="D" data-question-id="21">
+                                            <label class="form-check-label" for="q21d">D. require too much water to be sustainable in urban areas.</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">22. What is Singapore's goal for local food production according to the passage?</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question22" id="q22a" value="A" data-question-id="22">
+                                            <label class="form-check-label" for="q22a">A. To become completely self-sufficient in food production</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question22" id="q22b" value="B" data-question-id="22">
+                                            <label class="form-check-label" for="q22b">B. To produce 30% of its food needs locally by 2030</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question22" id="q22c" value="C" data-question-id="22">
+                                            <label class="form-check-label" for="q22c">C. To export 30% of its urban farm production by 2030</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question22" id="q22d" value="D" data-question-id="22">
+                                            <label class="form-check-label" for="q22d">D. To reduce food imports by 30% in the next decade</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 23-26</strong></p>
+                                    <p>Complete the sentences below with words taken from the passage.</p>
+                                    <p>Use <strong>NO MORE THAN TWO WORDS</strong> for each answer.</p>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">23. Urban agriculture can reduce transportation emissions by decreasing the distance food travels, also known as ________.</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="23" placeholder="Your answer">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">24. In Detroit, urban farming has become a tool for ________ following economic decline.</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="24" placeholder="Your answer">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">25. Some urban farms have developed subscription-based programs known as ________ agriculture.</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="25" placeholder="Your answer">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">26. Many urban farmers face obstacles due to city ________ that restrict agricultural activities.</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="26" placeholder="Your answer">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Passage 3 -->
+                    <div class="card mb-5">
+                        <div class="card-header bg-secondary text-white">
+                            <h3 class="h5 mb-0">Passage 3</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="reading-passage mb-4">
+                                <h4 class="passage-title">THE NEUROSCIENCE OF DECISION-MAKING</h4>
+                                
+                                <div class="passage-text">
+                                    <p>Every day, humans make countless decisions, from the mundane—what to wear or eat—to the profound—which career to pursue or partner to marry. While decision-making was once considered a purely rational process, advances in neuroscience have revealed that it is far more complex, involving a sophisticated interplay of conscious reasoning, emotional responses, unconscious biases, and neurobiological factors. Understanding the neuroscience of decision-making not only provides fascinating insights into human behavior but also has important implications for fields ranging from economics and marketing to medicine and artificial intelligence.</p>
+                                    
+                                    <p>The brain's decision-making processes involve multiple neural systems working in concert. The prefrontal cortex, often considered the seat of executive function, plays a central role in planning, reasoning, and weighing options. Neuroimaging studies show that the dorsolateral prefrontal cortex activates when people engage in deliberative reasoning, while the ventromedial prefrontal cortex integrates emotional information into decisions. The orbitofrontal cortex evaluates the potential reward value of different options, essential for making value-based choices. Meanwhile, the anterior cingulate cortex monitors conflicts between competing options and signals when cognitive control is needed to resolve these conflicts.</p>
+                                    
+                                    <p>Emotions, far from being obstacles to decision-making as once thought, are integral to the process. The pioneering work of neuroscientist Antonio Damasio with patients who had damage to emotion-processing brain regions demonstrated that without emotional input, decision-making becomes impaired. These patients could logically analyze options but struggled to make advantageous choices in real-life situations. Damasio proposed the "somatic marker hypothesis," suggesting that emotions create bodily sensations or "gut feelings" that serve as unconscious signals guiding decisions. These emotional markers help us quickly evaluate options based on past emotional experiences, effectively serving as cognitive shortcuts that speed up the decision process.</p>
+                                    
+                                    <p>Unconscious processes also substantially influence our decisions. In a groundbreaking study, neuroscientist Benjamin Libet found that brain activity associated with movement decisions could be detected several hundred milliseconds before participants became consciously aware of their decision to move. While this research has sparked philosophical debates about free will, from a neuroscience perspective, it demonstrates that significant neural processing occurs outside conscious awareness. Further research has shown that we can make accurate judgments without conscious deliberation, a phenomenon known as "thin-slicing." Studies on "implicit bias" have also revealed that unconscious attitudes and stereotypes can influence judgments about people and situations without our explicit knowledge.</p>
+                                    
+                                    <p>Cognitive biases—systematic errors in thinking that affect decisions—emerge from the brain's attempt to simplify information processing. The confirmation bias leads people to favor information that confirms existing beliefs while discounting contradictory evidence. The availability heuristic causes individuals to overestimate the likelihood of events that come readily to mind, explaining why people often overestimate the risk of rare but dramatic events like plane crashes while underestimating common threats like heart disease. These biases likely evolved as mental shortcuts to help our ancestors make quick decisions with limited information, but in the modern world's complex decision environments, they can lead to significant errors in judgment.</p>
+                                    
+                                    <p>Neurochemicals significantly influence decision-making tendencies. Dopamine, the neurotransmitter associated with pleasure and reward, plays a central role in reinforcement learning—the process by which we learn from the consequences of our actions. Fluctuating dopamine levels can affect risk preferences, with higher levels generally associated with greater risk-taking. The stress hormone cortisol can impair the prefrontal cortex while activating more primitive brain regions, explaining why stress often leads to impulsive decisions rather than careful deliberation. Oxytocin, sometimes called the "bonding hormone," influences social decision-making by enhancing trust and cooperation with perceived in-group members, though it may also increase defensive aggression toward perceived outsiders.</p>
+                                    
+                                    <p>Developmental factors shape decision-making abilities throughout the lifespan. The prefrontal cortex continues developing into early adulthood, which partly explains adolescents' tendency toward risk-taking and impulsivity. Their reward systems are highly active, while cognitive control systems remain immature. Meanwhile, aging brings both advantages and challenges. Older adults often demonstrate greater emotional regulation and can draw upon accumulated experience, but processing speed and cognitive flexibility may decline, affecting decisions in novel or complex situations. These neurodevelopmental patterns suggest that optimal decision-making may require balancing the cognitive strengths of different life stages.</p>
+                                    
+                                    <p>Neuroscientific insights into decision-making have profound practical applications. In healthcare, understanding how patients make medical decisions has improved informed consent processes and treatment adherence. Behavioral economics, blending economics with psychology and neuroscience, has led to "nudge" interventions that guide people toward better health, financial, and environmental choices without restricting freedom. In business, neuromarketing uses brain imaging and physiological measurements to understand consumer responses to products and advertisements. Even artificial intelligence has benefited from neuroscience-inspired algorithms that mimic human learning and decision processes.</p>
+                                    
+                                    <p>Despite remarkable progress, significant questions remain. Researchers continue to investigate how the brain integrates information across different neural systems to produce coherent decisions. The roles of consciousness, free will, and the precise mechanisms of self-control remain intensely debated. As technologies for measuring and manipulating brain activity advance, they open new avenues for research while raising ethical questions about potential applications that could influence people's choices without their awareness. The emerging field of "neuroethics" addresses these concerns, emphasizing the importance of ensuring that neuroscientific advances respect individual autonomy.</p>
+                                    
+                                    <p>The neuroscientific revolution in understanding decision-making has fundamentally transformed our view of human choice. While we once imagined decisions as purely rational calculations, we now recognize them as products of a complex, multilayered neural architecture that integrates reason and emotion, conscious and unconscious processes, personal history and biological predispositions. This nuanced understanding encourages a more compassionate perspective on human behavior while offering practical tools to help people make better choices in their personal lives and professional roles. As research continues, it will further illuminate one of the most fundamental aspects of human experience: how we decide.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Questions -->
+                            <div class="question-container">
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 27-32</strong></p>
+                                    <p>Match each description with the correct brain region or neural system.</p>
+                                    <p>Choose the correct letter, A-G, from the list below.</p>
+                                    <p>Write your answers in boxes 27-32 on your answer sheet.</p>
+                                    
+                                    <div class="mb-4">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="list-group">
+                                                    <div class="list-group-item list-group-item-info">Brain Regions/Systems</div>
+                                                    <div class="list-group-item">A. Dorsolateral prefrontal cortex</div>
+                                                    <div class="list-group-item">B. Ventromedial prefrontal cortex</div>
+                                                    <div class="list-group-item">C. Orbitofrontal cortex</div>
+                                                    <div class="list-group-item">D. Anterior cingulate cortex</div>
+                                                    <div class="list-group-item">E. Dopamine system</div>
+                                                    <div class="list-group-item">F. Cortisol system</div>
+                                                    <div class="list-group-item">G. Oxytocin system</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">27. Becomes active when people engage in logical thinking and reasoning</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="27" placeholder="A-G">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">28. Evaluates how rewarding different options might be</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="28" placeholder="A-G">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">29. Promotes trust and cooperation with people perceived as part of one's group</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="29" placeholder="A-G">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">30. Plays a key role in how we learn from the outcomes of our decisions</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="30" placeholder="A-G">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">31. Detects conflicts between different possible choices</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="31" placeholder="A-G">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <div class="form-group row">
+                                            <label class="col-sm-9 col-form-label">32. Incorporates emotional information into the decision-making process</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control answer-input" data-question-id="32" placeholder="A-G">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 33-36</strong></p>
+                                    <p>Choose the correct letter, A, B, C, or D.</p>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">33. According to Damasio's research, what happens when the brain's emotion-processing regions are damaged?</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question33" id="q33a" value="A" data-question-id="33">
+                                            <label class="form-check-label" for="q33a">A. Decision-making becomes more rational and effective.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question33" id="q33b" value="B" data-question-id="33">
+                                            <label class="form-check-label" for="q33b">B. People can still analyze options but make poor practical decisions.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question33" id="q33c" value="C" data-question-id="33">
+                                            <label class="form-check-label" for="q33c">C. Logical reasoning abilities are completely lost.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question33" id="q33d" value="D" data-question-id="33">
+                                            <label class="form-check-label" for="q33d">D. Decision-making becomes slower but more accurate.</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">34. What conclusion does the author draw from Libet's research on decision-making?</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question34" id="q34a" value="A" data-question-id="34">
+                                            <label class="form-check-label" for="q34a">A. Free will is an illusion, and decisions are determined by biochemical processes.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question34" id="q34b" value="B" data-question-id="34">
+                                            <label class="form-check-label" for="q34b">B. Conscious thought is the primary driver of human decision-making.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question34" id="q34c" value="C" data-question-id="34">
+                                            <label class="form-check-label" for="q34c">C. Significant neural activity occurs before we become aware of making a decision.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question34" id="q34d" value="D" data-question-id="34">
+                                            <label class="form-check-label" for="q34d">D. People make better decisions when they rely on unconscious processes.</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">35. According to the passage, why do adolescents tend to engage in risky behavior?</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question35" id="q35a" value="A" data-question-id="35">
+                                            <label class="form-check-label" for="q35a">A. They have higher levels of cortisol than adults.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question35" id="q35b" value="B" data-question-id="35">
+                                            <label class="form-check-label" for="q35b">B. Their reward systems are active while control systems are still developing.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question35" id="q35c" value="C" data-question-id="35">
+                                            <label class="form-check-label" for="q35c">C. They are more influenced by oxytocin than adults.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question35" id="q35d" value="D" data-question-id="35">
+                                            <label class="form-check-label" for="q35d">D. Their emotional regulation systems are hyperactive.</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question mb-3">
+                                        <p class="question-text">36. The passage suggests that the field of neuroethics primarily focuses on</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question36" id="q36a" value="A" data-question-id="36">
+                                            <label class="form-check-label" for="q36a">A. developing better brain imaging technologies.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question36" id="q36b" value="B" data-question-id="36">
+                                            <label class="form-check-label" for="q36b">B. promoting neuroscience education to the public.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question36" id="q36c" value="C" data-question-id="36">
+                                            <label class="form-check-label" for="q36c">C. addressing ethical concerns about neuroscience applications.</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question36" id="q36d" value="D" data-question-id="36">
+                                            <label class="form-check-label" for="q36d">D. treating neurological disorders that affect decision-making.</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="question-section mb-4">
+                                    <p><strong>Questions 37-40</strong></p>
+                                    <p>Complete the summary using words from the passage.</p>
+                                    <p>Write <strong>NO MORE THAN THREE WORDS</strong> for each answer.</p>
+                                    
+                                    <div class="summary-text p-3 border rounded">
+                                        <h5 class="mb-3">Cognitive Biases in Decision-Making</h5>
+                                        <p>
+                                            Cognitive biases represent systematic errors in thinking that affect the way we make decisions. These biases developed from the brain's effort to 
+                                            <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="37" placeholder="Your answer"> (37)
+                                            when processing information. For example, the confirmation bias causes people to favor information that supports their existing beliefs while 
+                                            <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="38" placeholder="Your answer"> (38)
+                                            evidence that contradicts them.
+                                        </p>
+                                        <p>
+                                            Another common bias is the availability heuristic, which leads people to overestimate the probability of events that they can 
+                                            <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="39" placeholder="Your answer"> (39).
+                                            This explains why people often perceive dramatic but rare events like plane crashes as more dangerous than common health threats. These mental shortcuts likely evolved to help our ancestors 
+                                            <input type="text" class="form-control answer-input d-inline-block" style="width: 180px;" data-question-id="40" placeholder="Your answer"> (40)
+                                            when they had limited information available.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit Answers</button>
+                    </div>
+                </form>
+                
+                <div id="test-results" class="mt-5"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Any additional JavaScript for the reading test can go here
+</script>
+{% endblock %}

@@ -381,6 +381,57 @@ def take_practice_test(test_type, test_id):
                               test=test,
                               taking_test=True)
 
+@app.route('/practice/<test_type>/<int:test_id>/start')
+@login_required
+def start_practice_test(test_type, test_id):
+    """Start a practice test after viewing the test details page"""
+    if test_type not in ['listening', 'reading', 'writing', 'speaking']:
+        abort(404)
+    
+    test = PracticeTest.query.get_or_404(test_id)
+    
+    # All tests require subscription
+    if not current_user.is_subscribed():
+        flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
+        return redirect(url_for('subscribe'))
+    
+    # Check if user has already taken this test during current subscription period
+    if current_user.has_taken_test(test_id, test_type):
+        flash('You have already taken this test during your current subscription period. Each test can only be taken once per subscription.', 'warning')
+        return redirect(url_for('practice_test_list', test_type=test_type))
+    
+    # Initialize test record for tracking user's progress
+    attempt = UserTestAttempt(
+        user_id=current_user.id,
+        test_id=test_id,
+        test_type=test_type,
+        start_time=datetime.utcnow()
+    )
+    db.session.add(attempt)
+    db.session.commit()
+    
+    # Redirect to the appropriate template based on test type
+    if test_type == 'listening':
+        return render_template('practice/listening_empty.html',
+                              title='IELTS Listening Practice',
+                              test=test,
+                              taking_test=True)
+    elif test_type == 'reading':
+        return render_template('practice/reading_empty.html',
+                              title='IELTS Reading Practice',
+                              test=test,
+                              taking_test=True)
+    elif test_type == 'writing':
+        return render_template('practice/writing_empty.html',
+                              title='IELTS Writing Practice',
+                              test=test,
+                              taking_test=True)
+    elif test_type == 'speaking':
+        return render_template('practice/speaking_empty.html',
+                              title='IELTS Speaking Practice',
+                              test=test,
+                              taking_test=True)
+
 # Complete Test Routes
 @app.route('/practice/complete-test/<int:test_id>/start')
 @login_required

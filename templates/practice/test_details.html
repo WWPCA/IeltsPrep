@@ -7,69 +7,267 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ url_for('practice_test_type', test_type=test_type) }}">
-                            {{ test_type|title }}
-                        </a>
-                    </li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('practice_test_list', test_type=test_type) }}">{{ test_type.capitalize() }}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Test Details</li>
                 </ol>
             </nav>
             
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h4 mb-0">{{ test.title }}</h2>
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0">{{ test.title }}</h1>
+                    
+                    {% if test_type == 'listening' %}
+                        <span class="badge bg-light text-primary">30 Minutes</span>
+                    {% elif test_type == 'reading' %}
+                        <span class="badge bg-light text-primary">60 Minutes</span>
+                    {% elif test_type == 'writing' %}
+                        <span class="badge bg-light text-primary">60 Minutes</span>
+                    {% elif test_type == 'speaking' %}
+                        <span class="badge bg-light text-primary">15 Minutes</span>
+                    {% endif %}
                 </div>
                 <div class="card-body">
-                    <p class="lead">{{ test.description }}</p>
-                    
-                    <h5 class="mt-4 mb-3">Test Information</h5>
-                    <ul class="list-group mb-4">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Test Section
-                            <span class="badge bg-primary rounded-pill">{{ test.section }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Time Limit
-                            <span class="badge bg-primary rounded-pill">{{ test.time_limit or 30 }} minutes</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Number of Questions
-                            <span class="badge bg-primary rounded-pill">10</span>
-                        </li>
-                    </ul>
-                    
-                    <h5 class="mt-4 mb-3">Test Instructions</h5>
                     <div class="alert alert-info">
-                        <p><strong>Important:</strong> This is an official IELTS format test. Please ensure you:</p>
-                        <ul class="mb-0">
-                            <li>Have a quiet environment with no distractions</li>
-                            <li>Set aside the full time required to complete the test</li>
-                            <li>Follow all test instructions carefully</li>
-                            <li>For listening tests, you will hear the audio ONLY ONCE in the actual IELTS test</li>
-                        </ul>
-                    </div>
-                    
-                    {% if test.section == 'listening' %}
-                    <div class="alert alert-warning">
-                        <h5><i class="fas fa-exclamation-triangle"></i> Special Note for Listening Tests</h5>
-                        <p>Due to technical limitations, listening tests follow a modified format:</p>
-                        <ol>
-                            <li>You'll need to download the audio file using the button below</li>
-                            <li>Use your device's audio player to listen to the file</li>
-                            <li>Then proceed to the test page to answer questions</li>
-                        </ol>
-                        <div class="text-center mt-3">
-                            <a href="/static/{{ test.audio_url }}" download class="btn btn-success">
-                                <i class="fas fa-download me-2"></i> Download Audio File
-                            </a>
+                        <div class="d-flex">
+                            <div class="me-3">
+                                {% if test_type == 'listening' %}
+                                    <i class="fas fa-headphones fa-2x"></i>
+                                {% elif test_type == 'reading' %}
+                                    <i class="fas fa-book-open fa-2x"></i>
+                                {% elif test_type == 'writing' %}
+                                    <i class="fas fa-pencil-alt fa-2x"></i>
+                                {% elif test_type == 'speaking' %}
+                                    <i class="fas fa-microphone fa-2x"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4>About this {{ test_type.capitalize() }} Test</h4>
+                                <p>{{ test.description }}</p>
+                            </div>
                         </div>
                     </div>
-                    {% endif %}
+                    
+                    <h3 class="h5 mb-3">Test Information</h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-group mb-4">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Type
+                                    <span>{{ test_type.capitalize() }} Test</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Number of Questions
+                                    <span>{% if test.questions %}{{ test.questions|length }}{% else %}Varies{% endif %}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Time Limit
+                                    {% if test_type == 'listening' %}
+                                        <span>30 minutes</span>
+                                    {% elif test_type == 'reading' %}
+                                        <span>60 minutes</span>
+                                    {% elif test_type == 'writing' %}
+                                        <span>60 minutes</span>
+                                    {% elif test_type == 'speaking' %}
+                                        <span>15 minutes</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <ul class="list-group mb-4">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Format
+                                    {% if test_type == 'listening' %}
+                                        <span>Audio + Questions</span>
+                                    {% elif test_type == 'reading' %}
+                                        <span>Passages + Questions</span>
+                                    {% elif test_type == 'writing' %}
+                                        <span>Task-based Essay</span>
+                                    {% elif test_type == 'speaking' %}
+                                        <span>Recorded Response</span>
+                                    {% endif %}
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Difficulty
+                                    <span class="badge bg-primary rounded-pill">IELTS Standard</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Assessment
+                                    <span>AI-Powered</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <h3 class="h5 mb-3">What to Expect</h3>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            {% if test_type == 'listening' %}
+                                <p>This listening test consists of four recorded sections, with questions to answer as you listen. You will only hear each recording once, so pay close attention.</p>
+                                <ul>
+                                    <li>Section 1: A conversation between two people in an everyday social context</li>
+                                    <li>Section 2: A monologue in an everyday social context</li>
+                                    <li>Section 3: A conversation between up to four people in an academic context</li>
+                                    <li>Section 4: A monologue on an academic subject</li>
+                                </ul>
+                                <p>Question types include multiple choice, matching, plan/map/diagram labeling, form/note/table/summary completion, and sentence completion.</p>
+                            {% elif test_type == 'reading' %}
+                                <p>This reading test consists of three passages with a total of 40 questions. The texts become increasingly difficult.</p>
+                                <p>If you're taking Academic Reading, the passages will come from books, journals, magazines, and newspapers, written for a non-specialist audience. At least one text will contain a detailed argument.</p>
+                                <p>If you're taking General Training Reading, the passages will come from notices, advertisements, company handbooks, official documents, books, magazines and newspapers.</p>
+                                <p>Question types include multiple choice, identifying information, identifying writer's views/claims, matching information/headings/features/sentence endings, sentence completion, summary/note/table/flow-chart completion, and diagram label completion.</p>
+                            {% elif test_type == 'writing' %}
+                                <p>This writing test consists of two tasks. You must complete both tasks.</p>
+                                <ul>
+                                    <li>Task 1 (20 minutes): 
+                                        {% if 'Academic' in test.title %}
+                                            You'll be presented with a graph, table, chart, or diagram and asked to describe, summarize, or explain the information in your own words. You may need to describe a process, describe an object or event, or explain how something works.
+                                        {% else %}
+                                            You'll be presented with a situation and asked to write a letter requesting information or explaining the situation. You may need to write to a friend or an official letter.
+                                        {% endif %}
+                                    </li>
+                                    <li>Task 2 (40 minutes): You'll be asked to write an essay in response to a point of view, argument, or problem. This task is worth twice as much as Task 1 in your final score.</li>
+                                </ul>
+                                <p>Both tasks are assessed based on task achievement/response, coherence and cohesion, lexical resource, and grammatical range and accuracy.</p>
+                            {% elif test_type == 'speaking' %}
+                                <p>This speaking test consists of three parts and will assess your ability to communicate in English effectively.</p>
+                                <ul>
+                                    <li>Part 1 (4-5 minutes): Introduction and general questions about familiar topics (e.g., home, family, work, studies, interests)</li>
+                                    <li>Part 2 (3-4 minutes): You'll be given a card with a topic and points to include. You'll have 1 minute to prepare, then 2 minutes to speak about the topic.</li>
+                                    <li>Part 3 (4-5 minutes): Discussion of more abstract issues related to the topic in Part 2</li>
+                                </ul>
+                                <p>Your speaking is assessed based on fluency and coherence, lexical resource, grammatical range and accuracy, and pronunciation.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h3 class="h5 mb-3">Tips for Success</h3>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                {% if test_type == 'listening' %}
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Read questions first</h4>
+                                            <p>Look at the questions before listening so you know what to listen for.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Listen for signpost words</h4>
+                                            <p>Words like "first," "however," "in contrast," help identify important information.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Check spellings</h4>
+                                            <p>Spelling counts! Double-check your answers before submitting.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Don't leave blanks</h4>
+                                            <p>There's no penalty for wrong answers, so always put something down.</p>
+                                        </div>
+                                    </div>
+                                {% elif test_type == 'reading' %}
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Skim first, then read deeply</h4>
+                                            <p>Quickly skim the passage to get the main idea before reading in detail.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Manage your time</h4>
+                                            <p>Allocate about 20 minutes per passage to ensure you complete all three.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Look for keywords</h4>
+                                            <p>Identify keywords in questions to help locate answers in the passage.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Watch for synonyms</h4>
+                                            <p>The passage often uses synonyms of words found in the questions.</p>
+                                        </div>
+                                    </div>
+                                {% elif test_type == 'writing' %}
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Plan your response</h4>
+                                            <p>Spend 3-5 minutes planning your essay before you start writing.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Address all parts of the task</h4>
+                                            <p>Make sure you fully address all aspects of the prompt.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Use paragraphs effectively</h4>
+                                            <p>Organize your writing into clear paragraphs with one main idea each.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Proofread</h4>
+                                            <p>Save 2-3 minutes at the end to check for errors.</p>
+                                        </div>
+                                    </div>
+                                {% elif test_type == 'speaking' %}
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Speak naturally</h4>
+                                            <p>Aim for fluency rather than perfection. Occasional errors are okay.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Elaborate your answers</h4>
+                                            <p>Don't give one-word answers. Explain your points with examples.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Use Part 2 preparation time</h4>
+                                            <p>Use the one minute of preparation time to jot down key points.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <h4 class="h6"><i class="fas fa-check me-2 text-success"></i> Listen carefully</h4>
+                                            <p>Make sure you understand the question before answering.</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h4>Important Note</h4>
+                                <p class="mb-0">You can only take each test once during your subscription period. After completing this test, you will receive detailed feedback and a band score estimate based on IELTS assessment criteria.</p>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="text-center mt-4">
-                        <a href="{{ url_for('take_practice_test', test_type=test_type, test_id=test.id) }}" class="btn btn-primary btn-lg">
-                            Start Test Now
+                        <a href="{{ url_for('practice_test_list', test_type=test_type) }}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Tests
+                        </a>
+                        <a href="{{ url_for('start_practice_test', test_type=test_type, test_id=test.id) }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play me-1"></i> Start Test Now
                         </a>
                     </div>
                 </div>

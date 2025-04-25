@@ -7,14 +7,13 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url_for('practice_test_list', test_type='writing') }}">Writing</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ test.title }}</li>
+                    <li class="breadcrumb-item active" aria-current="page">Writing Test</li>
                 </ol>
             </nav>
 
             <!-- Test Header -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="mb-0">{{ test.title }}</h3>
+                <h3 class="mb-0">IELTS Writing Task</h3>
                 <div id="test-timer" class="timer" data-test-type="writing">60:00</div>
             </div>
 
@@ -37,13 +36,8 @@
 
                                 <!-- Visual Information (chart, graph, etc.) -->
                                 <div class="text-center mb-4">
-                                    <!-- The image would be dynamically loaded from test data -->
-                                    <div class="border rounded p-5 bg-light text-center">
-                                        <h5>Number of adults participating in major sports, 1997 and 2017</h5>
-                                        <div class="chart-placeholder" style="height: 300px; display: flex; align-items: center; justify-content: center;">
-                                            <p class="text-muted">[Chart showing sport participation data would appear here]</p>
-                                        </div>
-                                    </div>
+                                    <img src="/static/images/chart_example.png" alt="Chart showing number of adults participating in sports" class="img-fluid border rounded" style="max-width: 100%;">
+                                    <!-- Placeholder for actual chart -->
                                 </div>
 
                                 <!-- Additional Instructions -->
@@ -76,9 +70,9 @@
                                     </div>
                                     
                                     <div class="d-flex justify-content-between mt-4">
-                                        <a href="{{ url_for('practice_test_list', test_type='writing') }}" class="btn btn-outline-secondary">
-                                            <i class="fas fa-arrow-left"></i> Back to Tests
-                                        </a>
+                                        <button type="button" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left"></i> Previous
+                                        </button>
                                         <button type="submit" class="btn btn-primary">
                                             Submit <i class="fas fa-check"></i>
                                         </button>
