@@ -12,7 +12,7 @@ from assessment_criteria.speaking_criteria import SPEAKING_BAND_DESCRIPTORS, SPE
 
 # Initialize API Clients
 ASSEMBLY_API_KEY = os.environ.get("ASSEMBLYAI_IELTS_API")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_KEY = os.environ.get("OPENAI_IELTS_Assessment_Key")
 
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 

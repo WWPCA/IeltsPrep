@@ -15,7 +15,7 @@ from assessment_criteria.writing_criteria import (
 )
 
 # Initialize OpenAI client
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_KEY = os.environ.get("OPENAI_IELTS_Assessment_Key")
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 def assess_writing_task1(essay_text, task_prompt, ielts_test_type="academic"):
