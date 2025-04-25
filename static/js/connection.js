@@ -50,14 +50,8 @@ function updateConnectionStatus() {
         statusIndicator.classList.add('d-none');
         document.body.classList.remove('connection-lost');
         
-        // If we're on a test page, ask to reload for fresh content
-        if (window.location.pathname.includes('/practice/') && 
-            !window.location.pathname.includes('/results')) {
-            const needsReload = confirm('Your connection has been restored. Reload the page to continue?');
-            if (needsReload) {
-                window.location.reload();
-            }
-        }
+        // We've removed the automatic reload popup to prevent errors
+        // The connection is already restored, so no need to ask for a reload
     }
 }
 
