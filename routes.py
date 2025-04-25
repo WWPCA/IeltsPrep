@@ -15,7 +15,7 @@ from app import app, db
 from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress
 from utils import get_user_region, get_translation, compress_audio
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment
-from openai_writing_assessment import assess_writing_response, generate_writing_feedback, generate_personalized_study_plan, get_openai_models_list
+from openai_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation, transcribe_audio, generate_polly_speech
 from geoip_services import get_country_from_ip, get_pricing_for_country
 
@@ -783,12 +783,21 @@ def submit_writing():
     if 'OPENAI_API_KEY' in os.environ:
         # Assess the writing using OpenAI
         try:
-            evaluation = assess_writing_response(
-                essay_text, 
-                test.questions.get('task_description', ''),
-                test.test_type, 
-                test.ielts_test_type
-            )
+            # Determine if this is Task 1 or Task 2 based on the test section
+            task_number = 1 if test.section == 1 else 2
+            
+            # Get the task prompt
+            task_prompt = test.questions[0]['question'] if test.questions else ''
+            
+            # Process based on task type
+            if task_number == 1:
+                evaluation = assess_writing_task1(essay_text, task_prompt, test.ielts_test_type)
+            else:
+                evaluation = assess_writing_task2(essay_text, task_prompt, test.ielts_test_type)
+                
+            # For backward compatibility, extract band score
+            if "overall_band_for_task" in evaluation:
+                evaluation["band_score"] = evaluation["overall_band_for_task"]
             
             # Calculate band score (0-9 scale)
             band_score = evaluation.get('band_score', 0)
