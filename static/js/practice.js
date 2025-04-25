@@ -307,12 +307,7 @@ function initializeAudioPlayer(audioPlayer) {
     const currentTimeDisplay = document.getElementById('current-time');
     const durationDisplay = document.getElementById('duration');
     
-    // Add error handling for embedded context
-    window.addEventListener('message', function(event) {
-        if (event.data === 'connection-restored') {
-            location.reload();
-        }
-    });
+    // We've removed the external message listener to prevent popup errors
     
     if (playButton && progressBar) {
         // Lazy load the audio to avoid Replit embedded page issues
