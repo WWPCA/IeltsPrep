@@ -8,7 +8,10 @@
         <p class="lead"><strong>Achieve Band 7+ with the World's First AI-Powered IELTS Test Preparation Platform</strong></p>
         <p>IELTS AI Prep helps you achieve your target band score with authentic practice tests, AI-powered speaking and writing assessments, and personalized feedback for Academic and General Training.</p>
         <div class="ai-badge mt-3 mb-4">
-            <span class="badge bg-light text-dark p-2"><i class="fas fa-brain text-primary me-2"></i>Powered by Advanced AI Technology</span>
+            <span class="badge bg-light text-dark p-2">
+                <img src="{{ url_for('static', filename='images/brain_ai.jpeg') }}" alt="AI Brain" width="25" height="25" class="me-2" style="border-radius: 5px;">
+                Powered by Advanced AI Technology
+            </span>
         </div>
         <div class="hero-buttons">
             <a href="{{ url_for('test_structure') }}" class="btn btn-primary btn-lg" onclick="window.location.href='{{ url_for('test_structure') }}'">Explore IELTS Test Format</a>
@@ -53,7 +56,7 @@
             <div class="feature-card card">
                 <div class="card-body">
                     <div class="feature-icon">
-                        <i class="fas fa-brain"></i>
+                        <img src="{{ url_for('static', filename='images/brain_ai.jpeg') }}" alt="AI Brain" width="50" height="50" style="border-radius: 8px;">
                     </div>
                     <h3>Your Personal AI IELTS Coach</h3>
                     <p>Get detailed band score feedback on both speaking and writing tasks with AI-powered assessments across all official IELTS criteria. Our AI coach provides personalized improvement suggestions just like a human examiner would.</p>
