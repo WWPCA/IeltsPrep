@@ -4,9 +4,12 @@
 <!-- Hero Section -->
 <section class="hero">
     <div class="container">
-        <h1>IELTS Preparation with AI-Powered Practice Tests</h1>
+        <h1>Get Your Best IELTS Score with Your Own AI Coach!</h1>
         <p class="lead"><strong>Achieve Band 7+ with the World's First AI-Powered IELTS Test Preparation Platform</strong></p>
-        <p>IELTS AI Prep helps you achieve your target band score with authentic practice tests, AI-powered speaking assessment, and comprehensive preparation resources for Academic and General Training.</p>
+        <p>IELTS AI Prep helps you achieve your target band score with authentic practice tests, AI-powered speaking and writing assessments, and personalized feedback for Academic and General Training.</p>
+        <div class="ai-badge mt-3 mb-4">
+            <span class="badge bg-light text-dark p-2"><i class="fas fa-robot text-primary me-2"></i>Powered by Advanced AI Technology</span>
+        </div>
         <div class="hero-buttons">
             <a href="{{ url_for('test_structure') }}" class="btn btn-primary btn-lg" onclick="window.location.href='{{ url_for('test_structure') }}'">Explore IELTS Test Format</a>
             <a href="{{ url_for('subscribe') }}" class="btn btn-secondary btn-lg" onclick="window.location.href='{{ url_for('subscribe') }}'">Start Preparing Today</a>
@@ -50,10 +53,10 @@
             <div class="feature-card card">
                 <div class="card-body">
                     <div class="feature-icon">
-                        <i class="fas fa-microphone-alt"></i>
+                        <i class="fas fa-robot"></i>
                     </div>
-                    <h3>AI-Enhanced Band Score Assessment</h3>
-                    <p>Receive detailed band score feedback on your speaking responses with assessments across all four IELTS criteria: Fluency and Coherence, Lexical Resource, Grammatical Range, and Pronunciation.</p>
+                    <h3>Your Personal AI IELTS Coach</h3>
+                    <p>Get detailed band score feedback on both speaking and writing tasks with AI-powered assessments across all official IELTS criteria. Our AI coach provides personalized improvement suggestions just like a human examiner would.</p>
                 </div>
             </div>
             
@@ -229,7 +232,7 @@
                             <i class="fas fa-star text-warning"></i>
                             <i class="fas fa-star text-warning"></i>
                         </div>
-                        <p class="testimonial-text">"The AI Speaking test assessment helped me identify weaknesses in my Pronunciation and Fluency and Coherence. After targeted practice with IELTS AI Prep, I improved from Band 6 to 7.5 and secured admission to my dream university!"</p>
+                        <p class="testimonial-text">"The AI assessment for both Speaking and Writing helped me identify my weaknesses. The personalized AI coach gave me specific guidance on how to improve. After just one month of targeted practice with IELTS AI Prep, I improved from Band 6 to 7.5 and secured admission to my dream university!"</p>
                         <div class="testimonial-author">
                             <div class="testimonial-name">Rahul S.</div>
                             <div class="testimonial-location">New Delhi, India</div>
@@ -269,7 +272,7 @@
                             <i class="fas fa-star text-warning"></i>
                             <i class="fas fa-star-half-alt text-warning"></i>
                         </div>
-                        <p class="testimonial-text">"I struggled with IELTS Writing Task 1 and Task 2, particularly with Coherence and Cohesion. The detailed band descriptors and sample answers in IELTS AI Prep helped me understand exactly what examiners look for. I finally achieved the Band 7.0 needed for my visa application!"</p>
+                        <p class="testimonial-text">"I struggled with IELTS Writing Task 1 and Task 2, particularly with Coherence and Cohesion. The AI writing assessment provided detailed feedback that highlighted exactly where I was going wrong. The personalized coaching tips helped me understand exactly what examiners look for. I finally achieved the Band 7.0 needed for my visa application!"</p>
                         <div class="testimonial-author">
                             <div class="testimonial-name">Min-Jun K.</div>
                             <div class="testimonial-location">Seoul, South Korea</div>
@@ -302,8 +305,11 @@
 <!-- CTA Section -->
 <section class="cta py-5 bg-primary text-white">
     <div class="container text-center">
-        <h2 class="mb-4">Ready to Achieve Your Target IELTS Band Score?</h2>
-        <p class="lead mb-4">Join thousands of successful IELTS candidates who prepared with our AI-powered practice tests and reached their target band scores for university admission, professional registration, and immigration purposes.</p>
+        <h2 class="mb-4">Ready to Achieve Your Target IELTS Band Score with Your Own AI Coach?</h2>
+        <p class="lead mb-4">Join thousands of successful IELTS candidates who prepared with our AI-powered practice tests and personalized coaching. Get detailed feedback on your writing and speaking to reach your target band scores for university admission, professional registration, and immigration purposes.</p>
+        <div class="ai-badge my-4">
+            <span class="badge bg-white text-primary p-2"><i class="fas fa-robot me-2"></i>Exclusive AI Assessment Technology</span>
+        </div>
         <a href="{{ url_for('subscribe') }}" class="btn btn-light btn-lg">View IELTS Preparation Plans</a>
     </div>
 </section>
