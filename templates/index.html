@@ -308,7 +308,10 @@
         <h2 class="mb-4">Ready to Achieve Your Target IELTS Band Score with Your Own AI Coach?</h2>
         <p class="lead mb-4">Join thousands of successful IELTS candidates who prepared with our AI-powered practice tests and personalized coaching. Get detailed feedback on your writing and speaking to reach your target band scores for university admission, professional registration, and immigration purposes.</p>
         <div class="ai-badge my-4">
-            <span class="badge bg-white text-primary p-2"><i class="fas fa-brain me-2"></i>Exclusive AI Assessment Technology</span>
+            <span class="badge bg-white text-primary p-2">
+                <img src="{{ url_for('static', filename='images/brain_ai.jpeg') }}" alt="AI Brain" width="25" height="25" class="me-2" style="border-radius: 5px;">
+                Exclusive AI Assessment Technology
+            </span>
         </div>
         <a href="{{ url_for('subscribe') }}" class="btn btn-light btn-lg">View IELTS Preparation Plans</a>
     </div>
