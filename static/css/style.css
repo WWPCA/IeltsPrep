@@ -492,6 +492,47 @@ a:hover {
   margin-bottom: 1rem;
 }
 
+/* Pricing Section on Homepage */
+.pricing {
+  position: relative;
+  z-index: 1;
+}
+
+.pricing .card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.pricing .card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.pricing .card-header {
+  position: relative;
+  border-bottom: none;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.pricing .badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  z-index: 2;
+}
+
+.pricing-features ul li {
+  padding: 0.5rem 0;
+}
+
+.pricing-features .text-muted {
+  opacity: 0.7;
+}
+
 /* Subscription Page */
 .subscription-section {
   background-color: #f8f9fa;

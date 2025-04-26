@@ -70,6 +70,100 @@
     </div>
 </section>
 
+<!-- Subscription Plans Section -->
+{% if not current_user.is_authenticated %}
+<section class="pricing py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4">Choose Your IELTS Preparation Plan</h2>
+        <p class="text-center mb-5">Select the perfect package for your IELTS preparation needs - Academic or General Training</p>
+        
+        <div class="row">
+            <!-- Single Test Plan -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 pricing-card">
+                    <div class="card-header bg-white text-center">
+                        <h3 class="my-0 font-weight-bold">Single Test Package</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="card-title pricing-card-title text-center">$25 <small class="text-muted">/ one-time</small></h2>
+                        <div class="pricing-features mt-3 mb-4">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Access to 1 complete practice test</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 4 IELTS modules included</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> AI-powered Speaking assessment</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Detailed Writing feedback</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 15-day access period</li>
+                                <li class="mb-2 text-muted"><i class="fas fa-times text-danger me-2"></i> Test Day Guide</li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto d-grid">
+                            <a href="{{ url_for('subscribe', plan='single') }}" class="btn btn-outline-primary btn-lg">Choose Single Test</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Double Test Plan -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 pricing-card">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="my-0 font-weight-bold">Double Test Package</h3>
+                        <span class="badge bg-warning text-dark position-absolute top-0 start-50 translate-middle">Popular Choice</span>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="card-title pricing-card-title text-center">$35 <small class="text-muted">/ one-time</small></h2>
+                        <div class="pricing-features mt-3 mb-4">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Access to 2 complete practice tests</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 4 IELTS modules included</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> AI-powered Speaking assessment</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Detailed Writing feedback</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 15-day access period</li>
+                                <li class="mb-2 text-muted"><i class="fas fa-times text-danger me-2"></i> Test Day Guide</li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto d-grid">
+                            <a href="{{ url_for('subscribe', plan='double') }}" class="btn btn-primary btn-lg">Choose Double Test</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Value Pack Plan -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 pricing-card">
+                    <div class="card-header bg-dark text-white text-center">
+                        <h3 class="my-0 font-weight-bold">Value Pack</h3>
+                        <span class="badge bg-success position-absolute top-0 start-50 translate-middle">Best Value</span>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="card-title pricing-card-title text-center">$50 <small class="text-muted">/ one-time</small></h2>
+                        <div class="pricing-features mt-3 mb-4">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Access to 4 complete practice tests</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 4 IELTS modules included</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> AI-powered Speaking assessment</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Detailed Writing feedback</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 30-day access period</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Exclusive Test Day Guide</li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto d-grid">
+                            <a href="{{ url_for('subscribe', plan='value') }}" class="btn btn-dark btn-lg">Choose Value Pack</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <p class="mb-0">All plans available for both Academic and General Training test options</p>
+            <p class="small text-muted">Choose your test type after registration</p>
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- Test Modules Overview -->
 <section class="test-sections py-5 bg-light">
     <div class="container">
