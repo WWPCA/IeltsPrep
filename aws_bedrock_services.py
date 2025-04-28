@@ -13,17 +13,17 @@ logger = logging.getLogger(__name__)
 
 def get_bedrock_client():
     """
-    Get an AWS Bedrock client using the dedicated Bedrock credentials.
+    Get an AWS Bedrock client using the default AWS credentials.
     
     Returns:
         boto3.client: AWS Bedrock runtime client
     """
     try:
+        # Use the default AWS credentials that we've already set up and tested
         bedrock_runtime = boto3.client(
             service_name='bedrock-runtime',
-            region_name=os.environ.get('AWS_BEDROCK_REGION', 'us-east-1'),
-            aws_access_key_id=os.environ.get('AWS_BEDROCK_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.environ.get('AWS_BEDROCK_SECRET_ACCESS_KEY')
+            region_name=os.environ.get('AWS_REGION', 'us-east-1'),
+            # No need to specify access key and secret - will use the default credentials
         )
         return bedrock_runtime
     except Exception as e:
