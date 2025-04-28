@@ -6,7 +6,7 @@ This module provides routes for assessing IELTS writing responses using OpenAI G
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
 from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress
-from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
+from openai_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 import json
 import os
 
