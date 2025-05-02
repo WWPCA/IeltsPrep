@@ -279,7 +279,7 @@ def update_reading_test(test_id, content):
         bool: True if successful, False otherwise
     """
     try:
-        test = PracticeTest.query.get(test_id)
+        test = PracticeTest.query.filter_by(id=test_id).first()
         if not test or test.test_type != 'reading':
             print(f"Test {test_id} not found or is not a reading test")
             return False
@@ -287,9 +287,25 @@ def update_reading_test(test_id, content):
         # Parse the content to extract question types
         questions_data = process_reading_content(content)
         
-        # Get existing questions data
-        existing_questions = test.questions
-        passage_text = existing_questions.get('passage', '')
+        # Extract passage from content (first section before questions)
+        passage_text = ""
+        passage_match = re.search(r'\*\*\* PASSAGE \d+:.*?\*\*\*(.*?)(?=\*\* Questions|\(1-\d+:|Questions \d+)', content, re.DOTALL)
+        if passage_match:
+            passage_text = passage_match.group(1).strip()
+        else:
+            # Try another pattern
+            passage_match = re.search(r'Read the text and answer questions.*?\n\n(.*?)(?=\*\* Questions|\(1-\d+:|Questions \d+)', content, re.DOTALL)
+            if passage_match:
+                passage_text = passage_match.group(1).strip()
+            else:
+                # Fallback to using the first part of the content
+                passage_lines = []
+                lines = content.split('\n')
+                for line in lines:
+                    if 'Questions ' in line or 'Choose True, False' in line:
+                        break
+                    passage_lines.append(line)
+                passage_text = '\n'.join(passage_lines).strip()
         
         # Create updated questions data
         all_questions = []
@@ -301,20 +317,33 @@ def update_reading_test(test_id, content):
         # Add heading matching questions
         if questions_data.get('heading_section'):
             heading_section = questions_data['heading_section']
+            paragraphs = heading_section.get('paragraphs', [])
+            
+            # Include paragraph text in the heading section
             for q_num in range(heading_section['start_question'], heading_section['end_question'] + 1):
+                paragraph_index = q_num - heading_section['start_question']
+                paragraph_text = ""
+                if paragraph_index < len(paragraphs):
+                    paragraph_text = paragraphs[paragraph_index].get('text', '')
+                
                 all_questions.append({
                     'number': q_num,
-                    'text': f'Which heading best matches paragraph {q_num - heading_section["start_question"] + 1}?',
+                    'text': f'Which heading best matches paragraph {paragraph_index + 1}?',
                     'type': 'heading_matching',
                     'headings': heading_section['headings'],
-                    'paragraph_index': q_num - heading_section["start_question"]
+                    'paragraph_index': paragraph_index,
+                    'paragraph_text': paragraph_text
                 })
         
         # Add multiple select questions
         for ms_section in questions_data.get('multiple_select_questions', []):
+            question_text = ms_section.get('question_text', 'Select TWO correct options:')
+            if not question_text:
+                question_text = 'Select TWO correct options:'
+                
             all_questions.append({
                 'number': ms_section['start_question'],
-                'text': 'Select TWO correct options:',
+                'text': question_text,
                 'type': 'multiple_select_two',
                 'options': ms_section['options']
             })
@@ -364,6 +393,51 @@ def update_reading_test(test_id, content):
         print(f"Error updating test {test_id}: {str(e)}")
         return False
 
+def fix_duplicate_questions(test_id):
+    """
+    Fix the problem of duplicate questions by keeping only unique question numbers
+    
+    Args:
+        test_id (int): The test ID to fix
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        test = PracticeTest.query.filter_by(id=test_id).first()
+        if not test or test.test_type != 'reading':
+            print(f"Test {test_id} not found or is not a reading test")
+            return False
+        
+        # Get current questions
+        if not isinstance(test.questions, dict) or 'questions' not in test.questions:
+            print(f"Test {test_id} has invalid question format")
+            return False
+        
+        # Group questions by number
+        questions_by_number = {}
+        for q in test.questions['questions']:
+            q_num = q.get('number')
+            if q_num not in questions_by_number:
+                questions_by_number[q_num] = []
+            questions_by_number[q_num].append(q)
+        
+        # Keep only the first question for each number
+        unique_questions = []
+        for q_num, q_list in questions_by_number.items():
+            unique_questions.append(q_list[0])
+        
+        # Update with unique questions
+        test.questions['questions'] = sorted(unique_questions, key=lambda q: q['number'])
+        db.session.commit()
+        
+        print(f"Fixed test {test_id}: reduced from {len(test.questions['questions'])} to {len(unique_questions)} questions")
+        return True
+    
+    except Exception as e:
+        print(f"Error fixing test {test_id}: {str(e)}")
+        return False
+
 def update_all_reading_tests():
     """Update all reading tests with content from the IELTS Reading Context File"""
     try:
@@ -371,12 +445,26 @@ def update_all_reading_tests():
         with open('attached_assets/IELTS Reading Context File.txt', 'r') as f:
             content = f.read()
             
-        # Split content into tests
-        raw_tests = content.split("Part ")
+        # Look for test sections with part numbers
+        test_pattern = r'Part (\d+) - Test (\d+)'
+        test_matches = list(re.finditer(test_pattern, content))
         
-        # Skip the first element as it's just the header
-        if raw_tests and "IELTS Reading Context File" in raw_tests[0]:
-            raw_tests = raw_tests[1:]
+        if not test_matches:
+            print("No test sections found with the expected format")
+            # Try to process the whole file as one test
+            raw_tests = [content]
+        else:
+            # Split content based on test section markers
+            raw_tests = []
+            for i, match in enumerate(test_matches):
+                start_pos = match.start()
+                # If this is the last match, go to the end of the file
+                if i == len(test_matches) - 1:
+                    test_content = content[start_pos:]
+                else:
+                    end_pos = test_matches[i + 1].start()
+                    test_content = content[start_pos:end_pos]
+                raw_tests.append(test_content)
             
         print(f"Found {len(raw_tests)} raw test sections in the file.")
         
@@ -389,32 +477,40 @@ def update_all_reading_tests():
             
         print(f"Found {len(reading_tests)} reading tests in the database")
         
-        # Group tests by test number
-        tests_by_number = {}
+        # Group tests by complete test ID
+        tests_by_complete_id = {}
         for test in reading_tests:
-            # Get the parent complete test
-            complete_test = CompletePracticeTest.query.get(test.complete_test_id)
-            if complete_test:
-                key = f"{complete_test.ielts_test_type}_{complete_test.test_number}"
-                if key not in tests_by_number:
-                    tests_by_number[key] = []
-                tests_by_number[key].append(test)
+            if test.complete_test_id:
+                if test.complete_test_id not in tests_by_complete_id:
+                    tests_by_complete_id[test.complete_test_id] = []
+                tests_by_complete_id[test.complete_test_id].append(test)
         
-        # Update each test with the corresponding content
-        for i, test_content in enumerate(raw_tests[:32]):  # Process only the first 32 tests
-            # First 16 are academic, next 16 are general
-            is_academic = i < 16
-            test_type = 'academic' if is_academic else 'general'
-            test_number = (i % 16) + 1  # 1-16 for each type
+        # Get all complete tests
+        complete_tests = CompletePracticeTest.query.filter(CompletePracticeTest.id.in_(list(tests_by_complete_id.keys()))).all()
+        complete_tests_by_key = {}
+        
+        for test in complete_tests:
+            key = f"{test.ielts_test_type}_{test.test_number}"
+            complete_tests_by_key[key] = test
             
-            key = f"{test_type}_{test_number}"
+        # Process only the first test content for now
+        test_content = raw_tests[0]
+        
+        # Update test 1 in each pair of academic/general tests
+        for test_type in ['academic', 'general']:
+            key = f"{test_type}_1"  # Only update test 1 for now
             
-            if key in tests_by_number:
-                for test in tests_by_number[key]:
-                    print(f"Updating {test_type} test {test_number} (ID: {test.id})")
-                    update_reading_test(test.id, test_content)
+            if key in complete_tests_by_key:
+                complete_test = complete_tests_by_key[key]
+                if complete_test.id in tests_by_complete_id:
+                    for test in tests_by_complete_id[complete_test.id]:
+                        if test.test_type == 'reading':
+                            print(f"Updating {test_type} test 1 (ID: {test.id})")
+                            update_reading_test(test.id, test_content)
+                            # Fix duplicates after update
+                            fix_duplicate_questions(test.id)
             else:
-                print(f"No test found for {key}")
+                print(f"No complete test found for {key}")
                 
         print("Reading tests updated successfully!")
         
