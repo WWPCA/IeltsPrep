@@ -274,6 +274,28 @@ class PracticeTest(db.Model):
     def __repr__(self):
         return f'<PracticeTest {self.test_type} {self.section}: {self.title}>'
 
+class UserTestAssignment(db.Model):
+    """Track which tests are assigned to each user to ensure no repeats"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    test_type = db.Column(db.String(20), nullable=False)  # academic or general
+    assigned_test_numbers = db.Column(db.Text, nullable=False)  # JSON array of assigned test numbers
+    purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
+    expiry_date = db.Column(db.DateTime, nullable=True)
+    
+    @property
+    def test_numbers(self):
+        """Get the list of assigned test numbers"""
+        return json.loads(self.assigned_test_numbers)
+    
+    @test_numbers.setter
+    def test_numbers(self, value):
+        """Set the list of assigned test numbers"""
+        self.assigned_test_numbers = json.dumps(value)
+        
+    def __repr__(self):
+        return f'<UserTestAssignment User:{self.user_id} Type:{self.test_type} Tests:{self.assigned_test_numbers}>'
+
 class CompleteTestProgress(db.Model):
     """Track user progress through a complete test with multiple sections"""
     id = db.Column(db.Integer, primary_key=True)
