@@ -166,6 +166,102 @@ def profile():
     # Profile page is now simplified, no streak data needed
     return render_template('profile.html', title='My Profile')
 
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Allow users to change their password"""
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate inputs
+        if not current_password or not new_password or not confirm_password:
+            flash('All fields are required.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Check if current password is correct
+        if not check_password_hash(current_user.password_hash, current_password):
+            flash('Current password is incorrect.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Check if new passwords match
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Check password length
+        if len(new_password) < 8:
+            flash('Password must be at least 8 characters long.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Update password
+        current_user.set_password(new_password)
+        db.session.commit()
+        
+        flash('Your password has been updated successfully.', 'success')
+        return redirect(url_for('profile'))
+        
+    return render_template('change_password.html', title='Change Password')
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Handle forgot password requests"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        if not email:
+            flash('Please provide your email address.', 'danger')
+            return render_template('forgot_password.html', title='Forgot Password')
+            
+        # Check if user exists
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            # For simplicity and security, we'll just show a success message
+            # In a production app, you'd generate a token and send a reset email
+            flash('If an account exists with that email, a password reset link has been sent.', 'info')
+            # TODO: Implement email sending functionality with reset token
+        else:
+            # Same message for security (don't reveal if email exists)
+            flash('If an account exists with that email, a password reset link has been sent.', 'info')
+            
+        return redirect(url_for('login'))
+        
+    return render_template('forgot_password.html', title='Forgot Password')
+
+@app.route('/forgot-username', methods=['GET', 'POST'])
+def forgot_username():
+    """Handle forgot username requests"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        if not email:
+            flash('Please provide your email address.', 'danger')
+            return render_template('forgot_username.html', title='Forgot Username')
+            
+        # Check if user exists
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            # For simplicity and security, we'll just show a success message
+            # In a production app, you'd send an email with the username
+            flash('If an account exists with that email, your username has been sent.', 'info')
+            # TODO: Implement email sending functionality
+        else:
+            # Same message for security (don't reveal if email exists)
+            flash('If an account exists with that email, your username has been sent.', 'info')
+            
+        return redirect(url_for('login'))
+        
+    return render_template('forgot_username.html', title='Forgot Username')
+
 # Test Structure Routes
 @app.route('/test-structure')
 def test_structure():
