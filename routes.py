@@ -12,9 +12,10 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from app import app, db
-from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress
+from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress, UserTestAssignment
 from utils import get_user_region, get_translation, compress_audio
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment
+import test_assignment_service
 from openai_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation, transcribe_audio, generate_polly_speech
 from geoip_services import get_country_from_ip, get_pricing_for_country
@@ -306,39 +307,49 @@ def practice_index():
         # Filter tests by user's test preference
         user_test_preference = current_user.test_preference
         
-        # Get tests (free ones and those matching user's subscription level)
-        # Use subquery to get only the latest version of each test number (to avoid duplicates)
-        from sqlalchemy import func
-        
-        # For each test number, get the maximum ID (latest version)
+        # Use the test assignment service to get the tests the user has access to
         if current_user.is_subscribed():
-            # Determine number of tests to show based on user's subscription
-            num_tests_to_show = 1  # Default for single test package
+            # First check if user has any assigned tests
+            assigned_tests = test_assignment_service.get_user_accessible_tests(
+                user_id=current_user.id,
+                test_type=user_test_preference
+            )
             
-            if current_user.subscription_status == 'Value Pack':
-                num_tests_to_show = 4
-            elif current_user.subscription_status == 'Double Package':
-                num_tests_to_show = 2
-            
-            # First get the latest ID for each test number - show academic tests for premium users
-            subquery = db.session.query(
-                CompletePracticeTest.test_number,
-                func.max(CompletePracticeTest.id).label('max_id')
-            ).filter(
-                CompletePracticeTest.ielts_test_type == user_test_preference  # Show tests based on user preference
-            ).group_by(CompletePracticeTest.test_number).subquery()
-            
-            # Then join to get the complete test records
-            all_tests = CompletePracticeTest.query.join(
-                subquery,
-                db.and_(
-                    CompletePracticeTest.id == subquery.c.max_id,
-                    CompletePracticeTest.test_number == subquery.c.test_number
-                )
-            ).order_by(CompletePracticeTest.test_number).all()
-            
-            # Limit the number of tests based on subscription
-            complete_tests = all_tests[:num_tests_to_show]
+            if assigned_tests:
+                # User has assigned tests from the new system
+                complete_tests = assigned_tests
+            else:
+                # Fallback to the old system for users with legacy subscriptions
+                # Determine number of tests to show based on user's subscription
+                num_tests_to_show = 1  # Default for single test package
+                
+                if current_user.subscription_status == 'Value Pack':
+                    num_tests_to_show = 4
+                elif current_user.subscription_status == 'Double Package':
+                    num_tests_to_show = 2
+                
+                # Use sqlalchemy to get tests
+                from sqlalchemy import func
+                
+                # First get the latest ID for each test number
+                subquery = db.session.query(
+                    CompletePracticeTest.test_number,
+                    func.max(CompletePracticeTest.id).label('max_id')
+                ).filter(
+                    CompletePracticeTest.ielts_test_type == user_test_preference
+                ).group_by(CompletePracticeTest.test_number).subquery()
+                
+                # Then join to get the complete test records
+                all_tests = CompletePracticeTest.query.join(
+                    subquery,
+                    db.and_(
+                        CompletePracticeTest.id == subquery.c.max_id,
+                        CompletePracticeTest.test_number == subquery.c.test_number
+                    )
+                ).order_by(CompletePracticeTest.test_number).all()
+                
+                # Limit the number of tests based on subscription
+                complete_tests = all_tests[:num_tests_to_show]
         else:
             # For non-subscribers, only show free tests (also avoid duplicates)
             subquery = db.session.query(
@@ -1669,7 +1680,8 @@ def payment_success():
     # Update user's subscription
     if package in package_details:
         # Calculate expiry date
-        expiry_date = datetime.utcnow() + timedelta(days=package_details[package]['days'])
+        subscription_days = package_details[package]['days']
+        expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
         
         # Update user's subscription status
         current_user.subscription_status = package_details[package]['name']
@@ -1690,6 +1702,30 @@ def payment_success():
             }
         })
         current_user.test_history = test_history
+        
+        # Assign unique tests to the user using our test assignment service
+        num_tests = package_details[package]['tests']
+        try:
+            # Assign tests from the repository
+            assigned_numbers, success = test_assignment_service.assign_tests_to_user(
+                user_id=current_user.id,
+                test_type=test_preference,  # academic or general
+                num_tests=num_tests,
+                subscription_days=subscription_days
+            )
+            
+            if success:
+                app.logger.info(f"Successfully assigned {len(assigned_numbers)} tests to user {current_user.id}")
+                
+                # Add the assigned test numbers to the test history
+                test_history[-1]['test_purchase']['assigned_tests'] = assigned_numbers
+                current_user.test_history = test_history
+            else:
+                app.logger.warning(f"Could not assign {num_tests} unique tests to user {current_user.id}")
+                flash('Warning: You have already been assigned all available tests. Some tests may be repeats.', 'warning')
+        except Exception as e:
+            app.logger.error(f"Error assigning tests: {str(e)}")
+            # Continue with subscription, even if test assignment fails
         
         db.session.commit()
         

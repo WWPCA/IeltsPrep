@@ -23,7 +23,7 @@ def init_reading_tests():
     print("Initializing reading tests...")
     
     # Check if tests already exist
-    existing_tests = CompletePracticeTest.query.filter_by(test_type='reading').count()
+    existing_tests = PracticeTest.query.filter_by(test_type='reading').count()
     if existing_tests > 0:
         print(f"Found {existing_tests} existing reading tests. Skipping initialization.")
         return
