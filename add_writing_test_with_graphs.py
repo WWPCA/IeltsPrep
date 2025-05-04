@@ -33,19 +33,19 @@ def add_academic_writing_tests_with_graphs():
         "time_limit": 60  # 60 minutes
     }
     
-    # Define the test data for the second test (Outdoor Hobbies)
+    # Define the test data for the second test (Outdoor Activities)
     test_2 = {
         "test_type": "writing",
         "ielts_test_type": "academic",
         "section": 1,  # Task 1
-        "title": "Academic Writing Task 1: Outdoor Hobbies Bar Chart",
-        "description": "IELTS Academic Writing Task 1 practice with bar chart data comparing outdoor hobbies participation in 2012 and 2022.",
+        "title": "Academic Writing Task 1: Outdoor Activities Bar Chart",
+        "description": "IELTS Academic Writing Task 1 practice with bar chart data comparing outdoor activities participation in 2012 and 2022.",
         "questions": [
             {
                 "task": "Task 1",
-                "description": "The chart below shows the number of adults participating in different outdoor hobbies in one area, in 2012 and 2022.",
-                "instructions": "Summarise the key trends in adult participation in these outdoor hobbies over the 10-year period and provide relevant comparisons between the two years.",
-                "image_url": "/static/images/writing_graphs/outdoor_hobbies_2012_2022.png"
+                "description": "The chart below shows the participation of adults in various outdoor activities in 2012 and 2022.",
+                "instructions": "Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+                "image_url": "/static/images/writing_graphs/outdoor_activities_2012_2022.png"
             }
         ],
         "answers": [
