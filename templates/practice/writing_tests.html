@@ -60,9 +60,9 @@
                                         <div class="alert alert-success">
                                             <i class="fas fa-check-circle"></i> You have completed this test
                                         </div>
-                                        <a href="{{ url_for('practice_index') }}" class="btn btn-secondary">View Other Practice Tests</a>
+                                        <a href="{{ url_for('practice.index') }}" class="btn btn-secondary">View Other Practice Tests</a>
                                     {% else %}
-                                        <a href="{{ url_for('writing_assessment.take_writing_test', test_id=test.id) }}" class="btn btn-primary">Start Test</a>
+                                        <a href="{{ url_for('practice.take_test', test_type='writing', test_id=test.id) }}" class="btn btn-primary">Start Test</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -79,8 +79,8 @@
 
     {% if current_user.is_authenticated %}
         <div class="text-center mb-5">
-            <a href="{{ url_for('writing_assessment.assessment_history') }}" class="btn btn-outline-primary">
-                <i class="fas fa-history"></i> View My Writing Assessment History
+            <a href="{{ url_for('practice.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-history"></i> Back to Practice Tests
             </a>
         </div>
     {% endif %}
