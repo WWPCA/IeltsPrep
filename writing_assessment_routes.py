@@ -56,7 +56,17 @@ def submit_writing_task(test_id):
         task_number = 1 if test.section == 1 else 2
         
         # Get the task prompt
-        task_prompt = test_questions[0]['question'] if test_questions else ''
+        if isinstance(test_questions, list) and test_questions:
+            # New format with description and instructions
+            if isinstance(test_questions[0], dict) and 'description' in test_questions[0]:
+                task_description = test_questions[0].get('description', '')
+                task_instructions = test_questions[0].get('instructions', '')
+                task_prompt = f"{task_description}\n\n{task_instructions}"
+            else:
+                # Legacy format
+                task_prompt = test_questions[0].get('question', '')
+        else:
+            task_prompt = ''
         
         # Process based on task type
         if task_number == 1:
@@ -220,3 +230,41 @@ def api_assess_complete_writing_test():
     except Exception as e:
         print(f"Error assessing complete writing test: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@writing_assessment.route('/writing/tests')
+def writing_tests():
+    """
+    Display available writing tests
+    """
+    # Get all writing tests
+    tests = PracticeTest.query.filter_by(test_type='writing').all()
+    
+    # If user is logged in, mark tests they've already taken
+    user_test_ids = []
+    if current_user.is_authenticated:
+        user_test_ids = [
+            attempt.test_id for attempt in 
+            UserTestAttempt.query.filter_by(user_id=current_user.id, test_id=PracticeTest.id)
+            .join(PracticeTest)
+            .filter(PracticeTest.test_type == 'writing')
+            .all()
+        ]
+    
+    # Format test data for the template
+    test_data = []
+    for test in tests:
+        # Check if the user has taken this test
+        taken = test.id in user_test_ids
+        
+        # Add to the list
+        test_data.append({
+            'id': test.id,
+            'title': test.title,
+            'description': test.description,
+            'ielts_test_type': test.ielts_test_type,
+            'is_free': test.is_free,
+            'taken': taken
+        })
+    
+    # Render the template
+    return render_template('practice/writing_tests.html', tests=test_data)

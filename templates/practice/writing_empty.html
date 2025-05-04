@@ -30,12 +30,12 @@
         <div class="col-md-6 border-end">
             <div class="task-container p-3" style="height: calc(100vh - 110px); overflow-y: auto;">
                 <!-- Task Description -->
-                <p class="mb-3">The chart below shows the number of adults participating in different major sports in one area, in 1997 and 2017.</p>
-                <p class="mb-4">Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</p>
+                <p class="mb-3">{{ test.questions[0].get('description', 'The chart below shows the number of adults participating in different cultural activities in one area, in 2010 and 2020.') }}</p>
+                <p class="mb-4">{{ test.questions[0].get('instructions', 'Summarise the key trends in adult participation in these cultural activities over the 10-year period and provide relevant comparisons between the two years.') }}</p>
                 
                 <!-- Chart/Image -->
                 <div class="chart-container mb-4 text-center">
-                    <img src="/static/images/ielts_chart.svg" alt="Chart showing number of adults participating in sports" class="img-fluid border rounded" style="max-width: 100%;">
+                    <img src="{{ test.questions[0].get('image_url', '/static/images/writing_graphs/cultural_activities_2010_2020.png') }}" alt="Chart showing cultural activities data" class="img-fluid border rounded" style="max-width: 100%;">
                 </div>
                 
                 <!-- Additional Instructions (Optional) -->
@@ -44,8 +44,7 @@
                     <ul class="small text-muted">
                         <li>Begin with an introduction that clearly states what the chart shows.</li>
                         <li>Identify 2-3 key trends or patterns in the data.</li>
-                        <li>Compare the most significant changes between 1997 and 2017.</li>
-                        <li>Group similar information (e.g., sports that increased vs. decreased).</li>
+                        <li>Group similar information (increasing vs. decreasing trends).</li>
                         <li>Use appropriate language for describing trends (increased, declined, remained stable).</li>
                         <li>Include specific details from the chart to support your observations.</li>
                         <li>Provide a brief overview paragraph after your introduction.</li>
@@ -58,11 +57,13 @@
         <!-- Right Column - Answer Area -->
         <div class="col-md-6">
             <div class="response-container" style="height: calc(100vh - 110px); display: flex; flex-direction: column;">
-                <form id="practice-test-form" data-test-id="{{ test.id }}" data-test-type="writing" style="display: flex; flex-direction: column; height: 100%;">
+                <form id="practice-test-form" action="{{ url_for('writing_assessment.submit_writing_task', test_id=test.id) }}" method="post" style="display: flex; flex-direction: column; height: 100%;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="p-3 flex-grow-1 d-flex flex-column">
                         <!-- Text Area Container -->
                         <div class="flex-grow-1 d-flex flex-column">
                             <textarea class="form-control writing-textarea flex-grow-1 mb-2" 
+                                    name="essay_text"
                                     style="resize: none; min-height: 350px;" 
                                     placeholder="Type your answer here..."
                                     data-min-words="150" 
@@ -71,6 +72,11 @@
                                 <span id="word-count" class="text-muted small">Words: 0</span>
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- Submit Button (visible on mobile) -->
+                    <div class="d-md-none p-3">
+                        <button type="submit" class="btn btn-primary w-100">Submit</button>
                     </div>
                 </form>
             </div>
