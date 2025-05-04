@@ -143,8 +143,30 @@ def add_academic_writing_tests_with_graphs():
         "time_limit": 60  # 60 minutes
     }
 
+    # Define the test data for the seventh test (Social Clubs)
+    test_7 = {
+        "test_type": "writing",
+        "ielts_test_type": "academic",
+        "section": 1,  # Task 1
+        "title": "Academic Writing Task 1: Social Clubs Bar Chart",
+        "description": "IELTS Academic Writing Task 1 practice with bar chart data comparing social clubs participation in 2014 and 2024.",
+        "questions": [
+            {
+                "task": "Task 1",
+                "description": "The chart below shows the number of adults participating in different social clubs in one area, in 2014 and 2024.",
+                "instructions": "Summarise the key trends in adult participation in these social clubs over the 10-year period and provide relevant comparisons between the two years.",
+                "image_url": "/static/images/writing_graphs/social_clubs_2014_2024.png"
+            }
+        ],
+        "answers": [
+            "This is a sample model answer structure. Actual assessment will be done by AI."
+        ],
+        "is_free": True,
+        "time_limit": 60  # 60 minutes
+    }
+
     # List of tests to add
-    tests = [test_1, test_2, test_3, test_4, test_5, test_6]
+    tests = [test_1, test_2, test_3, test_4, test_5, test_6, test_7]
     
     # Add each test
     for test_data in tests:
