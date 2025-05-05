@@ -33,30 +33,24 @@
   }
   
   .question-item {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #eee;
   }
   
-  .options-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 5px;
-    margin-top: 10px;
+  .option-item {
+    margin: 5px 0;
+    display: flex;
+    align-items: flex-start;
   }
   
-  .option-cell {
-    text-align: center;
-    padding: 5px;
+  .option-input {
+    margin-right: 10px;
+    margin-top: 3px;
   }
   
   .option-label {
-    font-weight: bold;
-  }
-  
-  .radio-option {
-    margin: 0 auto;
-    display: block;
+    flex: 1;
   }
   
   .navigation {
@@ -154,9 +148,7 @@
     
     <div class="questions-container">
       <div class="question-header">
-        Questions 1-6
-        <p class="notice-text">Look at the six items (A-F). For which item are the following statements true?</p>
-        <p class="notice-text">You may choose any letter more than once.</p>
+        <p class="notice-text">Choose the TWO correct options for each question.</p>
       </div>
       
       <form id="reading-form" method="post" action="{{ url_for('submit_general_reading_test', test_id=test.id) }}">
@@ -164,45 +156,68 @@
         
         <!-- Questions populated from database -->
         <div id="questions-list">
-          {% for i in range(0, 6) %}
+          {% for i in range(0, 5) %}
           <div class="question-item">
             <div class="d-flex">
               <div class="mr-2">{{ i+1 }}</div>
               <div>
-                {% if questions and i < questions|length %}
-                  {{ questions[i][10:] }} <!-- Remove "Question X: " prefix -->
-                {% else %}
-                  Question {{ i+1 }} will appear here.
-                {% endif %}
+                <!-- Get the question text from test.description -->
+                {{ test.description.split('.')[1] if test.description and '.' in test.description else "Choose TWO correct options" }}
               </div>
             </div>
+            <div class="option-item">
+              <input type="checkbox" name="q{{ i+1 }}" value="A" class="option-input" id="q{{ i+1 }}_A">
+              <label for="q{{ i+1 }}_A" class="option-label">
+                {% if questions and i*5 < questions|length %}
+                  {{ questions[i*5][10:] }} <!-- Option A -->
+                {% else %}
+                  Option A
+                {% endif %}
+              </label>
+            </div>
             
-            <div class="options-grid">
-              <div class="option-cell option-label">A</div>
-              <div class="option-cell option-label">B</div>
-              <div class="option-cell option-label">C</div>
-              <div class="option-cell option-label">D</div>
-              <div class="option-cell option-label">E</div>
-              <div class="option-cell option-label">F</div>
-              
-              <div class="option-cell">
-                <input type="radio" name="q{{ i+1 }}" value="A" class="radio-option" required>
-              </div>
-              <div class="option-cell">
-                <input type="radio" name="q{{ i+1 }}" value="B" class="radio-option">
-              </div>
-              <div class="option-cell">
-                <input type="radio" name="q{{ i+1 }}" value="C" class="radio-option">
-              </div>
-              <div class="option-cell">
-                <input type="radio" name="q{{ i+1 }}" value="D" class="radio-option">
-              </div>
-              <div class="option-cell">
-                <input type="radio" name="q{{ i+1 }}" value="E" class="radio-option">
-              </div>
-              <div class="option-cell">
-                <input type="radio" name="q{{ i+1 }}" value="F" class="radio-option">
-              </div>
+            <div class="option-item">
+              <input type="checkbox" name="q{{ i+1 }}" value="B" class="option-input" id="q{{ i+1 }}_B">
+              <label for="q{{ i+1 }}_B" class="option-label">
+                {% if questions and i*5+1 < questions|length %}
+                  {{ questions[i*5+1][10:] }} <!-- Option B -->
+                {% else %}
+                  Option B
+                {% endif %}
+              </label>
+            </div>
+            
+            <div class="option-item">
+              <input type="checkbox" name="q{{ i+1 }}" value="C" class="option-input" id="q{{ i+1 }}_C">
+              <label for="q{{ i+1 }}_C" class="option-label">
+                {% if questions and i*5+2 < questions|length %}
+                  {{ questions[i*5+2][10:] }} <!-- Option C -->
+                {% else %}
+                  Option C
+                {% endif %}
+              </label>
+            </div>
+            
+            <div class="option-item">
+              <input type="checkbox" name="q{{ i+1 }}" value="D" class="option-input" id="q{{ i+1 }}_D">
+              <label for="q{{ i+1 }}_D" class="option-label">
+                {% if questions and i*5+3 < questions|length %}
+                  {{ questions[i*5+3][10:] }} <!-- Option D -->
+                {% else %}
+                  Option D
+                {% endif %}
+              </label>
+            </div>
+            
+            <div class="option-item">
+              <input type="checkbox" name="q{{ i+1 }}" value="E" class="option-input" id="q{{ i+1 }}_E">
+              <label for="q{{ i+1 }}_E" class="option-label">
+                {% if questions and i*5+4 < questions|length %}
+                  {{ questions[i*5+4][10:] }} <!-- Option E -->
+                {% else %}
+                  Option E
+                {% endif %}
+              </label>
             </div>
           </div>
           {% endfor %}
@@ -211,6 +226,9 @@
         <div class="navigation">
           <button type="button" class="btn btn-secondary prev-btn">
             <i class="fas fa-arrow-left"></i> Previous
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Submit Test
           </button>
           <button type="button" class="btn btn-secondary next-btn">
             Next <i class="fas fa-arrow-right"></i>
@@ -229,7 +247,6 @@
         <li><a href="#">3</a></li>
         <li><a href="#">4</a></li>
         <li><a href="#">5</a></li>
-        <li><a href="#">6</a></li>
       </ul>
     </div>
     <div>
@@ -269,6 +286,31 @@
     const sixtyMinutes = 60 * 60;
     const display = document.getElementById('timer');
     startTimer(sixtyMinutes, display);
+    
+    // Limit checkbox selection to 2 per question
+    const questions = document.querySelectorAll('.question-item');
+    questions.forEach(question => {
+      const checkboxes = question.querySelectorAll('input[type="checkbox"]');
+      
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          // Count checked checkboxes in this question
+          const checkedCount = [...checkboxes].filter(c => c.checked).length;
+          
+          // If more than 2 are checked, disable unchecked ones
+          if (checkedCount >= 2) {
+            checkboxes.forEach(cb => {
+              if (!cb.checked) cb.disabled = true;
+            });
+          } else {
+            // Otherwise, enable all
+            checkboxes.forEach(cb => {
+              cb.disabled = false;
+            });
+          }
+        });
+      });
+    });
   });
 </script>
 {% endblock %}

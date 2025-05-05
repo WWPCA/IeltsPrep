@@ -67,19 +67,39 @@ def submit_general_reading_test(test_id):
     
     # Get the user's answers from the form
     answers = {}
-    for key in request.form:
-        if key.startswith('q'):
-            question_number = key[1:]  # Extract the question number
-            answers[question_number] = request.form[key]
+    form_data = request.form.to_dict(flat=False)  # Get all form data including multiple values
+    
+    # Handle different question types
+    if test.section == 1:  # Multiple Choice (two answers per question)
+        for i in range(1, 6):  # Multiple Choice typically has 5 questions
+            question_key = f'q{i}'
+            if question_key in form_data:
+                # Convert list of answers to sorted string (e.g., ['B', 'D'] -> 'BD')
+                answers[str(i)] = ''.join(sorted(form_data[question_key]))
+    else:  # Other question types (one answer per question)
+        for key in request.form:
+            if key.startswith('q'):
+                question_number = key[1:]  # Extract the question number
+                answers[question_number] = request.form[key]
     
     # Calculate the score
     correct_answers = json.loads(test._answers)
     total_questions = len(correct_answers)
     correct_count = 0
     
-    for question_number, user_answer in answers.items():
-        if question_number in correct_answers and user_answer == correct_answers[question_number]:
-            correct_count += 1
+    # Check answers based on question type
+    if test.section == 1:  # Multiple Choice (two answers)
+        for question_number, correct_answer in correct_answers.items():
+            # For multiple choice, both answers must be correct
+            # Convert to sorted string for comparison (e.g., 'BD' == 'BD')
+            user_answer = answers.get(question_number, '')
+            expected_answer = ''.join(sorted([correct_answers.get(question_number, ''), correct_answers.get(f"{question_number}_2", '')]))
+            if user_answer == expected_answer:
+                correct_count += 1
+    else:  # Other question types
+        for question_number, user_answer in answers.items():
+            if question_number in correct_answers and user_answer == correct_answers[question_number]:
+                correct_count += 1
     
     score = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
     
@@ -119,9 +139,18 @@ def reading_test_results(test_id, attempt_id):
     total_questions = len(correct_answers)
     correct_count = 0
     
-    for question_number, correct_answer in correct_answers.items():
-        if question_number in user_answers and user_answers[question_number] == correct_answer:
-            correct_count += 1
+    # Check answers based on question type
+    if test.section == 1:  # Multiple Choice (two answers)
+        for question_number, correct_answer in correct_answers.items():
+            # For multiple choice, both answers must be correct
+            user_answer = user_answers.get(question_number, '')
+            expected_answer = ''.join(sorted([correct_answers.get(question_number, ''), correct_answers.get(f"{question_number}_2", '')]))
+            if user_answer == expected_answer:
+                correct_count += 1
+    else:  # Other question types
+        for question_number, correct_answer in correct_answers.items():
+            if question_number in user_answers and user_answers[question_number] == correct_answer:
+                correct_count += 1
     
     score = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
     
