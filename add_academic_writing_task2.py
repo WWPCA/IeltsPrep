@@ -2,11 +2,10 @@
 Add Academic Writing Task 2 tests to the IELTS preparation app.
 This script adds essay writing tasks for Academic candidates from the provided list.
 """
-import sys
+import json
 from datetime import datetime
-from flask import Flask
-from models import db, PracticeTest, TestSection, TestType
-from app import app
+from app import app, db
+from models import PracticeTest
 
 def add_academic_writing_task2_tests():
     """Add Academic Writing Task 2 tests."""
@@ -225,25 +224,11 @@ Give reasons for your answer and include any relevant examples from your own kno
     ]
     
     with app.app_context():
-        # Get the academic test type
-        academic_type = TestType.query.filter_by(name="academic").first()
-        
-        if not academic_type:
-            print("Error: Academic test type not found in the database")
-            return
-            
-        # Get the TestSection for Writing Task 2
-        writing_section = TestSection.query.filter_by(name="Writing", section_number=2).first()
-        
-        if not writing_section:
-            print("Error: Writing Task 2 section not found in the database")
-            return
-            
         # Check how many academic task 2 tests we already have
         existing_count = PracticeTest.query.filter_by(
-            test_type_id=academic_type.id, 
-            section=2,
-            test_section_id=writing_section.id
+            test_type="writing", 
+            ielts_test_type="academic",
+            section=2
         ).count()
         
         print(f"Found {existing_count} existing Academic Writing Task 2 tests")
@@ -259,7 +244,8 @@ Give reasons for your answer and include any relevant examples from your own kno
             # Check if this test already exists by title
             existing_test = PracticeTest.query.filter_by(
                 title=test_data["title"], 
-                test_type_id=academic_type.id,
+                test_type="writing",
+                ielts_test_type="academic",
                 section=2
             ).first()
             
@@ -267,16 +253,26 @@ Give reasons for your answer and include any relevant examples from your own kno
                 print(f"Test '{test_data['title']}' already exists, skipping...")
                 continue
                 
+            # Create question structure
+            questions = [
+                {
+                    "task": "Task 2",
+                    "description": test_data["prompt"],
+                    "instructions": "Write at least 250 words. You should spend about 40 minutes on this task."
+                }
+            ]
+            
             # Create the new test
             new_test = PracticeTest(
                 title=test_data["title"],
                 description=f"Academic Writing Task 2 - {test_data['title']}",
-                content=test_data["prompt"],
-                test_type_id=academic_type.id,
-                test_section_id=writing_section.id,
+                test_type="writing",
+                ielts_test_type="academic",
                 section=2,  # Task 2
-                created_at=datetime.now(),
-                updated_at=datetime.now()
+                _questions=json.dumps(questions),
+                _answers=json.dumps(["This is a sample model answer structure. Actual assessment will be done by AI."]),
+                is_free=False,
+                time_limit=40  # 40 minutes
             )
             
             db.session.add(new_test)
