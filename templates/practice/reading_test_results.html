@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}IELTS Reading Test Results{% endblock %}
+
+{% block styles %}
+<style>
+  .results-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .score-box {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+  }
+  
+  .score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+    margin: 0 auto 20px;
+  }
+  
+  .score-text {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .results-table {
+    width: 100%;
+    margin-bottom: 30px;
+    border-collapse: collapse;
+  }
+  
+  .results-table th,
+  .results-table td {
+    padding: 12px 15px;
+    border: 1px solid #dee2e6;
+  }
+  
+  .results-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+  
+  .correct {
+    color: #28a745;
+    font-weight: bold;
+  }
+  
+  .incorrect {
+    color: #dc3545;
+  }
+  
+  .band-score {
+    font-size: 24px;
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  .actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container results-container">
+  <h2 class="mb-4 text-center">Reading Test Results</h2>
+  
+  <div class="score-box">
+    <div class="score-circle">
+      {{ score }}%
+    </div>
+    <p class="score-text">You answered {{ correct_count }} out of {{ total_questions }} questions correctly.</p>
+    
+    {% set band_score = (score / 100 * 9)|round(1) %}
+    <p class="band-score">IELTS Band Score Estimate: {{ band_score }}</p>
+  </div>
+  
+  <h4>Question Analysis</h4>
+  <table class="results-table">
+    <thead>
+      <tr>
+        <th>Question</th>
+        <th>Your Answer</th>
+        <th>Correct Answer</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for q_num, answer in correct_answers.items() %}
+        <tr>
+          <td>{{ q_num }}</td>
+          <td>{{ user_answers.get(q_num, 'Not answered') }}</td>
+          <td>{{ answer }}</td>
+          <td>
+            {% if q_num in user_answers and user_answers[q_num] == answer %}
+              <span class="correct">✓ Correct</span>
+            {% else %}
+              <span class="incorrect">✗ Incorrect</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  <div class="actions">
+    <a href="{{ url_for('practice_tests') }}" class="btn btn-primary">Back to Practice Tests</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Go to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

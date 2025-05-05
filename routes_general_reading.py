@@ -36,6 +36,9 @@ def general_reading_test(test_id):
     
     template = template_map.get(test.section, 'general_reading_multiple_choice.html')
     
+    # Parse questions and answers
+    questions = test.questions
+    
     # Record the test attempt
     attempt = UserTestAttempt(
         user_id=current_user.id,
@@ -48,7 +51,13 @@ def general_reading_test(test_id):
     # Store the attempt ID in the session
     session['current_attempt_id'] = attempt.id
     
-    return render_template(f'practice/{template}', test=test, attempt_id=attempt.id)
+    return render_template(
+        f'practice/{template}', 
+        test=test, 
+        attempt_id=attempt.id,
+        passage=test._content,
+        questions=questions
+    )
 
 @app.route('/practice/general-reading/<int:test_id>/submit', methods=['POST'])
 @login_required

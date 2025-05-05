@@ -135,39 +135,45 @@
   
   <div class="bg-light p-3">
     <h6 class="m-0">Part 1</h6>
-    <small>Read the text and answer questions 1-6</small>
+    <small>{{ test.description }}</small>
   </div>
   
   <div class="reading-container">
     <div class="reading-passage">
-      <h5>For Rent</h5>
+      <h5>{{ test.title }}</h5>
       
-      <!-- The reading passage will be populated dynamically -->
+      <!-- The reading passage populated from database -->
       <div id="passage-content">
-        <!-- Placeholder for the passage text -->
-        <p>The reading passage will appear here when you provide the content.</p>
+        {% if passage %}
+          <pre style="white-space: pre-wrap; font-family: inherit;">{{ passage }}</pre>
+        {% else %}
+          <p>The reading passage is not available.</p>
+        {% endif %}
       </div>
     </div>
     
     <div class="questions-container">
       <div class="question-header">
         Questions 1-6
-        <p class="notice-text">Look at the six rental notices, A-F. For which rental unit are the following statements true?</p>
+        <p class="notice-text">Look at the six items (A-F). For which item are the following statements true?</p>
         <p class="notice-text">You may choose any letter more than once.</p>
       </div>
       
-      <form id="reading-form" method="post">
+      <form id="reading-form" method="post" action="{{ url_for('submit_general_reading_test', test_id=test.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         
-        <!-- Questions will be populated dynamically -->
+        <!-- Questions populated from database -->
         <div id="questions-list">
-          {% for i in range(1, 7) %}
+          {% for i in range(0, 6) %}
           <div class="question-item">
             <div class="d-flex">
-              <div class="mr-2">{{ i }}</div>
+              <div class="mr-2">{{ i+1 }}</div>
               <div>
-                <!-- Placeholder for question text -->
-                Question {{ i }} will appear here.
+                {% if questions and i < questions|length %}
+                  {{ questions[i][10:] }} <!-- Remove "Question X: " prefix -->
+                {% else %}
+                  Question {{ i+1 }} will appear here.
+                {% endif %}
               </div>
             </div>
             
@@ -180,22 +186,22 @@
               <div class="option-cell option-label">F</div>
               
               <div class="option-cell">
-                <input type="radio" name="q{{ i }}" value="A" class="radio-option">
+                <input type="radio" name="q{{ i+1 }}" value="A" class="radio-option" required>
               </div>
               <div class="option-cell">
-                <input type="radio" name="q{{ i }}" value="B" class="radio-option">
+                <input type="radio" name="q{{ i+1 }}" value="B" class="radio-option">
               </div>
               <div class="option-cell">
-                <input type="radio" name="q{{ i }}" value="C" class="radio-option">
+                <input type="radio" name="q{{ i+1 }}" value="C" class="radio-option">
               </div>
               <div class="option-cell">
-                <input type="radio" name="q{{ i }}" value="D" class="radio-option">
+                <input type="radio" name="q{{ i+1 }}" value="D" class="radio-option">
               </div>
               <div class="option-cell">
-                <input type="radio" name="q{{ i }}" value="E" class="radio-option">
+                <input type="radio" name="q{{ i+1 }}" value="E" class="radio-option">
               </div>
               <div class="option-cell">
-                <input type="radio" name="q{{ i }}" value="F" class="radio-option">
+                <input type="radio" name="q{{ i+1 }}" value="F" class="radio-option">
               </div>
             </div>
           </div>
