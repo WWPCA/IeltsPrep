@@ -40,35 +40,32 @@
 <!-- Features Section -->
 <section class="features">
     <div class="container">
-        <h2>Why Choose IELTS AI Prep for Your Test Preparation?</h2>
+        <h2 class="text-center mb-5">Why Choose IELTS AI Prep for Your Test Preparation?</h2>
         
-        <div class="features-grid">
-            <div class="feature-card card">
-                <div class="card-body">
-                    <div class="feature-icon">
-                        <i class="fas fa-tasks fa-3x text-primary"></i>
-                    </div>
-                    <h3>Comprehensive Test Preparation</h3>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/checklist_icon.svg') }}?v={{ cache_buster }}" alt="Comprehensive Test Preparation" 
+                        class="mx-auto d-block mb-3" width="80" height="80">
+                    <h3 class="h4">Comprehensive Test Preparation</h3>
                     <p>Practice materials in exam format for all IELTS modules: Listening, Reading, Writing, and Speaking for both IELTS Academic and IELTS General Training.</p>
                 </div>
             </div>
             
-            <div class="feature-card card">
-                <div class="card-body">
-                    <div class="feature-icon">
-                        <i class="fas fa-user-graduate fa-3x text-primary"></i>
-                    </div>
-                    <h3>Your Personal AI IELTS Coach</h3>
-                    <p>Get detailed band score feedback on both speaking and writing tasks with AI-powered assessments across all official IELTS criteria. Our AI coach provides personalized improvement suggestions just like a human examiner would.</p>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/graduate_icon.svg') }}?v={{ cache_buster }}" alt="Personal AI IELTS Coach" 
+                        class="mx-auto d-block mb-3" width="80" height="80">
+                    <h3 class="h4">Your Personal AI IELTS Coach</h3>
+                    <p>Get detailed band score feedback on both speaking and writing tasks with AI-powered assessments across all official IELTS criteria. Our AI coach provides personalized improvement suggestions.</p>
                 </div>
             </div>
             
-            <div class="feature-card card">
-                <div class="card-body">
-                    <div class="feature-icon">
-                        <i class="fas fa-globe fa-3x text-primary"></i>
-                    </div>
-                    <h3>Global Test Preparation</h3>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/globe_icon.svg') }}?v={{ cache_buster }}" alt="Global Test Preparation" 
+                        class="mx-auto d-block mb-3" width="80" height="80">
+                    <h3 class="h4">Global Test Preparation</h3>
                     <p>Designed for test-takers worldwide with multiple payment options and low-bandwidth mode for limited internet connectivity, just like the official IELTS test environment.</p>
                 </div>
             </div>
@@ -312,7 +309,7 @@
         <p class="lead mb-4">Join thousands of successful IELTS candidates who prepared with our AI-powered practice tests and personalized coaching. Get detailed feedback on your writing and speaking to reach your target band scores for university admission, professional registration, and immigration purposes.</p>
         <div class="ai-badge my-4">
             <span class="badge bg-white text-primary p-2">
-                <i class="fas fa-graduation-cap text-primary me-2"></i>
+                <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Technology" width="20" height="20" class="me-2">
                 Exclusive AI Assessment Technology
             </span>
         </div>
