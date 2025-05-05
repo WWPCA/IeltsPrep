@@ -308,6 +308,103 @@ def add_general_reading_note_completion():
     # Combine all test sets
     test_sets.extend(additional_test_sets)
     
+    # Add more test sets from the new data provided
+    additional_test_sets = [
+        {
+            "title": "Employee Performance Reviews",
+            "passage": """Regular performance reviews are conducted to provide feedback and support employee development. These reviews assess performance against established goals and identify areas for improvement. Employees will have the opportunity to discuss their achievements and career aspirations with their supervisors.""",
+            "sentences": [
+                "Performance reviews provide employee _____ .",
+                "Reviews assess performance against set _____ .",
+                "Employees discuss _____ with supervisors.",
+                "Reviews identify areas for _____ .",
+                "Reviews are conducted _____ ."
+            ],
+            "answers": {
+                "1": "feedback",
+                "2": "goals",
+                "3": "achievements",
+                "4": "improvement",
+                "5": "regularly"
+            }
+        },
+        {
+            "title": "Flexible Work Arrangements",
+            "passage": """To support work-life balance, we offer flexible work arrangements, such as telecommuting and flexible hours. These arrangements allow employees to manage their work schedules and personal responsibilities effectively. Eligibility for flexible work arrangements may vary depending on job requirements and departmental needs.""",
+            "sentences": [
+                "We offer _____ work arrangements.",
+                "Telecommuting and flexible hours support _____-life balance.",
+                "Employees can manage their work _____ effectively.",
+                "Eligibility may depend on job _____ .",
+                "Arrangements support _____ responsibilities."
+            ],
+            "answers": {
+                "1": "flexible",
+                "2": "work",
+                "3": "schedules",
+                "4": "requirements",
+                "5": "personal"
+            }
+        },
+        {
+            "title": "Intellectual Property Policy",
+            "passage": """Our company's intellectual property (IP) is a valuable asset. This policy outlines the guidelines for protecting and managing company IP, including patents, trademarks, and copyrights. Employees are responsible for maintaining the confidentiality of company IP and adhering to these guidelines.""",
+            "sentences": [
+                "Company intellectual _____ is a valuable asset.",
+                "The policy outlines _____ for protecting company IP.",
+                "Patents and _____ are examples of company IP.",
+                "Employees maintain IP _____ .",
+                "Employees must _____ to guidelines."
+            ],
+            "answers": {
+                "1": "property",
+                "2": "guidelines",
+                "3": "trademarks",
+                "4": "confidentiality",
+                "5": "adhere"
+            }
+        },
+        {
+            "title": "Social Media Guidelines",
+            "passage": """Our company recognizes the importance of social media for communication and networking. However, employees are expected to use social media responsibly and professionally. These guidelines outline appropriate online behavior and protect the company's reputation.""",
+            "sentences": [
+                "Employees should use social media _____ .",
+                "Guidelines outline appropriate _____ behavior.",
+                "Social media is important for _____ and networking.",
+                "Guidelines protect the company's _____ .",
+                "Employees should act _____ ."
+            ],
+            "answers": {
+                "1": "responsibly",
+                "2": "online",
+                "3": "communication",
+                "4": "reputation",
+                "5": "professionally"
+            }
+        },
+        {
+            "title": "Sales Commission Structure",
+            "passage": """Our company offers a competitive sales commission structure to reward sales performance. Sales representatives earn commissions based on their sales volume and achievement of sales targets. The commission structure is designed to incentivize sales growth and provide opportunities for high earnings.""",
+            "sentences": [
+                "We offer a _____ sales commission structure.",
+                "Commissions are based on sales _____ .",
+                "Commissions reward sales _____ .",
+                "The structure incentivizes sales _____ .",
+                "The structure provides opportunities for high _____ ."
+            ],
+            "answers": {
+                "1": "competitive",
+                "2": "volume",
+                "3": "performance",
+                "4": "growth",
+                "5": "earnings"
+            }
+        }
+    ]
+    
+    # Add the additional sets to our existing test sets
+    test_sets.extend(additional_test_sets)
+    
     # Add each test to the database
     with app.app_context():
         # Remove existing tests first to avoid duplicates
