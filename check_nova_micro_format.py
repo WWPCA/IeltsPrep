@@ -15,17 +15,16 @@ def check_nova_micro_format():
             region_name=os.environ.get('AWS_REGION', 'us-east-1'),
         )
         
-        # For Nova Micro, the correct format requires "messages" at the top level
+        # Fix the content format for Nova Micro - it needs content as an array
         request_body = {
             "messages": [
                 {
                     "role": "user",
-                    "content": "Hello, can you help me evaluate an IELTS essay?"
+                    "content": [
+                        {"text": "Hello, can you help me evaluate an IELTS essay?"}
+                    ]
                 }
-            ],
-            "max_tokens": 100,
-            "temperature": 0.5,
-            "top_p": 0.9
+            ]
         }
         
         # Try to invoke the model

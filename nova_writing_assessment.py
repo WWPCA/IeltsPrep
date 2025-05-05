@@ -112,18 +112,17 @@ def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="a
     try:
         client = get_bedrock_client()
         
-        # Prepare the request for Nova Micro using the correct format
-        # Nova Micro doesn't use "messages" with system/user roles like Claude models
-        # It uses a single input text with instructions followed by content to evaluate
+        # Prepare the request for Nova Micro with correct format
+        # Nova Micro expects messages array with "content" as an array of objects
         request_body = {
-            "inferenceConfig": {
-                "max_new_tokens": 2000,
-                "temperature": 0.2,  # Low temperature for more consistent evaluations
-                "top_p": 0.9
-            },
-            "prompt": {
-                "text": f"{system_message}\n\n{user_message}"
-            }
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"text": f"{system_message}\n\n{user_message}"}
+                    ]
+                }
+            ]
         }
         
         # Make the API call
@@ -134,12 +133,19 @@ def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="a
             body=json.dumps(request_body)
         )
         
-        # Parse the response
+        # Parse the response - Nova Micro uses a different format
         response_body = json.loads(response.get('body').read())
-        model_output = response_body.get('output', {})
         
-        # Extract the response text from Nova Micro
-        response_text = model_output.get('text', '')
+        # Navigate the nested structure to get the response text
+        # For Nova Micro format: output -> message -> content -> [0] -> text
+        model_output = response_body.get('output', {})
+        message = model_output.get('message', {})
+        content_array = message.get('content', [])
+        
+        # Extract the response text from the first content item
+        response_text = ""
+        if content_array and len(content_array) > 0:
+            response_text = content_array[0].get('text', '')
         
         # Parse the JSON response from the model
         try:
