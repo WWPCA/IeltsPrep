@@ -927,6 +927,7 @@ F: Label Maker - Portable, thermal printing.
                 test_type="reading",
                 ielts_test_type="general",
                 section=1,  # Section 1 is for Multiple Choice
+                _content=test_set["passage"],
                 _questions=json.dumps([f"Question {j+1}: {q}" for j, q in enumerate(test_set["questions"])]),
                 _answers=json.dumps(test_set["answers"])
             )

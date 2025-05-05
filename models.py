@@ -249,11 +249,20 @@ class PracticeTest(db.Model):
     section = db.Column(db.Integer, nullable=False)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    _content = db.Column(db.Text, nullable=True)  # Text content or passage
     _questions = db.Column(db.Text, nullable=False)  # JSON string
     _answers = db.Column(db.Text, nullable=False)  # JSON string
     audio_url = db.Column(db.String(256), nullable=True)  # For listening tests
     is_free = db.Column(db.Boolean, default=False)  # Free sample test
     time_limit = db.Column(db.Integer, nullable=True)  # Time limit in minutes
+    
+    @property
+    def content(self):
+        return self._content
+    
+    @content.setter
+    def content(self, value):
+        self._content = value
     
     @property
     def questions(self):
