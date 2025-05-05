@@ -1,191 +1,237 @@
 """
-IELTS Writing Assessment using AWS Nova Micro model.
-This module provides functions to evaluate IELTS writing responses with AWS Bedrock Nova Micro.
+IELTS Writing Assessment with AWS Bedrock Nova Micro
+This module provides enhanced writing assessment using AWS Bedrock Nova Micro model
+with context-aware prompting based on official IELTS guidelines.
 """
+
 import os
 import json
 import logging
-from aws_bedrock_services import evaluate_writing_with_nova_micro
-from assessment_criteria.writing_criteria import calculate_writing_band_score
+import boto3
+from botocore.exceptions import ClientError
+
+from assessment_criteria.context_loader import get_ielts_context_for_assessment
 
 logger = logging.getLogger(__name__)
 
-def assess_writing_task1(essay_text, task_prompt, ielts_test_type="academic"):
+def get_bedrock_client():
     """
-    Assess an IELTS Writing Task 1 response using AWS Nova Micro.
+    Get an AWS Bedrock client using environment credentials.
+    
+    Returns:
+        boto3.client: AWS Bedrock runtime client
+    """
+    try:
+        # Use environment variables for credentials
+        return boto3.client(
+            service_name='bedrock-runtime',
+            region_name=os.environ.get('AWS_REGION', 'us-east-1')
+        )
+    except Exception as e:
+        logger.error(f"Failed to create Bedrock client: {str(e)}")
+        raise
+
+def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="academic"):
+    """
+    Evaluate an IELTS writing response using AWS Bedrock Nova Micro with enhanced context.
     
     Args:
-        essay_text (str): The candidate's essay
-        task_prompt (str): The original task prompt
-        ielts_test_type (str): "academic" or "general"
+        essay_text (str): The student's essay text to evaluate
+        prompt_text (str): The original writing prompt
+        essay_type (str): "task1" or "task2" to indicate the essay type
+        test_type (str): "academic" or "general" to indicate test type
         
     Returns:
         dict: Assessment results including scores and feedback
     """
-    try:
-        # Call the Nova Micro assessment function
-        assessment_result = evaluate_writing_with_nova_micro(essay_text, task_prompt, "task1")
+    # Get the appropriate context for this assessment
+    task_number = 1 if essay_type == "task1" else 2
+    context = get_ielts_context_for_assessment("writing", test_type, task_number)
+    
+    # Determine if this is a letter task (General Training Task 1)
+    is_letter_task = test_type.lower() == "general" and essay_type == "task1"
+    response_type = "letter" if is_letter_task else "essay"
+    
+    # Get the correct criteria for this task
+    if essay_type == "task1":
+        criteria = ["Task Achievement", "Coherence and Cohesion", "Lexical Resource", "Grammatical Range and Accuracy"]
+    else:  # task2
+        criteria = ["Task Response", "Coherence and Cohesion", "Lexical Resource", "Grammatical Range and Accuracy"]
+    
+    # Create a detailed system prompt with assessment instructions and context
+    system_message = (
+        f"You are an expert IELTS examiner evaluating a {test_type.capitalize()} {essay_type} writing {response_type}. "
+        f"Assess the following {response_type} based on the official IELTS criteria and band descriptors below. "
+        f"The original prompt was: '{prompt_text}'"
         
-        # Format the result to match the expected structure in routes
-        formatted_result = {
-            "scores": assessment_result.get("criteria_scores", {}),
-            "criterion_feedback": assessment_result.get("detailed_feedback", {}),
-            "overall_feedback": assessment_result.get("summary_feedback", ""),
-            "word_count": len(essay_text.split()),
-            "strengths": [],
-            "areas_for_improvement": []
+        f"\n\nIELTS Writing Assessment Criteria:"
+        f"\n- {criteria[0]}: {context['band_descriptors'][9][criteria[0]]}"
+        f"\n- {criteria[1]}: {context['band_descriptors'][9][criteria[1]]}"
+        f"\n- {criteria[2]}: {context['band_descriptors'][9][criteria[2]]}"
+        f"\n- {criteria[3]}: {context['band_descriptors'][9][criteria[3]]}"
+        
+        f"\n\nAssessment Guidance:\n{context['assessment_guidance']}"
+        
+        f"\n\nIELTS Band Descriptors (Bands 9-5):"
+    )
+    
+    # Add key band descriptors (9, 7, 5)
+    for band in [9, 7, 5]:
+        system_message += f"\n\nBand {band}:"
+        for criterion in criteria:
+            system_message += f"\n- {criterion}: {context['band_descriptors'][band][criterion]}"
+    
+    # Add detailed instructions for the assessment output format
+    system_message += (
+        f"\n\nProvide detailed feedback and assign a band score from 0-9 (with .5 increments) for each criterion. "
+        f"Also provide an overall band score based on the average of the individual criteria scores. "
+        f"Format your response as JSON with this structure: "
+        f"{{\"criteria_scores\": {{\"{criteria[0]}\": score, \"{criteria[1]}\": score, \"{criteria[2]}\": score, \"{criteria[3]}\": score}}, "
+        f"\"overall_score\": float, "
+        f"\"detailed_feedback\": {{\"{criteria[0]}\": feedback, \"{criteria[1]}\": feedback, \"{criteria[2]}\": feedback, \"{criteria[3]}\": feedback}}, "
+        f"\"summary_feedback\": string, "
+        f"\"improvement_tips\": [\"tip1\", \"tip2\", \"tip3\"]}}"
+    )
+    
+    # Create user message with the essay
+    user_message = f"{response_type.capitalize()} to evaluate:\n\n{essay_text}"
+    
+    try:
+        client = get_bedrock_client()
+        
+        # Prepare the request for Nova Micro
+        request_body = {
+            "inferenceConfig": {
+                "max_new_tokens": 2000,
+                "temperature": 0.2,  # Low temperature for more consistent evaluations
+                "top_p": 0.9
+            },
+            "messages": [
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "text": system_message
+                        }
+                    ]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "text": user_message
+                        }
+                    ]
+                }
+            ]
         }
         
-        # Extract strengths and areas for improvement from the feedback if available
-        if "summary_feedback" in assessment_result and assessment_result["summary_feedback"]:
-            feedback = assessment_result["summary_feedback"]
-            if "strengths" in feedback.lower():
-                strengths_section = feedback.split("strengths:", 1)[1].split("areas", 1)[0].strip()
-                formatted_result["strengths"] = [s.strip() for s in strengths_section.split(",") if s.strip()]
-            
-            if "improvement" in feedback.lower() or "improve" in feedback.lower():
-                try:
-                    areas_section = feedback.split("improvement:", 1)[1].strip()
-                    formatted_result["areas_for_improvement"] = [a.strip() for a in areas_section.split(",") if a.strip()]
-                except:
-                    # If splitting fails, try to extract differently
-                    formatted_result["areas_for_improvement"] = ["Review detailed feedback for areas to improve"]
+        # Make the API call
+        response = client.invoke_model(
+            modelId="amazon.nova-micro-v1:0",
+            contentType="application/json",
+            accept="application/json",
+            body=json.dumps(request_body)
+        )
         
-        # Calculate overall band score for the task
-        if "criteria_scores" in assessment_result:
-            scores = assessment_result["criteria_scores"]
-            formatted_result["overall_band_for_task"] = sum(scores.values()) / len(scores) if scores else 0
-            
-        return formatted_result
+        # Parse the response
+        response_body = json.loads(response.get('body').read())
+        model_output = response_body.get('output', {})
         
-    except Exception as e:
-        logger.error(f"Error assessing Task 1 with Nova Micro: {str(e)}")
-        logger.info("Falling back to OpenAI assessment...")
+        # Extract the response text from Nova Micro
+        response_text = model_output.get('text', '')
         
-        # Fall back to OpenAI if Nova Micro fails
+        # Parse the JSON response from the model
         try:
-            from openai_writing_assessment import assess_writing_task1 as openai_assess_task1
-            return openai_assess_task1(essay_text, task_prompt, ielts_test_type)
-        except Exception as fallback_error:
-            logger.error(f"Fallback to OpenAI also failed: {str(fallback_error)}")
-            # Return a basic error response
+            # Try to extract JSON from the response text
+            # First, find the JSON part in case there's surrounding text
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
+            
+            if json_start >= 0 and json_end > json_start:
+                json_str = response_text[json_start:json_end]
+                assessment_result = json.loads(json_str)
+            else:
+                # If no JSON found, handle as error
+                raise ValueError("No valid JSON found in model response")
+                
+            return assessment_result
+            
+        except (json.JSONDecodeError, ValueError) as json_err:
+            logger.error(f"Failed to parse assessment result: {str(json_err)}")
+            logger.error(f"Raw response: {response_text}")
+            # Return a fallback structured response
             return {
-                "error": str(e),
-                "scores": {
-                    "Task Achievement": 0,
-                    "Coherence and Cohesion": 0,
-                    "Lexical Resource": 0,
-                    "Grammatical Range and Accuracy": 0
+                "criteria_scores": {},
+                "overall_score": 0,
+                "detailed_feedback": {
+                    "error": f"Failed to parse assessment result: {str(json_err)}"
                 },
-                "overall_band_for_task": 0,
-                "overall_feedback": "An error occurred during the assessment."
+                "summary_feedback": "An error occurred during assessment.",
+                "improvement_tips": ["Please try submitting your response again."]
             }
+            
+    except ClientError as e:
+        error_code = e.response.get('Error', {}).get('Code', 'Unknown')
+        error_message = e.response.get('Error', {}).get('Message', str(e))
+        logger.error(f"AWS Bedrock error: {error_code} - {error_message}")
+        raise
+    except Exception as e:
+        logger.error(f"Error evaluating writing with Nova Micro: {str(e)}")
+        raise
 
-def assess_writing_task2(essay_text, task_prompt, ielts_test_type="academic"):
+def analyze_writing_response(student_essay, prompt, task_type="task1", test_type="academic"):
     """
-    Assess an IELTS Writing Task 2 response using AWS Nova Micro.
+    Analyze an IELTS writing response and provide detailed feedback.
+    This is the main function to call from other modules.
     
     Args:
-        essay_text (str): The candidate's essay
-        task_prompt (str): The original task prompt
-        ielts_test_type (str): "academic" or "general"
+        student_essay (str): The student's essay to evaluate
+        prompt (str): The original writing prompt
+        task_type (str): "task1" or "task2" to indicate the essay type
+        test_type (str): "academic" or "general" to indicate the test type
         
     Returns:
-        dict: Assessment results including scores and feedback
+        dict: Assessment results with scores, feedback, and improvement tips
     """
     try:
-        # Call the Nova Micro assessment function
-        assessment_result = evaluate_writing_with_nova_micro(essay_text, task_prompt, "task2")
+        # Get a detailed assessment using Nova Micro
+        assessment = evaluate_writing_with_nova(
+            student_essay, 
+            prompt, 
+            task_type,
+            test_type
+        )
         
-        # Format the result to match the expected structure in routes
-        formatted_result = {
-            "scores": assessment_result.get("criteria_scores", {}),
-            "criterion_feedback": assessment_result.get("detailed_feedback", {}),
-            "overall_feedback": assessment_result.get("summary_feedback", ""),
-            "word_count": len(essay_text.split()),
-            "strengths": [],
-            "areas_for_improvement": []
-        }
-        
-        # Extract strengths and areas for improvement from the feedback if available
-        if "summary_feedback" in assessment_result and assessment_result["summary_feedback"]:
-            feedback = assessment_result["summary_feedback"]
-            if "strengths" in feedback.lower():
-                strengths_section = feedback.split("strengths:", 1)[1].split("areas", 1)[0].strip()
-                formatted_result["strengths"] = [s.strip() for s in strengths_section.split(",") if s.strip()]
+        # Ensure we have all expected keys
+        if not assessment.get("improvement_tips"):
+            assessment["improvement_tips"] = [
+                "Focus on addressing all parts of the task",
+                "Organize your ideas more clearly with proper paragraphing",
+                "Use a wider range of vocabulary and grammar structures"
+            ]
             
-            if "improvement" in feedback.lower() or "improve" in feedback.lower():
-                try:
-                    areas_section = feedback.split("improvement:", 1)[1].strip()
-                    formatted_result["areas_for_improvement"] = [a.strip() for a in areas_section.split(",") if a.strip()]
-                except:
-                    # If splitting fails, try to extract differently
-                    formatted_result["areas_for_improvement"] = ["Review detailed feedback for areas to improve"]
-        
-        # Calculate overall band score for the task
-        if "criteria_scores" in assessment_result:
-            scores = assessment_result["criteria_scores"]
-            formatted_result["overall_band_for_task"] = sum(scores.values()) / len(scores) if scores else 0
+        # Round the overall score to the nearest 0.5
+        overall_score = assessment.get("overall_score", 0)
+        rounded_score = round(overall_score * 2) / 2
+        assessment["overall_score"] = rounded_score
             
-        return formatted_result
+        return assessment
         
     except Exception as e:
-        logger.error(f"Error assessing Task 2 with Nova Micro: {str(e)}")
-        logger.info("Falling back to OpenAI assessment...")
-        
-        # Fall back to OpenAI if Nova Micro fails
-        try:
-            from openai_writing_assessment import assess_writing_task2 as openai_assess_task2
-            return openai_assess_task2(essay_text, task_prompt, ielts_test_type)
-        except Exception as fallback_error:
-            logger.error(f"Fallback to OpenAI also failed: {str(fallback_error)}")
-            # Return a basic error response
-            return {
-                "error": str(e),
-                "scores": {
-                    "Task Response": 0,
-                    "Coherence and Cohesion": 0,
-                    "Lexical Resource": 0,
-                    "Grammatical Range and Accuracy": 0
-                },
-                "overall_band_for_task": 0,
-                "overall_feedback": "An error occurred during the assessment."
-            }
-
-def assess_complete_writing_test(task1_essay, task1_prompt, task2_essay, task2_prompt, ielts_test_type="academic"):
-    """
-    Assess a complete IELTS Writing test (Task 1 and Task 2) and calculate the overall band score.
-    
-    Args:
-        task1_essay (str): The candidate's Task 1 essay
-        task1_prompt (str): The original Task 1 prompt
-        task2_essay (str): The candidate's Task 2 essay
-        task2_prompt (str): The original Task 2 prompt
-        ielts_test_type (str): "academic" or "general"
-        
-    Returns:
-        dict: Complete assessment results including individual task scores and overall band score
-    """
-    # Assess Task 1
-    task1_assessment = assess_writing_task1(task1_essay, task1_prompt, ielts_test_type)
-    
-    # Assess Task 2
-    task2_assessment = assess_writing_task2(task2_essay, task2_prompt, ielts_test_type)
-    
-    # Calculate overall band score
-    overall_band = 0
-    if "scores" in task1_assessment and "scores" in task2_assessment:
-        try:
-            overall_band = calculate_writing_band_score(task1_assessment["scores"], task2_assessment["scores"])
-        except Exception as e:
-            logger.error(f"Error calculating overall band score: {str(e)}")
-            
-    # Combine results
-    combined_assessment = {
-        "task1": task1_assessment,
-        "task2": task2_assessment,
-        "overall_band": overall_band,
-        "ielts_test_type": ielts_test_type
-    }
-    
-    return combined_assessment
+        logger.error(f"Error analyzing writing response: {str(e)}")
+        # Provide a meaningful error response
+        return {
+            "criteria_scores": {
+                "Task Achievement": 0,
+                "Coherence and Cohesion": 0, 
+                "Lexical Resource": 0,
+                "Grammatical Range and Accuracy": 0
+            },
+            "overall_score": 0,
+            "detailed_feedback": {
+                "error": f"Assessment service unavailable: {str(e)}"
+            },
+            "summary_feedback": "We are currently experiencing technical difficulties with our assessment service. Please try again later.",
+            "improvement_tips": ["Please try submitting your response again later."]
+        }

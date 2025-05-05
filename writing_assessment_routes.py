@@ -6,7 +6,7 @@ This module provides routes for assessing IELTS writing responses using OpenAI G
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
 from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress
-from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
+from nova_writing_assessment import analyze_writing_response
 import json
 import os
 
@@ -68,23 +68,30 @@ def submit_writing_task(test_id):
         else:
             task_prompt = ''
         
-        # Process based on task type
-        if task_number == 1:
-            assessment = assess_writing_task1(essay_text, task_prompt, test.ielts_test_type)
-        else:
-            assessment = assess_writing_task2(essay_text, task_prompt, test.ielts_test_type)
+        # Process the writing task with our enhanced assessment
+        task_type = "task1" if task_number == 1 else "task2"
+        assessment = analyze_writing_response(
+            essay_text, 
+            task_prompt, 
+            task_type=task_type, 
+            test_type=test.ielts_test_type
+        )
         
-        # Calculate the overall band score for this task
-        overall_task_score = 0
-        if "scores" in assessment:
-            scores = assessment["scores"]
+        # Get the overall band score from the assessment
+        overall_task_score = assessment.get("overall_score", 0)
+        
+        # If there's no overall score but there are criteria scores, calculate it
+        if overall_task_score == 0 and "criteria_scores" in assessment:
+            criteria_scores = assessment["criteria_scores"]
             task_score_key = "Task Achievement" if task_number == 1 else "Task Response"
             overall_task_score = (
-                scores.get(task_score_key, 0) + 
-                scores.get("Coherence and Cohesion", 0) + 
-                scores.get("Lexical Resource", 0) + 
-                scores.get("Grammatical Range and Accuracy", 0)
+                criteria_scores.get(task_score_key, 0) + 
+                criteria_scores.get("Coherence and Cohesion", 0) + 
+                criteria_scores.get("Lexical Resource", 0) + 
+                criteria_scores.get("Grammatical Range and Accuracy", 0)
             ) / 4
+            # Round to nearest 0.5
+            overall_task_score = round(overall_task_score * 2) / 2
         
         # Create a new attempt record
         attempt = UserTestAttempt(
@@ -187,11 +194,14 @@ def api_assess_writing_task():
         if not essay_text or not task_prompt:
             return jsonify({'error': 'Missing required parameters'}), 400
             
-        # Process based on task type
-        if task_number == 1:
-            assessment = assess_writing_task1(essay_text, task_prompt, ielts_test_type)
-        else:
-            assessment = assess_writing_task2(essay_text, task_prompt, ielts_test_type)
+        # Process the writing task with our enhanced assessment
+        task_type = "task1" if task_number == 1 else "task2"
+        assessment = analyze_writing_response(
+            essay_text, 
+            task_prompt, 
+            task_type=task_type, 
+            test_type=ielts_test_type
+        )
             
         return jsonify(assessment)
         
@@ -219,11 +229,41 @@ def api_assess_complete_writing_test():
         if not task1_essay or not task1_prompt or not task2_essay or not task2_prompt:
             return jsonify({'error': 'Missing required parameters'}), 400
             
-        assessment = assess_complete_writing_test(
-            task1_essay, task1_prompt, 
-            task2_essay, task2_prompt, 
-            ielts_test_type
+        # Assess Task 1 and Task 2 separately
+        task1_assessment = analyze_writing_response(
+            task1_essay, 
+            task1_prompt, 
+            task_type="task1", 
+            test_type=ielts_test_type
         )
+        
+        task2_assessment = analyze_writing_response(
+            task2_essay, 
+            task2_prompt, 
+            task_type="task2", 
+            test_type=ielts_test_type
+        )
+        
+        # Combine the assessments
+        task1_score = task1_assessment.get("overall_score", 0)
+        task2_score = task2_assessment.get("overall_score", 0)
+        
+        # Task 2 is weighted more heavily in overall band calculation (2:1)
+        combined_score = (task1_score + (task2_score * 2)) / 3
+        
+        # Round to nearest 0.5
+        overall_score = round(combined_score * 2) / 2
+        
+        assessment = {
+            "task1_assessment": task1_assessment,
+            "task2_assessment": task2_assessment,
+            "overall_score": overall_score,
+            "summary_feedback": f"Task 1 Score: {task1_score}, Task 2 Score: {task2_score}, Overall Score: {overall_score}",
+            "improvement_tips": [
+                *task1_assessment.get("improvement_tips", [])[:2],
+                *task2_assessment.get("improvement_tips", [])[:2]
+            ]
+        }
             
         return jsonify(assessment)
         

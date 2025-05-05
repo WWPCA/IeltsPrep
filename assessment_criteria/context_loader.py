@@ -46,13 +46,13 @@ def load_writing_context_data():
     try:
         # The context data is stored in writing_criteria.py as band descriptors
         from assessment_criteria.writing_criteria import (
-            TASK_1_BAND_DESCRIPTORS, 
-            TASK_2_BAND_DESCRIPTORS,
+            WRITING_TASK1_BAND_DESCRIPTORS, 
+            WRITING_TASK2_BAND_DESCRIPTORS,
             WRITING_TEST_FORMAT
         )
         
         # Academic Task 1 context
-        context_data["academic"]["task1"]["band_descriptors"] = TASK_1_BAND_DESCRIPTORS
+        context_data["academic"]["task1"]["band_descriptors"] = WRITING_TASK1_BAND_DESCRIPTORS
         context_data["academic"]["task1"]["assessment_guidance"] = """
 When assessing an IELTS Academic Task 1 essay, focus on:
 1. Task Achievement: How well the candidate addresses all parts of the task, provides an overview, selects key features, and uses appropriate data.
@@ -70,7 +70,7 @@ For graph/chart descriptions, candidates should:
 """
         
         # Academic Task 2 context
-        context_data["academic"]["task2"]["band_descriptors"] = TASK_2_BAND_DESCRIPTORS
+        context_data["academic"]["task2"]["band_descriptors"] = WRITING_TASK2_BAND_DESCRIPTORS
         context_data["academic"]["task2"]["assessment_guidance"] = """
 When assessing an IELTS Academic Task 2 essay, focus on:
 1. Task Response: How well the candidate addresses all parts of the question, develops a position, presents relevant ideas, and reaches a conclusion.
@@ -87,7 +87,7 @@ A well-structured Task 2 essay should have:
 """
 
         # General Training Task 1 context (letter writing)
-        context_data["general"]["task1"]["band_descriptors"] = TASK_1_BAND_DESCRIPTORS
+        context_data["general"]["task1"]["band_descriptors"] = WRITING_TASK1_BAND_DESCRIPTORS
         context_data["general"]["task1"]["assessment_guidance"] = """
 When assessing an IELTS General Training Task 1 letter, focus on:
 1. Task Achievement: How well the candidate addresses the purpose of the letter, covers all three bullet points, and uses appropriate tone/format.
@@ -105,7 +105,7 @@ A well-structured letter should have:
 """
         
         # General Training Task 2 context (essay)
-        context_data["general"]["task2"]["band_descriptors"] = TASK_2_BAND_DESCRIPTORS
+        context_data["general"]["task2"]["band_descriptors"] = WRITING_TASK2_BAND_DESCRIPTORS
         context_data["general"]["task2"]["assessment_guidance"] = """
 When assessing an IELTS General Training Task 2 essay, focus on:
 1. Task Response: How well the candidate addresses all parts of the question, develops a position, presents relevant ideas, and reaches a conclusion.
