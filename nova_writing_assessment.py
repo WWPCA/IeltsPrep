@@ -112,31 +112,18 @@ def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="a
     try:
         client = get_bedrock_client()
         
-        # Prepare the request for Nova Micro
+        # Prepare the request for Nova Micro using the correct format
+        # Nova Micro doesn't use "messages" with system/user roles like Claude models
+        # It uses a single input text with instructions followed by content to evaluate
         request_body = {
             "inferenceConfig": {
                 "max_new_tokens": 2000,
                 "temperature": 0.2,  # Low temperature for more consistent evaluations
                 "top_p": 0.9
             },
-            "messages": [
-                {
-                    "role": "system",
-                    "content": [
-                        {
-                            "text": system_message
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "text": user_message
-                        }
-                    ]
-                }
-            ]
+            "prompt": {
+                "text": f"{system_message}\n\n{user_message}"
+            }
         }
         
         # Make the API call

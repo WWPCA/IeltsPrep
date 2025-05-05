@@ -11,34 +11,24 @@ def test_prompt_analysis():
     """Test the enhanced writing assessment with prompt analysis."""
     print("Testing the writing assessment with enhanced prompt analysis...")
     
-    # Academic Task 1 example
+    # Academic Task 1 example - short version for quick testing
     academic_task1_prompt = "The chart below shows the percentage of people living in urban areas in different parts of the world. Summarize the information by selecting and reporting the main features, and make comparisons where relevant."
     academic_task1_response = """
-    The bar graph illustrates the percentage of urban population across various regions globally. Overall, North America has the highest urbanization rate, while Africa has the lowest.
+    The bar graph shows urban population percentages across global regions. North America has the highest at 82%, followed by Europe at 75%. Africa has the lowest at 40%. 
     
-    According to the graph, North America leads with approximately 82% of its population residing in urban areas. Europe follows closely with around 75% urbanization. In contrast, Africa has the lowest urban population percentage at just about 40%.
-    
-    Asia and South America show moderate levels of urbanization, with roughly 48% and 65% of their populations living in urban settings respectively. Oceania falls between these regions at approximately 70%.
-    
-    The disparity between North America and Africa is particularly striking, with a difference of about 42 percentage points separating their urbanization rates. This likely reflects significant differences in economic development, infrastructure, and historical settlement patterns between the two continents.
-    
-    These figures highlight the varying degrees of urbanization across global regions, with more economically developed parts generally showing higher percentages of urban dwellers.
+    Asia and South America have moderate levels at 48% and 65% respectively. Oceania is at 70%. The significant 42% gap between North America and Africa reflects differences in economic development.
     """
     
-    # General Task 1 example
+    # General Task 1 example - shorter version for testing
     general_task1_prompt = "You have a problem with a piece of equipment you bought recently. Write a letter to the shop manager. In your letter explain what equipment you bought, describe the problem, say what action you would like the manager to take."
     general_task1_response = """
     Dear Sir/Madam,
     
-    I am writing to express my dissatisfaction with a laptop I purchased from your store, TechWorld, located at 123 Main Street, on 15 April 2025.
+    I am writing about a laptop I purchased from your store on April 15, 2025.
     
-    The laptop in question is a GalaxyBook Pro, which cost $1,200. According to your advertisement, this model was supposed to have 16GB of RAM and 512GB of storage. However, after using it for a few days, I noticed that the system was running unusually slow. Upon checking the specifications through the system information, I discovered that the laptop only has 8GB of RAM and 256GB of storage.
+    The GalaxyBook Pro cost $1,200 but has only 8GB RAM and 256GB storage instead of the advertised 16GB and 512GB. The battery lasts only 4 hours, not 12 as claimed.
     
-    Additionally, the battery life is far below what was advertised. The specification claimed 12 hours of battery life, but in reality, it barely lasts 4 hours even with minimal usage. This is particularly problematic as I purchased this laptop specifically for work purposes when I'm away from power sources.
-    
-    Given these significant discrepancies between the advertised specifications and the actual product, I would like a full replacement with a laptop that meets the specifications I paid for. Alternatively, I would accept a full refund so that I can purchase the correct model elsewhere.
-    
-    I have attached the receipt and warranty information with this letter. I expect to hear from you within the next seven days regarding this matter.
+    I request a full replacement with the correct specifications or a complete refund.
     
     Yours faithfully,
     John Smith
