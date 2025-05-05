@@ -252,6 +252,7 @@ class PracticeTest(db.Model):
     _content = db.Column(db.Text, nullable=True)  # Text content or passage
     _questions = db.Column(db.Text, nullable=False)  # JSON string
     _answers = db.Column(db.Text, nullable=False)  # JSON string
+    _features = db.Column(db.Text, nullable=True)  # JSON string for matching features
     audio_url = db.Column(db.String(256), nullable=True)  # For listening tests
     is_free = db.Column(db.Boolean, default=False)  # Free sample test
     time_limit = db.Column(db.Integer, nullable=True)  # Time limit in minutes
@@ -279,6 +280,14 @@ class PracticeTest(db.Model):
     @answers.setter
     def answers(self, value):
         self._answers = json.dumps(value)
+    
+    @property
+    def features(self):
+        return json.loads(self._features) if self._features else []
+    
+    @features.setter
+    def features(self, value):
+        self._features = json.dumps(value)
         
     def __repr__(self):
         return f'<PracticeTest {self.test_type} {self.section}: {self.title}>'
