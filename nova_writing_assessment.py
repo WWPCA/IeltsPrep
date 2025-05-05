@@ -72,6 +72,16 @@ def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="a
         
         f"\n\nAssessment Guidance:\n{context['assessment_guidance']}"
         
+        f"\n\nPrompt Analysis Requirements:"
+        f"Pay special attention to how well the response addresses the specific requirements of the prompt. "
+        f"Carefully analyze if the writer has:"
+        f"\n1. Fully understood the question/task in the prompt"
+        f"\n2. Addressed all parts or aspects of the prompt"
+        f"\n3. Provided relevant examples and details that directly relate to the prompt"
+        f"\n4. Stayed focused on the topic without irrelevant digressions"
+        f"\n5. Demonstrated understanding of key concepts mentioned in the prompt"
+        f"\nThis analysis should significantly impact the {criteria[0]} score."
+        
         f"\n\nIELTS Band Descriptors (Bands 9-5):"
     )
     
@@ -89,8 +99,11 @@ def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="a
         f"{{\"criteria_scores\": {{\"{criteria[0]}\": score, \"{criteria[1]}\": score, \"{criteria[2]}\": score, \"{criteria[3]}\": score}}, "
         f"\"overall_score\": float, "
         f"\"detailed_feedback\": {{\"{criteria[0]}\": feedback, \"{criteria[1]}\": feedback, \"{criteria[2]}\": feedback, \"{criteria[3]}\": feedback}}, "
+        f"\"prompt_analysis\": {{\"score\": float, \"explanation\": string}}, "
         f"\"summary_feedback\": string, "
         f"\"improvement_tips\": [\"tip1\", \"tip2\", \"tip3\"]}}"
+        f"\n\nIn the prompt_analysis section, include a specific score (0-10) and explanation of how well the response addresses the specific requirements in the prompt. "
+        f"This should analyze whether the writer has fully understood and addressed all aspects of the prompt."
     )
     
     # Create user message with the essay
