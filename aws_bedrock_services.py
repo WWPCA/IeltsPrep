@@ -30,7 +30,7 @@ def get_bedrock_client():
         logger.error(f"Failed to create Bedrock client: {str(e)}")
         raise
 
-def evaluate_writing_with_nova_micro(essay_text, prompt_text, essay_type):
+def evaluate_writing_with_nova_micro(essay_text, prompt_text, essay_type, ielts_test_type="academic"):
     """
     Evaluate an IELTS writing response using AWS Nova Micro.
     
@@ -38,21 +38,32 @@ def evaluate_writing_with_nova_micro(essay_text, prompt_text, essay_type):
         essay_text (str): The student's essay text to evaluate
         prompt_text (str): The original writing prompt
         essay_type (str): "task1" or "task2" to indicate the essay type
+        ielts_test_type (str): "academic" or "general" to indicate the test type
         
     Returns:
         dict: Assessment results including scores and feedback
     """
-    # Import writing criteria
+    # Import writing criteria and context
     from assessment_criteria.writing_criteria import get_writing_assessment_criteria
+    from assessment_criteria.context_loader import get_ielts_context_for_assessment
     
+    # Get both the criteria and enhanced context
     criteria = get_writing_assessment_criteria(essay_type)
+    task_number = 1 if essay_type == "task1" else 2
+    context = get_ielts_context_for_assessment("writing", ielts_test_type, task_number)
     
-    # Create system prompt with assessment instructions
+    # Determine if this is a letter task (General Training Task 1)
+    is_letter_task = ielts_test_type.lower() == "general" and essay_type == "task1"
+    response_type = "letter" if is_letter_task else "essay"
+    
+    # Create system prompt with assessment instructions and context
     system_message = (
-        f"You are an expert IELTS examiner evaluating a {essay_type} writing response. "
-        f"Assess the following essay based on the official IELTS criteria below. "
+        f"You are an expert IELTS examiner evaluating a {ielts_test_type.capitalize()} {essay_type} writing {response_type}. "
+        f"Assess the following {response_type} based on the official IELTS criteria below. "
         f"The original prompt was: '{prompt_text}'"
         f"\n\nIELTS Writing Assessment Criteria:\n{json.dumps(criteria, indent=2)}"
+        f"\n\nAssessment Guidance:\n{context['assessment_guidance']}"
+        f"\n\nIELTS Band Descriptors:\n{json.dumps(context['band_descriptors'], indent=2)}"
         f"\n\nProvide detailed feedback and assign a band score from 0-9 (with .5 increments) for each criterion. "
         f"Also provide an overall band score based on the average of the individual criteria scores. "
         f"Format your response as JSON with this structure: "
