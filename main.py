@@ -1,5 +1,6 @@
 from app import app  # noqa: F401
 import routes  # noqa: F401
+import routes_general_reading  # noqa: F401
 
 # Import and register assessment blueprints
 from writing_assessment_routes import writing_assessment
