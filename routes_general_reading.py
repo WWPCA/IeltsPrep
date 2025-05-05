@@ -40,8 +40,7 @@ def general_reading_test(test_id):
     attempt = UserTestAttempt(
         user_id=current_user.id,
         test_id=test.id,
-        start_time=datetime.utcnow(),
-        is_complete=False
+        _user_answers=json.dumps({})  # Empty user answers initially
     )
     db.session.add(attempt)
     db.session.commit()
@@ -80,10 +79,8 @@ def submit_general_reading_test(test_id):
     if attempt_id:
         attempt = UserTestAttempt.query.get(attempt_id)
         if attempt and attempt.user_id == current_user.id:
-            attempt.end_time = datetime.utcnow()
             attempt.score = score
-            attempt.is_complete = True
-            attempt._answers = json.dumps(answers)
+            attempt._user_answers = json.dumps(answers)
             db.session.commit()
     
     # Mark the test as completed for this user
@@ -106,7 +103,7 @@ def reading_test_results(test_id, attempt_id):
         return redirect(url_for('practice_tests'))
     
     # Get the user's answers and the correct answers
-    user_answers = json.loads(attempt._answers) if attempt._answers else {}
+    user_answers = json.loads(attempt._user_answers) if attempt._user_answers else {}
     correct_answers = json.loads(test._answers) if test._answers else {}
     
     # Calculate score details
