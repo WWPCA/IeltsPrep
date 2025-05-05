@@ -166,7 +166,7 @@
               </div>
             </div>
             <div class="option-item">
-              <input type="checkbox" name="q{{ i+1 }}" value="A" class="option-input" id="q{{ i+1 }}_A">
+              <input type="radio" name="q{{ i+1 }}" value="A" class="option-input" id="q{{ i+1 }}_A">
               <label for="q{{ i+1 }}_A" class="option-label">
                 {% if questions and i*5 < questions|length %}
                   {{ questions[i*5][10:] }} <!-- Option A -->
@@ -177,7 +177,7 @@
             </div>
             
             <div class="option-item">
-              <input type="checkbox" name="q{{ i+1 }}" value="B" class="option-input" id="q{{ i+1 }}_B">
+              <input type="radio" name="q{{ i+1 }}" value="B" class="option-input" id="q{{ i+1 }}_B">
               <label for="q{{ i+1 }}_B" class="option-label">
                 {% if questions and i*5+1 < questions|length %}
                   {{ questions[i*5+1][10:] }} <!-- Option B -->
@@ -188,7 +188,7 @@
             </div>
             
             <div class="option-item">
-              <input type="checkbox" name="q{{ i+1 }}" value="C" class="option-input" id="q{{ i+1 }}_C">
+              <input type="radio" name="q{{ i+1 }}" value="C" class="option-input" id="q{{ i+1 }}_C">
               <label for="q{{ i+1 }}_C" class="option-label">
                 {% if questions and i*5+2 < questions|length %}
                   {{ questions[i*5+2][10:] }} <!-- Option C -->
@@ -199,7 +199,7 @@
             </div>
             
             <div class="option-item">
-              <input type="checkbox" name="q{{ i+1 }}" value="D" class="option-input" id="q{{ i+1 }}_D">
+              <input type="radio" name="q{{ i+1 }}" value="D" class="option-input" id="q{{ i+1 }}_D">
               <label for="q{{ i+1 }}_D" class="option-label">
                 {% if questions and i*5+3 < questions|length %}
                   {{ questions[i*5+3][10:] }} <!-- Option D -->
@@ -210,7 +210,7 @@
             </div>
             
             <div class="option-item">
-              <input type="checkbox" name="q{{ i+1 }}" value="E" class="option-input" id="q{{ i+1 }}_E">
+              <input type="radio" name="q{{ i+1 }}" value="E" class="option-input" id="q{{ i+1 }}_E">
               <label for="q{{ i+1 }}_E" class="option-label">
                 {% if questions and i*5+4 < questions|length %}
                   {{ questions[i*5+4][10:] }} <!-- Option E -->
@@ -287,30 +287,7 @@
     const display = document.getElementById('timer');
     startTimer(sixtyMinutes, display);
     
-    // Limit checkbox selection to 2 per question
-    const questions = document.querySelectorAll('.question-item');
-    questions.forEach(question => {
-      const checkboxes = question.querySelectorAll('input[type="checkbox"]');
-      
-      checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-          // Count checked checkboxes in this question
-          const checkedCount = [...checkboxes].filter(c => c.checked).length;
-          
-          // If more than 2 are checked, disable unchecked ones
-          if (checkedCount >= 2) {
-            checkboxes.forEach(cb => {
-              if (!cb.checked) cb.disabled = true;
-            });
-          } else {
-            // Otherwise, enable all
-            checkboxes.forEach(cb => {
-              cb.disabled = false;
-            });
-          }
-        });
-      });
-    });
+    // No need for checkbox limiting since we're using radio buttons
   });
 </script>
 {% endblock %}
