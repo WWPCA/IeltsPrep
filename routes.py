@@ -417,9 +417,39 @@ def practice_index():
 @app.route('/practice/<test_type>')
 @login_required
 def practice_test_list(test_type):
-    if test_type not in ['listening', 'reading', 'writing']:
+    # Add speaking to the list of valid test types
+    if test_type not in ['listening', 'reading', 'writing', 'speaking']:
         abort(404)
         
+    # Check access rights - speaking-only users can only access speaking tests
+    if current_user.is_speaking_only_user() and test_type != 'speaking':
+        flash('Your speaking-only access allows you to access speaking tests only. Please upgrade to access all test types.', 'warning')
+        return redirect(url_for('practice_test_list', test_type='speaking'))
+    
+    # Handle speaking tests separately for speaking-only users
+    if test_type == 'speaking':
+        # Get all tests of this type, but filter to just show ones with complete questions and answers
+        tests = PracticeTest.query.filter_by(test_type=test_type).all()
+        
+        # Get a list of test IDs the user has already completed
+        completed_test_ids = [test['test_id'] for test in current_user.completed_tests 
+                             if test['test_type'] == test_type]
+                             
+        # For speaking-only users, add remaining attempts count to the template
+        remaining_attempts = 0
+        is_speaking_only = False
+        if current_user.is_speaking_only_user():
+            is_speaking_only = True
+            remaining_attempts = current_user.get_remaining_speaking_assessments()
+            
+        return render_template(f'practice/{test_type}.html', 
+                              title=f'IELTS {test_type.capitalize()} Practice',
+                              tests=tests,
+                              completed_test_ids=completed_test_ids,
+                              is_speaking_only=is_speaking_only,
+                              remaining_attempts=remaining_attempts)
+    
+    # For other test types (reading, writing, listening)
     # Get all tests of this type, but filter to just show ones with complete questions and answers
     tests = PracticeTest.query.filter_by(test_type=test_type).all()
     
@@ -454,10 +484,22 @@ def take_practice_test(test_type, test_id):
     if test_type not in ['listening', 'reading', 'writing', 'speaking']:
         abort(404)
     
+    # Check access rights - speaking-only users can only access speaking tests
+    if current_user.is_speaking_only_user() and test_type != 'speaking':
+        flash('Your speaking-only access allows you to access speaking tests only. Please upgrade to access all test types.', 'warning')
+        return redirect(url_for('practice_test_list', test_type='speaking'))
+    
     test = PracticeTest.query.get_or_404(test_id)
     
-    # All tests require subscription
-    if not current_user.is_subscribed():
+    # Check if user has sufficient access
+    if test_type == 'speaking' and current_user.is_speaking_only_user():
+        # Special handling for speaking-only users
+        remaining_attempts = current_user.get_remaining_speaking_assessments()
+        if remaining_attempts <= 0:
+            flash('You have used all your speaking assessments. Please purchase more to continue.', 'warning')
+            return redirect(url_for('speaking_only'))
+    elif not current_user.is_subscribed():
+        # Regular subscription check for other test types
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
@@ -483,10 +525,16 @@ def take_practice_test(test_type, test_id):
                               test=test,
                               taking_test=True)
     elif test_type == 'speaking':
+        # For speaking tests, add speaking-only user info to the template
+        is_speaking_only = current_user.is_speaking_only_user()
+        remaining_attempts = current_user.get_remaining_speaking_assessments() if is_speaking_only else 0
+        
         return render_template('practice/speaking_empty.html',
                               title='IELTS Speaking Practice',
                               test=test,
-                              taking_test=True)
+                              taking_test=True,
+                              is_speaking_only=is_speaking_only,
+                              remaining_attempts=remaining_attempts)
 
 @app.route('/practice/<test_type>/<int:test_id>/start')
 @login_required
@@ -494,11 +542,33 @@ def start_practice_test(test_type, test_id):
     """Start a practice test after viewing the test details page"""
     if test_type not in ['listening', 'reading', 'writing', 'speaking']:
         abort(404)
+        
+    # Check access rights - speaking-only users can only access speaking tests
+    if current_user.is_speaking_only_user() and test_type != 'speaking':
+        flash('Your speaking-only access allows you to access speaking tests only. Please upgrade to access all test types.', 'warning')
+        return redirect(url_for('practice_test_list', test_type='speaking'))
     
     test = PracticeTest.query.get_or_404(test_id)
     
-    # All tests require subscription
-    if not current_user.is_subscribed():
+    # Check if user has sufficient access
+    if test_type == 'speaking' and current_user.is_speaking_only_user():
+        # Special handling for speaking-only users
+        remaining_attempts = current_user.get_remaining_speaking_assessments()
+        if remaining_attempts <= 0:
+            flash('You have used all your speaking assessments. Please purchase more to continue.', 'warning')
+            return redirect(url_for('speaking_only'))
+            
+        # Decrement the user's remaining speaking attempts
+        use_result = current_user.use_speaking_assessment()
+        if not use_result:
+            flash('There was an error processing your request. Please try again.', 'danger')
+            return redirect(url_for('practice_test_list', test_type='speaking'))
+            
+        # Update remaining count for display
+        remaining_attempts -= 1
+        
+    elif not current_user.is_subscribed():
+        # Regular subscription check for other test types
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     
@@ -534,10 +604,16 @@ def start_practice_test(test_type, test_id):
                               test=test,
                               taking_test=True)
     elif test_type == 'speaking':
+        # For speaking tests, add speaking-only user info to the template
+        is_speaking_only = current_user.is_speaking_only_user()
+        remaining_attempts = current_user.get_remaining_speaking_assessments() if is_speaking_only else 0
+        
         return render_template('practice/speaking_empty.html',
                               title='IELTS Speaking Practice',
                               test=test,
-                              taking_test=True)
+                              taking_test=True,
+                              is_speaking_only=is_speaking_only,
+                              remaining_attempts=remaining_attempts)
 
 # Complete Test Routes
 @app.route('/practice/complete-test/<int:test_id>/start')
