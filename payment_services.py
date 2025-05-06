@@ -56,6 +56,23 @@ TEST_PURCHASE_OPTIONS = {
             'days': 15,
             'description': 'Access to 4 General Training tests for 15 days'
         }
+    },
+    # Speaking Only Test Options
+    'speaking_only': {
+        'basic': {
+            'name': 'IELTS Speaking Assessments - Basic',
+            'price': 1500,  # $15.00 in cents
+            'assessments': 4,
+            'days': 30,
+            'description': 'Access to 4 Speaking assessments for 30 days'
+        },
+        'pro': {
+            'name': 'IELTS Speaking Assessments - Pro',
+            'price': 2000,  # $20.00 in cents
+            'assessments': 10,
+            'days': 30,
+            'description': 'Access to 10 Speaking assessments for 30 days'
+        }
     }
 }
 
@@ -211,6 +228,149 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         logging.error(f"Error creating Stripe checkout: {str(e)}")
         raise
 
+# Create a Stripe checkout session for speaking assessments
+def create_stripe_checkout_speaking(package_type, country_code=None):
+    """
+    Create a Stripe checkout session for speaking assessments purchase.
+    
+    Args:
+        package_type (str): 'basic' (4 assessments) or 'pro' (10 assessments)
+        country_code (str, optional): Two-letter country code for regional payment methods
+        
+    Returns:
+        dict: Contains session_id and checkout_url
+    """
+    try:
+        if not stripe.api_key:
+            logging.error("Stripe API key not found. Cannot create checkout session.")
+            raise ValueError("Stripe API key is required")
+            
+        # Validate parameters
+        if package_type not in TEST_PURCHASE_OPTIONS['speaking_only']:
+            raise ValueError(f"Invalid speaking package: {package_type}. Must be 'basic' or 'pro'")
+            
+        # Get the purchase details
+        purchase_details = TEST_PURCHASE_OPTIONS['speaking_only'][package_type]
+        plan_code = f"speaking_only_{package_type}"  # Create a unique plan code
+        
+        # Get domain for success and cancel URLs
+        domain = os.environ.get('REPLIT_DEV_DOMAIN') 
+        if not domain and os.environ.get('REPLIT_DEPLOYMENT'):
+            domain = os.environ.get('REPLIT_DOMAINS', '').split(',')[0]
+        if not domain:
+            domain = 'localhost:5000'
+            
+        # Create a Product if it doesn't exist
+        product = create_or_get_product_for_purchase(purchase_details['name'], purchase_details['description'])
+        
+        # Create a Price if it doesn't exist
+        price = create_or_get_price_for_purchase(
+            product.id, 
+            purchase_details['price'],
+            plan_code,
+            purchase_details.get('assessments', 0),
+            purchase_details['days']
+        )
+        
+        # Use the country code if provided
+        user_country = country_code
+        # Dynamic payment method types based on user region
+        payment_method_types = ['card']
+        
+        # Add region-specific payment methods
+        region_payment_mapping = {
+            # East Asia
+            'CN': ['alipay', 'wechat_pay'],
+            'JP': ['konbini', 'paypay', 'jcb'],
+            'KR': ['kakaopay', 'naver_pay'],
+            
+            # Southeast Asia
+            'MY': ['grabpay', 'fpx', 'boost', 'touch_n_go'],
+            'TH': ['promptpay', 'truemoney'],
+            'ID': ['dana', 'ovo', 'gopay', 'linkaja'],
+            'PH': ['gcash', 'paymaya'],
+            'SG': ['grabpay', 'paynow'],
+            'VN': ['momo', 'zalopay', 'vnpay'],
+            
+            # South Asia
+            'IN': ['upi', 'paytm', 'netbanking', 'amazon_pay', 'phonepe'],
+            'PK': ['easypaisa', 'jazzcash'],
+            'BD': ['bkash', 'rocket', 'nagad'],
+            'NP': ['esewa', 'khalti'],
+            
+            # Latin America
+            'BR': ['boleto', 'pix', 'mercado_pago'],
+            'MX': ['oxxo', 'spei', 'mercado_pago'],
+            
+            # Middle East
+            'AE': ['benefit', 'apple_pay'],
+            'SA': ['stcpay', 'mada'],
+            'EG': ['fawry', 'meeza'],
+            'TR': ['troy', 'papara', 'ininal'],
+            
+            # Africa
+            'KE': ['mpesa', 'airtel_money'],
+            'NG': ['paystack', 'flutterwave', 'opay'],
+            'ET': ['cbe_birr', 'telebirr'],
+            'TZ': ['mpesa', 'tigopesa', 'airtel_money'],
+            
+            # Oceania
+            'AU': ['afterpay', 'bpay', 'osko'],
+            'NZ': ['afterpay', 'poli'],
+            
+            # North America
+            'CA': ['interac'],
+            'US': ['affirm', 'us_bank_account', 'venmo'],
+            
+            # Europe
+            'GB': ['bacs_debit', 'ideal', 'sofort'],
+            'RU': ['yandex_pay', 'qiwi', 'sberbank']
+        }
+        
+        # If we have user_country, add the appropriate payment methods
+        if user_country and user_country in region_payment_mapping:
+            payment_method_types.extend(region_payment_mapping[user_country])
+            
+        metadata = {
+            'plan': plan_code,
+            'type': 'speaking_only',
+            'package': package_type,
+            'assessments': str(purchase_details['assessments']),
+            'days': str(purchase_details['days'])
+        }
+        
+        # Create checkout session with all payment options
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=payment_method_types,
+            line_items=[
+                {
+                    'price': price.id,
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',  # Using one-time payment
+            success_url=f'https://{domain}/speaking-payment-success?session_id={{CHECKOUT_SESSION_ID}}',
+            cancel_url=f'https://{domain}/payment-cancel',
+            payment_method_options={
+                'card': {
+                    'wallet': {
+                        'applePay': 'auto',
+                        'googlePay': 'auto',
+                    }
+                }
+            },
+            metadata=metadata
+        )
+        
+        return {
+            'session_id': checkout_session.id,
+            'checkout_url': checkout_session.url
+        }
+        
+    except Exception as e:
+        logging.error(f"Error creating Stripe checkout for speaking: {str(e)}")
+        raise
+
 # For backward compatibility
 def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_package=None):
     """
@@ -233,6 +393,10 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         
         # Check if we're using the new purchase system or legacy subscription
         using_new_purchase = plan_info == 'purchase' and test_type and test_package
+        
+        # Special case for speaking-only purchases
+        if test_type == 'speaking_only' and test_package in TEST_PURCHASE_OPTIONS['speaking_only']:
+            return create_stripe_checkout_speaking(test_package, country_code)
         
         # Validate parameters for new purchase system
         if using_new_purchase:

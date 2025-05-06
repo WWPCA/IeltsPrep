@@ -202,6 +202,7 @@ class User(UserMixin, db.Model):
         # Check for the new subscription status values
         valid_subscriptions = [
             "Value Pack", "Single Test", "Double Package",  # New naming convention
+            "Speaking Only Basic", "Speaking Only Pro",     # Speaking-only packages
             "premium", "base", "intermediate", "pro"        # Legacy naming convention
         ]
             
@@ -212,6 +213,107 @@ class User(UserMixin, db.Model):
                 (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
             return True
                 
+        return False
+        
+    def is_speaking_only_user(self):
+        """Check if user has speaking-only access"""
+        # First check if subscription has expired
+        if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
+            return False
+            
+        # Check for speaking-only subscription status
+        speaking_only_subscriptions = ["Speaking Only Basic", "Speaking Only Pro"]
+        
+        # Check if current subscription is a speaking-only type
+        if (self.subscription_status in speaking_only_subscriptions and
+                (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
+            return True
+                
+        # Check for speaking-only test purchases in test_history
+        for history_item in self.test_history:
+            if "speaking_purchase" in history_item:
+                purchase_data = history_item["speaking_purchase"]
+                if "expiry_date" in purchase_data:
+                    # Check if purchase is still valid
+                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
+                    if expiry_date > datetime.utcnow():
+                        return True
+                        
+        return False
+        
+    def get_remaining_speaking_assessments(self):
+        """Get the number of speaking assessments remaining for speaking-only users"""
+        # Default to 0 if not a speaking-only user
+        if not self.is_speaking_only_user():
+            return 0
+            
+        # Check for speaking assessments count in test_history
+        for history_item in reversed(self.test_history):  # Check most recent first
+            if "speaking_purchase" in history_item:
+                purchase_data = history_item["speaking_purchase"]
+                if "total_assessments" in purchase_data and "used_assessments" in purchase_data:
+                    remaining = purchase_data["total_assessments"] - purchase_data["used_assessments"]
+                    return max(0, remaining)  # Ensure never negative
+        
+        # If subscription is Speaking Only but no purchase data found
+        if self.subscription_status == "Speaking Only Basic":
+            return 4  # Default for basic speaking package
+        elif self.subscription_status == "Speaking Only Pro":
+            return 10  # Default for pro speaking package
+            
+        return 0
+    
+    def use_speaking_assessment(self):
+        """Mark that a speaking assessment has been used"""
+        if not self.is_speaking_only_user():
+            return False
+            
+        # Find the most recent speaking purchase and increment used count
+        history = self.test_history
+        for i in range(len(history) - 1, -1, -1):  # Reverse traversal
+            if "speaking_purchase" in history[i]:
+                purchase_data = history[i]["speaking_purchase"]
+                if "total_assessments" in purchase_data and "used_assessments" in purchase_data:
+                    # Only increment if assessments remain
+                    if purchase_data["used_assessments"] < purchase_data["total_assessments"]:
+                        purchase_data["used_assessments"] += 1
+                        history[i]["speaking_purchase"] = purchase_data
+                        self.test_history = history
+                        return True
+                    return False
+                    
+        # If no existing purchase data found, create a new entry based on subscription type
+        if self.subscription_status == "Speaking Only Basic":
+            # Create new purchase data for basic (4 assessments)
+            new_purchase = {
+                "speaking_purchase": {
+                    "purchase_date": datetime.utcnow().isoformat(),
+                    "expiry_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                    "total_assessments": 4,
+                    "used_assessments": 1,
+                    "amount": 15.0,
+                    "package": "Speaking Only Basic"
+                }
+            }
+            history.append(new_purchase)
+            self.test_history = history
+            return True
+        elif self.subscription_status == "Speaking Only Pro":
+            # Create new purchase data for pro (10 assessments)
+            new_purchase = {
+                "speaking_purchase": {
+                    "purchase_date": datetime.utcnow().isoformat(),
+                    "expiry_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                    "total_assessments": 10,
+                    "used_assessments": 1,
+                    "amount": 20.0,
+                    "package": "Speaking Only Pro"
+                }
+            }
+            history.append(new_purchase)
+            self.test_history = history
+            return True
+            
         return False
     
     def __repr__(self):
