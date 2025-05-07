@@ -4,16 +4,16 @@
 <div class="container py-5">
     <div class="row">
         <div class="col-md-12">
-            <h1 class="mb-4">IELTS Practice Materials</h1>
+            <h1 class="mb-4">IELTS AI Assessment Modules</h1>
             
             <div class="alert alert-info mb-4">
                 <div class="d-flex">
                     <div class="me-3">
-                        <i class="fas fa-info-circle fa-2x"></i>
+                        <i class="fas fa-graduation-cap fa-2x"></i>
                     </div>
                     <div>
-                        <h4>Practice Makes Perfect</h4>
-                        <p class="mb-0">Regular practice with authentic IELTS-style questions is key to achieving your target score. Our practice materials follow the format and standards of the real IELTS exam to help you prepare effectively.</p>
+                        <h4>AI-Powered Feedback for Writing and Speaking</h4>
+                        <p class="mb-0">Our specialized AI assessment technology evaluates your writing and speaking practice using the same criteria as official IELTS examiners. Get detailed feedback on your performance to target your areas for improvement effectively.</p>
                     </div>
                 </div>
             </div>
@@ -25,8 +25,8 @@
                             <i class="fas fa-user-lock fa-2x"></i>
                         </div>
                         <div>
-                            <h4>Login to Access Practice Materials</h4>
-                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access reading materials and AI-powered assessments. You'll need to purchase a subscription to access these materials.</p>
+                            <h4>Login to Access AI Assessment Modules</h4>
+                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access our AI-powered Writing and Speaking assessment modules. You'll need to purchase assessment packages to access these materials.</p>
                             <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
                             <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
                         </div>
@@ -36,12 +36,12 @@
                 <div class="alert alert-warning mb-4">
                     <div class="d-flex">
                         <div class="me-3">
-                            <i class="fas fa-crown fa-2x"></i>
+                            <i class="fas fa-graduation-cap fa-2x"></i>
                         </div>
                         <div>
-                            <h4>Subscribe for Access</h4>
-                            <p>Subscribe now to unlock reading materials with AI-powered writing and speaking assessments. Choose from our subscription options for full access.</p>
-                            <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
+                            <h4>Purchase Assessment Modules</h4>
+                            <p>Get personalized AI feedback on your writing and speaking skills with our assessment modules. Choose from our Academic or General Training packages to practice effectively.</p>
+                            <a href="{{ url_for('assessment_products_page') }}" class="btn btn-primary">View Assessment Modules</a>
                         </div>
                     </div>
                 </div>
