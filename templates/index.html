@@ -170,7 +170,9 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('product_checkout', product='general_writing') }}" class="btn btn-success btn-lg">Purchase</a>
+                                <a href="{{ url_for('cart.add_to_cart', product_id='general_writing') }}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -205,7 +207,9 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('product_checkout', product='academic_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                                <a href="{{ url_for('cart.add_to_cart', product_id='academic_speaking') }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -227,7 +231,9 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('product_checkout', product='general_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                                <a href="{{ url_for('cart.add_to_cart', product_id='general_speaking') }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </a>
                             </div>
                         </div>
                     </div>
