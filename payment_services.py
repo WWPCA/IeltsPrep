@@ -101,6 +101,78 @@ SUBSCRIPTION_PLANS = {
     }
 }
 
+def create_or_get_product_for_purchase(product_name, product_description):
+    """
+    Create a Stripe product for the new purchase system if it doesn't exist, or get the existing one.
+    
+    Args:
+        product_name (str): Name of the product
+        product_description (str): Description of the product
+        
+    Returns:
+        stripe.Product: The created or retrieved Stripe product
+    """
+    try:
+        # Search for existing products with the same name
+        existing_products = stripe.Product.list(limit=10)
+        for product in existing_products.data:
+            if product.name == product_name:
+                return product
+        
+        # If no product found, create a new one
+        return stripe.Product.create(
+            name=product_name,
+            description=product_description,
+            type='service'
+        )
+    except Exception as e:
+        logging.error(f"Error creating/getting Stripe product: {str(e)}")
+        raise
+
+def create_or_get_price_for_purchase(product_id, price_in_cents, plan_code, tests, days):
+    """
+    Create a Stripe price for the new purchase system if it doesn't exist, or get the existing one.
+    
+    Args:
+        product_id (str): ID of the Stripe product
+        price_in_cents (int): Price in cents
+        plan_code (str): Internal plan code
+        tests (int): Number of tests included
+        days (int): Number of days for access
+        
+    Returns:
+        stripe.Price: The created or retrieved Stripe price
+    """
+    try:
+        # Check for existing prices for this product
+        existing_prices = stripe.Price.list(
+            product=product_id,
+            active=True,
+            limit=10
+        )
+        
+        # Find a price with the same amount
+        for price in existing_prices.data:
+            if price.unit_amount == price_in_cents:
+                return price
+        
+        # If no price found, create a new one
+        metadata = {
+            'plan': plan_code,
+            'tests': str(tests),
+            'days': str(days)
+        }
+        
+        return stripe.Price.create(
+            product=product_id,
+            unit_amount=price_in_cents,
+            currency='usd',
+            metadata=metadata
+        )
+    except Exception as e:
+        logging.error(f"Error creating/getting Stripe price: {str(e)}")
+        raise
+
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 def create_stripe_checkout_session(product_name, description, price, success_url, cancel_url, country_code=None):
     """
@@ -211,14 +283,6 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             mode='payment',  # Using one-time payment instead of subscription
             success_url=success_url,
             cancel_url=cancel_url,
-            payment_method_options={
-                'card': {
-                    'wallet': {
-                        'applePay': 'auto',
-                        'googlePay': 'auto',
-                    }
-                }
-            },
             metadata=metadata
         )
         
@@ -351,14 +415,6 @@ def create_stripe_checkout_speaking(package_type, country_code=None):
             mode='payment',  # Using one-time payment
             success_url=f'https://{domain}/speaking-payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'https://{domain}/payment-cancel',
-            payment_method_options={
-                'card': {
-                    'wallet': {
-                        'applePay': 'auto',
-                        'googlePay': 'auto',
-                    }
-                }
-            },
             metadata=metadata
         )
         
@@ -425,30 +481,26 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             domain = 'localhost:5000'
         
         # Create a Product if it doesn't exist
-        if using_new_purchase:
-            product = create_or_get_product_for_purchase(purchase_details['name'], purchase_details['description'])
-            
-            # Create a Price if it doesn't exist
-            price = create_or_get_price_for_purchase(
-                product.id, 
-                purchase_details['price'],
-                plan_code,
-                purchase_details['tests'],
-                purchase_details['days']
-            )
-        else:
-            # Legacy product and price handling
-            product = create_or_get_product(plan_info)
-            price = create_or_get_price(product.id, plan_info)
+        product = create_or_get_product_for_purchase(
+            purchase_details['name'], 
+            purchase_details['description']
+        )
+        
+        # Create a Price if it doesn't exist
+        price = create_or_get_price_for_purchase(
+            product.id, 
+            purchase_details['price'],
+            plan_code,
+            purchase_details.get('tests', 0),
+            purchase_details['days']
+        )
         
         # Use the country code if provided
         user_country = country_code
         # Dynamic payment method types based on user region
-        # Only use 'card' to avoid compatibility issues
         payment_method_types = ['card']
         
         # Add region-specific payment methods
-        # These are the payment methods supported by Stripe
         region_payment_mapping = {
             # East Asia
             'CN': ['alipay', 'wechat_pay'],
@@ -501,23 +553,15 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         # If we have user_country, add the appropriate payment methods
         if user_country and user_country in region_payment_mapping:
             payment_method_types.extend(region_payment_mapping[user_country])
-        
-        metadata = {}
-        if using_new_purchase:
-            metadata = {
-                'plan': plan_code,
-                'test_type': test_type,
-                'test_package': test_package,
-                'tests': str(purchase_details['tests']),
-                'days': str(purchase_details['days'])
-            }
-        else:
-            metadata = {
-                'plan': plan_info,
-                'tests': str(purchase_details['tests']),
-                'days': str(purchase_details['days'])
-            }
             
+        metadata = {
+            'plan': plan_code,
+            'type': test_type if using_new_purchase else 'subscription',
+            'package': test_package if using_new_purchase else plan_info,
+            'tests': str(purchase_details.get('tests', 0)),
+            'days': str(purchase_details['days'])
+        }
+        
         # Create checkout session with all payment options
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=payment_method_types,
@@ -527,17 +571,9 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
                     'quantity': 1,
                 },
             ],
-            mode='payment',  # Using one-time payment instead of subscription
+            mode='payment',  # Using one-time payment
             success_url=f'https://{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'https://{domain}/payment-cancel',
-            payment_method_options={
-                'card': {
-                    'wallet': {
-                        'applePay': 'auto',
-                        'googlePay': 'auto',
-                    }
-                }
-            },
             metadata=metadata
         )
         
@@ -550,271 +586,76 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         logging.error(f"Error creating Stripe checkout: {str(e)}")
         raise
 
-def create_or_get_product(plan):
+def create_payment_record(user, session_id, payment_details):
     """
-    Create a Stripe product if it doesn't exist, or get the existing one.
+    Create a payment record in the user's account.
     
     Args:
-        plan (str): Subscription plan ('base', 'intermediate', or 'pro')
+        user (User): User object
+        session_id (str): Stripe session ID
+        payment_details (dict): Details of the payment
         
     Returns:
-        stripe.Product: The Stripe product
+        dict: Updated payment record
     """
-    try:
-        plan_details = SUBSCRIPTION_PLANS[plan]
-        
-        # List products with the given name
-        products = stripe.Product.list(
-            active=True,
-            limit=10
-        )
-        
-        for product in products.data:
-            if product.name == plan_details['name']:
-                return product
-        
-        # If no product found, create one
-        return stripe.Product.create(
-            name=plan_details['name'],
-            description=plan_details['description']
-        )
-    except Exception as e:
-        logging.error(f"Error creating/getting Stripe product: {str(e)}")
-        raise
-
-def create_or_get_price(product_id, plan):
-    """
-    Create a Stripe price if it doesn't exist, or get the existing one.
+    payment_history = user.payment_history if user.payment_history else []
     
-    Args:
-        product_id (str): The Stripe product ID
-        plan (str): Subscription plan ('base', 'intermediate', or 'pro')
-        
-    Returns:
-        stripe.Price: The Stripe price
-    """
-    try:
-        plan_details = SUBSCRIPTION_PLANS[plan]
-        
-        # List prices for the given product
-        prices = stripe.Price.list(
-            product=product_id,
-            active=True,
-            limit=10
-        )
-        
-        # Find a price with the correct amount
-        amount = plan_details['price']
-        
-        for price in prices.data:
-            if price.unit_amount == amount:
-                return price
-        
-        # If no price found, create one
-        return stripe.Price.create(
-            product=product_id,
-            unit_amount=amount,
-            currency='usd',
-            metadata={
-                'plan': plan,
-                'tests': str(plan_details['tests']),
-                'days': str(plan_details['days'])
-            }
-        )
-    except Exception as e:
-        logging.error(f"Error creating/getting Stripe price: {str(e)}")
-        raise
-
-def create_payment_record(user_id, amount, package, session_id):
-    """
-    Create a payment record for audit and tracking purposes.
-    
-    Args:
-        user_id (int): User ID making the payment
-        amount (float): Payment amount
-        package (str): Package purchased ('single', 'double', 'pack')
-        session_id (str): Stripe session ID for reference
-        
-    Returns:
-        dict: Payment record data
-    """
-    # This is a placeholder function - in a real implementation, you would 
-    # save this information to a database. For now, we just return a dict.
+    # Create payment record
     payment_record = {
-        'user_id': user_id,
-        'amount': amount,
-        'package': package,
+        'date': datetime.utcnow().isoformat(),
         'session_id': session_id,
-        'timestamp': datetime.utcnow().isoformat()
+        'amount': payment_details.get('amount', 0),
+        'plan': payment_details.get('plan', ''),
+        'tests': payment_details.get('tests', 0),
+        'days': payment_details.get('days', 0),
+        'status': 'completed'
     }
     
-    logging.info(f"Payment record created: {payment_record}")
+    # Add extra fields if available
+    if 'product_name' in payment_details:
+        payment_record['product_name'] = payment_details['product_name']
+    if 'type' in payment_details:
+        payment_record['type'] = payment_details['type']
+    if 'package' in payment_details:
+        payment_record['package'] = payment_details['package']
+    
+    payment_history.append(payment_record)
+    user.payment_history = payment_history
+    
     return payment_record
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 def verify_stripe_payment(session_id):
     """
-    Verify a Stripe payment using the session ID.
+    Verify a Stripe payment session.
     
     Args:
-        session_id (str): Stripe checkout session ID
+        session_id (str): Stripe session ID
         
     Returns:
-        bool: True if payment was successful, False otherwise
+        dict: Payment details if verified, None otherwise
     """
     try:
-        if not stripe.api_key:
-            logging.error("Stripe API key not found. Cannot verify payment.")
-            return False
-        
-        # Retrieve the session
         session = stripe.checkout.Session.retrieve(session_id)
         
-        # Check payment status
-        return session.payment_status == 'paid'
+        # Check if payment was successful
+        if session.payment_status != 'paid':
+            logging.warning(f"Payment not completed for session {session_id}")
+            return None
+        
+        # Get detailed payment info
+        payment_details = {}
+        
+        # Add standard fields
+        payment_details['amount'] = session.amount_total / 100  # Convert from cents to dollars
+        payment_details['currency'] = session.currency
+        
+        # Add metadata if available
+        if session.metadata:
+            for key, value in session.metadata.items():
+                payment_details[key] = value
+            
+        return payment_details
+        
     except Exception as e:
         logging.error(f"Error verifying Stripe payment: {str(e)}")
-        return False
-
-# For backward compatibility
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def verify_payment(session_id):
-    """
-    Verify a completed payment session.
-    
-    Args:
-        session_id (str): Stripe checkout session ID
-    
-    Returns:
-        dict: Payment information or None if verification fails
-    """
-    try:
-        if not stripe.api_key:
-            logging.error("Stripe API key not found. Cannot verify payment.")
-            raise ValueError("Stripe API key is required")
-        
-        # Retrieve the session
-        session = stripe.checkout.Session.retrieve(session_id)
-        
-        # Check payment status
-        if session.payment_status == 'paid':
-            # Get metadata from the session
-            plan = session.metadata.get('plan', 'base')
-            
-            # Check if this is a test purchase by looking for test_type in metadata
-            is_test_purchase = 'test_type' in session.metadata and 'test_package' in session.metadata
-            
-            if is_test_purchase:
-                # Test purchase flow
-                test_type = session.metadata.get('test_type')
-                test_package = session.metadata.get('test_package')
-                tests = int(session.metadata.get('tests', 1))
-                days = int(session.metadata.get('days', 15))
-                
-                return {
-                    'paid': True,
-                    'plan': plan,
-                    'test_type': test_type,
-                    'test_package': test_package,
-                    'tests': tests,
-                    'days': days,
-                    'customer': session.customer
-                }
-            else:
-                # Legacy subscription flow
-                try:
-                    tests = int(session.metadata.get('tests', SUBSCRIPTION_PLANS[plan]['tests']))
-                    days = int(session.metadata.get('days', SUBSCRIPTION_PLANS[plan]['days']))
-                except KeyError:
-                    # Fallback to defaults if plan info not found
-                    tests = int(session.metadata.get('tests', 3))
-                    days = int(session.metadata.get('days', 30))
-                
-                return {
-                    'paid': True,
-                    'plan': plan,
-                    'tests': tests,
-                    'days': days,
-                    'customer': session.customer
-                }
-        else:
-            return None
-            
-    except Exception as e:
-        logging.error(f"Error verifying payment: {str(e)}")
         return None
-
-def create_or_get_product_for_purchase(product_name, product_description):
-    """
-    Create a Stripe product for the new purchase system if it doesn't exist, or get the existing one.
-    
-    Args:
-        product_name (str): The name of the product
-        product_description (str): The description of the product
-        
-    Returns:
-        stripe.Product: The Stripe product
-    """
-    try:
-        # List products with the given name
-        products = stripe.Product.list(
-            active=True,
-            limit=10
-        )
-        
-        for product in products.data:
-            if product.name == product_name:
-                return product
-        
-        # If no product found, create one
-        return stripe.Product.create(
-            name=product_name,
-            description=product_description
-        )
-    except Exception as e:
-        logging.error(f"Error creating/getting Stripe product: {str(e)}")
-        raise
-
-def create_or_get_price_for_purchase(product_id, price_amount, plan_code, tests, days):
-    """
-    Create a Stripe price for the new purchase system if it doesn't exist, or get the existing one.
-    
-    Args:
-        product_id (str): The Stripe product ID
-        price_amount (int): The price amount in cents
-        plan_code (str): The unique plan code (e.g., 'academic_single')
-        tests (int): Number of tests included
-        days (int): Number of days of access
-        
-    Returns:
-        stripe.Price: The Stripe price
-    """
-    try:
-        # List prices for the given product
-        prices = stripe.Price.list(
-            product=product_id,
-            active=True,
-            limit=10
-        )
-        
-        # Find a price with the correct amount and matching metadata
-        for price in prices.data:
-            if price.unit_amount == price_amount and price.metadata.get('plan') == plan_code:
-                return price
-        
-        # If no price found, create one
-        return stripe.Price.create(
-            product=product_id,
-            unit_amount=price_amount,
-            currency='usd',
-            metadata={
-                'plan': plan_code,
-                'tests': str(tests),
-                'days': str(days)
-            }
-        )
-    except Exception as e:
-        logging.error(f"Error creating/getting Stripe price: {str(e)}")
-        raise
-
-# Additional payment methods could be implemented here for regional options
