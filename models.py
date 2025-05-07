@@ -217,27 +217,20 @@ class User(UserMixin, db.Model):
         
     def is_speaking_only_user(self):
         """Check if user has speaking-only access"""
-        # First check if subscription has expired
-        if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
-            return False
-            
+        # Speaking-only users have permanent account access (no expiry)
         # Check for speaking-only subscription status
         speaking_only_subscriptions = ["Speaking Only Basic", "Speaking Only Pro"]
         
         # Check if current subscription is a speaking-only type
-        if (self.subscription_status in speaking_only_subscriptions and
-                (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
+        if self.subscription_status in speaking_only_subscriptions:
             return True
                 
         # Check for speaking-only test purchases in test_history
         for history_item in self.test_history:
             if "speaking_purchase" in history_item:
-                purchase_data = history_item["speaking_purchase"]
-                if "expiry_date" in purchase_data:
-                    # Check if purchase is still valid
-                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
-                    if expiry_date > datetime.utcnow():
-                        return True
+                # If there's a speaking purchase in history, user has speaking-only access
+                # (speaking packages have permanent access)
+                return True
                         
         return False
         
@@ -288,7 +281,7 @@ class User(UserMixin, db.Model):
             new_purchase = {
                 "speaking_purchase": {
                     "purchase_date": datetime.utcnow().isoformat(),
-                    "expiry_date": (datetime.utcnow() + timedelta(days=10)).isoformat(),
+                    "expiry_date": None,  # No expiry
                     "total_assessments": 4,
                     "used_assessments": 1,
                     "amount": 15.0,
