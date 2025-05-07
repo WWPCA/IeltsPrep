@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="IELTS AI Prep - Your comprehensive IELTS test preparation platform">
+    <meta name="description" content="IELTS GenAI Prep - Your comprehensive IELTS test preparation platform">
     
-    <title>{% if title %}{{ title }} | IELTS AI Prep{% else %}IELTS AI Prep{% endif %}</title>
+    <title>{% if title %}{{ title }} | IELTS GenAI Prep{% else %}IELTS GenAI Prep{% endif %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -83,7 +83,7 @@
     <!-- Header -->
     <header class="site-header">
         <div class="container">
-            <a href="{{ url_for('index') }}" class="site-logo">IELTS AI Prep</a>
+            <a href="{{ url_for('index') }}" class="site-logo">IELTS GenAI Prep</a>
             
             <button class="menu-toggle" aria-label="Toggle menu">
                 <i class="fas fa-bars"></i>
@@ -96,7 +96,7 @@
                     {% if current_user.is_authenticated and current_user.subscription_status == 'Value Pack' %}
                     <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
                     {% endif %}
-                    <li><a href="{{ url_for('assessment_products_page') }}">AI Assessed IELTS Modules</a></li>
+                    <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
                     <li><a href="{{ url_for('device_specs') }}">Device Requirements</a></li>
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('profile') }}">My Profile</a></li>
@@ -134,8 +134,8 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-links">
-                    <h3>About IELTS AI Prep</h3>
-                    <p>IELTS AI Prep helps you prepare for all sections of the IELTS test with AI-powered assessments and comprehensive practice materials.</p>
+                    <h3>About IELTS GenAI Prep</h3>
+                    <p>IELTS GenAI Prep helps you prepare for all sections of the IELTS test with GenAI-powered assessments and comprehensive practice materials.</p>
                 </div>
                 
                 <div class="footer-links">
@@ -145,7 +145,7 @@
                         {% if current_user.is_authenticated and current_user.subscription_status == 'Value Pack' %}
                         <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
                         {% endif %}
-                        <li><a href="{{ url_for('assessment_products_page') }}">AI Assessed IELTS Modules</a></li>
+                        <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
                     </ul>
                 </div>
                 
@@ -160,7 +160,7 @@
             </div>
             
             <div class="copyright">
-                <p>&copy; 2025 IELTS AI Prep. All rights reserved.</p>
+                <p>&copy; 2025 IELTS GenAI Prep. All rights reserved.</p>
             </div>
         </div>
     </footer>
