@@ -13,6 +13,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    phone = db.Column(db.String(30), nullable=True)  # Optional phone number
     region = db.Column(db.String(50), nullable=True)
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
     subscription_status = db.Column(db.String(20), default="none")
@@ -21,6 +22,7 @@ class User(UserMixin, db.Model):
     # but not used in UI
     preferred_language = db.Column(db.String(10), default="en")
     test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
+    target_score = db.Column(db.String(10), default="7.0")  # Target IELTS band score
     
     # Study streak tracking
     current_streak = db.Column(db.Integer, default=0)

@@ -6,35 +6,55 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Register</h2>
+                    <h2 class="mb-0">Create Your IELTS GenAI Prep Account</h2>
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <strong>Welcome to IELTS GenAI Prep!</strong> Our platform uses advanced Generative AI technology to provide personalized feedback and assessment for your IELTS practice.
+                    </div>
+
                     <form method="POST" action="{{ url_for('register') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         
-                        <div class="form-group mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="Choose a username" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="your.email@example.com" required>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="form-group mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                            <label for="phone" class="form-label">Phone Number (with country code)</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="+1 234 567 8900">
+                            <div class="form-text">Optional. Used only for account recovery or important notifications.</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <div class="form-text">Password must be at least 8 characters long.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="form-group mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                            <div class="form-text">Password must be at least 8 characters long.</div>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="region" class="form-label">Country</label>
+                            <label for="region" class="form-label">Country <span class="text-danger">*</span></label>
                             <select class="form-select" id="region" name="region">
                                 <option value="Afghanistan">Afghanistan</option>
                                 <option value="Argentina">Argentina</option>
@@ -113,19 +133,48 @@
                             </select>
                         </div>
                         
-                        <div class="form-group mb-3">
-                            <label for="test_preference" class="form-label">IELTS Test Type</label>
-                            <select class="form-select" id="test_preference" name="test_preference">
-                                <option value="academic">IELTS Academic</option>
-                                <option value="general">IELTS General Training</option>
-                            </select>
-                            <div class="form-text">
-                                Select the IELTS test type you are preparing for. This will customize your practice experience.
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="test_preference" class="form-label">IELTS Test Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="test_preference" name="test_preference">
+                                        <option value="academic">IELTS Academic</option>
+                                        <option value="general">IELTS General Training</option>
+                                    </select>
+                                    <div class="form-text">
+                                        Academic: For university/college admission<br>
+                                        General: For immigration or work
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="target_score" class="form-label">Target Band Score</label>
+                                    <select class="form-select" id="target_score" name="target_score">
+                                        <option value="5.5">5.5</option>
+                                        <option value="6.0">6.0</option>
+                                        <option value="6.5">6.5</option>
+                                        <option value="7.0" selected>7.0</option>
+                                        <option value="7.5">7.5</option>
+                                        <option value="8.0">8.0</option>
+                                        <option value="8.5+">8.5+</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Register</button>
+                        <div class="form-group mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agree_terms" name="agree_terms" required>
+                                <label class="form-check-label" for="agree_terms">
+                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                                    <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Create My Account</button>
                         </div>
                     </form>
                 </div>
@@ -134,6 +183,100 @@
                         <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Terms of Service Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms of Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>IELTS GenAI Prep Terms of Service</h5>
+                <p>Last Updated: May 2025</p>
+                
+                <h6>1. Acceptance of Terms</h6>
+                <p>By accessing or using the IELTS GenAI Prep platform, you agree to be bound by these Terms of Service.</p>
+                
+                <h6>2. Service Description</h6>
+                <p>IELTS GenAI Prep provides online language assessment services using GenAI technology for IELTS test preparation.</p>
+                
+                <h6>3. User Accounts</h6>
+                <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+                
+                <h6>4. Payment Terms</h6>
+                <p>Assessment products purchased are non-refundable once used. Each assessment can only be used once.</p>
+                
+                <h6>5. Product Access</h6>
+                <p>Single and Double package users have 15-day access to materials, while Value Pack users have 30-day access.</p>
+                
+                <h6>6. Content Usage</h6>
+                <p>All content on the platform is owned by IELTS GenAI Prep and protected by copyright.</p>
+                
+                <h6>7. Privacy</h6>
+                <p>Your use of our service is also governed by our Privacy Policy.</p>
+                
+                <h6>8. Termination</h6>
+                <p>We reserve the right to terminate or suspend access to our service immediately, without prior notice or liability.</p>
+                
+                <h6>9. Limitation of Liability</h6>
+                <p>IELTS GenAI Prep shall not be liable for any indirect, incidental, special, consequential or punitive damages.</p>
+                
+                <h6>10. Changes to Terms</h6>
+                <p>We reserve the right to modify these terms at any time. Your continued use of the platform after changes constitutes acceptance.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>IELTS GenAI Prep Privacy Policy</h5>
+                <p>Last Updated: May 2025</p>
+                
+                <h6>1. Information We Collect</h6>
+                <p>We collect personal information such as name, email address, country, and optionally phone number during registration. We also collect test responses and usage data to improve your experience.</p>
+                
+                <h6>2. How We Use Your Information</h6>
+                <p>We use your information to provide and improve our services, personalize your experience, process payments, and communicate with you about your account.</p>
+                
+                <h6>3. Data Protection</h6>
+                <p>We implement appropriate security measures to protect your personal data against unauthorized access or disclosure.</p>
+                
+                <h6>4. Data Sharing</h6>
+                <p>We do not sell your information to third parties. We may share data with service providers who help us deliver our services.</p>
+                
+                <h6>5. GenAI Technology</h6>
+                <p>Our GenAI assessment technology analyzes your responses to provide personalized feedback and scoring. Your responses may be used to improve our assessment algorithms.</p>
+                
+                <h6>6. Cookies and Tracking</h6>
+                <p>We use cookies to enhance your experience and analyze usage patterns.</p>
+                
+                <h6>7. Your Rights</h6>
+                <p>You have the right to access, correct, or delete your personal information. Contact us to exercise these rights.</p>
+                
+                <h6>8. Changes to Privacy Policy</h6>
+                <p>We may update this policy periodically. We will notify you of significant changes.</p>
+                
+                <h6>9. Contact Information</h6>
+                <p>If you have questions about this Privacy Policy, contact us at support@ieltsgenaiprep.com</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
