@@ -62,8 +62,8 @@ def create_academic_writing_sets():
     for i in range(min(4, len(task1_selection), len(task2_selection))):
         # Check if the set already exists
         existing_set = CompletePracticeTest.query.filter_by(
-            name=f"Academic Writing Assessment Set {i+1}",
-            test_type='academic_writing'
+            title=f"Academic Writing Assessment Set {i+1}",
+            product_type='academic_writing'
         ).first()
         
         if existing_set:
@@ -72,9 +72,10 @@ def create_academic_writing_sets():
         
         # Create a new complete test set
         complete_test = CompletePracticeTest(
-            name=f"Academic Writing Assessment Set {i+1}",
+            title=f"Academic Writing Assessment Set {i+1}",
             description="Complete Academic Writing assessment with Task 1 and Task 2",
-            test_type='academic_writing',  # Custom type for product
+            ielts_test_type='academic',
+            product_type='academic_writing',  # Custom type for product
             status='active',
             is_free=False
         )
@@ -121,8 +122,8 @@ def create_academic_speaking_sets():
     for i in range(4):
         # Check if the set already exists
         existing_set = CompletePracticeTest.query.filter_by(
-            name=f"Academic Speaking Assessment Set {i+1}",
-            test_type='academic_speaking'
+            title=f"Academic Speaking Assessment Set {i+1}",
+            product_type='academic_speaking'
         ).first()
         
         if existing_set:
@@ -131,9 +132,10 @@ def create_academic_speaking_sets():
         
         # Create a new complete test set
         complete_test = CompletePracticeTest(
-            name=f"Academic Speaking Assessment Set {i+1}",
+            title=f"Academic Speaking Assessment Set {i+1}",
             description="Complete Academic Speaking assessment with all three parts",
-            test_type='academic_speaking',  # Custom type for product
+            ielts_test_type='academic',
+            product_type='academic_speaking',  # Custom type for product
             status='active',
             is_free=False
         )
@@ -182,8 +184,8 @@ def create_general_writing_sets():
     for i in range(min(4, len(task1_selection), len(task2_selection))):
         # Check if the set already exists
         existing_set = CompletePracticeTest.query.filter_by(
-            name=f"General Training Writing Assessment Set {i+1}",
-            test_type='general_writing'
+            title=f"General Training Writing Assessment Set {i+1}",
+            product_type='general_writing'
         ).first()
         
         if existing_set:
@@ -192,9 +194,10 @@ def create_general_writing_sets():
         
         # Create a new complete test set
         complete_test = CompletePracticeTest(
-            name=f"General Training Writing Assessment Set {i+1}",
+            title=f"General Training Writing Assessment Set {i+1}",
             description="Complete General Training Writing assessment with Task 1 and Task 2",
-            test_type='general_writing',  # Custom type for product
+            ielts_test_type='general',
+            product_type='general_writing',  # Custom type for product
             status='active',
             is_free=False
         )
@@ -242,8 +245,8 @@ def create_general_speaking_sets():
     for i in range(4):
         # Check if the set already exists
         existing_set = CompletePracticeTest.query.filter_by(
-            name=f"General Training Speaking Assessment Set {i+1}",
-            test_type='general_speaking'
+            title=f"General Training Speaking Assessment Set {i+1}",
+            product_type='general_speaking'
         ).first()
         
         if existing_set:
@@ -252,9 +255,10 @@ def create_general_speaking_sets():
         
         # Create a new complete test set
         complete_test = CompletePracticeTest(
-            name=f"General Training Speaking Assessment Set {i+1}",
+            title=f"General Training Speaking Assessment Set {i+1}",
             description="Complete General Training Speaking assessment with all three parts",
-            test_type='general_speaking',  # Custom type for product
+            ielts_test_type='general',
+            product_type='general_speaking',  # Custom type for product
             status='active',
             is_free=False
         )

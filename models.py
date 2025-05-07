@@ -325,16 +325,30 @@ class TestStructure(db.Model):
 class CompletePracticeTest(db.Model):
     """Model for a complete IELTS practice test with all sections"""
     id = db.Column(db.Integer, primary_key=True)
-    ielts_test_type = db.Column(db.String(20), nullable=False)  # academic, general
-    test_number = db.Column(db.Integer, nullable=False)  # Test 1, Test 2, etc.
+    ielts_test_type = db.Column(db.String(20), nullable=False, default="academic")  # academic, general
+    test_number = db.Column(db.Integer, nullable=True)  # Test 1, Test 2, etc.
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     is_free = db.Column(db.Boolean, default=False)  # Free sample test
     subscription_level = db.Column(db.String(20), nullable=False, default="basic")  # basic, intermediate, premium
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    product_type = db.Column(db.String(50), nullable=True)  # academic_writing, academic_speaking, general_writing, general_speaking
+    status = db.Column(db.String(20), nullable=False, default="active")  # active, inactive
+    _tests = db.Column(db.Text, nullable=True)  # JSON string with test IDs or prompt IDs
+    
+    @property
+    def tests(self):
+        return json.loads(self._tests) if self._tests else []
+    
+    @tests.setter
+    def tests(self, value):
+        self._tests = json.dumps(value)
     
     def __repr__(self):
-        return f'<CompletePracticeTest {self.ielts_test_type} Test {self.test_number}: {self.title}>'
+        if self.test_number:
+            return f'<CompletePracticeTest {self.ielts_test_type} Test {self.test_number}: {self.title}>'
+        else:
+            return f'<CompletePracticeTest {self.title}>'
 
 class PracticeTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
