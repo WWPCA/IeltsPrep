@@ -124,12 +124,23 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
+        phone = request.form.get('phone')  # New field
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         region = request.form.get('region', get_user_region())
         
+        # Check if terms were agreed to
+        if not request.form.get('agree_terms'):
+            flash('You must agree to the Terms of Service and Privacy Policy to register.', 'danger')
+            return render_template('register.html', title='Register', form=form)
+        
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
+            return render_template('register.html', title='Register', form=form)
+            
+        # Validate password length
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long.', 'danger')
             return render_template('register.html', title='Register', form=form)
         
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
@@ -138,12 +149,15 @@ def register():
             return render_template('register.html', title='Register', form=form)
         
         test_preference = request.form.get('test_preference', 'academic')
+        target_score = request.form.get('target_score', '7.0')  # New field
         
         new_user = User(
             username=username,
             email=email,
+            phone=phone,  # New field
             region=region,
-            test_preference=test_preference
+            test_preference=test_preference,
+            target_score=target_score  # New field
         )
         new_user.set_password(password)
         
