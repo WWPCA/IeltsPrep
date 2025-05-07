@@ -16,22 +16,32 @@ assessment_products = {
     'academic_writing': {
         'name': 'Academic Writing Assessment',
         'description': 'Complete Academic Writing assessment with Task 1 and Task 2',
-        'price': 25,
+        'price': 2500,  # Price in cents
     },
     'academic_speaking': {
         'name': 'Academic Speaking Assessment',
         'description': 'Complete Academic Speaking assessment with all three parts',
-        'price': 25,
+        'price': 2500,  # Price in cents
     },
     'general_writing': {
         'name': 'General Training Writing Assessment',
         'description': 'Complete General Training Writing assessment with Task 1 and Task 2',
-        'price': 25,
+        'price': 2500,  # Price in cents
     },
     'general_speaking': {
         'name': 'General Training Speaking Assessment',
         'description': 'Complete General Training Speaking assessment with all three parts',
-        'price': 25,
+        'price': 2500,  # Price in cents
+    },
+    'speaking_only_basic': {
+        'name': 'Speaking Only - Basic Package',
+        'description': '4 Speaking Assessments with detailed feedback',
+        'price': 1500,  # Price in cents
+    },
+    'speaking_only_pro': {
+        'name': 'Speaking Only - Pro Package',
+        'description': '10 Speaking Assessments with detailed feedback',
+        'price': 2000,  # Price in cents
     }
 }
 

@@ -30,7 +30,9 @@
                                         <li class="list-group-item"><i class="fas fa-check text-success"></i> Permanent Account Access</li>
                                         <li class="list-group-item"><i class="fas fa-check text-success"></i> One-time use per assessment</li>
                                     </ul>
-                                    <a href="{{ url_for('speaking_only_checkout', package='basic') }}" class="btn btn-success mt-auto btn-lg">Get Started</a>
+                                    <a href="{{ url_for('cart.add_to_cart', product_id='speaking_only_basic') }}" class="btn btn-success mt-auto btn-lg">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -50,7 +52,9 @@
                                         <li class="list-group-item"><i class="fas fa-check text-primary"></i> One-time use per assessment</li>
                                         <li class="list-group-item"><i class="fas fa-check text-primary"></i> Best Value</li>
                                     </ul>
-                                    <a href="{{ url_for('speaking_only_checkout', package='pro') }}" class="btn btn-primary mt-auto btn-lg">Get Started</a>
+                                    <a href="{{ url_for('cart.add_to_cart', product_id='speaking_only_pro') }}" class="btn btn-primary mt-auto btn-lg">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </a>
                                 </div>
                             </div>
                         </div>
