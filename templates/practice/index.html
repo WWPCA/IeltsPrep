@@ -25,8 +25,8 @@
                             <i class="fas fa-user-lock fa-2x"></i>
                         </div>
                         <div>
-                            <h4>Login to Access Tests</h4>
-                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access reading tests and AI-powered assessments. You'll need to purchase a subscription to take these tests.</p>
+                            <h4>Login to Access Practice Materials</h4>
+                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access reading materials and AI-powered assessments. You'll need to purchase a subscription to access these materials.</p>
                             <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
                             <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
                         </div>
@@ -40,7 +40,7 @@
                         </div>
                         <div>
                             <h4>Subscribe for Access</h4>
-                            <p>Subscribe now to unlock reading tests with AI-powered writing and speaking assessments. Choose from our subscription options for test access.</p>
+                            <p>Subscribe now to unlock reading materials with AI-powered writing and speaking assessments. Choose from our subscription options for full access.</p>
                             <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
                         </div>
                     </div>
@@ -55,8 +55,8 @@
                         <div>
                             {% if current_user.subscription_status == 'Value Pack' %}
                                 <!-- Keep Value Pack for existing users but hide it from new signups -->
-                                <h4>Value Pack (4 Tests)</h4>
-                                <p>Your subscription gives you access to 4 reading tests with AI-powered writing and speaking assessments. Each test can only be taken once during your subscription period.</p>
+                                <h4>Value Pack (4 Assessment Sets)</h4>
+                                <p>Your subscription gives you access to 4 reading materials with AI-powered writing and speaking assessments. Each assessment set can only be used once during your subscription period.</p>
                             {% elif current_user.subscription_status == 'Double Package' %}
                                 <h4>Double Package (2 Tests)</h4>
                                 <p>Your subscription gives you access to 2 reading tests with AI-powered writing and speaking assessments. Each test can only be taken once during your subscription period.</p>

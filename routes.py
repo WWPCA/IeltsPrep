@@ -1380,35 +1380,8 @@ def submit_speaking():
 
 @app.route('/subscribe')
 def subscribe():
-    # Check if user is already subscribed, and handle expired subscriptions
-    if current_user.is_authenticated:
-        if current_user.subscription_expiry and current_user.subscription_expiry <= datetime.utcnow():
-            # Subscription has expired
-            current_user.subscription_status = "expired"
-            db.session.commit()
-            flash('Your subscription has expired. Please purchase a new one.', 'info')
-    
-    # Detect country for pricing
-    if current_user.is_authenticated and current_user.region:
-        country_code = current_user.region[:2].upper()  # Use the first two characters of region
-    else:
-        # Get country from IP address
-        client_ip = request.remote_addr
-        country_code, country_name = get_country_from_ip(client_ip)
-    
-    # Get pricing based on country
-    pricing = get_pricing_for_country(country_code)
-    
-    # Get user's test preference for subscription package selection
-    test_preference = "academic"  # Default
-    if current_user.is_authenticated:
-        test_preference = current_user.test_preference
-    
-    return render_template('subscribe.html', 
-                          title='Subscribe', 
-                          pricing=pricing,
-                          test_preference=test_preference,
-                          country_code=country_code)
+    """Redirect to assessment products page since we now use one-time purchases instead of subscriptions"""
+    return redirect(url_for('assessment_products_page'))
 
 @app.route('/checkout-review', methods=['POST'])
 def checkout_review():
