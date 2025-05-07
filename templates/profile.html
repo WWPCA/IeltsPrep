@@ -44,9 +44,9 @@
                     <div class="text-center mt-3">
                         <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Purchase a Package</a>
                     </div>
-                    {% elif current_user.subscription_status != "Value Pack" %}
+                    {% elif current_user.subscription_status == "Single Test" or current_user.subscription_status == "Double Package" %}
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('subscribe') }}" class="btn btn-success">Upgrade to Value Pack</a>
+                        <a href="{{ url_for('assessment_products') }}" class="btn btn-success">Explore Assessment Products</a>
                     </div>
                     {% endif %}
                 </div>
