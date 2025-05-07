@@ -10,6 +10,22 @@
 .pricing-card:hover {
     transform: translateY(-5px);
 }
+.ai-brand-section {
+    margin-bottom: 60px;
+}
+.brand-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+.brand-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+.brand-tagline {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
 </style>
 {% endblock %}
 
@@ -90,100 +106,122 @@
 {% if not current_user.is_authenticated %}
 <section class="pricing py-5 bg-light">
     <div class="container">
-        <h2 class="text-center mb-4">Choose Your IELTS Assessment Product</h2>
-        <p class="text-center mb-5">Select the AI-powered assessment product that matches your test type and skill needs</p>
+        <h2 class="text-center mb-4">AI Assessed IELTS Modules</h2>
+        <p class="text-center mb-5">Our specialized AI technologies provide accurate assessment for IELTS preparation</p>
         
-        <div class="row equal-height-cards">
-            <!-- Academic Writing Assessment -->
-            <div class="col-lg-3 mb-4">
-                <div class="card pricing-card">
-                    <div class="card-header bg-success text-white text-center">
-                        <h3 class="my-0 font-weight-bold">Academic Writing</h3>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <div class="pricing-features mt-3 mb-4">
-                            <ul class="list-unstyled">
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Chart & Graph analysis</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: Academic essay writing</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> TrueScore® AI detailed feedback</li>
-                            </ul>
+        <!-- TrueScore AI Section -->
+        <div class="ai-brand-section mb-5">
+            <div class="text-center mb-4">
+                <div class="brand-icon text-success">
+                    <i class="fas fa-pencil-alt"></i>
+                </div>
+                <h3 class="brand-title">TrueScore® AI Writing Assessment</h3>
+                <p class="brand-tagline">Professional-grade assessment of IELTS writing tasks with detailed feedback and scoring</p>
+            </div>
+            
+            <div class="row equal-height-cards">
+                <!-- Academic Writing Assessment -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card pricing-card">
+                        <div class="card-header bg-success text-white text-center">
+                            <h3 class="my-0 font-weight-bold">Academic Writing</h3>
                         </div>
-                        <div class="mt-auto d-grid">
-                            <a href="{{ url_for('subscribe', plan='academic_writing') }}" class="btn btn-primary btn-lg">Purchase</a>
+                        <div class="card-body d-flex flex-column">
+                            <div class="pricing-features mt-3 mb-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Chart & Graph analysis</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: Academic essay writing</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> TrueScore® AI detailed feedback</li>
+                                </ul>
+                            </div>
+                            <div class="mt-auto d-grid">
+                                <a href="{{ url_for('subscribe', plan='academic_writing') }}" class="btn btn-success btn-lg">Purchase</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Academic Speaking Assessment -->
-            <div class="col-lg-3 mb-4">
-                <div class="card pricing-card">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h3 class="my-0 font-weight-bold">Academic Speaking</h3>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <div class="pricing-features mt-3 mb-4">
-                            <ul class="list-unstyled">
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Elaris® AI speech analysis</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
-                            </ul>
+                <!-- General Training Writing Assessment -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card pricing-card">
+                        <div class="card-header bg-success text-white text-center">
+                            <h3 class="my-0 font-weight-bold">General Writing</h3>
                         </div>
-                        <div class="mt-auto d-grid">
-                            <a href="{{ url_for('subscribe', plan='academic_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- General Training Writing Assessment -->
-            <div class="col-lg-3 mb-4">
-                <div class="card pricing-card">
-                    <div class="card-header bg-success text-white text-center">
-                        <h3 class="my-0 font-weight-bold">General Writing</h3>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <div class="pricing-features mt-3 mb-4">
-                            <ul class="list-unstyled">
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Formal & informal letters</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: General essay writing</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> TrueScore® AI detailed feedback</li>
-                            </ul>
-                        </div>
-                        <div class="mt-auto d-grid">
-                            <a href="{{ url_for('subscribe', plan='general_writing') }}" class="btn btn-primary btn-lg">Purchase</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- General Training Speaking Assessment -->
-            <div class="col-lg-3 mb-4">
-                <div class="card pricing-card">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h3 class="my-0 font-weight-bold">General Speaking</h3>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <div class="pricing-features mt-3 mb-4">
-                            <ul class="list-unstyled">
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Elaris® AI speech analysis</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
-                            </ul>
-                        </div>
-                        <div class="mt-auto d-grid">
-                            <a href="{{ url_for('subscribe', plan='general_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                        <div class="card-body d-flex flex-column">
+                            <div class="pricing-features mt-3 mb-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Formal & informal letters</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: General essay writing</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> TrueScore® AI detailed feedback</li>
+                                </ul>
+                            </div>
+                            <div class="mt-auto d-grid">
+                                <a href="{{ url_for('subscribe', plan='general_writing') }}" class="btn btn-success btn-lg">Purchase</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
+        <!-- Elaris AI Section -->
+        <div class="ai-brand-section">
+            <div class="text-center mb-4">
+                <div class="brand-icon text-primary">
+                    <i class="fas fa-microphone-alt"></i>
+                </div>
+                <h3 class="brand-title">Elaris® AI Speaking Assessment</h3>
+                <p class="brand-tagline">Advanced speech analysis and feedback to improve your IELTS speaking performance</p>
+            </div>
+            
+            <div class="row equal-height-cards">
+                <!-- Academic Speaking Assessment -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card pricing-card">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h3 class="my-0 font-weight-bold">Academic Speaking</h3>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="pricing-features mt-3 mb-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Elaris® AI speech analysis</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
+                                </ul>
+                            </div>
+                            <div class="mt-auto d-grid">
+                                <a href="{{ url_for('subscribe', plan='academic_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- General Training Speaking Assessment -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card pricing-card">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h3 class="my-0 font-weight-bold">General Speaking</h3>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="pricing-features mt-3 mb-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Elaris® AI speech analysis</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
+                                </ul>
+                            </div>
+                            <div class="mt-auto d-grid">
+                                <a href="{{ url_for('subscribe', plan='general_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 {% endif %}
