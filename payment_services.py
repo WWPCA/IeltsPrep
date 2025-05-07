@@ -286,7 +286,11 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             metadata=metadata
         )
         
-        return checkout_session
+        # Format the return value to match what add_assessment_routes.py expects
+        return {
+            'session_id': checkout_session.id,
+            'checkout_url': checkout_session.url
+        }
         
     except Exception as e:
         logging.error(f"Error creating Stripe checkout: {str(e)}")
