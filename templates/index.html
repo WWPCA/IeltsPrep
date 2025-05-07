@@ -3,10 +3,11 @@
 {% block styles %}
 <style>
 .card-header {
-    min-height: 70px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
 }
 .pricing-card {
     border: 1px solid rgba(0, 0, 0, 0.125);
@@ -25,7 +26,7 @@
     <div class="container">
         <h1>Get Your Best IELTS Score with Your Own AI Coach!</h1>
         <p class="lead"><strong>Achieve Band 7+ with the World's First AI-Powered IELTS Test Preparation Platform</strong></p>
-        <p>IELTS AI Prep helps you achieve your target band score with authentic practice materials, AI-powered speaking and writing assessments, and personalized feedback for Academic and General Training.</p>
+        <p>IELTS AI Prep helps you achieve your target band score with authentic practice materials, TrueScore AI for detailed writing analysis, Elaris AI for precise speaking assessment, and personalized feedback for both Academic and General Training.</p>
         <div class="ai-badge mt-3 mb-4">
             <span class="badge bg-light text-dark p-2">
                 <i class="fas fa-graduation-cap text-primary me-2"></i>
@@ -112,7 +113,7 @@
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Chart & Graph analysis</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: Academic essay writing</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Detailed AI writing feedback</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> TrueScore AI detailed feedback</li>
                             </ul>
                         </div>
                         <div class="mt-auto d-grid">
@@ -133,7 +134,7 @@
                             <ul class="list-unstyled">
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> AI-powered speaking assessment</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Elaris AI speech analysis</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
                             </ul>
                         </div>
@@ -156,7 +157,7 @@
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Formal & informal letters</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: General essay writing</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Detailed AI writing feedback</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> TrueScore AI detailed feedback</li>
                             </ul>
                         </div>
                         <div class="mt-auto d-grid">
@@ -177,7 +178,7 @@
                             <ul class="list-unstyled">
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> AI-powered speaking assessment</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Elaris AI speech analysis</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
                             </ul>
                         </div>
@@ -317,7 +318,7 @@
         <div class="ai-badge my-4">
             <span class="badge bg-white text-primary p-2">
                 <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Technology" width="20" height="20" class="me-2">
-                Exclusive AI Assessment Technology
+                Powered by TrueScore AI & Elaris AI
             </span>
         </div>
         <a href="{{ url_for('assessment_products_page') }}" class="btn btn-light btn-lg">Explore AI Assessed IELTS Modules</a>
