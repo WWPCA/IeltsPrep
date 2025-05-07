@@ -51,7 +51,15 @@
                                 <div class="speaking-part-badge mb-2">
                                     <span class="badge bg-primary">Part {{ test.questions.part }}</span>
                                 </div>
-                                <p class="prompt-text">{{ test.questions.prompt_text }}</p>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <p class="prompt-text mb-0">{{ test.questions.prompt_text }}</p>
+                                    <button id="listenToPrompt" class="btn btn-sm btn-outline-primary ms-2" data-prompt-id="{{ test.id }}">
+                                        <i class="fas fa-volume-up"></i> Listen to Prompt
+                                    </button>
+                                </div>
+                                <div id="promptAudioPlayer" class="d-none mt-2">
+                                    <audio id="promptAudio" controls class="w-100"></audio>
+                                </div>
                                 
                                 {% if test.questions.part == 2 %}
                                 <div class="cue-card mt-3 p-3 border">

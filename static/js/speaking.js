@@ -27,6 +27,51 @@ const speakingModule = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the "Listen to Prompt" button if it exists
+    const listenToPromptButton = document.getElementById('listenToPrompt');
+    if (listenToPromptButton) {
+        listenToPromptButton.addEventListener('click', function() {
+            const promptId = this.getAttribute('data-prompt-id');
+            if (promptId) {
+                // Show loading state
+                listenToPromptButton.disabled = true;
+                listenToPromptButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                
+                // Fetch the audio from the server
+                fetch(`/api/speaking/generate-audio/${promptId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.audio_url) {
+                            // Enable the button
+                            listenToPromptButton.disabled = false;
+                            listenToPromptButton.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Prompt';
+                            
+                            // Show the audio player
+                            const promptAudioPlayer = document.getElementById('promptAudioPlayer');
+                            const promptAudio = document.getElementById('promptAudio');
+                            
+                            if (promptAudioPlayer && promptAudio) {
+                                promptAudio.src = data.audio_url;
+                                promptAudioPlayer.classList.remove('d-none');
+                                promptAudio.play();
+                            }
+                        } else {
+                            // Show error
+                            listenToPromptButton.disabled = false;
+                            listenToPromptButton.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Prompt';
+                            alert('Failed to load audio for this prompt. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching prompt audio:', error);
+                        listenToPromptButton.disabled = false;
+                        listenToPromptButton.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Prompt';
+                        alert('An error occurred while loading the audio. Please try again.');
+                    });
+            }
+        });
+    }
+    
     // Initialize speaking assessment
     const speakingTest = document.querySelector('.speaking-test');
     if (speakingTest) {

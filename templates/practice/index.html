@@ -101,6 +101,8 @@
             {% endif %}
             
             <!-- Complete Practice Tests Section -->
+            <!-- Temporarily hidden as requested by the client -->
+            <!--
             <h2 class="mb-4 mt-5">Complete IELTS Practice Tests</h2>
             <p class="lead mb-4">Each complete practice test includes all required sections, just like the actual IELTS exam.</p>
             
@@ -204,19 +206,20 @@
                     </div>
                 {% endif %}
             </div>
+            -->
             
             <!-- Individual section practice and Practice Test Features have been removed as requested -->
             
             <div class="text-center mt-5">
                 <h2 class="mb-4">Ready to start practicing?</h2>
-                <p class="lead mb-4">Choose a complete test above to start your IELTS preparation.</p>
+                <p class="lead mb-4">Access individual practice sections and assessment products to prepare for your IELTS exam.</p>
                 
                 {% if not current_user.is_authenticated %}
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Create an Account</a>
                 {% elif not current_user.is_subscribed() %}
                     <a href="{{ url_for('subscribe') }}" class="btn btn-primary btn-lg">Subscribe Now</a>
                 {% else %}
-                    <p class="text-success fw-bold">You have full access to all practice tests!</p>
+                    <a href="{{ url_for('assessment_products') }}" class="btn btn-primary btn-lg">Browse Assessment Products</a>
                 {% endif %}
             </div>
         </div>
