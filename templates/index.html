@@ -146,7 +146,9 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('product_checkout', product='academic_writing') }}" class="btn btn-success btn-lg">Purchase</a>
+                                <a href="{{ url_for('cart.add_to_cart', product_id='academic_writing') }}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </a>
                             </div>
                         </div>
                     </div>

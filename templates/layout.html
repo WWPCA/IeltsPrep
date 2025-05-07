@@ -98,6 +98,11 @@
                     {% endif %}
                     <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
                     <li><a href="{{ url_for('device_specs') }}">Device Requirements</a></li>
+                    <li><a href="{{ url_for('cart.view_cart') }}"><i class="fas fa-shopping-cart"></i> Cart 
+                        {% if session.get('cart') and session['cart']|length > 0 %}
+                        <span class="badge bg-danger rounded-pill">{{ session['cart']|length }}</span>
+                        {% endif %}
+                    </a></li>
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('profile') }}">My Profile</a></li>
                         <li><a href="{{ url_for('logout') }}">Logout</a></li>
