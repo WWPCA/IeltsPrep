@@ -10,8 +10,10 @@ from assemblyai_services import process_speaking_response, assess_existing_trans
 import json
 import os
 import base64
+import tempfile
 from datetime import datetime
 from utils import compress_audio
+from aws_services import generate_polly_speech
 
 speaking_assessment = Blueprint('speaking_assessment', __name__)
 
@@ -247,6 +249,64 @@ def api_assess_speaking():
     except Exception as e:
         print(f"Error assessing speaking response: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@speaking_assessment.route('/api/speaking/generate-audio/<int:prompt_id>', methods=['GET'])
+def generate_prompt_audio(prompt_id):
+    """
+    Generate audio for a speaking prompt using Amazon Polly
+    """
+    try:
+        # Get the speaking prompt
+        prompt = SpeakingPrompt.query.get_or_404(prompt_id)
+        
+        # Check if we already have an audio file for this prompt
+        audio_filename = f"prompt_{prompt_id}.mp3"
+        audio_path = os.path.join('static', 'audio', 'prompts', audio_filename)
+        audio_url = url_for('static', filename=f'audio/prompts/{audio_filename}')
+        
+        # If the audio file already exists, return it
+        if os.path.exists(audio_path):
+            return jsonify({
+                'success': True,
+                'audio_url': audio_url
+            })
+        
+        # Create the directory for storing prompt audio files
+        os.makedirs(os.path.dirname(audio_path), exist_ok=True)
+        
+        # Generate the audio using Amazon Polly
+        prompt_text = prompt.prompt_text
+        
+        # Add a gentle introduction to make it sound more like an examiner
+        if prompt.part == 1:
+            polly_text = f"Let's move on to part one. {prompt_text}"
+        elif prompt.part == 2:
+            polly_text = f"Now, I'm going to give you a topic. {prompt_text} You have one minute to prepare. You can make notes if you wish."
+        elif prompt.part == 3:
+            polly_text = f"Let's consider {prompt_text}"
+        else:
+            polly_text = prompt_text
+        
+        # Generate the audio file
+        success = generate_polly_speech(polly_text, audio_path)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'audio_url': audio_url
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to generate audio'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error generating prompt audio: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @speaking_assessment.route('/api/speaking/assess-transcription', methods=['POST'])
 @login_required
