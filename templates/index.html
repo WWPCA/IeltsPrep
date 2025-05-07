@@ -307,22 +307,7 @@
     </div>
 </section>
 
-<!-- Ad Container - Before CTA -->
-{% if not current_user.is_authenticated or (current_user.is_authenticated and not current_user.is_subscribed()) %}
-<div class="container my-4 ad-container">
-    <div class="ad-label">Advertisement</div>
-    <!-- Google Ads - Responsive Ad Unit -->
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-1234567890123456"
-         data-ad-slot="3456789012"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-</div>
-{% endif %}
+<!-- Ad Container - Removed -->
 
 <!-- CTA Section -->
 <section class="cta py-5 bg-primary text-white">
