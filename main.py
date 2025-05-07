@@ -10,5 +10,8 @@ from speaking_assessment_routes import speaking_assessment
 app.register_blueprint(writing_assessment)
 app.register_blueprint(speaking_assessment)
 
+# Import assessment products routes
+import integrate_assessment_routes  # noqa: F401
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
