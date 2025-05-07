@@ -95,6 +95,35 @@
 </div>
 {% endif %}
 
+<!-- AI Technology Overview Section -->
+<section class="ai-technology-overview py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Advanced IELTS Assessment with TrueScore® AI and Elaris® AI</h2>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-pencil-alt fa-3x text-success mb-3"></i>
+                        <h3>TrueScore® AI Writing Assessment</h3>
+                        <p>Master Task 1 (describing visual data for Academic or writing a letter for General Training) and Task 2 (essay writing) with TrueScore® AI feedback on all assessment criteria, including Task Achievement, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-microphone-alt fa-3x text-primary mb-3" data-v="3"></i>
+                        <h3>Elaris® AI Speaking Assessment</h3>
+                        <p>Practice all three parts of the speaking test with Elaris® AI speech analysis across the four marking criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation, with personalized improvement suggestions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Features Section -->
 <section class="features">
     <div class="container">
@@ -165,7 +194,7 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('subscribe', plan='academic_writing') }}" class="btn btn-success btn-lg">Purchase</a>
+                                <a href="{{ url_for('product_checkout', product='academic_writing') }}" class="btn btn-success btn-lg">Purchase</a>
                             </div>
                         </div>
                     </div>
@@ -187,7 +216,7 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('subscribe', plan='general_writing') }}" class="btn btn-success btn-lg">Purchase</a>
+                                <a href="{{ url_for('product_checkout', product='general_writing') }}" class="btn btn-success btn-lg">Purchase</a>
                             </div>
                         </div>
                     </div>
@@ -222,7 +251,7 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('subscribe', plan='academic_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                                <a href="{{ url_for('product_checkout', product='academic_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
                             </div>
                         </div>
                     </div>
@@ -244,7 +273,7 @@
                                 </ul>
                             </div>
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('subscribe', plan='general_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                                <a href="{{ url_for('product_checkout', product='general_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
                             </div>
                         </div>
                     </div>
