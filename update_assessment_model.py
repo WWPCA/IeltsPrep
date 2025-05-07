@@ -45,10 +45,13 @@ def add_column(table_name, column):
     # Add default value if specified
     default = ""
     if column.server_default:
-        default = f" DEFAULT {column.server_default.arg}"
+        default = f" DEFAULT '{column.server_default.arg}'"
     
     # Execute the ALTER TABLE statement
-    engine.execute(f'ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type} {nullable}{default};')
+    query = f'ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type} {nullable}{default};'
+    print(f"Executing: {query}")
+    with engine.connect() as conn:
+        conn.execute(sa.text(query))
 
 if __name__ == "__main__":
     update_assessment_model()
