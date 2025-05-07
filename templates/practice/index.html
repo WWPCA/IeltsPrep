@@ -13,7 +13,7 @@
                     </div>
                     <div>
                         <h4>Practice Makes Perfect</h4>
-                        <p class="mb-0">Regular practice with authentic IELTS-style questions is key to achieving your target score. Our practice tests follow the exact format of the real IELTS exam.</p>
+                        <p class="mb-0">Regular practice with authentic IELTS-style questions is key to achieving your target score. Our practice materials follow the format and standards of the real IELTS exam to help you prepare effectively.</p>
                     </div>
                 </div>
             </div>
@@ -25,8 +25,8 @@
                             <i class="fas fa-user-lock fa-2x"></i>
                         </div>
                         <div>
-                            <h4>Login to Access Practice Tests</h4>
-                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access practice tests. You'll need to purchase a subscription to take practice tests.</p>
+                            <h4>Login to Access Tests</h4>
+                            <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access reading tests and AI-powered assessments. You'll need to purchase a subscription to take these tests.</p>
                             <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
                             <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
                         </div>
@@ -39,8 +39,8 @@
                             <i class="fas fa-crown fa-2x"></i>
                         </div>
                         <div>
-                            <h4>Subscribe for Full Access</h4>
-                            <p>Subscribe now to unlock all practice tests. Choose from our subscription options for full test access.</p>
+                            <h4>Subscribe for Access</h4>
+                            <p>Subscribe now to unlock reading tests with AI-powered writing and speaking assessments. Choose from our subscription options for test access.</p>
                             <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
                         </div>
                     </div>
@@ -56,16 +56,16 @@
                             {% if current_user.subscription_status == 'Value Pack' %}
                                 <!-- Keep Value Pack for existing users but hide it from new signups -->
                                 <h4>Value Pack (4 Tests)</h4>
-                                <p>Your subscription gives you access to 4 full practice tests. Each test can only be taken once during your subscription period.</p>
+                                <p>Your subscription gives you access to 4 reading tests with AI-powered writing and speaking assessments. Each test can only be taken once during your subscription period.</p>
                             {% elif current_user.subscription_status == 'Double Package' %}
                                 <h4>Double Package (2 Tests)</h4>
-                                <p>Your subscription gives you access to 2 full practice tests. Each test can only be taken once during your subscription period.</p>
+                                <p>Your subscription gives you access to 2 reading tests with AI-powered writing and speaking assessments. Each test can only be taken once during your subscription period.</p>
                             {% elif current_user.subscription_status == 'Single Test' %}
                                 <h4>Single Test Package</h4>
-                                <p>Your subscription gives you access to 1 full practice test. This test can only be taken once during your subscription period.</p>
+                                <p>Your subscription gives you access to 1 reading test with AI-powered writing and speaking assessments. This test can only be taken once during your subscription period.</p>
                             {% else %}
                                 <h4>Active Subscription</h4>
-                                <p>Your subscription gives you access to practice tests based on your package. Each test can only be taken once during your subscription period.</p>
+                                <p>Your subscription gives you access to reading tests with AI-powered writing and speaking assessments based on your package. Each test can only be taken once during your subscription period.</p>
                             {% endif %}
                             
                             {% if current_user.subscription_expiry %}
@@ -94,7 +94,7 @@
                                     IELTS General Training
                                 {% endif %}
                             </strong>. 
-                            Your practice tests will be customized for this test type.
+                            Your practice materials will be customized for this test type.
                         </p>
                     </div>
                 </div>
@@ -213,7 +213,7 @@
             
             <div class="text-center mt-5">
                 <h2 class="mb-4">Ready to start practicing?</h2>
-                <p class="lead mb-4">Access individual practice sections and assessment products to prepare for your IELTS exam.</p>
+                <p class="lead mb-4">Access reading tests with AI-powered writing and speaking assessments to prepare for your IELTS exam.</p>
                 
                 {% if not current_user.is_authenticated %}
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Create an Account</a>
