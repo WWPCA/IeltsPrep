@@ -1,0 +1,206 @@
+"""
+Add assessment product routes to the application.
+This script adds routes for the new assessment products.
+"""
+from main import app
+from flask import render_template, request, redirect, url_for, flash, session
+from flask_login import current_user
+from models import db, User, CompletePracticeTest
+from datetime import datetime
+import json
+from geoip_services import get_country_from_ip
+from routes import get_pricing_for_country
+
+# Define the assessment products with pricing
+assessment_products = {
+    'academic_writing': {
+        'name': 'Academic Writing Assessment',
+        'description': 'Complete Academic Writing assessment with Task 1 and Task 2',
+        'price': 25,
+    },
+    'academic_speaking': {
+        'name': 'Academic Speaking Assessment',
+        'description': 'Complete Academic Speaking assessment with all three parts',
+        'price': 25,
+    },
+    'general_writing': {
+        'name': 'General Training Writing Assessment',
+        'description': 'Complete General Training Writing assessment with Task 1 and Task 2',
+        'price': 25,
+    },
+    'general_speaking': {
+        'name': 'General Training Speaking Assessment',
+        'description': 'Complete General Training Speaking assessment with all three parts',
+        'price': 25,
+    }
+}
+
+def add_assessment_routes():
+    """Add routes for assessment products."""
+    
+    @app.route('/assessment-products')
+    def assessment_products_page():
+        """Display available assessment products."""
+        # Detect country for pricing
+        if current_user.is_authenticated and current_user.region:
+            country_code = current_user.region[:2].upper()  # Use the first two characters of region
+        else:
+            # Get country from IP address
+            client_ip = request.remote_addr
+            country_code, country_name = get_country_from_ip(client_ip)
+        
+        # Get pricing based on country
+        pricing = get_pricing_for_country(country_code)
+        
+        # Get user's test preference for product selection
+        test_preference = "academic"  # Default
+        if current_user.is_authenticated:
+            test_preference = current_user.test_preference
+        
+        return render_template('assessment_products.html', 
+                              title='IELTS Assessment Products', 
+                              pricing=pricing,
+                              test_preference=test_preference,
+                              country_code=country_code)
+
+    @app.route('/product-checkout')
+    def product_checkout():
+        """Handle checkout for assessment products."""
+        # Get product ID from URL parameters
+        product_id = request.args.get('product')
+        
+        if not product_id or product_id not in assessment_products:
+            flash('Invalid product selected.', 'danger')
+            return redirect(url_for('assessment_products_page'))
+        
+        # Get product details
+        product = assessment_products[product_id]
+        
+        # Create success and cancel URLs
+        success_url = url_for('payment_success', _external=True)
+        cancel_url = url_for('assessment_products_page', _external=True)
+        
+        try:
+            # Create Stripe checkout session
+            from payment_services import create_stripe_checkout_session
+            checkout_session = create_stripe_checkout_session(
+                product_name=product['name'],
+                description=product['description'],
+                price=product['price'],
+                success_url=success_url,
+                cancel_url=cancel_url
+            )
+            
+            # Store product details in session for use in payment_success
+            session['checkout'] = {
+                'product_id': product_id,
+                'session_id': checkout_session['session_id'],
+                'processed': False
+            }
+            
+            # Redirect to Stripe checkout
+            return redirect(checkout_session['checkout_url'])
+            
+        except Exception as e:
+            flash(f'An error occurred: {str(e)}', 'danger')
+            return redirect(url_for('assessment_products_page'))
+
+    # Add a link on the navbar to the assessment products page
+    @app.context_processor
+    def inject_assessment_link():
+        return {
+            'has_assessment_products': True
+        }
+    
+    print("Assessment routes added successfully.")
+
+def assign_assessment_sets(user, product_id):
+    """Assign assessment sets to the user for the given product."""
+    # Get all available sets for this product type
+    sets = CompletePracticeTest.query.filter_by(
+        product_type=product_id,
+        status='active'
+    ).all()
+    
+    if not sets or len(sets) == 0:
+        print(f"No assessment sets found for product {product_id}")
+        return
+    
+    print(f"Found {len(sets)} assessment sets for product {product_id}")
+    
+    # Get user's test history
+    test_history = user.test_history if user.test_history else []
+    
+    # Find the most recent purchase
+    purchase = None
+    for item in reversed(test_history):
+        if item.get('product_id') == product_id and not item.get('sets_assigned', False):
+            purchase = item
+            break
+    
+    if not purchase:
+        print(f"No unassigned purchase found for product {product_id}")
+        return
+    
+    # Assign up to 4 sets
+    set_ids = []
+    for i, test_set in enumerate(sets[:4]):
+        set_ids.append(test_set.id)
+    
+    # Update purchase with assigned sets
+    purchase['assigned_sets'] = set_ids
+    purchase['sets_assigned'] = True
+    
+    # Update user's test history
+    for i, item in enumerate(test_history):
+        if item.get('date') == purchase.get('date') and item.get('product_id') == product_id:
+            test_history[i] = purchase
+            break
+    
+    user.test_history = test_history
+    
+    # Commit changes
+    db.session.commit()
+    
+    print(f"Assigned {len(set_ids)} assessment sets to user {user.id} for product {product_id}")
+
+def handle_assessment_product_payment(user, product_id):
+    """Handle the payment success for an assessment product."""
+    # Get product details
+    if product_id not in assessment_products:
+        print(f"Invalid product ID: {product_id}")
+        return False
+    
+    product = assessment_products[product_id]
+    
+    # Add the product to user's test history
+    test_history = user.test_history if user.test_history else []
+    
+    # Add the product to user's test history
+    purchase = {
+        'date': datetime.utcnow().isoformat(),
+        'product_id': product_id,
+        'product': product['name'],
+        'amount': product['price'],
+        'sets_assigned': False
+    }
+    
+    test_history.append(purchase)
+    user.test_history = test_history
+    
+    # Commit changes
+    db.session.commit()
+    
+    # Assign assessment sets
+    assign_assessment_sets(user, product_id)
+    
+    print(f"Added {product['name']} to user {user.id}'s account")
+    return True
+
+# We'll call this when handling payment success
+def is_assessment_product(product_id):
+    """Check if the given product ID is an assessment product."""
+    return product_id in assessment_products
+
+if __name__ == '__main__':
+    add_assessment_routes()
