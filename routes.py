@@ -35,7 +35,7 @@ except ImportError:
         # All tests require subscription
         if not current_user.is_subscribed():
             flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
         
         # Check if user has already taken this test during current subscription period
         if current_user.has_taken_test(test_id, test_type):
@@ -70,7 +70,7 @@ def subscription_required(f):
             
         if not current_user.is_subscribed():
             flash('This feature requires a subscription. Please subscribe to access all features.', 'warning')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
             
         return f(*args, **kwargs)
     return decorated_function
@@ -286,7 +286,7 @@ def test_day():
     # Check if user has Value Pack subscription
     if current_user.subscription_status != 'Value Pack':
         flash('The Test Day Guide is only available with the Value Pack (4 tests) subscription.', 'warning')
-        return redirect(url_for('subscribe'))
+        return redirect(url_for('assessment_products_page'))
     
     return render_template('test_day.html', title='IELTS Test Day Preparation')
 
@@ -501,7 +501,7 @@ def take_practice_test(test_type, test_id):
     elif not current_user.is_subscribed():
         # Regular subscription check for other test types
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
-        return redirect(url_for('subscribe'))
+        return redirect(url_for('assessment_products_page'))
     
     # Check if user has already taken this test during current subscription period
     if current_user.has_taken_test(test_id, test_type):
@@ -570,7 +570,7 @@ def start_practice_test(test_type, test_id):
     elif not current_user.is_subscribed():
         # Regular subscription check for other test types
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
-        return redirect(url_for('subscribe'))
+        return redirect(url_for('assessment_products_page'))
     
     # Check if user has already taken this test during current subscription period
     if current_user.has_taken_test(test_id, test_type):
@@ -625,7 +625,7 @@ def start_complete_test(test_id):
     # Check if user has access to this test
     if not current_user.is_subscribed():
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
-        return redirect(url_for('subscribe'))
+        return redirect(url_for('assessment_products_page'))
     
     # Verify that this test should be accessible based on the user's package
     # Get all tests for this user's preference
@@ -1413,7 +1413,7 @@ def checkout_review():
                 return jsonify({'error': 'No package selected'}), 400
             else:
                 flash('No package selected', 'danger')
-                return redirect(url_for('subscribe'))
+                return redirect(url_for('assessment_products_page'))
         
         # Free test doesn't need payment
         if package == 'free':
@@ -1455,7 +1455,7 @@ def checkout_review():
                 return jsonify({'error': 'Invalid package selected'}), 400
             else:
                 flash('Invalid package selected', 'danger')
-                return redirect(url_for('subscribe'))
+                return redirect(url_for('assessment_products_page'))
         
         # Format the test type for display (academic -> Academic, general -> General Training)
         if test_type.lower() == 'general':
@@ -1473,7 +1473,7 @@ def checkout_review():
         if not stripe_publishable_key:
             logging.error("STRIPE_PUBLISHABLE_KEY not found in environment variables")
             flash('Payment service is currently unavailable. Please try again later.', 'danger')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
         
         # Render the checkout review page
         return render_template('checkout_review.html',
@@ -1492,7 +1492,7 @@ def checkout_review():
     except Exception as e:
         logging.error(f"Error in checkout_review: {str(e)}")
         flash('An error occurred while processing your request. Please try again later.', 'danger')
-        return redirect(url_for('subscribe'))
+        return redirect(url_for('assessment_products_page'))
 
 @app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
@@ -1525,7 +1525,7 @@ def create_checkout_session():
             return jsonify({'error': 'No package selected'}), 400
         else:
             flash('No package selected', 'danger')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
     
     # Free test doesn't need payment
     if package == 'free':
@@ -1541,7 +1541,7 @@ def create_checkout_session():
             return jsonify({'error': error_message}), 400
         else:
             flash(error_message, 'info')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
     
     # Create a Stripe checkout session
     success_url = url_for('payment_success', package=package, test_preference=test_preference, _external=True)
@@ -1574,7 +1574,7 @@ def create_checkout_session():
             return jsonify({'error': 'Invalid package selected'}), 400
         else:
             flash('Invalid package selected', 'danger')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
     
     # Create Stripe checkout session
     try:
@@ -1613,7 +1613,7 @@ def create_checkout_session():
             return jsonify({'error': error_message}), 500
         else:
             flash(error_message, 'danger')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
 
 @app.route('/stripe-checkout', methods=['POST'])
 def stripe_checkout():
@@ -1652,7 +1652,7 @@ def stripe_checkout():
     
     if package not in package_details:
         flash('Invalid package selected.', 'danger')
-        return redirect(url_for('subscribe'))
+        return redirect(url_for('assessment_products_page'))
     
     # Create Stripe checkout session
     try:
@@ -1677,7 +1677,7 @@ def stripe_checkout():
     except Exception as e:
         app.logger.error(f"Error creating checkout session: {str(e)}")
         flash(f'Payment error: {str(e)}', 'danger')
-        return redirect(url_for('subscribe'))
+        return redirect(url_for('assessment_products_page'))
 
 @app.route('/payment-success')
 def payment_success():
@@ -1711,7 +1711,7 @@ def payment_success():
             
             if not payment_verified:
                 flash('Payment verification failed. Please contact support.', 'danger')
-                return redirect(url_for('subscribe'))
+                return redirect(url_for('assessment_products_page'))
                 
             # Create a payment record
             payment_record = create_payment_record(
@@ -1724,7 +1724,7 @@ def payment_success():
         except Exception as e:
             app.logger.error(f"Error verifying payment: {str(e)}")
             flash('Error processing payment. Please contact support.', 'danger')
-            return redirect(url_for('subscribe'))
+            return redirect(url_for('assessment_products_page'))
     
     # Update user's subscription
     if package in package_details:
@@ -1811,7 +1811,7 @@ def payment_cancel():
     if 'checkout_test_preference' in session:
         session.pop('checkout_test_preference')
     
-    return redirect(url_for('subscribe'))
+    return redirect(url_for('assessment_products_page'))
 
 @app.route('/device-specs')
 def device_specs():
