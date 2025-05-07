@@ -12,103 +12,141 @@
     display: flex;
     flex-direction: column;
 }
+.ai-brand-section {
+    margin-bottom: 60px;
+}
+.brand-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+.brand-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+.brand-tagline {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <div class="row mb-4">
+    <div class="row mb-5">
         <div class="col">
-            <h1>AI Assessed IELTS Modules</h1>
-            <p class="lead">Experience premium assessments with TrueScore® AI for writing and Elaris® AI for speaking</p>
+            <h1 class="text-center">AI Assessed IELTS Modules</h1>
+            <p class="lead text-center">Our specialized AI technologies provide accurate assessment for IELTS preparation</p>
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h3>Academic Writing</h3>
-                </div>
-                <div class="card-body">
-                    <p>Get expert assessment on your Academic Writing with TrueScore® AI technology.</p>
-                    <ul>
-                        <li>Task 1: Graph/chart description</li>
-                        <li>Task 2: Academic essay writing</li>
-                        <li>TrueScore® AI detailed feedback</li>
-                    </ul>
-                    <p class="mt-3">4 complete assessment sets</p>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('product_checkout', product='academic_writing') }}" class="btn btn-primary btn-block w-100">Purchase</a>
-                </div>
+    <!-- TrueScore AI Section -->
+    <div class="ai-brand-section">
+        <div class="text-center mb-4">
+            <div class="brand-icon text-success">
+                <i class="fas fa-pencil-alt"></i>
             </div>
+            <h2 class="brand-title">TrueScore® AI Writing Assessment</h2>
+            <p class="brand-tagline">Professional-grade assessment of IELTS writing tasks with detailed feedback and scoring</p>
         </div>
         
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h3>Academic Speaking</h3>
+        <div class="row equal-height-cards">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3>Academic Writing</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Get expert assessment on your Academic Writing with TrueScore® AI technology.</p>
+                        <ul>
+                            <li>Task 1: Graph/chart description</li>
+                            <li>Task 2: Academic essay writing</li>
+                            <li>TrueScore® AI detailed feedback</li>
+                        </ul>
+                        <p class="mt-3">4 complete assessment sets</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('product_checkout', product='academic_writing') }}" class="btn btn-success btn-block w-100">Purchase</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p>Practice all three parts of the IELTS Academic Speaking test with Elaris® AI technology.</p>
-                    <ul>
-                        <li>All 3 speaking parts covered</li>
-                        <li>Elaris® AI speech analysis</li>
-                        <li>Audio recording & playback</li>
-                    </ul>
-                    <p class="mt-3">4 complete assessment sets</p>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('product_checkout', product='academic_speaking') }}" class="btn btn-primary btn-block w-100">Purchase</a>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3>General Writing</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Get expert assessment on your General Training Writing with TrueScore® AI technology.</p>
+                        <ul>
+                            <li>Task 1: Formal & informal letters</li>
+                            <li>Task 2: General essay writing</li>
+                            <li>TrueScore® AI detailed feedback</li>
+                        </ul>
+                        <p class="mt-3">4 complete assessment sets</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('product_checkout', product='general_writing') }}" class="btn btn-success btn-block w-100">Purchase</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h3>General Writing</h3>
-                </div>
-                <div class="card-body">
-                    <p>Get expert assessment on your General Training Writing with TrueScore® AI technology.</p>
-                    <ul>
-                        <li>Task 1: Formal & informal letters</li>
-                        <li>Task 2: General essay writing</li>
-                        <li>TrueScore® AI detailed feedback</li>
-                    </ul>
-                    <p class="mt-3">4 complete assessment sets</p>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('product_checkout', product='general_writing') }}" class="btn btn-primary btn-block w-100">Purchase</a>
-                </div>
+    <!-- Elaris AI Section -->
+    <div class="ai-brand-section">
+        <div class="text-center mb-4">
+            <div class="brand-icon text-primary">
+                <i class="fas fa-microphone-alt"></i>
             </div>
+            <h2 class="brand-title">Elaris® AI Speaking Assessment</h2>
+            <p class="brand-tagline">Advanced speech analysis and feedback to improve your IELTS speaking performance</p>
         </div>
         
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h3>General Speaking</h3>
+        <div class="row equal-height-cards">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3>Academic Speaking</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Practice all three parts of the IELTS Academic Speaking test with Elaris® AI technology.</p>
+                        <ul>
+                            <li>All 3 speaking parts covered</li>
+                            <li>Elaris® AI speech analysis</li>
+                            <li>Audio recording & playback</li>
+                        </ul>
+                        <p class="mt-3">4 complete assessment sets</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('product_checkout', product='academic_speaking') }}" class="btn btn-primary btn-block w-100">Purchase</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p>Practice all three parts of the IELTS General Training Speaking test with Elaris® AI technology.</p>
-                    <ul>
-                        <li>All 3 speaking parts covered</li>
-                        <li>Elaris® AI speech analysis</li>
-                        <li>Audio recording & playback</li>
-                    </ul>
-                    <p class="mt-3">4 complete assessment sets</p>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('product_checkout', product='general_speaking') }}" class="btn btn-primary btn-block w-100">Purchase</a>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3>General Speaking</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Practice all three parts of the IELTS General Training Speaking test with Elaris® AI technology.</p>
+                        <ul>
+                            <li>All 3 speaking parts covered</li>
+                            <li>Elaris® AI speech analysis</li>
+                            <li>Audio recording & playback</li>
+                        </ul>
+                        <p class="mt-3">4 complete assessment sets</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('product_checkout', product='general_speaking') }}" class="btn btn-primary btn-block w-100">Purchase</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="row mt-4">
+    <div class="row mt-5">
         <div class="col">
             <p class="text-center">
                 <a href="{{ url_for('subscribe') }}" class="btn btn-outline-secondary">View Complete Test Packages</a>
