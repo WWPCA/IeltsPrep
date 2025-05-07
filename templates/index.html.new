@@ -1,0 +1,326 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+<style>
+.card-header {
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pricing-card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+.pricing-card:hover {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1>Get Your Best IELTS Score with Your Own AI Coach!</h1>
+        <p class="lead"><strong>Achieve Band 7+ with the World's First AI-Powered IELTS Test Preparation Platform</strong></p>
+        <p>IELTS AI Prep helps you achieve your target band score with authentic practice materials, AI-powered speaking and writing assessments, and personalized feedback for Academic and General Training.</p>
+        <div class="ai-badge mt-3 mb-4">
+            <span class="badge bg-light text-dark p-2">
+                <i class="fas fa-graduation-cap text-primary me-2"></i>
+                Powered by Advanced AI Technology
+            </span>
+        </div>
+        <div class="hero-buttons">
+            <a href="{{ url_for('test_structure') }}" class="btn btn-primary btn-lg" onclick="window.location.href='{{ url_for('test_structure') }}'">Explore IELTS Test Format</a>
+            <a href="{{ url_for('subscribe') }}" class="btn btn-secondary btn-lg" onclick="window.location.href='{{ url_for('subscribe') }}'">Start Preparing Today</a>
+        </div>
+    </div>
+</section>
+
+<!-- Ad Container - After Hero Section -->
+{% if not current_user.is_authenticated or (current_user.is_authenticated and not current_user.is_subscribed()) %}
+<div class="container my-4 ad-container">
+    <div class="ad-label">Advertisement</div>
+    <!-- Google Ads - Responsive Ad Unit -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1234567890123456"
+         data-ad-slot="2345678901"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+{% endif %}
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose IELTS AI Prep for Your Test Preparation?</h2>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/checklist_icon.svg') }}?v={{ cache_buster }}" alt="Comprehensive Test Preparation" 
+                        class="mx-auto d-block mb-3" width="80" height="80">
+                    <h3 class="h4">Comprehensive Test Preparation</h3>
+                    <p>Expert AI assessment for IELTS Writing and Speaking modules, with detailed feedback for both IELTS Academic and IELTS General Training.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/graduate_icon.svg') }}?v={{ cache_buster }}" alt="Personal AI IELTS Coach" 
+                        class="mx-auto d-block mb-3" width="80" height="80">
+                    <h3 class="h4">Your Personal AI IELTS Coach</h3>
+                    <p>Get detailed band score feedback on both speaking and writing tasks with AI-powered assessments across all official IELTS criteria. Our AI coach provides personalized improvement suggestions.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/globe_icon.svg') }}?v={{ cache_buster }}" alt="Global Test Preparation" 
+                        class="mx-auto d-block mb-3" width="80" height="80">
+                    <h3 class="h4">Global Test Preparation</h3>
+                    <p>Designed for test-takers worldwide with multiple payment options and low-bandwidth mode for limited internet connectivity, just like the official IELTS test environment.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Product Plans Section -->
+{% if not current_user.is_authenticated %}
+<section class="pricing py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4">Choose Your IELTS Assessment Product</h2>
+        <p class="text-center mb-5">Select the AI-powered assessment product that matches your test type and skill needs</p>
+        
+        <div class="row">
+            <!-- Academic Writing Assessment -->
+            <div class="col-lg-3 mb-4">
+                <div class="card h-100 pricing-card">
+                    <div class="card-header bg-success text-white text-center">
+                        <h3 class="my-0 font-weight-bold">Academic Writing</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="pricing-features mt-3 mb-4">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Chart & Graph analysis</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: Academic essay writing</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Detailed AI writing feedback</li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto d-grid">
+                            <a href="{{ url_for('subscribe', plan='academic_writing') }}" class="btn btn-primary btn-lg">Purchase</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Speaking Assessment -->
+            <div class="col-lg-3 mb-4">
+                <div class="card h-100 pricing-card">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="my-0 font-weight-bold">Academic Speaking</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="pricing-features mt-3 mb-4">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> AI-powered speaking assessment</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto d-grid">
+                            <a href="{{ url_for('subscribe', plan='academic_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General Training Writing Assessment -->
+            <div class="col-lg-3 mb-4">
+                <div class="card h-100 pricing-card">
+                    <div class="card-header bg-success text-white text-center">
+                        <h3 class="my-0 font-weight-bold">General Writing</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="pricing-features mt-3 mb-4">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 1: Formal & informal letters</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Task 2: General essay writing</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Detailed AI writing feedback</li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto d-grid">
+                            <a href="{{ url_for('subscribe', plan='general_writing') }}" class="btn btn-primary btn-lg">Purchase</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General Training Speaking Assessment -->
+            <div class="col-lg-3 mb-4">
+                <div class="card h-100 pricing-card">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="my-0 font-weight-bold">General Speaking</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="pricing-features mt-3 mb-4">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> 4 complete assessment sets</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All 3 speaking parts covered</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> AI-powered speaking assessment</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Audio recording & playback</li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto d-grid">
+                            <a href="{{ url_for('subscribe', plan='general_speaking') }}" class="btn btn-primary btn-lg">Purchase</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+    </div>
+</section>
+{% endif %}
+
+<!-- Test Modules Overview -->
+<section class="test-sections py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Expert AI Assessment for IELTS Writing and Speaking Modules</h2>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-pencil-alt fa-3x text-primary mb-3"></i>
+                        <h3>IELTS Writing Assessment</h3>
+                        <p>Master Task 1 (describing visual data for Academic or writing a letter for General Training) and Task 2 (essay writing) with detailed AI feedback on all assessment criteria, including Task Achievement, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-microphone-alt fa-3x text-primary mb-3" data-v="3"></i>
+                        <h3>IELTS Speaking Assessment</h3>
+                        <p>Practice all three parts of the speaking test with AI-powered assessment across the four marking criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation, with personalized improvement suggestions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">IELTS Success Stories: Test-Takers Who Achieved Their Target Band Scores</h2>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card testimonial-card">
+                    <div class="card-body">
+                        <div class="testimonial-rating mb-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                        <p class="testimonial-text">"The AI assessment for both Speaking and Writing helped me identify my weaknesses. The personalized AI coach gave me specific guidance on how to improve. After just one month of targeted practice with IELTS AI Prep, I improved from Band 6 to 7.5 and secured admission to my dream university!"</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-name">Rahul S.</div>
+                            <div class="testimonial-location">New Delhi, India</div>
+                            <div class="testimonial-score">Overall Band Score: 7.5</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card testimonial-card">
+                    <div class="card-body">
+                        <div class="testimonial-rating mb-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                        <p class="testimonial-text">"The IELTS practice materials perfectly mirrored my actual IELTS exam at the test centre. I found the format, question types, and assessment criteria identical to my real IELTS Academic test. The realistic practice environment helped me feel confident on exam day."</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-name">Fatima A.</div>
+                            <div class="testimonial-location">Dubai, UAE</div>
+                            <div class="testimonial-score">Overall Band Score: 8.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card testimonial-card">
+                    <div class="card-body">
+                        <div class="testimonial-rating mb-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star-half-alt text-warning"></i>
+                        </div>
+                        <p class="testimonial-text">"I struggled with IELTS Writing Task 1 and Task 2, particularly with Coherence and Cohesion. The AI writing assessment provided detailed feedback that highlighted exactly where I was going wrong. The personalized coaching tips helped me understand exactly what examiners look for. I finally achieved the Band 7.0 needed for my visa application!"</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-name">Min-Jun K.</div>
+                            <div class="testimonial-location">Seoul, South Korea</div>
+                            <div class="testimonial-score">Overall Band Score: 7.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Ad Container - Before CTA -->
+{% if not current_user.is_authenticated or (current_user.is_authenticated and not current_user.is_subscribed()) %}
+<div class="container my-4 ad-container">
+    <div class="ad-label">Advertisement</div>
+    <!-- Google Ads - Responsive Ad Unit -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1234567890123456"
+         data-ad-slot="3456789012"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="cta py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Achieve Your Target IELTS Band Score with Your Own AI Coach?</h2>
+        <p class="lead mb-4">Join thousands of successful IELTS candidates who prepared with our AI-powered assessment products and personalized coaching. Get detailed feedback on your writing and speaking to reach your target band scores for university admission, professional registration, and immigration purposes.</p>
+        <div class="ai-badge my-4">
+            <span class="badge bg-white text-primary p-2">
+                <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Technology" width="20" height="20" class="me-2">
+                Exclusive AI Assessment Technology
+            </span>
+        </div>
+        <a href="{{ url_for('assessment_products_page') }}" class="btn btn-light btn-lg">Explore AI Assessed IELTS Modules</a>
+    </div>
+</section>
+{% endblock %}
