@@ -54,6 +54,7 @@
                         </div>
                         <div>
                             {% if current_user.subscription_status == 'Value Pack' %}
+                                <!-- Keep Value Pack for existing users but hide it from new signups -->
                                 <h4>Value Pack (4 Tests)</h4>
                                 <p>Your subscription gives you access to 4 full practice tests. Each test can only be taken once during your subscription period.</p>
                             {% elif current_user.subscription_status == 'Double Package' %}

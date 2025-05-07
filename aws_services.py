@@ -99,66 +99,33 @@ def generate_polly_speech(text, output_path):
         bool: True if successful, False otherwise
     """
     try:
-        # For simplicity, we'll use a mock implementation if AWS keys aren't available
+        # Check if AWS credentials are available
         if not AWS_ACCESS_KEY or not AWS_SECRET_KEY:
-            logging.warning("AWS credentials not found. Using mock Polly implementation.")
-            # Create a dummy file
-            with open(output_path, 'w') as f:
-                f.write("dummy audio file")
-            return True
+            logging.error("AWS credentials not found. Cannot generate audio with Polly.")
+            return False
         
-        # First let's try to use the actual Polly service
-        try:
-            polly = get_polly_client()
-            
-            response = polly.synthesize_speech(
-                Text=text,
-                OutputFormat='mp3',
-                VoiceId='Joanna'  # English female voice
-            )
-            
-            # Save the audio stream to file
-            if "AudioStream" in response:
-                with open(output_path, 'wb') as file:
-                    file.write(response['AudioStream'].read())
-                return True
+        # Use the AWS Polly service
+        polly = get_polly_client()
+        
+        response = polly.synthesize_speech(
+            Text=text,
+            OutputFormat='mp3',
+            VoiceId='Joanna'  # English female voice
+        )
+        
+        # Save the audio stream to file
+        if "AudioStream" in response:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            with open(output_path, 'wb') as file:
+                file.write(response['AudioStream'].read())
+            return True
+        else:
+            logging.error("No AudioStream in Polly response")
+            return False
                 
-        except Exception as polly_error:
-            logging.error(f"Error using Polly: {str(polly_error)}")
-            # If Polly fails, we'll use a fallback method for demo purposes
-            
-            # For demonstration purposes, we'll generate a basic audio file
-            # In a production environment, you'd want to use the actual Polly service
-            try:
-                from pydub import AudioSegment
-                from pydub.generators import Sine
-                
-                # Generate a silent audio segment
-                silent_segment = AudioSegment.silent(duration=1000)  # 1 second silent audio
-                
-                # Save to the output path
-                silent_segment.export(output_path, format="mp3")
-                
-                logging.info(f"Generated fallback audio file at {output_path}")
-                return True
-                
-            except Exception as fallback_error:
-                logging.error(f"Error generating fallback audio: {str(fallback_error)}")
-                
-                # Last resort - create an empty file
-                with open(output_path, 'w') as f:
-                    f.write("dummy audio content")
-                return True
-            
     except Exception as e:
         logging.error(f"Error in generate_polly_speech: {str(e)}")
-        # Create an empty file as a last resort
-        try:
-            with open(output_path, 'w') as f:
-                f.write("dummy audio file")
-            return True
-        except:
-            return False
+        return False
 
 def analyze_speaking_response(transcription):
     """

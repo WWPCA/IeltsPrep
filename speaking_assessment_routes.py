@@ -287,6 +287,16 @@ def generate_prompt_audio(prompt_id):
         else:
             polly_text = prompt_text
         
+        # Check if AWS credentials are available
+        aws_access_key = os.environ.get('AWS_ACCESS_KEY_ID')
+        aws_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        
+        if not aws_access_key or not aws_secret_key:
+            return jsonify({
+                'success': False,
+                'error': 'AWS credentials not available. Contact administrator to configure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.'
+            }), 403
+        
         # Generate the audio file
         success = generate_polly_speech(polly_text, audio_path)
         
@@ -298,7 +308,7 @@ def generate_prompt_audio(prompt_id):
         else:
             return jsonify({
                 'success': False,
-                'error': 'Failed to generate audio'
+                'error': 'Failed to generate audio with Amazon Polly. Please check AWS credentials and permissions.'
             }), 500
             
     except Exception as e:
