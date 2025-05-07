@@ -288,7 +288,7 @@ class User(UserMixin, db.Model):
             new_purchase = {
                 "speaking_purchase": {
                     "purchase_date": datetime.utcnow().isoformat(),
-                    "expiry_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                    "expiry_date": (datetime.utcnow() + timedelta(days=10)).isoformat(),
                     "total_assessments": 4,
                     "used_assessments": 1,
                     "amount": 15.0,
@@ -303,7 +303,7 @@ class User(UserMixin, db.Model):
             new_purchase = {
                 "speaking_purchase": {
                     "purchase_date": datetime.utcnow().isoformat(),
-                    "expiry_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                    "expiry_date": (datetime.utcnow() + timedelta(days=10)).isoformat(),
                     "total_assessments": 10,
                     "used_assessments": 1,
                     "amount": 20.0,

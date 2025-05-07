@@ -63,15 +63,15 @@ TEST_PURCHASE_OPTIONS = {
             'name': 'IELTS Speaking Assessments - Basic',
             'price': 1500,  # $15.00 in cents
             'assessments': 4,
-            'days': 30,
-            'description': 'Access to 4 Speaking assessments for 30 days'
+            'days': 0,  # No expiry
+            'description': 'Access to 4 Speaking assessments (one-time use)'
         },
         'pro': {
             'name': 'IELTS Speaking Assessments - Pro',
             'price': 2000,  # $20.00 in cents
             'assessments': 10,
-            'days': 30,
-            'description': 'Access to 10 Speaking assessments for 30 days'
+            'days': 0,  # No expiry
+            'description': 'Access to 10 Speaking assessments (one-time use)'
         }
     }
 }

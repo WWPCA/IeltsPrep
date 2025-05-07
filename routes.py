@@ -1996,7 +1996,7 @@ def speaking_payment_success():
                         subscription_status=f"Speaking Only {package.title()}"
                     )
                     new_user.set_password(password)
-                    new_user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
+                    new_user.subscription_expiry = datetime.utcnow() + timedelta(days=10)
                     
                     # Add speaking purchase to history
                     total_assessments = 4 if package == 'basic' else 10
@@ -2006,7 +2006,7 @@ def speaking_payment_success():
                     speaking_purchase = {
                         "speaking_purchase": {
                             "purchase_date": datetime.utcnow().isoformat(),
-                            "expiry_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                            "expiry_date": (datetime.utcnow() + timedelta(days=10)).isoformat(),
                             "package": f"Speaking Only {package.title()}",
                             "total_assessments": total_assessments,
                             "used_assessments": 0,
@@ -2028,7 +2028,7 @@ def speaking_payment_success():
                 else:
                     # Update existing user
                     current_user.subscription_status = f"Speaking Only {package.title()}"
-                    current_user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
+                    current_user.subscription_expiry = datetime.utcnow() + timedelta(days=10)
                     
                     # Add speaking purchase to history
                     total_assessments = 4 if package == 'basic' else 10
@@ -2038,7 +2038,7 @@ def speaking_payment_success():
                     speaking_purchase = {
                         "speaking_purchase": {
                             "purchase_date": datetime.utcnow().isoformat(),
-                            "expiry_date": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+                            "expiry_date": (datetime.utcnow() + timedelta(days=10)).isoformat(),
                             "package": f"Speaking Only {package.title()}",
                             "total_assessments": total_assessments,
                             "used_assessments": 0,
