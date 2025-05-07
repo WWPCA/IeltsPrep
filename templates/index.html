@@ -1,5 +1,24 @@
 {% extends "layout.html" %}
 
+{% block styles %}
+<style>
+.card-header {
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pricing-card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+.pricing-card:hover {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Hero Section -->
 <section class="hero">
