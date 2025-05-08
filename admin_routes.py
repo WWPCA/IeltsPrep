@@ -278,6 +278,230 @@ def connection_issues_report():
     
     return render_template('admin/connection_issues_report.html', **report_data)
 
+@admin_bp.route('/api-issues')
+@login_required
+@admin_required
+def api_issues():
+    """API issues dashboard."""
+    # Retrieve filter parameters
+    date_from = request.args.get('date_from')
+    date_to = request.args.get('date_to')
+    api_name = request.args.get('api_name')
+    error_code = request.args.get('error_code')
+    user_id = request.args.get('user_id')
+    endpoint = request.args.get('endpoint')
+    resolved = request.args.get('resolved')
+    
+    # Build the query with filters
+    query = APIIssueLog.query
+    
+    if date_from:
+        try:
+            from_date = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(APIIssueLog.occurred_at >= from_date)
+        except ValueError:
+            pass
+    
+    if date_to:
+        try:
+            to_date = datetime.strptime(date_to, '%Y-%m-%d')
+            # Add a day to include the end date
+            to_date = to_date + timedelta(days=1)
+            query = query.filter(APIIssueLog.occurred_at <= to_date)
+        except ValueError:
+            pass
+    
+    if api_name:
+        query = query.filter(APIIssueLog.api_name == api_name)
+    
+    if error_code:
+        query = query.filter(APIIssueLog.error_code.ilike(f'%{error_code}%'))
+    
+    if endpoint:
+        query = query.filter(APIIssueLog.endpoint.ilike(f'%{endpoint}%'))
+    
+    if resolved:
+        if resolved.lower() == 'true':
+            query = query.filter(APIIssueLog.resolved == True)
+        elif resolved.lower() == 'false':
+            query = query.filter(APIIssueLog.resolved == False)
+    
+    if user_id:
+        try:
+            user_id_int = int(user_id)
+            query = query.filter(APIIssueLog.user_id == user_id_int)
+        except ValueError:
+            pass
+    
+    # Get the results
+    issues = query.order_by(APIIssueLog.occurred_at.desc()).all()
+    
+    # Get metrics from statistics function
+    metrics = get_api_issue_statistics(api_name=api_name)
+    
+    # Provide the filters for form repopulation
+    filters = {
+        'date_from': date_from,
+        'date_to': date_to,
+        'api_name': api_name,
+        'error_code': error_code,
+        'endpoint': endpoint,
+        'resolved': resolved,
+        'user_id': user_id
+    }
+    
+    return render_template(
+        'admin/api_issues.html',
+        issues=issues,
+        metrics=metrics,
+        filters=filters
+    )
+
+@admin_bp.route('/api-issues/<int:issue_id>/resolve', methods=['POST'])
+@login_required
+@admin_required
+def mark_api_issue_resolved(issue_id):
+    """Mark an API issue as resolved."""
+    resolution_notes = request.form.get('resolution_notes', '')
+    
+    if APIIssueLog.mark_resolved(issue_id, resolution_notes):
+        flash(f"API issue #{issue_id} has been marked as resolved.", "success")
+    else:
+        flash(f"Failed to mark API issue #{issue_id} as resolved.", "danger")
+        
+    return redirect(url_for('admin.api_issues'))
+
+@admin_bp.route('/auth-issues')
+@login_required
+@admin_required
+def auth_issues():
+    """Authentication issues dashboard."""
+    # Retrieve filter parameters
+    date_from = request.args.get('date_from')
+    date_to = request.args.get('date_to')
+    issue_type = request.args.get('issue_type')
+    failure_reason = request.args.get('failure_reason')
+    username = request.args.get('username')
+    email = request.args.get('email')
+    ip_address = request.args.get('ip_address')
+    
+    # Build the query with filters
+    query = AuthIssueLog.query
+    
+    if date_from:
+        try:
+            from_date = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(AuthIssueLog.occurred_at >= from_date)
+        except ValueError:
+            pass
+    
+    if date_to:
+        try:
+            to_date = datetime.strptime(date_to, '%Y-%m-%d')
+            # Add a day to include the end date
+            to_date = to_date + timedelta(days=1)
+            query = query.filter(AuthIssueLog.occurred_at <= to_date)
+        except ValueError:
+            pass
+    
+    if issue_type:
+        query = query.filter(AuthIssueLog.issue_type == issue_type)
+    
+    if failure_reason:
+        query = query.filter(AuthIssueLog.failure_reason == failure_reason)
+    
+    if username:
+        query = query.filter(AuthIssueLog.username.ilike(f'%{username}%'))
+    
+    if email:
+        query = query.filter(AuthIssueLog.email.ilike(f'%{email}%'))
+    
+    if ip_address:
+        query = query.filter(AuthIssueLog.ip_address == ip_address)
+    
+    # Get the results
+    issues = query.order_by(AuthIssueLog.occurred_at.desc()).all()
+    
+    # Get metrics from statistics function
+    metrics = get_auth_issue_statistics()
+    
+    # Get suspicious activity
+    # Find users or IPs with high failure counts in the last 24 hours
+    day_ago = datetime.utcnow() - timedelta(days=1)
+    
+    # Group by IP address
+    ip_failures = db.session.query(
+        AuthIssueLog.ip_address,
+        func.count(AuthIssueLog.id).label('attempts')
+    ).filter(
+        and_(
+            AuthIssueLog.occurred_at >= day_ago,
+            AuthIssueLog.issue_type == 'login_failed',
+            AuthIssueLog.ip_address.isnot(None)
+        )
+    ).group_by(
+        AuthIssueLog.ip_address
+    ).having(
+        func.count(AuthIssueLog.id) >= 5  # 5 or more attempts is suspicious
+    ).all()
+    
+    # Format suspicious activity for display
+    suspicious_activity = []
+    
+    for ip, attempts in ip_failures:
+        # Get the most recent failed attempt for this IP
+        recent = AuthIssueLog.query.filter(
+            and_(
+                AuthIssueLog.ip_address == ip,
+                AuthIssueLog.issue_type == 'login_failed'
+            )
+        ).order_by(AuthIssueLog.occurred_at.desc()).first()
+        
+        if recent:
+            suspicious_activity.append({
+                'ip_address': ip,
+                'attempts': attempts,
+                'username': recent.username,
+                'email': recent.email,
+                'city': recent.city,
+                'country': recent.country,
+                'last_attempt': recent.occurred_at
+            })
+    
+    # Provide the filters for form repopulation
+    filters = {
+        'date_from': date_from,
+        'date_to': date_to,
+        'issue_type': issue_type,
+        'failure_reason': failure_reason,
+        'username': username,
+        'email': email,
+        'ip_address': ip_address
+    }
+    
+    return render_template(
+        'admin/auth_issues.html',
+        issues=issues,
+        metrics=metrics,
+        filters=filters,
+        suspicious_activity=suspicious_activity,
+        suspicious_activity_count=len(suspicious_activity)
+    )
+
+@admin_bp.route('/auth-issues/<int:issue_id>/resolve', methods=['POST'])
+@login_required
+@admin_required
+def mark_auth_issue_resolved(issue_id):
+    """Mark an authentication issue as resolved."""
+    resolution_notes = request.form.get('resolution_notes', '')
+    
+    if AuthIssueLog.mark_resolved(issue_id, resolution_notes):
+        flash(f"Authentication issue #{issue_id} has been marked as resolved.", "success")
+    else:
+        flash(f"Failed to mark authentication issue #{issue_id} as resolved.", "danger")
+        
+    return redirect(url_for('admin.auth_issues'))
+
 @admin_bp.route('/api/connection-issues/summary')
 @login_required
 @admin_required
