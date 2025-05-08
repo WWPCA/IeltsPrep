@@ -425,6 +425,80 @@ class UserTestAssignment(db.Model):
     def __repr__(self):
         return f'<UserTestAssignment User:{self.user_id} Type:{self.test_type} Tests:{self.assigned_test_numbers}>'
 
+class AssessmentSession(db.Model):
+    """Track assessment sessions for products to allow restarts when connection issues occur"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.String(50), nullable=False)  # academic_writing, academic_speaking, etc.
+    test_id = db.Column(db.Integer, nullable=True)  # ID of the test currently being taken
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_activity = db.Column(db.DateTime, default=datetime.utcnow)
+    completed = db.Column(db.Boolean, default=False)
+    marked_complete_at = db.Column(db.DateTime, nullable=True)
+    submitted = db.Column(db.Boolean, default=False)
+    submission_failed = db.Column(db.Boolean, default=False)
+    failure_reason = db.Column(db.String(255), nullable=True)
+    
+    def __repr__(self):
+        status = "Completed" if self.completed else "In Progress"
+        if self.submission_failed:
+            status = "Failed"
+        return f'<AssessmentSession {self.product_id} for User:{self.user_id}, Status:{status}>'
+    
+    def update_last_activity(self):
+        """Update the last activity timestamp"""
+        self.last_activity = datetime.utcnow()
+        db.session.commit()
+    
+    def mark_complete(self):
+        """Mark this session as completed"""
+        self.completed = True
+        self.marked_complete_at = datetime.utcnow()
+        db.session.commit()
+    
+    def mark_submitted(self):
+        """Mark this session as submitted"""
+        self.submitted = True
+        db.session.commit()
+    
+    def mark_failed(self, reason=None):
+        """Mark this session as failed with an optional reason"""
+        self.submission_failed = True
+        self.failure_reason = reason
+        db.session.commit()
+    
+    @classmethod
+    def get_active_session(cls, user_id, product_id):
+        """Get the active session for a user and product"""
+        return cls.query.filter_by(
+            user_id=user_id,
+            product_id=product_id,
+            completed=False,
+            submitted=False
+        ).order_by(cls.started_at.desc()).first()
+    
+    @classmethod
+    def has_unfinished_session(cls, user_id, product_id):
+        """Check if a user has an unfinished session for a product"""
+        return cls.query.filter_by(
+            user_id=user_id,
+            product_id=product_id,
+            completed=False
+        ).count() > 0
+    
+    @classmethod
+    def create_session(cls, user_id, product_id, test_id=None):
+        """Create a new session for a user and product"""
+        session = cls(
+            user_id=user_id,
+            product_id=product_id,
+            test_id=test_id
+        )
+        db.session.add(session)
+        db.session.commit()
+        return session
+
+
 class CompleteTestProgress(db.Model):
     """Track user progress through a complete test with multiple sections"""
     id = db.Column(db.Integer, primary_key=True)

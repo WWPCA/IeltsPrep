@@ -5,12 +5,47 @@ This module provides routes for assessing IELTS writing responses using OpenAI G
 
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
-from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress
+from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress, AssessmentSession
 from nova_writing_assessment import analyze_writing_response
 import json
 import os
+from datetime import datetime, timedelta
 
 writing_assessment = Blueprint('writing_assessment', __name__)
+
+@writing_assessment.route('/writing/recovery_check/<int:test_id>', methods=['GET'])
+@login_required
+def check_for_unfinished_session(test_id):
+    """
+    Check if a user has an unfinished writing assessment session
+    """
+    test = PracticeTest.query.get_or_404(test_id)
+    
+    # Determine the product ID based on the test type
+    product_id = None
+    if test.test_type == "writing":
+        if test.ielts_test_type == "academic":
+            product_id = "academic_writing"
+        else:
+            product_id = "general_writing"
+    
+    if not product_id:
+        return jsonify({"has_unfinished_session": False})
+    
+    # Check for unfinished session
+    unfinished_session = AssessmentSession.get_active_session(current_user.id, product_id)
+    
+    if unfinished_session:
+        # Check if the session is less than 24 hours old - only allow recovery for recent sessions
+        session_age = datetime.utcnow() - unfinished_session.started_at
+        if session_age < timedelta(hours=24):
+            return jsonify({
+                "has_unfinished_session": True,
+                "session_id": unfinished_session.id,
+                "started_at": unfinished_session.started_at.isoformat()
+            })
+    
+    return jsonify({"has_unfinished_session": False})
 
 @writing_assessment.route('/writing/submit_task/<int:test_id>', methods=['POST'])
 @login_required
@@ -27,20 +62,49 @@ def submit_writing_task(test_id):
             flash("You must be subscribed to submit this test.", "danger")
             return redirect(url_for('practice.test_details', test_type='writing', test_id=test_id))
         
-        # Check if user has already taken this test
+        # Check if user has already taken this test without having an unfinished session
         if current_user.has_taken_test(test_id, 'writing'):
-            flash("You have already taken this test. Premium users can take each test once to keep costs manageable.", "warning")
-            
-            # Find their previous attempt to display results
-            previous_attempt = UserTestAttempt.query.filter_by(
-                user_id=current_user.id,
-                test_id=test_id
-            ).order_by(UserTestAttempt.attempt_date.desc()).first()
-            
-            if previous_attempt:
-                return redirect(url_for('writing_assessment.writing_assessment_results', attempt_id=previous_attempt.id))
+            # Determine the product ID based on the test type
+            product_id = None
+            if test.ielts_test_type == "academic":
+                product_id = "academic_writing"
             else:
-                return redirect(url_for('practice.test_details', test_type='writing', test_id=test_id))
+                product_id = "general_writing"
+            
+            # Check if there's an unfinished session that would allow retaking
+            unfinished_session = None
+            if product_id:
+                unfinished_session = AssessmentSession.get_active_session(current_user.id, product_id)
+            
+            # If there's no unfinished session, don't allow retaking
+            if not unfinished_session:
+                flash("You have already taken this test. Each assessment can only be taken once to keep costs manageable.", "warning")
+                
+                # Find their previous attempt to display results
+                previous_attempt = UserTestAttempt.query.filter_by(
+                    user_id=current_user.id,
+                    test_id=test_id
+                ).order_by(UserTestAttempt.attempt_date.desc()).first()
+                
+                if previous_attempt:
+                    return redirect(url_for('writing_assessment.writing_assessment_results', attempt_id=previous_attempt.id))
+                else:
+                    return redirect(url_for('practice.test_details', test_type='writing', test_id=test_id))
+            else:
+                # If there's an unfinished session, mark it as complete before continuing
+                unfinished_session.mark_complete()
+        
+        # Determine the product ID based on the test type for creating a new session
+        product_id = None
+        if test.ielts_test_type == "academic":
+            product_id = "academic_writing"
+        else:
+            product_id = "general_writing"
+        
+        # Create a new session
+        if product_id:
+            # Create or update the session
+            session_record = AssessmentSession.create_session(current_user.id, product_id, test_id)
         
         # Get the essay text from the form
         essay_text = request.form.get('essay_text', '')
@@ -127,6 +191,13 @@ def submit_writing_task(test_id):
         # Update the user's streak
         current_user.update_streak()
         
+        # Mark any active session as completed successfully
+        if product_id:
+            session_record = AssessmentSession.get_active_session(current_user.id, product_id)
+            if session_record:
+                session_record.mark_complete()
+                session_record.mark_submitted()
+        
         db.session.commit()
         
         # Redirect to the results page
@@ -135,6 +206,13 @@ def submit_writing_task(test_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error processing writing submission: {str(e)}")
+        
+        # Mark any active session as failed
+        if 'product_id' in locals() and product_id:
+            session_record = AssessmentSession.get_active_session(current_user.id, product_id)
+            if session_record:
+                session_record.mark_failed(reason=str(e)[:255])  # Limit reason length
+        
         flash(f"An error occurred while processing your submission. Please try again.", "danger")
         return redirect(url_for('practice.take_test', test_type='writing', test_id=test_id))
 
