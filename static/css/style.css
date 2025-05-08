@@ -1212,3 +1212,59 @@ body.connection-lost .form-actions {
 .mic-test-results {
   margin-top: 1.5rem;
 }
+
+/* Assessment Recovery Styles */
+.recovery-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  max-width: 350px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.recovery-dialog-backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.recovery-dialog .modal-content {
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.recovery-dialog .modal-header {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.connection-status-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.connection-status-indicator.online {
+  background-color: var(--success-color);
+}
+
+.connection-status-indicator.offline {
+  background-color: var(--danger-color);
+}
+
+.connection-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+  min-width: 250px;
+  max-width: 350px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
