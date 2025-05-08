@@ -6,35 +6,86 @@
     border: 1px solid rgba(0, 0, 0, 0.125);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
 .card-body {
     min-height: 220px;
     display: flex;
     flex-direction: column;
 }
+
 .ai-brand-section {
     margin-bottom: 60px;
+    padding: 20px 10px;
 }
+
 .brand-icon {
     font-size: 2.5rem;
     margin-bottom: 15px;
 }
+
 .brand-title {
     font-size: 2rem;
     margin-bottom: 0.5rem;
 }
+
 .brand-tagline {
     color: #666;
     margin-bottom: 2rem;
     font-size: 1.1rem;
 }
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .ai-brand-section {
+        margin-bottom: 30px;
+        padding: 10px 5px;
+    }
+    
+    .brand-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .brand-title {
+        font-size: 1.6rem;
+    }
+    
+    .brand-tagline {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-body {
+        min-height: unset;
+        padding: 1rem;
+    }
+    
+    .card-body ul {
+        padding-left: 1.2rem;
+    }
+    
+    .card-body ul li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-footer .btn {
+        padding: 0.5rem 1rem;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row mb-5">
-        <div class="col">
+<div class="container mt-4 mt-md-5">
+    <div class="row mb-4 mb-md-5">
+        <div class="col-12">
             <h1 class="text-center">GenAI Assessed IELTS Modules</h1>
             <p class="lead text-center">Our specialized GenAI technologies provide accurate assessment for IELTS preparation</p>
         </div>
@@ -155,13 +206,14 @@
     </div>
     
     <!-- Cart Navigation -->
-    <div class="text-center mt-5 mb-4">
-        <a href="{{ url_for('cart.view_cart') }}" class="btn btn-lg btn-outline-primary">
-            <i class="fas fa-shopping-cart"></i> View Cart
+    <div class="text-center mt-4 mt-md-5 mb-4">
+        <a href="{{ url_for('cart.view_cart') }}" class="btn btn-lg btn-outline-primary d-flex align-items-center justify-content-center mx-auto" style="max-width: 250px;">
+            <i class="fas fa-shopping-cart me-2"></i> View Cart
             {% if session.get('cart') and session['cart']|length > 0 %}
-            <span class="badge bg-danger rounded-pill">{{ session['cart']|length }}</span>
+            <span class="badge bg-danger rounded-pill ms-2">{{ session['cart']|length }}</span>
             {% endif %}
         </a>
+        <p class="mt-3 small text-muted">Review your selected products before checkout</p>
     </div>
 </div>
 {% endblock %}
