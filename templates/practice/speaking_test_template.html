@@ -344,6 +344,24 @@ document.addEventListener('DOMContentLoaded', function() {
     let seconds = 0;
     let activePart = null;
     
+    // Initialize assessment recovery system
+    if (window.AssessmentRecovery) {
+        // Get the test ID from the form
+        const testForm = document.getElementById('speaking-test-form');
+        if (testForm) {
+            const testId = testForm.dataset.testId;
+            const testType = 'speaking';
+            
+            // Initialize the recovery system
+            window.AssessmentRecovery.init(testId, testType);
+            
+            // Add event listener to clean up when leaving the page
+            window.addEventListener('beforeunload', function() {
+                window.AssessmentRecovery.cleanup();
+            });
+        }
+    }
+    
     // DOM elements for microphone test
     const testMicButton = document.getElementById('test-microphone-button');
     const micTestContainer = document.getElementById('mic-test-container');

@@ -262,6 +262,21 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('There was a problem submitting your test. Please try again.');
         });
     });
+    
+    // Initialize assessment recovery system
+    if (window.AssessmentRecovery) {
+        // Get the test ID from the form
+        const testId = testForm.dataset.testId;
+        const testType = 'writing';
+        
+        // Initialize the recovery system
+        window.AssessmentRecovery.init(testId, testType);
+        
+        // Add event listener to clean up when leaving the page
+        window.addEventListener('beforeunload', function() {
+            window.AssessmentRecovery.cleanup();
+        });
+    }
 });
 </script>
 {% endblock %}
