@@ -741,12 +741,66 @@ a:hover {
     margin: 0 0 1rem 0;
   }
   
+  /* Hero section mobile adjustments */
+  .hero {
+    padding: 2rem 0;
+  }
+  
   .hero h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    line-height: 1.3;
   }
   
   .hero p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .hero .badge {
+    padding: 0.35rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    width: 100%;
+  }
+  
+  .hero .d-flex {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+  }
+  
+  .hero-buttons .btn {
+    width: 100%;
+    padding: 0.8rem;
     font-size: 1rem;
+  }
+  
+  /* Fix content overflow */
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Card layout for mobile */
+  .row {
+    margin-left: -5px;
+    margin-right: -5px;
+  }
+  
+  .col-md-4, .col-md-6, .col-lg-6 {
+    padding-left: 5px;
+    padding-right: 5px;
   }
   
   .features-grid {
@@ -931,6 +985,88 @@ body.connection-lost .form-actions {
   
   .streak-number {
     font-size: 1.5rem;
+  }
+  
+  /* Mobile-specific styles for the TrueScore and Elaris sections */
+  .test-sections {
+    padding: 2rem 0;
+  }
+  
+  .test-sections h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .test-sections .card {
+    margin-bottom: 1rem;
+  }
+  
+  .test-sections .card-header {
+    padding: 0.75rem;
+  }
+  
+  .test-sections .card-header h3 {
+    font-size: 1.25rem;
+  }
+  
+  .test-sections .card-body {
+    padding: 1rem;
+  }
+  
+  .test-sections .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .test-sections .fa-3x {
+    font-size: 2em;
+  }
+  
+  /* Mobile styles for testimonials */
+  .testimonials h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .testimonial-card {
+    margin-bottom: 1rem;
+  }
+  
+  /* CTA section mobile styles */
+  .cta {
+    padding: 2rem 0;
+  }
+  
+  .cta h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .cta .badge {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+  }
+  
+  .cta .lead {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Product pricing cards */
+  .pricing-card .card-header h3 {
+    font-size: 1.25rem;
+  }
+  
+  .pricing-features li {
+    font-size: 0.9rem;
+  }
+  
+  /* Fix footer alignment */
+  .site-footer {
+    text-align: center;
+    padding: 2rem 0;
   }
 }
 
