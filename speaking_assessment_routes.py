@@ -5,17 +5,51 @@ This module provides routes for assessing IELTS speaking responses using Assembl
 
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
-from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress, SpeakingPrompt, SpeakingResponse
+from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress, SpeakingPrompt, SpeakingResponse, AssessmentSession
 from assemblyai_services import process_speaking_response, assess_existing_transcription
 import json
 import os
 import base64
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from utils import compress_audio
 from aws_services import generate_polly_speech
 
 speaking_assessment = Blueprint('speaking_assessment', __name__)
+
+@speaking_assessment.route('/speaking/recovery_check/<int:test_id>', methods=['GET'])
+@login_required
+def check_for_unfinished_session(test_id):
+    """
+    Check if a user has an unfinished speaking assessment session
+    """
+    test = PracticeTest.query.get_or_404(test_id)
+    
+    # Determine the product ID based on the test type
+    product_id = None
+    if test.test_type == "speaking":
+        if test.ielts_test_type == "academic":
+            product_id = "academic_speaking"
+        else:
+            product_id = "general_speaking"
+    
+    if not product_id:
+        return jsonify({"has_unfinished_session": False})
+    
+    # Check for unfinished session
+    unfinished_session = AssessmentSession.get_active_session(current_user.id, product_id)
+    
+    if unfinished_session:
+        # Check if the session is less than 24 hours old - only allow recovery for recent sessions
+        session_age = datetime.utcnow() - unfinished_session.started_at
+        if session_age < timedelta(hours=24):
+            return jsonify({
+                "has_unfinished_session": True,
+                "session_id": unfinished_session.id,
+                "started_at": unfinished_session.started_at.isoformat()
+            })
+    
+    return jsonify({"has_unfinished_session": False})
 
 @speaking_assessment.route('/speaking/submit_response/<int:test_id>', methods=['POST'])
 @login_required
@@ -32,20 +66,49 @@ def submit_speaking_response(test_id):
             flash("You must be subscribed to submit this test.", "danger")
             return redirect(url_for('practice.test_details', test_type='speaking', test_id=test_id))
         
-        # Check if user has already taken this test
+        # Check if user has already taken this test without having an unfinished session
         if current_user.has_taken_test(test_id, 'speaking'):
-            flash("You have already taken this test. Premium users can take each test once to keep costs manageable.", "warning")
-            
-            # Find their previous attempt to display results
-            previous_attempt = UserTestAttempt.query.filter_by(
-                user_id=current_user.id,
-                test_id=test_id
-            ).order_by(UserTestAttempt.attempt_date.desc()).first()
-            
-            if previous_attempt:
-                return redirect(url_for('speaking_assessment.speaking_assessment_results', attempt_id=previous_attempt.id))
+            # Determine the product ID based on the test type
+            product_id = None
+            if test.ielts_test_type == "academic":
+                product_id = "academic_speaking"
             else:
-                return redirect(url_for('practice.test_details', test_type='speaking', test_id=test_id))
+                product_id = "general_speaking"
+            
+            # Check if there's an unfinished session that would allow retaking
+            unfinished_session = None
+            if product_id:
+                unfinished_session = AssessmentSession.get_active_session(current_user.id, product_id)
+            
+            # If there's no unfinished session, don't allow retaking
+            if not unfinished_session:
+                flash("You have already taken this test. Each assessment can only be taken once to keep costs manageable.", "warning")
+                
+                # Find their previous attempt to display results
+                previous_attempt = UserTestAttempt.query.filter_by(
+                    user_id=current_user.id,
+                    test_id=test_id
+                ).order_by(UserTestAttempt.attempt_date.desc()).first()
+                
+                if previous_attempt:
+                    return redirect(url_for('speaking_assessment.speaking_assessment_results', attempt_id=previous_attempt.id))
+                else:
+                    return redirect(url_for('practice.test_details', test_type='speaking', test_id=test_id))
+            else:
+                # If there's an unfinished session, mark it as complete before continuing
+                unfinished_session.mark_complete()
+        
+        # Determine the product ID based on the test type for creating a new session
+        product_id = None
+        if test.ielts_test_type == "academic":
+            product_id = "academic_speaking"
+        else:
+            product_id = "general_speaking"
+        
+        # Create a new session
+        if product_id:
+            # Create or update the session
+            session_record = AssessmentSession.create_session(current_user.id, product_id, test_id)
         
         # Get the audio file from the request
         audio_blob = request.form.get('audio_blob')
@@ -151,6 +214,13 @@ def submit_speaking_response(test_id):
         # Update the user's streak
         current_user.update_streak()
         
+        # Mark any active session as completed successfully
+        if product_id:
+            session_record = AssessmentSession.get_active_session(current_user.id, product_id)
+            if session_record:
+                session_record.mark_complete()
+                session_record.mark_submitted()
+        
         db.session.commit()
         
         # Redirect to the results page
@@ -159,6 +229,13 @@ def submit_speaking_response(test_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error processing speaking submission: {str(e)}")
+        
+        # Mark any active session as failed
+        if 'product_id' in locals() and product_id:
+            session_record = AssessmentSession.get_active_session(current_user.id, product_id)
+            if session_record:
+                session_record.mark_failed(reason=str(e)[:255])  # Limit reason length
+        
         flash(f"An error occurred while processing your submission. Please try again.", "danger")
         return redirect(url_for('practice.take_test', test_type='speaking', test_id=test_id))
 
