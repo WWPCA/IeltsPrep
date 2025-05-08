@@ -117,6 +117,9 @@ function handleConnectionChange(event) {
         
         // Show a notification that we're offline
         showOfflineNotification();
+        
+        // Log the disconnection event
+        logConnectionIssue('disconnect');
     } else if (event.type === 'online' && wasOffline) {
         // We've come back online after being offline
         wasOffline = false;
@@ -124,9 +127,51 @@ function handleConnectionChange(event) {
         // Show a notification that we're back online
         showOnlineNotification();
         
+        // Log the reconnection event
+        logConnectionIssue('reconnect');
+        
         // Check if we need to recover a session
         checkForUnfinishedSession();
     }
+}
+
+// Log connection issues to the server
+function logConnectionIssue(issueType) {
+    // Only log if we have a test ID
+    if (!currentTestId) return;
+    
+    // Gather connection information
+    const connectionInfo = {
+        effectiveType: navigator.connection ? navigator.connection.effectiveType : 'unknown',
+        downlink: navigator.connection ? navigator.connection.downlink : 'unknown',
+        rtt: navigator.connection ? navigator.connection.rtt : 'unknown',
+        online: navigator.onLine,
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        devicePixelRatio: window.devicePixelRatio,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        userLocalTime: new Date().toString()
+    };
+    
+    // Send the log data to the server
+    fetch('/api/log_connection_issue', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            issue_type: issueType,
+            test_id: currentTestId,
+            test_type: currentTestType,
+            connection_info: connectionInfo,
+            user_local_time: new Date().toString()
+        })
+    }).catch(error => {
+        // If we can't log the issue, just record it in console - we're likely offline
+        console.error('Failed to log connection issue:', error);
+    });
 }
 
 // Show a notification that we're offline

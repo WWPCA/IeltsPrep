@@ -425,6 +425,83 @@ class UserTestAssignment(db.Model):
     def __repr__(self):
         return f'<UserTestAssignment User:{self.user_id} Type:{self.test_type} Tests:{self.assigned_test_numbers}>'
 
+class ConnectionIssueLog(db.Model):
+    """Track connection issues for monitoring and support purposes"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    test_id = db.Column(db.Integer, nullable=True)  # ID of the test being taken
+    product_id = db.Column(db.String(50), nullable=True)  # academic_writing, academic_speaking, etc.
+    session_id = db.Column(db.Integer, db.ForeignKey('assessment_session.id'), nullable=True)
+    occurred_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_local_time = db.Column(db.String(50), nullable=True)  # Stored as string to preserve client timezone info
+    issue_type = db.Column(db.String(50), nullable=False)  # disconnect, reconnect, session_restart, etc.
+    ip_address = db.Column(db.String(50), nullable=True)
+    user_agent = db.Column(db.String(255), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    country = db.Column(db.String(100), nullable=True)
+    browser_info = db.Column(db.Text, nullable=True)  # JSON string with browser details
+    connection_info = db.Column(db.Text, nullable=True)  # JSON string with connection details
+    resolved = db.Column(db.Boolean, default=False)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+    resolution_method = db.Column(db.String(50), nullable=True)  # auto_restart, admin_intervention, etc.
+    
+    def __repr__(self):
+        return f'<ConnectionIssueLog {self.id} - User {self.user_id} - {self.issue_type}>'
+    
+    @classmethod
+    def log_issue(cls, user_id, issue_type, request_obj=None, **kwargs):
+        """Log a connection issue with details from request and additional data"""
+        log_entry = cls(
+            user_id=user_id,
+            issue_type=issue_type,
+            test_id=kwargs.get('test_id'),
+            product_id=kwargs.get('product_id'),
+            session_id=kwargs.get('session_id'),
+            user_local_time=kwargs.get('user_local_time')
+        )
+        
+        # Capture request data if available
+        if request_obj:
+            log_entry.ip_address = request_obj.remote_addr
+            log_entry.user_agent = request_obj.user_agent.string
+            
+            # Extract and store browser info
+            browser_info = {
+                'browser': request_obj.user_agent.browser,
+                'version': request_obj.user_agent.version,
+                'platform': request_obj.user_agent.platform,
+                'language': request_obj.accept_languages.best
+            }
+            log_entry.browser_info = json.dumps(browser_info)
+            
+            # Store connection info if provided
+            if 'connection_info' in kwargs:
+                log_entry.connection_info = json.dumps(kwargs.get('connection_info'))
+        
+        # Try to get location data from IP using geoip if available
+        try:
+            if log_entry.ip_address and hasattr(request_obj, 'geoip'):
+                log_entry.city = request_obj.geoip.get('city')
+                log_entry.country = request_obj.geoip.get('country_name')
+        except:
+            pass  # Ignore geoip errors
+            
+        db.session.add(log_entry)
+        db.session.commit()
+        return log_entry
+        
+    @classmethod
+    def mark_resolved(cls, issue_id, resolution_method="auto_restart"):
+        """Mark a connection issue as resolved"""
+        log_entry = cls.query.get(issue_id)
+        if log_entry:
+            log_entry.resolved = True
+            log_entry.resolved_at = datetime.utcnow()
+            log_entry.resolution_method = resolution_method
+            db.session.add(log_entry)
+            db.session.commit()
+        return log_entry
+
 class AssessmentSession(db.Model):
     """Track assessment sessions for products to allow restarts when connection issues occur"""
     id = db.Column(db.Integer, primary_key=True)
