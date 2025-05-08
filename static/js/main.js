@@ -3,15 +3,50 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const menuToggle = document.querySelector('.menu-toggle');
-    const mainNav = document.querySelector('.main-nav');
+    // Mobile menu toggle with enhanced functionality
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const closeNavBtn = document.getElementById('closeNav');
+    const mainNav = document.getElementById('mobileNav');
     
+    // Toggle menu when hamburger icon is clicked
     if (menuToggle && mainNav) {
-        menuToggle.addEventListener('click', function() {
+        menuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
             mainNav.classList.toggle('active');
+            document.body.classList.toggle('menu-open');
         });
     }
+    
+    // Close menu when X button is clicked
+    if (closeNavBtn && mainNav) {
+        closeNavBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            mainNav.classList.remove('active');
+            document.body.classList.remove('menu-open');
+        });
+    }
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (mainNav && mainNav.classList.contains('active') && 
+            !mainNav.contains(e.target) && 
+            e.target !== menuToggle) {
+            mainNav.classList.remove('active');
+            document.body.classList.remove('menu-open');
+        }
+    });
+    
+    // Close menu when nav links are clicked (for mobile)
+    const navLinks = document.querySelectorAll('.main-nav a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            // Only on mobile screens
+            if (window.innerWidth <= 768) {
+                mainNav.classList.remove('active');
+                document.body.classList.remove('menu-open');
+            }
+        });
+    });
     
     // Flash message auto-dismiss
     const flashMessages = document.querySelectorAll('.alert');

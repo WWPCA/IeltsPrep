@@ -120,6 +120,30 @@ a:hover {
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
+  z-index: 1010;
+  position: relative;
+}
+
+/* Mobile nav close button */
+.nav-close-btn {
+  display: none;
+  text-align: right;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-close-btn button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Prevent body scrolling when menu is open */
+body.menu-open {
+  overflow: hidden;
 }
 
 /* Hero Section */
@@ -721,12 +745,14 @@ a:hover {
     position: fixed;
     top: 0;
     left: -100%;
-    width: 80%;
-    height: 100%;
+    width: 85%;
+    height: 100vh;
     background-color: var(--primary-color);
-    padding: 2rem;
+    padding: 1rem;
     z-index: 1000;
     transition: left 0.3s ease;
+    overflow-y: auto;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   }
   
   .main-nav.active {
@@ -735,10 +761,29 @@ a:hover {
   
   .main-nav ul {
     flex-direction: column;
+    padding: 0;
+    margin: 0;
   }
   
   .main-nav li {
-    margin: 0 0 1rem 0;
+    margin: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .main-nav a {
+    color: white;
+    padding: 1rem 0.5rem;
+    display: block;
+    width: 100%;
+  }
+  
+  .main-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Show mobile nav close button */
+  .nav-close-btn {
+    display: block;
   }
   
   /* Hero section mobile adjustments */

@@ -85,11 +85,16 @@
         <div class="container">
             <a href="{{ url_for('index') }}" class="site-logo">IELTS GenAI Prep</a>
             
-            <button class="menu-toggle" aria-label="Toggle menu">
+            <button class="menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
                 <i class="fas fa-bars"></i>
             </button>
             
-            <nav class="main-nav">
+            <nav class="main-nav" id="mobileNav">
+                <div class="nav-close-btn d-md-none">
+                    <button id="closeNav" aria-label="Close navigation">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
                 <ul>
                     <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
                     <li><a href="{{ url_for('test_structure') }}">Test Structure</a></li>
