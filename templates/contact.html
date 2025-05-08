@@ -1,0 +1,250 @@
+{% extends "layout.html" %}
+
+{% block title %}Contact Us - IELTS GenAI Prep{% endblock %}
+
+{% block styles %}
+<style>
+    .contact-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .contact-heading {
+        margin-bottom: 2rem;
+        color: #343a40;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .contact-info {
+        background-color: #e9ecef;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 2rem;
+    }
+
+    .contact-info-item {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .contact-info-item i {
+        margin-right: 10px;
+        color: #3498db;
+        font-size: 1.2rem;
+        width: 25px;
+        text-align: center;
+    }
+
+    .btn-contact {
+        background-color: #3498db;
+        color: white;
+        padding: 0.6rem 1.5rem;
+        border: none;
+        transition: all 0.3s;
+    }
+
+    .btn-contact:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .contact-form-container {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4">Contact Us</h1>
+                <p class="text-center mb-5">Have questions about our services or need help with your IELTS preparation? Reach out to us using the form below.</p>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="contact-form-container">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('contact') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.name.id }}" class="form-label">Your Name</label>
+                                    {{ form.name(class="form-control", placeholder="Enter your name") }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.email.id }}" class="form-label">Email Address</label>
+                                    {{ form.email(class="form-control", placeholder="Enter your email") }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="{{ form.message.id }}" class="form-label">Your Message</label>
+                            {{ form.message(class="form-control", rows="6", placeholder="Enter your message here...") }}
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.message.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-contact btn-lg">Send Message</button>
+                        </div>
+                    </form>
+
+                    <div class="contact-info mt-5">
+                        <h4 class="mb-3">Additional Contact Information</h4>
+                        <div class="contact-info-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <strong>Email:</strong>
+                                <p class="mb-0">support@ieltsgenaiprep.com</p>
+                            </div>
+                        </div>
+                        <div class="contact-info-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Support Hours:</strong>
+                                <p class="mb-0">Monday to Friday: 9am - 5pm (GMT)</p>
+                            </div>
+                        </div>
+                        <div class="contact-info-item">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <strong>Response Time:</strong>
+                                <p class="mb-0">We aim to respond to all inquiries within 24-48 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                How does the GenAI assessment system work?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Our TrueScore® and Elaris® GenAI assessment systems analyze your writing and speaking responses using sophisticated natural language processing algorithms that are aligned with the official IELTS marking criteria. They provide detailed feedback on all four assessment criteria for both writing and speaking tasks.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                How many times can I use each assessment?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Each assessment can be used only once. Our packages are designed to provide you with unique content for each practice session, ensuring you get broad exposure to different test topics and questions.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                What is the difference between Academic and General Training options?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Academic Training focuses on topics and tasks relevant for university admission and professional registration, including chart/graph analysis for Writing Task 1. General Training is designed for migration and work purposes, with letter writing for Task 1. Both versions have different content but are assessed using the same criteria.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                How can I upgrade my package?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                If you have purchased a Single or Double test package, you can upgrade to a higher package from your account dashboard. The upgrade option is displayed on your dashboard when eligible. Value Pack users already have our most comprehensive package.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFive">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                Can I use the platform on my mobile device?
+                            </button>
+                        </h2>
+                        <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, IELTS GenAI Prep is fully responsive and works on all modern mobile devices. You can practice your IELTS skills on smartphones and tablets with a stable internet connection. For the best experience with writing tasks, we recommend using a device with a keyboard.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -103,6 +103,7 @@
                     {% endif %}
                     <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
                     <li><a href="{{ url_for('device_specs') }}">Device Requirements</a></li>
+                    <li><a href="{{ url_for('contact') }}"><i class="fas fa-envelope"></i> Contact Us</a></li>
                     <li><a href="{{ url_for('cart.view_cart') }}"><i class="fas fa-shopping-cart"></i> Cart 
                         {% if session.get('cart') and session['cart']|length > 0 %}
                         <span class="badge bg-danger rounded-pill">{{ session['cart']|length }}</span>
@@ -163,6 +164,7 @@
                     <h3>Resources</h3>
                     <ul>
                         <li><a href="{{ url_for('device_specs') }}">Device Requirements</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
                         <li><a href="#">Privacy Policy</a></li>
                         <li><a href="{{ url_for('terms_and_payment') }}">Terms of Service</a></li>
                     </ul>

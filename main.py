@@ -15,5 +15,9 @@ app.register_blueprint(cart_bp, url_prefix='/cart')
 # Import assessment products routes
 import integrate_assessment_routes  # noqa: F401
 
+# Import and add contact routes
+from contact_routes import add_contact_routes
+add_contact_routes(app)
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
