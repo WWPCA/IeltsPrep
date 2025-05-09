@@ -1919,6 +1919,11 @@ def device_specs():
 def terms_and_payment():
     """Show terms and payment information"""
     return render_template('terms_and_payment.html', title='Terms and Payment')
+    
+@app.route('/privacy')
+def privacy_policy():
+    """Show privacy policy information"""
+    return render_template('privacy.html', title='Privacy Policy')
 
 @app.route('/api/sync-data', methods=['POST'])
 @login_required
