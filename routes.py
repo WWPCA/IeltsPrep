@@ -122,7 +122,6 @@ def register():
     form = RegistrationForm()
     
     if request.method == 'POST':
-        username = request.form.get('username')
         email = request.form.get('email')
         phone = request.form.get('phone')  # New field
         password = request.form.get('password')
@@ -143,21 +142,21 @@ def register():
             flash('Password must be at least 8 characters long.', 'danger')
             return render_template('register.html', title='Register', form=form)
         
-        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            flash('Username or email already exists!', 'danger')
+            flash('Email already exists! Please login or use a different email address.', 'danger')
             return render_template('register.html', title='Register', form=form)
         
         test_preference = request.form.get('test_preference', 'academic')
         target_score = request.form.get('target_score', '7.0')  # New field
         
         new_user = User(
-            username=username,
+            username=email,  # Use email as the username
             email=email,
-            phone=phone,  # New field
+            phone=phone,
             region=region,
             test_preference=test_preference,
-            target_score=target_score  # New field
+            target_score=target_score
         )
         new_user.set_password(password)
         
