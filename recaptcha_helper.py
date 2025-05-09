@@ -31,7 +31,7 @@ class ReCaptchaV3:
         def inject_recaptcha():
             return dict(recaptcha_site_key=self.site_key)
     
-    def verify(self, response=None, remote_ip=None, action=None, min_score=0.1):
+    def verify(self, response=None, remote_ip=None, action=None, min_score=0.5):
         """
         Verify the reCAPTCHA response
         
@@ -39,20 +39,30 @@ class ReCaptchaV3:
             response (str, optional): The g-recaptcha-response token from the form
             remote_ip (str, optional): Remote IP address, defaults to request.remote_addr
             action (str, optional): Expected action name to verify
-            min_score (float, optional): Minimum score threshold (0.0-1.0), defaults to 0.1
+            min_score (float, optional): Minimum score threshold (0.0-1.0), defaults to 0.5
             
         Returns:
             dict: Verification result with keys 'success', 'score', 'action'
         """
         import logging
+        import os
+        import re
+        from flask import request
+        
         logging.basicConfig(level=logging.DEBUG)
         
-        # TEMPORARY FIX: Always return success to bypass reCAPTCHA issues
-        # This allows registration and login to work even if reCAPTCHA has problems
-        return {'success': True, 'score': 1.0, 'action': action or 'default'}
+        # Get domain from request or environment
+        domain = request.host if hasattr(request, 'host') else os.environ.get('REPLIT_DOMAINS', 'localhost')
         
-        # The code below is temporarily disabled to fix registration issues
-        """
+        # Check if we're on the production domain (ieltsaiprep.com)
+        is_production_domain = 'ieltsaiprep.com' in domain
+        
+        # Skip validation for non-production domains
+        if not is_production_domain:
+            logging.info(f"Bypassing reCAPTCHA validation for non-production domain: {domain}")
+            return {'success': True, 'score': 1.0, 'action': action or 'default', 'domain': domain}
+            
+        # Continue with normal validation for production domain
         if not self.is_enabled:
             # If reCAPTCHA is not enabled, always return success
             return {'success': True, 'score': 1.0, 'action': action or 'default'}
@@ -63,9 +73,8 @@ class ReCaptchaV3:
             logging.debug(f"Found reCAPTCHA response token: {response is not None}")
             
         if not response:
-            # No token found - but still allow registration (temporary fix)
-            logging.warning("Missing reCAPTCHA response but allowing registration")
-            return {'success': True, 'score': 0.9, 'action': action or 'default'}
+            # No token found
+            return {'success': False, 'score': 0.0, 'action': None, 'error': 'Missing reCAPTCHA response'}
         
         # Prepare verification data
         verify_data = {
@@ -82,24 +91,47 @@ class ReCaptchaV3:
             
             # Check basic success
             if not result.get('success', False):
-                error = result.get('error-codes', ['verification-failed'])
-                logging.warning(f"reCAPTCHA verification failed: {error}")
-                # Still return success (temporary fix)
-                return {'success': True, 'score': 0.9, 'action': action or 'default'}
+                return {
+                    'success': False, 
+                    'score': 0.0, 
+                    'action': None,
+                    'error': result.get('error-codes', ['verification-failed'])
+                }
             
             # Get score and action from result
             score = result.get('score', 0.0)
             response_action = result.get('action', '')
             
-            # Always return success regardless of score (temporary fix)
+            # Check score threshold
+            if score < min_score:
+                return {
+                    'success': False,
+                    'score': score,
+                    'action': response_action,
+                    'error': 'Score too low'
+                }
+            
+            # Check action match if specified
+            if action and action != response_action:
+                return {
+                    'success': False,
+                    'score': score,
+                    'action': response_action,
+                    'error': 'Action mismatch'
+                }
+            
+            # All checks passed
             return {
                 'success': True,
-                'score': max(score, 0.9),  # Use at least 0.9 score
-                'action': response_action or action or 'default'
+                'score': score,
+                'action': response_action
             }
             
         except Exception as e:
             logging.error(f"reCAPTCHA error: {str(e)}")
-            # Still return success (temporary fix)
-            return {'success': True, 'score': 0.9, 'action': action or 'default'}
-        """
+            return {
+                'success': False,
+                'score': 0.0,
+                'action': None,
+                'error': str(e)
+            }
