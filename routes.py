@@ -148,14 +148,13 @@ def register():
             return render_template('register.html', title='Register', form=form)
         
         test_preference = request.form.get('test_preference', 'academic')
-        target_score = request.form.get('target_score', '7.0')  # New field
         
         new_user = User(
             username=email,  # Use email as the username
             email=email,
             region=region,
             test_preference=test_preference,
-            target_score=target_score
+            target_score='7.0'  # Use default value since field was removed
         )
         new_user.set_password(password)
         
