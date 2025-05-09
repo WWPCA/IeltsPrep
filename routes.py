@@ -101,7 +101,22 @@ def login():
         
         if user and check_password_hash(user.password_hash, password):
             login_user(user, remember=remember)
+            
+            # Check if user came from checkout or has pending payment
             next_page = request.args.get('next')
+            if next_page == 'checkout':
+                flash('Login successful! Please complete your purchase.', 'success')
+                return redirect(url_for('cart.checkout'))
+            elif 'pending_checkout' in session and session['pending_checkout']:
+                # Clear the pending checkout flag
+                session.pop('pending_checkout')
+                flash('Login successful! Please complete your purchase.', 'success')
+                return redirect(url_for('cart.checkout'))
+            elif 'pending_payment' in session:
+                # User has a pending payment to process
+                flash('Login successful! Processing your previous purchase...', 'success')
+                return redirect(url_for('payment_success'))
+                
             flash('Login successful!', 'success')
             return redirect(next_page if next_page else url_for('index'))
         else:
@@ -151,13 +166,23 @@ def register():
             flash('Email already exists! Please login or use a different email address.', 'danger')
             return render_template('register.html', title='Register', form=form)
         
-        # We'll determine test_preference from the product purchase
-        # For now, set a default value (will be updated during payment processing)
+        # Determine initial test preference from cart products
+        test_preference = 'academic'  # Default value
+        
+        # If user has items in cart, determine test preference from those
+        if 'cart' in session and session['cart']:
+            from cart import determine_test_preference, get_product_ids
+            product_ids = get_product_ids()
+            cart_preference = determine_test_preference(product_ids)
+            if cart_preference:
+                test_preference = cart_preference
+        
+        # Create the new user
         new_user = User(
             username=email,  # Use email as the username
             email=email,
             region=region,
-            test_preference='academic',  # Default value, will be updated after purchase
+            test_preference=test_preference,  # From cart products or default
             target_score='7.0'  # Default value
         )
         new_user.set_password(password)
