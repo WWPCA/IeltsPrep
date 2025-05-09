@@ -1894,21 +1894,19 @@ def payment_success():
             # Create the user account from stored registration data
             reg_data = session['registration_data']
             
-            # Start a new, separate transaction for user creation
-            with db.session.begin():
-                # Create the new user
-                new_user = User(
-                    username=reg_data['username'],
-                    email=reg_data['email'],
-                    region=reg_data.get('region', 'Unknown'),
-                    test_preference=reg_data.get('test_preference', 'academic'),
-                    is_active=True  # Activate immediately since payment is successful
-                )
-                new_user.set_password(reg_data['password'])
-                
-                # Add to database
-                db.session.add(new_user)
-                # Transaction committed here
+            # Create the new user
+            new_user = User(
+                username=reg_data['username'],
+                email=reg_data['email'],
+                region=reg_data.get('region', 'Unknown'),
+                test_preference=reg_data.get('test_preference', 'academic'),
+                is_active=True  # Activate immediately since payment is successful
+            )
+            new_user.set_password(reg_data['password'])
+            
+            # Add to database - in a direct transaction to avoid nested transaction issues
+            db.session.add(new_user)
+            db.session.commit()
             
             # Log the new user in
             login_user(new_user)
@@ -1949,22 +1947,17 @@ def payment_success():
                 flash('Payment verification failed. Please contact support.', 'danger')
                 return redirect(url_for('assessment_products_page'))
                 
-            # Create a payment record - in a separate transaction to avoid dependencies
-            with db.session.begin():
-                try:
-                    payment = PaymentRecord(
-                        user_id=current_user.id,
-                        amount=package_details[package]['price'],
-                        package_name=package_details[package]['name'],
-                        payment_date=datetime.utcnow(),
-                        stripe_session_id=session_id,
-                        is_successful=True
-                    )
-                    db.session.add(payment)
-                except Exception as e:
-                    app.logger.error(f"Error creating payment record: {str(e)}")
-                    # Continue even if payment record creation fails
-                    pass
+            # Create a payment record using our service function
+            payment = create_payment_record(
+                user_id=current_user.id,
+                amount=package_details[package]['price'],
+                package_name=package_details[package]['name'],
+                session_id=session_id
+            )
+            
+            if not payment:
+                app.logger.warning(f"Failed to create payment record for user {current_user.id}, but continuing checkout process")
+                # Continue even if payment record creation fails
             
         except Exception as e:
             app.logger.error(f"Error verifying payment: {str(e)}")
@@ -2008,40 +2001,40 @@ def payment_success():
         flash('Error updating your subscription. Please contact support.', 'danger')
         return redirect(url_for('assessment_products_page'))
     
-    # Assign tests to user in a separate transaction
+    # Assign tests to user in a separate step
     try:
         # Assign unique tests to the user using our test assignment service
         num_tests = package_details[package]['tests']
         assigned_numbers = []
         success = False
         
-        with db.session.begin():
+        # Assign tests from the repository
+        assigned_numbers, success = test_assignment_service.assign_tests_to_user(
+            user_id=current_user.id,
+            test_type=test_preference,  # academic or general
+            num_tests=num_tests,
+            subscription_days=subscription_days
+        )
+        
+        if success:
+            app.logger.info(f"Successfully assigned {len(assigned_numbers)} tests to user {current_user.id}")
+            
+            # Add the assigned test numbers to the test history in a new transaction
             try:
-                # Assign tests from the repository
-                assigned_numbers, success = test_assignment_service.assign_tests_to_user(
-                    user_id=current_user.id,
-                    test_type=test_preference,  # academic or general
-                    num_tests=num_tests,
-                    subscription_days=subscription_days
-                )
-                
-                if success:
-                    app.logger.info(f"Successfully assigned {len(assigned_numbers)} tests to user {current_user.id}")
-                    
-                    # Add the assigned test numbers to the test history
-                    user = User.query.get(current_user.id)
+                user = User.query.get(current_user.id)
+                if user:
                     test_history = user.test_history
                     test_history[-1]['test_purchase']['assigned_tests'] = assigned_numbers
                     user.test_history = test_history
-                else:
-                    app.logger.warning(f"Could not assign {num_tests} unique tests to user {current_user.id}")
-                    flash('Warning: You have already been assigned all available tests. Some tests may be repeats.', 'warning')
+                    db.session.commit()
             except Exception as e:
-                app.logger.error(f"Error assigning tests: {str(e)}")
-                # Continue even if test assignment fails
+                app.logger.error(f"Error updating test history after assignment: {str(e)}")
+        else:
+            app.logger.warning(f"Could not assign {num_tests} unique tests to user {current_user.id}")
+            flash('Warning: You have already been assigned all available tests. Some tests may be repeats.', 'warning')
     except Exception as e:
-        app.logger.error(f"Error in test assignment transaction: {str(e)}")
-        # Continue with success message, even if test assignment transaction fails
+        app.logger.error(f"Error in test assignment: {str(e)}")
+        # Continue with success message, even if test assignment fails
     
     # Display success message for the package purchase
     flash(f'Thank you for your purchase! Your {package_details[package]["name"]} is now active.', 'success')

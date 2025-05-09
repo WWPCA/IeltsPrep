@@ -543,43 +543,46 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         logging.error(f"Error creating Stripe checkout: {str(e)}")
         raise
 
-def create_payment_record(user, session_id, payment_details):
+def create_payment_record(user_id, amount, package_name, session_id=None):
     """
-    Create a payment record in the user's account.
+    Create a payment record in the database.
     
     Args:
-        user (User): User object
-        session_id (str): Stripe session ID
-        payment_details (dict): Details of the payment
+        user_id (int): User ID
+        amount (float): Payment amount
+        package_name (str): Name of the purchased package
+        session_id (str, optional): Stripe session ID
         
     Returns:
-        dict: Updated payment record
+        PaymentRecord: The created payment record
     """
-    payment_history = user.payment_history if user.payment_history else []
+    from models import PaymentRecord
+    from app import db
     
-    # Create payment record
-    payment_record = {
-        'date': datetime.utcnow().isoformat(),
-        'session_id': session_id,
-        'amount': payment_details.get('amount', 0),
-        'plan': payment_details.get('plan', ''),
-        'tests': payment_details.get('tests', 0),
-        'days': payment_details.get('days', 0),
-        'status': 'completed'
-    }
-    
-    # Add extra fields if available
-    if 'product_name' in payment_details:
-        payment_record['product_name'] = payment_details['product_name']
-    if 'type' in payment_details:
-        payment_record['type'] = payment_details['type']
-    if 'package' in payment_details:
-        payment_record['package'] = payment_details['package']
-    
-    payment_history.append(payment_record)
-    user.payment_history = payment_history
-    
-    return payment_record
+    try:
+        # Create a new payment record
+        payment = PaymentRecord(
+            user_id=user_id,
+            amount=amount,
+            package_name=package_name,
+            payment_date=datetime.utcnow(),
+            stripe_session_id=session_id,
+            is_successful=True,
+            transaction_details=None  # Can be updated later if needed
+        )
+        
+        # Add to database in a separate transaction
+        # Using a fresh session to avoid any conflicts with existing transactions
+        db.session.add(payment)
+        db.session.commit()
+            
+        return payment
+        
+    except Exception as e:
+        logging.error(f"Error creating payment record: {str(e)}")
+        # Don't raise the exception to avoid blocking the payment flow
+        # Just return None instead
+        return None
 
 def verify_stripe_payment(session_id):
     """
