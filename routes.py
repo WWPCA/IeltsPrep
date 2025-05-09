@@ -1964,38 +1964,79 @@ def payment_success():
             flash('Error processing payment. Please contact support.', 'danger')
             return redirect(url_for('assessment_products_page'))
     
-    # Update user's subscription in a new transaction
+    # Update user's subscription with better error handling
     try:
-        with db.session.begin():
-            # Calculate expiry date
-            subscription_days = package_details[package]['days']
-            expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
+        # Calculate expiry date
+        subscription_days = package_details[package]['days']
+        expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
+        
+        # Update user's subscription status
+        user = User.query.get(current_user.id)  # Get fresh user object to avoid stale data
+        if not user:
+            app.logger.error(f"Could not find user with ID {current_user.id} for subscription update")
+            flash('Error updating your subscription. Please contact support.', 'danger')
+            return redirect(url_for('assessment_products_page'))
             
-            # Update user's subscription status
-            user = User.query.get(current_user.id)  # Get fresh user object to avoid stale data
-            if user:
-                user.subscription_status = package_details[package]['name']
-                user.subscription_expiry = expiry_date
-                user.test_preference = test_preference
-                
-                # Add to user's test history
-                test_history = user.test_history
-                test_history.append({
-                    'date': datetime.utcnow().isoformat(),
-                    'action': 'subscription',
-                    'test_purchase': {
-                        'package': package,
-                        'test_preference': test_preference,
-                        'num_tests': package_details[package]['tests'],
-                        'purchase_date': datetime.utcnow().isoformat(),
-                        'expiry_date': expiry_date.isoformat()
-                    }
-                })
-                user.test_history = test_history
-            else:
-                app.logger.error(f"Could not find user with ID {current_user.id} for subscription update")
+        # Update user properties
+        user.subscription_status = package_details[package]['name']
+        user.subscription_expiry = expiry_date
+        user.test_preference = test_preference
+        
+        # Add to user's test history
+        test_history = user.test_history
+        test_history.append({
+            'date': datetime.utcnow().isoformat(),
+            'action': 'subscription',
+            'test_purchase': {
+                'package': package,
+                'test_preference': test_preference,
+                'num_tests': package_details[package]['tests'],
+                'purchase_date': datetime.utcnow().isoformat(),
+                'expiry_date': expiry_date.isoformat()
+            }
+        })
+        user.test_history = test_history
+        
+        # Commit changes with proper error handling
+        try:
+            db.session.commit()
+        except Exception as db_error:
+            # If there's an error during commit, rollback and try again
+            db.session.rollback()
+            app.logger.warning(f"Initial subscription update commit failed, rolling back: {str(db_error)}")
+            
+            # Try again with a fresh query
+            try:
+                # Get a fresh user object after rollback
+                user = User.query.get(current_user.id)
+                if user:
+                    user.subscription_status = package_details[package]['name']
+                    user.subscription_expiry = expiry_date
+                    user.test_preference = test_preference
+                    
+                    # Re-add the test history entry
+                    test_history = user.test_history
+                    test_history.append({
+                        'date': datetime.utcnow().isoformat(),
+                        'action': 'subscription',
+                        'test_purchase': {
+                            'package': package,
+                            'test_preference': test_preference,
+                            'num_tests': package_details[package]['tests'],
+                            'purchase_date': datetime.utcnow().isoformat(),
+                            'expiry_date': expiry_date.isoformat()
+                        }
+                    })
+                    user.test_history = test_history
+                    db.session.commit()
+                else:
+                    raise ValueError(f"Could not find user with ID {current_user.id} on retry")
+            except Exception as retry_error:
+                db.session.rollback()
+                app.logger.error(f"Retry subscription update failed: {str(retry_error)}")
                 flash('Error updating your subscription. Please contact support.', 'danger')
                 return redirect(url_for('assessment_products_page'))
+            
     except Exception as e:
         app.logger.error(f"Error updating user subscription: {str(e)}")
         flash('Error updating your subscription. Please contact support.', 'danger')

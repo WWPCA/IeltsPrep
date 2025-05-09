@@ -571,17 +571,39 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
             transaction_details=None  # Can be updated later if needed
         )
         
-        # Add to database in a separate transaction
-        # Using a fresh session to avoid any conflicts with existing transactions
-        db.session.add(payment)
-        db.session.commit()
+        # Add to database with proper error handling
+        try:
+            db.session.add(payment)
+            db.session.commit()
+            return payment
+        except Exception as db_error:
+            # If there's an error during commit, rollback and try again
+            db.session.rollback()
+            logging.warning(f"Initial payment record commit failed, rolling back: {str(db_error)}")
             
-        return payment
+            # Try again with a new session context
+            try:
+                # Create a new payment record since the old one may be in an inconsistent state
+                new_payment = PaymentRecord(
+                    user_id=user_id,
+                    amount=amount,
+                    package_name=package_name,
+                    payment_date=datetime.utcnow(),
+                    stripe_session_id=session_id,
+                    is_successful=True,
+                    transaction_details=None
+                )
+                db.session.add(new_payment)
+                db.session.commit()
+                return new_payment
+            except Exception as retry_error:
+                db.session.rollback()
+                logging.error(f"Retry payment record creation failed: {str(retry_error)}")
+                return None
         
     except Exception as e:
         logging.error(f"Error creating payment record: {str(e)}")
         # Don't raise the exception to avoid blocking the payment flow
-        # Just return None instead
         return None
 
 def verify_stripe_payment(session_id):
