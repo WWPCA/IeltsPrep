@@ -23,7 +23,7 @@ class User(UserMixin, db.Model):
     preferred_language = db.Column(db.String(10), default="en")
     test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
     # target_score field removed as it doesn't exist in database
-    is_admin = db.Column(db.Boolean, default=False)  # Admin access flag
+    # is_admin field removed as it doesn't exist in database
     
     # Study streak tracking
     current_streak = db.Column(db.Integer, default=0)

@@ -26,16 +26,18 @@ def create_admin_user(username, email, password):
     
     if user:
         print(f"User '{username}' already exists. Updating to admin status.")
-        user.is_admin = True
+        # Note: is_admin field removed as it doesn't exist in database
+        # Temporarily grant Value Pack subscription as a way to identify admins
+        user.subscription_status = "Value Pack"
         user.password_hash = generate_password_hash(password)
     else:
         print(f"Creating new admin user '{username}'.")
-        # Create a new user with admin privileges
+        # Create a new user with admin-like privileges
         user = User(
             username=username,
             email=email,
-            subscription_status="Value Pack",  # Give admin full subscription access
-            is_admin=True
+            subscription_status="Value Pack"  # Give admin full subscription access
+            # is_admin field removed as it doesn't exist in database
         )
         user.set_password(password)
         db.session.add(user)

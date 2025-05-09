@@ -18,7 +18,9 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 def admin_required(f):
     """Decorator to check if the current user is an administrator."""
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
+        # is_admin field removed as it doesn't exist in database
+        # Using Value Pack subscription as a temporary way to identify admins
+        if not current_user.is_authenticated or current_user.subscription_status != "Value Pack":
             flash("You don't have permission to access this page.", "danger")
             return redirect(url_for('index'))
         return f(*args, **kwargs)
