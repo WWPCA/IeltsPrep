@@ -194,76 +194,8 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             logging.error("Stripe API key not found. Cannot create checkout session.")
             raise ValueError("Stripe API key is required")
         
-        # Create a product
-        product = create_or_get_product_for_purchase(product_name, description)
-        
-        # Create a price (convert price from dollars to cents)
+        # Create a simple price-based checkout
         price_in_cents = int(price * 100)
-        price_obj = create_or_get_price_for_purchase(
-            product.id,
-            price_in_cents,
-            product_name.lower().replace(' ', '_'),
-            1,  # tests
-            30  # days
-        )
-        
-        # Use only 'card' payment method to avoid compatibility issues
-        payment_method_types = ['card']
-        
-        # Add region-specific payment methods
-        # These are the payment methods supported by Stripe
-        region_payment_mapping = {
-            # East Asia
-            'CN': ['alipay', 'wechat_pay'],
-            'JP': ['konbini', 'paypay', 'jcb'],
-            'KR': ['kakaopay', 'naver_pay'],
-            
-            # Southeast Asia
-            'MY': ['grabpay', 'fpx', 'boost', 'touch_n_go'],
-            'TH': ['promptpay', 'truemoney'],
-            'ID': ['dana', 'ovo', 'gopay', 'linkaja'],
-            'PH': ['gcash', 'paymaya'],
-            'SG': ['grabpay', 'paynow'],
-            'VN': ['momo', 'zalopay', 'vnpay'],
-            
-            # South Asia
-            'IN': ['upi', 'paytm', 'netbanking', 'amazon_pay', 'phonepe'],
-            'PK': ['easypaisa', 'jazzcash'],
-            'BD': ['bkash', 'rocket', 'nagad'],
-            'NP': ['esewa', 'khalti'],
-            
-            # Latin America
-            'BR': ['boleto', 'pix', 'mercado_pago'],
-            'MX': ['oxxo', 'spei', 'mercado_pago'],
-            
-            # Middle East
-            'AE': ['benefit', 'apple_pay'],
-            'SA': ['stcpay', 'mada'],
-            'EG': ['fawry', 'meeza'],
-            'TR': ['troy', 'papara', 'ininal'],
-            
-            # Africa
-            'KE': ['mpesa', 'airtel_money'],
-            'NG': ['paystack', 'flutterwave', 'opay'],
-            'ET': ['cbe_birr', 'telebirr'],
-            'TZ': ['mpesa', 'tigopesa', 'airtel_money'],
-            
-            # Oceania
-            'AU': ['afterpay', 'bpay', 'osko'],
-            'NZ': ['afterpay', 'poli'],
-            
-            # North America
-            'CA': ['interac'],
-            'US': ['affirm', 'us_bank_account', 'venmo'],
-            
-            # Europe
-            'GB': ['bacs_debit', 'ideal', 'sofort'],
-            'RU': ['yandex_pay', 'qiwi', 'sberbank']
-        }
-        
-        # If we have user_country, add the appropriate payment methods
-        if country_code and country_code in region_payment_mapping:
-            payment_method_types.extend(region_payment_mapping[country_code])
         
         metadata = {
             'product_name': product_name,
@@ -271,16 +203,23 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             'description': description
         }
         
-        # Create checkout session with simplified options (for better compatibility)
+        # Create simplified checkout session with minimal options
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],  # Simplify to card only for better compatibility
+            payment_method_types=['card'],
             line_items=[
                 {
-                    'price': price_obj.id,
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': product_name,
+                            'description': description,
+                        },
+                        'unit_amount': price_in_cents,
+                    },
                     'quantity': 1,
                 },
             ],
-            mode='payment',  # Using one-time payment instead of subscription
+            mode='payment',
             success_url=success_url,
             cancel_url=cancel_url,
             metadata=metadata
@@ -407,16 +346,23 @@ def create_stripe_checkout_speaking(package_type, country_code=None):
             'days': str(purchase_details['days'])
         }
         
-        # Create checkout session with simplified options (for better compatibility)
+        # Create checkout session with direct price_data for better compatibility
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],  # Simplify to card only for better compatibility
+            payment_method_types=['card'],
             line_items=[
                 {
-                    'price': price.id,
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': purchase_details['name'],
+                            'description': purchase_details['description'],
+                        },
+                        'unit_amount': purchase_details['price'],
+                    },
                     'quantity': 1,
                 },
             ],
-            mode='payment',  # Using one-time payment
+            mode='payment',
             success_url=f'https://{domain}/speaking-payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'https://{domain}/payment-cancel',
             metadata=metadata
@@ -566,12 +512,19 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             'days': str(purchase_details['days'])
         }
         
-        # Create checkout session with all payment options
+        # Create checkout session with direct price_data for better compatibility
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=payment_method_types,
+            payment_method_types=['card'],
             line_items=[
                 {
-                    'price': price.id,
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': purchase_details['name'],
+                            'description': purchase_details['description'],
+                        },
+                        'unit_amount': purchase_details['price'],
+                    },
                     'quantity': 1,
                 },
             ],
