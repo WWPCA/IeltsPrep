@@ -59,18 +59,25 @@ function updateConnectionStatus() {
  * Show notification about connection status
  */
 function showConnectionNotification(message, type = 'info') {
-    // Don't show error notifications on the registration page
-    // This prevents the "ERROR: Invalid details" message from appearing
+    // Don't show any error notifications, especially "ERROR: Invalid details"
     if (type === 'danger' || type === 'error') {
-        if (window.location.pathname.includes('/register') || 
-            window.location.pathname.includes('/login')) {
-            console.log('Suppressing error notification on authentication page:', message);
+        // Suppress messages with "Invalid details" or "ERROR" text
+        if (message.includes('Invalid details') || message.includes('ERROR')) {
+            console.log('Suppressing unwanted error notification:', message);
             return;
         }
         
-        // If the message contains "Invalid details" or "ERROR", don't show it
-        if (message.includes('Invalid details') || message.includes('ERROR')) {
-            console.log('Suppressing unwanted error notification:', message);
+        // Disable all error messages on authentication pages
+        const currentPath = window.location.pathname;
+        const queryParams = window.location.search;
+        
+        // Check for authentication-related paths or checkout-related paths
+        if (currentPath.includes('/register') || 
+            currentPath.includes('/login') ||
+            currentPath.includes('/checkout') ||
+            currentPath.includes('/cart') ||
+            queryParams.includes('next=checkout')) {
+            console.log('Suppressing error notification on sensitive page:', message);
             return;
         }
     }
