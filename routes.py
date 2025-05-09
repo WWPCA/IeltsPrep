@@ -250,34 +250,34 @@ def register():
             if cart_preference:
                 test_preference = cart_preference
         
-        # Create the new user
-        new_user = User(
-            username=email,  # Use email as the username
-            email=email,
-            region=region,
-            test_preference=test_preference  # From cart products or default
-            # target_score field removed as it doesn't exist in database
-        )
-        new_user.set_password(password)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        
-        # Log the user in automatically
-        login_user(new_user)
+        # Check if user with this email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            # If user exists, redirect to login
+            flash('An account with this email already exists. Please log in.', 'info')
+            return redirect(url_for('login'))
+            
+        # Store registration data in session (don't create account yet)
+        session['registration_data'] = {
+            'username': email,  # Use email as the username
+            'email': email,
+            'password': password,  # We'll hash this when creating the user
+            'region': region,
+            'test_preference': test_preference  # From cart products or default
+        }
         
         # Check if the user has items in their cart
         if 'cart' in session and session['cart']:
-            flash('Registration successful! Please complete your purchase.', 'success')
+            flash('Please complete your purchase to create your account.', 'info')
             return redirect(url_for('cart.checkout'))
         
         # Check if the user came from checkout (legacy flow)
         next_page = request.args.get('next')
         if next_page == 'checkout':
-            flash('Registration successful! Please complete your purchase.', 'success')
+            flash('Please complete your purchase to create your account.', 'info')
             return redirect(url_for('cart.checkout'))
         
-        flash('Registration successful! You can now browse assessment products.', 'success')
+        flash('Please purchase an assessment product to create your account.', 'info')
         return redirect(url_for('assessment_products_page'))
     
     return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
