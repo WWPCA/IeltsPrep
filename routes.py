@@ -112,6 +112,10 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
+        # If user is coming from checkout, redirect back there
+        next_page = request.args.get('next')
+        if next_page == 'checkout':
+            return redirect(url_for('cart.checkout'))
         return redirect(url_for('index'))
     
     class RegistrationForm:
@@ -147,24 +151,32 @@ def register():
             flash('Email already exists! Please login or use a different email address.', 'danger')
             return render_template('register.html', title='Register', form=form)
         
-        test_preference = request.form.get('test_preference', 'academic')
-        
+        # We'll determine test_preference from the product purchase
+        # For now, set a default value (will be updated during payment processing)
         new_user = User(
             username=email,  # Use email as the username
             email=email,
             region=region,
-            test_preference=test_preference,
-            target_score='7.0'  # Use default value since field was removed
+            test_preference='academic',  # Default value, will be updated after purchase
+            target_score='7.0'  # Default value
         )
         new_user.set_password(password)
         
         db.session.add(new_user)
         db.session.commit()
         
-        flash('Registration successful! You can now log in.', 'success')
-        return redirect(url_for('login'))
+        # Log the user in automatically
+        login_user(new_user)
+        
+        # Check if the user came from checkout
+        next_page = request.args.get('next')
+        if next_page == 'checkout':
+            flash('Registration successful! Please complete your purchase.', 'success')
+            return redirect(url_for('cart.checkout'))
+        
+        flash('Registration successful! You can now browse assessment products.', 'success')
+        return redirect(url_for('assessment_products_page'))
     
-    # Country selection has been removed
     return render_template('register.html', title='Register', form=form)
 
 @app.route('/logout')

@@ -49,6 +49,15 @@ def clear_cart():
 @cart_bp.route('/checkout')
 def checkout():
     """Process the checkout for all items in the cart."""
+    from flask_login import current_user
+    
+    # Check if user is logged in
+    if not current_user.is_authenticated:
+        # Save cart in session for after registration
+        session['pending_checkout'] = True
+        flash('Please register or log in to complete your purchase.', 'info')
+        return redirect(url_for('register', next='checkout'))
+    
     # Get cart items
     cart_items = cart.get_cart_items()
     
