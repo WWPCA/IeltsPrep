@@ -190,6 +190,8 @@
         <script src="{{ url_for('static', filename='js/practice.js') }}"></script>
     {% elif request.path.startswith('/speaking') %}
         <script src="{{ url_for('static', filename='js/speaking.js') }}"></script>
+    {% elif request.path.startswith('/test-structure') %}
+        <script src="{{ url_for('static', filename='js/test-structure.js') }}?v={{ cache_buster }}"></script>
     {% endif %}
     
     <!-- Additional Scripts -->
