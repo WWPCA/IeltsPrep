@@ -2,14 +2,16 @@
 
 {% block head %}
 {{ super() }}
+<!-- Load error suppressor script manually with the highest priority -->
+<script src="{{ url_for('static', filename='js/error_suppressor.js') }}?v={{ cache_buster }}"></script>
 <script>
-  // Aggressive error cleanup to handle /register?next=checkout issues
+  // Additional aggressive error cleanup specifically for register page with checkout param
   (function() {
     function aggressiveErrorCleanup() {
       // Handle fixed-position error messages
       document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
-          console.log("Removing error element:", el.textContent);
+          console.log("Register page - Removing error element:", el.textContent);
           el.remove();
         }
       });
@@ -18,7 +20,25 @@
       document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
           if (!el.closest('.password-feedback') && !el.closest('.confirm-feedback')) {
-            console.log("Removing error alert:", el.textContent);
+            console.log("Register page - Removing error alert:", el.textContent);
+            el.remove();
+          }
+        }
+      });
+      
+      // Handle any toast messages (which often appear at the bottom of the page)
+      document.querySelectorAll('div[style*="bottom:"], div[style*="bottom: "]').forEach(function(el) {
+        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+          console.log("Register page - Removing toast error:", el.textContent);
+          el.remove();
+        }
+      });
+      
+      // Handle any alert messages
+      document.querySelectorAll('.alert').forEach(function(el) {
+        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+          if (!el.closest('.password-feedback') && !el.closest('.confirm-feedback') && !el.classList.contains('alert-info')) {
+            console.log("Register page - Removing alert:", el.textContent);
             el.remove();
           }
         }
@@ -32,11 +52,11 @@
     document.addEventListener('DOMContentLoaded', function() {
       aggressiveErrorCleanup();
       // Also run cleanup periodically
-      setInterval(aggressiveErrorCleanup, 300);
+      setInterval(aggressiveErrorCleanup, 100); // Faster interval (100ms)
     });
     
     // Run at regular intervals anyway
-    setInterval(aggressiveErrorCleanup, 300);
+    setInterval(aggressiveErrorCleanup, 100); // Faster interval (100ms)
   })();
 </script>
 {% endblock %}
