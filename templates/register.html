@@ -1,5 +1,29 @@
 {% extends "layout.html" %}
 
+{% block scripts %}
+<script>
+    // This function runs when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the country from the server if available
+        const detectedCountry = "{{ ip_country_name|default('') }}";
+        
+        if (detectedCountry) {
+            // Find the country dropdown
+            const countrySelect = document.getElementById('region');
+            
+            // Look for the option that matches the detected country
+            for (let i = 0; i < countrySelect.options.length; i++) {
+                if (countrySelect.options[i].text === detectedCountry || 
+                    countrySelect.options[i].value === detectedCountry) {
+                    countrySelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
@@ -42,6 +66,7 @@
                         
                         <div class="form-group mb-3">
                             <label for="region" class="form-label">Country <span class="text-danger">*</span></label>
+                            <small class="form-text text-muted d-block mb-1">Your country is auto-detected from your IP address but you can change it if needed.</small>
                             <select class="form-select" id="region" name="region">
                                 <option value="Afghanistan">Afghanistan</option>
                                 <option value="Argentina">Argentina</option>
