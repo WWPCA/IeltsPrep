@@ -40,19 +40,10 @@ class User(UserMixin, db.Model):
     # Store completed tests as JSON string
     _completed_tests = db.Column(db.Text, default='[]')
     
-    # DISABLED: Password history tracking temporarily disabled due to missing column
-    # _password_history = db.Column(db.Text, default='[]')
+    # Store password history as JSON string (stores hashed passwords only)
+    _password_history = db.Column(db.Text, default='[]')
     
     def set_password(self, password):
-        # Temporarily disable password history tracking
-        # to prevent database errors with missing column
-        
-        # Set the new password directly without checking history
-        self.password_hash = generate_password_hash(password)
-        
-        # NOTE: Password history tracking is disabled until database is updated
-        # The commented code below represents the full functionality
-        """
         # Save current password to history if it exists
         if self.password_hash:
             history = json.loads(self._password_history) if self._password_history else []
@@ -64,7 +55,9 @@ class User(UserMixin, db.Model):
             if len(history) > 5:
                 history = history[-5:]
             self._password_history = json.dumps(history)
-        """
+            
+        # Set the new password
+        self.password_hash = generate_password_hash(password)
         
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
