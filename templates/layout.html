@@ -73,6 +73,22 @@
             flex-direction: column;
             min-height: 260px;
         }
+        
+        /* Header button styling */
+        .main-nav .btn {
+            padding: 0.25rem 0.75rem;
+            margin-left: 0.5rem;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 767px) {
+            .main-nav .btn {
+                display: block;
+                margin: 0.5rem 0;
+                text-align: center;
+            }
+        }
     </style>
     {% block styles %}{% endblock %}
     
@@ -111,11 +127,11 @@
                         {% endif %}
                     </a></li>
                     {% if current_user.is_authenticated %}
-                        <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                        <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> My Profile</a></li>
+                        <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     {% else %}
-                        <li><a href="{{ url_for('login') }}">Login</a></li>
-                        <li><a href="{{ url_for('register') }}">Register</a></li>
+                        <li><a href="{{ url_for('cart.checkout') }}" class="btn btn-sm btn-primary text-white"><i class="fas fa-user-plus"></i> Sign Up & Purchase</a></li>
+                        <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
                     {% endif %}
                 </ul>
             </nav>
