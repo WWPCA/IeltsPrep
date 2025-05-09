@@ -271,9 +271,9 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             'description': description
         }
         
-        # Create checkout session with all payment options
+        # Create checkout session with simplified options (for better compatibility)
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=payment_method_types,
+            payment_method_types=['card'],  # Simplify to card only for better compatibility
             line_items=[
                 {
                     'price': price_obj.id,
@@ -407,9 +407,9 @@ def create_stripe_checkout_speaking(package_type, country_code=None):
             'days': str(purchase_details['days'])
         }
         
-        # Create checkout session with all payment options
+        # Create checkout session with simplified options (for better compatibility)
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=payment_method_types,
+            payment_method_types=['card'],  # Simplify to card only for better compatibility
             line_items=[
                 {
                     'price': price.id,
