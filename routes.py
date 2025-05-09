@@ -94,6 +94,20 @@ def login():
         password = request.form.get('password')
         remember = 'remember' in request.form
         
+        # Verify reCAPTCHA
+        recaptcha_token = request.form.get('g-recaptcha-response')
+        if not recaptcha_token:
+            flash('Please verify that you are not a robot.', 'danger')
+            return render_template('login.html', title='Login')
+            
+        # Verify the token with Google
+        recaptcha_result = recaptcha_v3.verify(response=recaptcha_token, action='login')
+        if not recaptcha_result['success']:
+            # For security, don't reveal specific failure reason
+            flash('Security verification failed. Please try again.', 'danger')
+            logging.warning(f"reCAPTCHA verification failed during login: {recaptcha_result.get('error', 'unknown reason')}")
+            return render_template('login.html', title='Login')
+        
         if not email or not password:
             flash('Please provide both email and password.', 'danger')
             return render_template('login.html', title='Login')
