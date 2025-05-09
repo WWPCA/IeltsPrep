@@ -283,7 +283,14 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             mode='payment',  # Using one-time payment instead of subscription
             success_url=success_url,
             cancel_url=cancel_url,
-            metadata=metadata
+            metadata=metadata,
+            # Add a back button to Stripe's checkout page
+            custom_text={
+                'submit': 'Pay Now',
+                'terms_of_service_acceptance': 'I agree to the terms of service',
+                'after_submit': 'Your payment is being processed',
+                'back_button': 'Return to AI Learning Hub'
+            }
         )
         
         # Format the return value to match what add_assessment_routes.py expects
@@ -419,7 +426,14 @@ def create_stripe_checkout_speaking(package_type, country_code=None):
             mode='payment',  # Using one-time payment
             success_url=f'https://{domain}/speaking-payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'https://{domain}/payment-cancel',
-            metadata=metadata
+            metadata=metadata,
+            # Add a back button to Stripe's checkout page
+            custom_text={
+                'submit': 'Pay Now',
+                'terms_of_service_acceptance': 'I agree to the terms of service',
+                'after_submit': 'Your payment is being processed',
+                'back_button': 'Return to AI Learning Hub'
+            }
         )
         
         return {
@@ -578,7 +592,14 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             mode='payment',  # Using one-time payment
             success_url=f'https://{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'https://{domain}/payment-cancel',
-            metadata=metadata
+            metadata=metadata,
+            # Add a back button to Stripe's checkout page
+            custom_text={
+                'submit': 'Pay Now',
+                'terms_of_service_acceptance': 'I agree to the terms of service',
+                'after_submit': 'Your payment is being processed',
+                'back_button': 'Return to AI Learning Hub'
+            }
         )
         
         return {
