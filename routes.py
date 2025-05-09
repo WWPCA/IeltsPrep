@@ -14,6 +14,7 @@ from functools import wraps
 from app import app, db
 from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress, UserTestAssignment
 from utils import get_user_region, get_translation, compress_audio
+from geoip_services import get_country_from_ip
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import test_assignment_service
 from openai_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
@@ -125,7 +126,9 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        region = request.form.get('region', get_user_region())
+        # Get region from form, or auto-detect from IP address
+        ip_country_code, ip_country_name = get_country_from_ip()
+        region = request.form.get('region', ip_country_name or get_user_region())
         
         # Check if terms were agreed to
         if not request.form.get('agree_terms'):
