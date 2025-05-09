@@ -2044,7 +2044,7 @@ def payment_cancel():
     if 'registration_data' in session:
         app.logger.info(f"Cleaning up registration data for cancelled payment: {session['registration_data'].get('email')}")
         session.pop('registration_data')
-        flash('Registration process has been cancelled. Please try again when you're ready to complete your purchase.', 'info')
+        flash('Registration process has been cancelled. Please try again when you are ready to complete your purchase.', 'info')
     
     # Check if this was a cart checkout
     if 'cart' in session and session['cart']:
