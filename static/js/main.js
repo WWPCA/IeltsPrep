@@ -59,6 +59,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
     
+    // Clean up any error notifications that might be showing on page load
+    // This addresses the "ERROR: Invalid details" message appearing in the bottom right
+    const errorNotifications = document.querySelectorAll('.alert-danger, .alert-error');
+    errorNotifications.forEach(function(notification) {
+        if (notification.textContent.includes('ERROR') || notification.textContent.includes('Invalid details')) {
+            notification.remove();
+        }
+    });
+    
+    // Also remove any fixed-position notifications in the bottom-right that might be error messages
+    const fixedNotifications = document.querySelectorAll('div[style*="position: fixed"][style*="bottom"][style*="right"]');
+    fixedNotifications.forEach(function(notification) {
+        if (notification.textContent.includes('ERROR') || notification.textContent.includes('Invalid details')) {
+            notification.remove();
+        }
+    });
+    
     // Check device capabilities
     checkDeviceCapabilities();
     

@@ -996,6 +996,16 @@ body.menu-open {
   display: block;
 }
 
+/* Error message fix - remove unwanted error messages */
+div.error-notification {
+  display: none !important;
+}
+
+/* Fix for the "ERROR: Invalid details" message that appears in the bottom-right corner */
+div[style*="position:fixed"][style*="bottom:"][style*="right:"] {
+  display: none !important;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }

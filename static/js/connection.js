@@ -59,6 +59,22 @@ function updateConnectionStatus() {
  * Show notification about connection status
  */
 function showConnectionNotification(message, type = 'info') {
+    // Don't show error notifications on the registration page
+    // This prevents the "ERROR: Invalid details" message from appearing
+    if (type === 'danger' || type === 'error') {
+        if (window.location.pathname.includes('/register') || 
+            window.location.pathname.includes('/login')) {
+            console.log('Suppressing error notification on authentication page:', message);
+            return;
+        }
+        
+        // If the message contains "Invalid details" or "ERROR", don't show it
+        if (message.includes('Invalid details') || message.includes('ERROR')) {
+            console.log('Suppressing unwanted error notification:', message);
+            return;
+        }
+    }
+    
     // Create notification if it doesn't exist
     let notification = document.getElementById('connection-notification');
     
