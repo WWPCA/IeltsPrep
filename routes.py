@@ -166,9 +166,30 @@ def register():
             flash('Passwords do not match!', 'danger')
             return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
             
-        # Validate password length
+        # Validate password length and complexity
+        import re
         if len(password) < 8:
             flash('Password must be at least 8 characters long.', 'danger')
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
+        
+        # Check for uppercase letters
+        if not re.search(r'[A-Z]', password):
+            flash('Password must contain at least one uppercase letter.', 'danger')
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
+            
+        # Check for lowercase letters
+        if not re.search(r'[a-z]', password):
+            flash('Password must contain at least one lowercase letter.', 'danger')
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
+            
+        # Check for numbers
+        if not re.search(r'\d', password):
+            flash('Password must contain at least one number.', 'danger')
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
+            
+        # Check for special characters
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+            flash('Password must contain at least one special character.', 'danger')
             return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
         
         try:
@@ -262,9 +283,30 @@ def change_password():
             flash('New passwords do not match.', 'danger')
             return render_template('change_password.html', title='Change Password')
             
-        # Check password length
+        # Validate password length and complexity
+        import re
         if len(new_password) < 8:
             flash('Password must be at least 8 characters long.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Check for uppercase letters
+        if not re.search(r'[A-Z]', new_password):
+            flash('Password must contain at least one uppercase letter.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Check for lowercase letters
+        if not re.search(r'[a-z]', new_password):
+            flash('Password must contain at least one lowercase letter.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Check for numbers
+        if not re.search(r'\d', new_password):
+            flash('Password must contain at least one number.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
+        # Check for special characters
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', new_password):
+            flash('Password must contain at least one special character.', 'danger')
             return render_template('change_password.html', title='Change Password')
             
         # Update password
