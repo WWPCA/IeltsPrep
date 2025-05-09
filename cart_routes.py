@@ -7,6 +7,7 @@ from flask import Blueprint, redirect, url_for, render_template, flash, session,
 from datetime import datetime
 
 import cart
+from models import User, db
 from payment_services import create_stripe_checkout_session
 
 cart_bp = Blueprint('cart', __name__)
@@ -48,15 +49,54 @@ def clear_cart():
 
 @cart_bp.route('/checkout')
 def checkout():
-    """Process the checkout for all items in the cart."""
+    """Start the checkout process by checking user status."""
     from flask_login import current_user
     
-    # Check if user is logged in
-    if not current_user.is_authenticated:
-        # Save cart in session for after registration
+    # Get cart items first
+    cart_items = cart.get_cart_items()
+    
+    if not cart_items:
+        flash('Your cart is empty.', 'warning')
+        return redirect(url_for('cart.view_cart'))
+    
+    # If the user is already logged in, proceed directly to payment
+    if current_user.is_authenticated:
+        return create_checkout_session()
+    
+    # If the user is not logged in, show the user status check page
+    cart_total = cart.get_cart_total()
+    return render_template(
+        'user_status_check.html',
+        title='Complete Your Purchase',
+        cart_items=cart_items,
+        cart_total=cart_total
+    )
+
+@cart_bp.route('/check-email', methods=['POST'])
+def check_email():
+    """Check if an email exists and direct user accordingly."""
+    email = request.form.get('email')
+    if not email:
+        flash('Please provide an email address.', 'danger')
+        return redirect(url_for('cart.checkout'))
+    
+    # Check if the email already exists
+    existing_user = User.query.filter_by(email=email).first()
+    
+    if existing_user:
+        # User exists, direct to login
+        flash('An account with this email already exists. Please log in to continue.', 'info')
         session['pending_checkout'] = True
-        flash('Please register or log in to complete your purchase.', 'info')
+        return redirect(url_for('login', next='checkout'))
+    else:
+        # New user, direct to registration with email pre-filled
+        session['pending_checkout'] = True
+        session['registration_email'] = email
         return redirect(url_for('register', next='checkout'))
+
+def create_checkout_session():
+    """Create a Stripe checkout session for the current cart."""
+    from flask_login import current_user
     
     # Get cart items
     cart_items = cart.get_cart_items()

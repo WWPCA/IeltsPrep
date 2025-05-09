@@ -140,6 +140,11 @@ def register():
 
     form = RegistrationForm()
     
+    # Get pre-filled email from session if available
+    pre_filled_email = None
+    if 'registration_email' in session:
+        pre_filled_email = session.pop('registration_email')
+    
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -150,26 +155,26 @@ def register():
         # Check if age verification was confirmed
         if not request.form.get('age_verification'):
             flash('You must confirm that you are at least 16 years of age to register.', 'danger')
-            return render_template('register.html', title='Register', form=form)
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
             
         # Check if terms were agreed to
         if not request.form.get('agree_terms'):
             flash('You must agree to the Terms of Service and Privacy Policy to register.', 'danger')
-            return render_template('register.html', title='Register', form=form)
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
         
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
-            return render_template('register.html', title='Register', form=form)
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
             
         # Validate password length
         if len(password) < 8:
             flash('Password must be at least 8 characters long.', 'danger')
-            return render_template('register.html', title='Register', form=form)
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
         
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Email already exists! Please login or use a different email address.', 'danger')
-            return render_template('register.html', title='Register', form=form)
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
         
         # Determine initial test preference from cart products
         test_preference = 'academic'  # Default value
@@ -207,7 +212,7 @@ def register():
         flash('Registration successful! You can now browse assessment products.', 'success')
         return redirect(url_for('assessment_products_page'))
     
-    return render_template('register.html', title='Register', form=form)
+    return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
 
 @app.route('/logout')
 def logout():

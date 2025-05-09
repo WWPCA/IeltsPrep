@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4 mt-md-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">Complete Your Purchase</h1>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <p>Before proceeding with checkout, please let us know if you already have an account or if you're new to IELTS GenAI Prep.</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h3 class="h5 mb-3">I'm a New User</h3>
+                                    <p>Create a new account to access your assessments after purchase.</p>
+                                    <form id="email-check-form" method="POST" action="{{ url_for('cart.check_email') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="form-group mb-3">
+                                            <label for="email" class="form-label">Enter your email</label>
+                                            <input type="email" class="form-control" id="email" name="email" required placeholder="your.email@example.com">
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary">Continue</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h3 class="h5 mb-3">I Have an Account</h3>
+                                    <p>Log in to your existing account to complete your purchase.</p>
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('login', next='checkout') }}" class="btn btn-success">Log In & Continue</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5>Order Summary</h5>
+                        <ul class="list-group mb-3">
+                            {% for item in cart_items %}
+                            <li class="list-group-item d-flex justify-content-between lh-sm">
+                                <div>
+                                    <h6 class="my-0">{{ item.name }}</h6>
+                                    <small class="text-muted">{{ item.description }}</small>
+                                </div>
+                                <span class="text-muted">${{ item.price }}</span>
+                            </li>
+                            {% endfor %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Total</span>
+                                <strong>${{ cart_total }}</strong>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('cart.view_cart') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
