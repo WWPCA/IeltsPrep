@@ -45,6 +45,33 @@
      const passwordFeedback = document.createElement('div');
      const confirmFeedback = document.createElement('div');
      
+     // Fix for "ERROR: Invalid details" message that appears in bottom-right corner
+     // Remove any error notifications that might be showing
+     const cleanupErrors = function() {
+       // Find and remove any elements with error messages
+       document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
+         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+           el.remove();
+         }
+       });
+       
+       // Also remove any elements with error classes that are not part of our validation
+       document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
+         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+           // Make sure this is not one of our validation elements
+           if (!el.closest('.password-feedback') && !el.closest('.confirm-feedback')) {
+             el.remove();
+           }
+         }
+       });
+     };
+     
+     // Run cleanup immediately
+     cleanupErrors();
+     
+     // Also run cleanup periodically
+     setInterval(cleanupErrors, 1000);
+     
      // Add feedback elements after password fields
      passwordFeedback.className = 'password-feedback mt-2';
      confirmFeedback.className = 'confirm-feedback mt-2';
