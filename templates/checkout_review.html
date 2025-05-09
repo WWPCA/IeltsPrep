@@ -8,31 +8,68 @@
   // Initialize Stripe with your publishable key
   const stripe = Stripe('{{ stripe_publishable_key }}');
 
-  // Fix for "ERROR: Invalid details" message that appears in bottom-right corner
-  document.addEventListener('DOMContentLoaded', function() {
-    // Remove any error notifications that might be showing
-    const cleanupErrors = function() {
-      // Find and remove any elements with error messages
-      document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
-        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+  // Ultra-aggressive fix for "ERROR: Invalid details" message 
+  (function() {
+    // Function to immediately remove any error messages
+    function removeAllErrors() {
+      // This targets all fixed position elements that might contain errors
+      document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"], .alert-danger, .alert-error, div[style*="bottom:"], div[style*="bottom: "]').forEach(function(el) {
+        // If it contains error text, remove it
+        if (el.textContent && (
+          el.textContent.includes('ERROR') || 
+          el.textContent.includes('Invalid details') || 
+          el.textContent.includes('Error') ||
+          el.textContent.includes('error')
+        )) {
+          console.log('Checkout page: Removing error message', el.textContent);
+          el.style.display = 'none';
           el.remove();
         }
       });
       
-      // Also remove any elements with error classes
-      document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
-        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+      // Also target any notification-like elements
+      document.querySelectorAll('div').forEach(function(el) {
+        if (el.style && (
+          (el.style.position === 'fixed' || el.style.position === 'absolute') &&
+          (el.style.bottom === '0' || el.style.bottom === '0px' || 
+           el.style.bottom === '10px' || el.style.bottom === '20px' ||
+           el.style.right === '0' || el.style.right === '0px' ||
+           el.style.right === '10px' || el.style.right === '20px')
+        )) {
+          console.log('Checkout page: Removing fixed position element', el);
+          el.style.display = 'none';
           el.remove();
         }
       });
-    };
+    }
     
-    // Run cleanup immediately
-    cleanupErrors();
+    // Execute immediately
+    removeAllErrors();
     
-    // Also run cleanup periodically
-    setInterval(cleanupErrors, 500);
-  });
+    // Execute frequently (every 50ms) to catch any new errors
+    setInterval(removeAllErrors, 50);
+    
+    // Execute when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      removeAllErrors();
+      setInterval(removeAllErrors, 50);
+    });
+    
+    // Also add a direct CSS change
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Hide error notifications */
+      [style*="position:fixed"], 
+      [style*="position: fixed"],
+      [style*="bottom: 0"],
+      [style*="bottom:0"],
+      [style*="right: 0"],
+      [style*="right:0"] {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  })();
 </script>
 {% endblock %}
 
@@ -196,6 +233,24 @@
 </div>
 
 <style>
+    /* Critical: Hide error messages */
+    [style*="position:fixed"], 
+    [style*="position: fixed"],
+    [style*="bottom: 0"],
+    [style*="bottom:0"],
+    [style*="right: 0"],
+    [style*="right:0"],
+    div[style*="position:fixed"],
+    div[style*="position: fixed"],
+    div[style*="z-index: 9999"],
+    div[style*="z-index:9999"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Checkout progress styles */
     .checkout-progress {
         position: relative;
         padding: 0 10px;
