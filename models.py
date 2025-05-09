@@ -40,11 +40,39 @@ class User(UserMixin, db.Model):
     # Store completed tests as JSON string
     _completed_tests = db.Column(db.Text, default='[]')
     
+    # Store password history as JSON string (stores hashed passwords only)
+    _password_history = db.Column(db.Text, default='[]')
+    
     def set_password(self, password):
+        # Save current password to history if it exists
+        if self.password_hash:
+            history = json.loads(self._password_history) if self._password_history else []
+            history.append({
+                'hash': self.password_hash,
+                'date': datetime.utcnow().isoformat()
+            })
+            # Keep only the last 5 passwords in history
+            if len(history) > 5:
+                history = history[-5:]
+            self._password_history = json.dumps(history)
+            
+        # Set the new password
         self.password_hash = generate_password_hash(password)
         
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+        
+    def is_password_reused(self, password):
+        """Check if the password has been used before"""
+        if not self._password_history:
+            return False
+            
+        history = json.loads(self._password_history)
+        for item in history:
+            if check_password_hash(item['hash'], password):
+                return True
+                
+        return False
     
     @property
     def test_history(self):

@@ -309,6 +309,11 @@ def change_password():
             flash('Password must contain at least one special character.', 'danger')
             return render_template('change_password.html', title='Change Password')
             
+        # Check if new password is the same as any previous passwords
+        if current_user.is_password_reused(new_password):
+            flash('You cannot reuse a previous password. Please choose a different password.', 'danger')
+            return render_template('change_password.html', title='Change Password')
+            
         # Update password
         current_user.set_password(new_password)
         db.session.commit()
