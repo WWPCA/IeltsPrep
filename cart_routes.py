@@ -80,19 +80,25 @@ def check_email():
         flash('Please provide an email address.', 'danger')
         return redirect(url_for('cart.checkout'))
     
-    # Check if the email already exists
-    existing_user = User.query.filter_by(email=email).first()
-    
-    if existing_user:
-        # User exists, direct to login
-        flash('An account with this email already exists. Please log in to continue.', 'info')
-        session['pending_checkout'] = True
-        return redirect(url_for('login', next='checkout'))
-    else:
-        # New user, direct to registration with email pre-filled
-        session['pending_checkout'] = True
-        session['registration_email'] = email
-        return redirect(url_for('register', next='checkout'))
+    try:
+        # Check if the email already exists - only query the needed columns
+        existing_user = db.session.query(User.id).filter_by(email=email).first()
+        
+        if existing_user:
+            # User exists, direct to login
+            flash('An account with this email already exists. Please log in to continue.', 'info')
+            session['pending_checkout'] = True
+            return redirect(url_for('login', next='checkout'))
+        else:
+            # New user, direct to registration with email pre-filled
+            session['pending_checkout'] = True
+            session['registration_email'] = email
+            return redirect(url_for('register', next='checkout'))
+    except Exception as e:
+        # Log the error (in a production environment)
+        print(f"Error checking email: {str(e)}")
+        flash('An error occurred while processing your request. Please try again.', 'danger')
+        return redirect(url_for('cart.checkout'))
 
 def create_checkout_session():
     """Create a Stripe checkout session for the current cart."""

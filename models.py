@@ -13,7 +13,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    phone = db.Column(db.String(30), nullable=True)  # Optional phone number
+    # Phone field removed as it doesn't exist in database
     region = db.Column(db.String(50), nullable=True)
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
     subscription_status = db.Column(db.String(20), default="none")
