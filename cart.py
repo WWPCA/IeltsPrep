@@ -132,3 +132,37 @@ def get_cart_count():
     """
     initialize_cart()
     return len(session['cart'])
+
+
+def determine_test_preference(product_ids):
+    """
+    Determine the test preference based on the products in the cart.
+    
+    Args:
+        product_ids (list): List of product IDs in the cart.
+        
+    Returns:
+        str: 'academic', 'general', or None if can't determine.
+    """
+    if not product_ids:
+        return None
+    
+    # Count the number of academic and general products
+    academic_count = 0
+    general_count = 0
+    
+    for product_id in product_ids:
+        if product_id.startswith('academic'):
+            academic_count += 1
+        elif product_id.startswith('general'):
+            general_count += 1
+    
+    # Return the test type with the most products
+    if academic_count > general_count:
+        return 'academic'
+    elif general_count > academic_count:
+        return 'general'
+    elif academic_count > 0:  # If equal but not zero
+        return 'academic'  # Default to academic
+    
+    return None  # Can't determine

@@ -1712,8 +1712,21 @@ def stripe_checkout():
 def payment_success():
     """Handle successful payments from Stripe"""
     package = request.args.get('package')
-    test_preference = request.args.get('test_preference', 'academic')
     session_id = request.args.get('session_id') or session.get('checkout_session_id')
+    
+    # Check if this is a cart checkout
+    if 'checkout' in session and session['checkout'].get('product_ids'):
+        # Get the product IDs from the cart
+        from cart import determine_test_preference
+        product_ids = session['checkout']['product_ids']
+        
+        # Determine test preference from the cart items
+        test_preference = determine_test_preference(product_ids)
+        if not test_preference:
+            test_preference = 'academic'  # Default if can't determine
+    else:
+        # Fallback to URL parameter
+        test_preference = request.args.get('test_preference', 'academic')
     
     if not current_user.is_authenticated:
         # Store details in session and redirect to login
@@ -1811,6 +1824,28 @@ def payment_success():
     else:
         flash('Invalid package selected.', 'danger')
     
+    # Process cart checkout if available
+    if 'checkout' in session and session['checkout'].get('product_ids') and not session['checkout'].get('processed', False):
+        from add_assessment_routes import handle_assessment_product_payment
+        
+        # Process each product in the cart
+        product_ids = session['checkout']['product_ids']
+        for product_id in product_ids:
+            try:
+                handle_assessment_product_payment(current_user, product_id)
+                app.logger.info(f"Processed cart product: {product_id} for user {current_user.id}")
+            except Exception as e:
+                app.logger.error(f"Error processing cart product {product_id}: {str(e)}")
+        
+        # Mark checkout as processed
+        session['checkout']['processed'] = True
+        
+        # Clear the cart after successful checkout
+        from cart import clear_cart
+        clear_cart()
+        
+        flash('Thank you for your purchase! Your items have been added to your account.', 'success')
+    
     # Clean up session variables
     if 'checkout_session_id' in session:
         session.pop('checkout_session_id')
@@ -1820,6 +1855,8 @@ def payment_success():
         session.pop('checkout_test_preference')
     if 'pending_payment' in session:
         session.pop('pending_payment')
+    if 'checkout' in session:
+        session.pop('checkout')
     
     return render_template('payment_success.html', 
                           title='Payment Successful',
@@ -1830,7 +1867,7 @@ def payment_success():
 @app.route('/payment-cancel')
 def payment_cancel():
     """Handle cancelled Stripe checkout sessions"""
-    flash('Payment was cancelled. Your subscription has not been processed.', 'info')
+    flash('Payment was cancelled. Your purchase has not been processed.', 'info')
     
     # Clean up session variables
     if 'checkout_session_id' in session:
@@ -1839,8 +1876,14 @@ def payment_cancel():
         session.pop('checkout_package')
     if 'checkout_test_preference' in session:
         session.pop('checkout_test_preference')
+    if 'checkout' in session:
+        session.pop('checkout')
     
-    return redirect(url_for('assessment_products_page'))
+    # Check if this was a cart checkout
+    if 'cart' in session and session['cart']:
+        return redirect(url_for('cart.view_cart'))
+    else:
+        return redirect(url_for('assessment_products_page'))
 
 @app.route('/device-specs')
 def device_specs():
