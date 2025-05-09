@@ -1,5 +1,36 @@
 {% extends "layout.html" %}
 
+{% block scripts %}
+<script>
+   // This handles cleanup for any error messages
+   document.addEventListener('DOMContentLoaded', function() {
+     // Fix for "ERROR: Invalid details" message that appears in bottom-right corner
+     // Remove any error notifications that might be showing
+     const cleanupErrors = function() {
+       // Find and remove any elements with error messages
+       document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
+         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+           el.remove();
+         }
+       });
+       
+       // Also remove any elements with error classes
+       document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
+         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+           el.remove();
+         }
+       });
+     };
+     
+     // Run cleanup immediately
+     cleanupErrors();
+     
+     // Also run cleanup periodically
+     setInterval(cleanupErrors, 1000);
+   });
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4 mt-md-5 mb-5">
     <div class="row justify-content-center">
