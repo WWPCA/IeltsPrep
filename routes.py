@@ -125,9 +125,8 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        # Get region from form, or auto-detect from IP address
-        ip_country_code, ip_country_name = get_country_from_ip()
-        region = request.form.get('region', ip_country_name or get_user_region())
+        # Country selection has been removed, so we'll set a default value
+        region = "Unknown"
         
         # Check if terms were agreed to
         if not request.form.get('agree_terms'):
@@ -166,10 +165,8 @@ def register():
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('login'))
     
-    # Get country from IP for the template
-    ip_country_code, ip_country_name = get_country_from_ip()
-    return render_template('register.html', title='Register', form=form,
-                          ip_country_code=ip_country_code, ip_country_name=ip_country_name)
+    # Country selection has been removed
+    return render_template('register.html', title='Register', form=form)
 
 @app.route('/logout')
 def logout():
