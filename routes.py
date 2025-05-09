@@ -14,7 +14,6 @@ from functools import wraps
 from app import app, db
 from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress, UserTestAssignment
 from utils import get_user_region, get_translation, compress_audio
-from geoip_services import get_country_from_ip
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import test_assignment_service
 from openai_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
@@ -167,7 +166,10 @@ def register():
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('login'))
     
-    return render_template('register.html', title='Register', form=form)
+    # Get country from IP for the template
+    ip_country_code, ip_country_name = get_country_from_ip()
+    return render_template('register.html', title='Register', form=form,
+                          ip_country_code=ip_country_code, ip_country_name=ip_country_name)
 
 @app.route('/logout')
 def logout():
