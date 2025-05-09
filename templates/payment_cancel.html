@@ -41,8 +41,8 @@
                     </div>
                     
                     <div class="mt-4">
-                        <a href="{{ url_for('subscribe') }}" class="btn btn-primary me-3">
-                            <i class="fas fa-redo me-2"></i> Try Again
+                        <a href="{{ url_for('cart.view_cart') }}" class="btn btn-primary me-3">
+                            <i class="fas fa-shopping-cart me-2"></i> Return to Cart
                         </a>
                         <a href="{{ url_for('test_structure') }}" class="btn btn-outline-primary">
                             <i class="fas fa-book me-2"></i> Learn About IELTS
@@ -52,30 +52,31 @@
             </div>
             
             <div class="mt-5">
-                <h3>Still interested in IELTS AI Prep Premium?</h3>
-                <p>Our premium subscription offers significant advantages to help you achieve your target IELTS score.</p>
+                <h3>IELTS GenAI-Powered Testing & Assessment</h3>
+                <p>Our industry-leading GenAI assessment tools help you achieve your target IELTS score with personalized feedback.</p>
                 <div class="row mt-4">
                     <div class="col-md-6 mb-3">
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <i class="fas fa-clipboard-list fa-3x text-primary mb-3"></i>
                                 <h4>Test Packages</h4>
-                                <p>Access 3, 6, or 12 practice tests with detailed explanations</p>
+                                <p>Choose from 1, 2, or 4 test packages with TrueScore® assessment</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <div class="card h-100">
                             <div class="card-body text-center">
-                                <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Assessment" width="60" height="60" class="mb-3">
-                                <h4>AI Speaking Feedback</h4>
-                                <p>Get detailed assessment of your speaking skills</p>
+                                <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="GenAI Assessment" width="60" height="60" class="mb-3">
+                                <h4>Speaking Assessment</h4>
+                                <p>Get detailed Elaris® assessment of your speaking skills</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="mt-4">
-                    <a href="{{ url_for('subscribe') }}" class="btn btn-primary">View Subscription Plans</a>
+                    <a href="{{ url_for('cart.view_cart') }}" class="btn btn-primary">Return to Cart</a>
+                    <a href="{{ url_for('assessment_products') }}" class="btn btn-outline-primary ms-2">View Test Products</a>
                 </div>
             </div>
         </div>
