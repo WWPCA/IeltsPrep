@@ -210,7 +210,12 @@ def register():
         # Log the user in automatically
         login_user(new_user)
         
-        # Check if the user came from checkout
+        # Check if the user has items in their cart
+        if 'cart' in session and session['cart']:
+            flash('Registration successful! Please complete your purchase.', 'success')
+            return redirect(url_for('cart.checkout'))
+        
+        # Check if the user came from checkout (legacy flow)
         next_page = request.args.get('next')
         if next_page == 'checkout':
             flash('Registration successful! Please complete your purchase.', 'success')
