@@ -22,7 +22,7 @@ class User(UserMixin, db.Model):
     # but not used in UI
     preferred_language = db.Column(db.String(10), default="en")
     test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
-    target_score = db.Column(db.String(10), default="7.0")  # Target IELTS band score
+    # target_score field removed as it doesn't exist in database
     is_admin = db.Column(db.Boolean, default=False)  # Admin access flag
     
     # Study streak tracking

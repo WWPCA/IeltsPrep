@@ -171,9 +171,16 @@ def register():
             flash('Password must be at least 8 characters long.', 'danger')
             return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
         
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            flash('Email already exists! Please login or use a different email address.', 'danger')
+        try:
+            # Use safer query approach with only needed columns
+            existing_user = db.session.query(User.id).filter_by(email=email).first()
+            if existing_user:
+                flash('Email already exists! Please login or use a different email address.', 'danger')
+                return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
+        except Exception as e:
+            # Log the error
+            print(f"Error checking email in registration: {str(e)}")
+            flash('An error occurred during registration. Please try again.', 'danger')
             return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
         
         # Determine initial test preference from cart products
@@ -192,8 +199,8 @@ def register():
             username=email,  # Use email as the username
             email=email,
             region=region,
-            test_preference=test_preference,  # From cart products or default
-            target_score='7.0'  # Default value
+            test_preference=test_preference  # From cart products or default
+            # target_score field removed as it doesn't exist in database
         )
         new_user.set_password(password)
         
@@ -277,16 +284,18 @@ def forgot_password():
             flash('Please provide your email address.', 'danger')
             return render_template('forgot_password.html', title='Forgot Password')
             
-        # Check if user exists
-        user = User.query.filter_by(email=email).first()
-        
-        if user:
-            # For simplicity and security, we'll just show a success message
-            # In a production app, you'd generate a token and send a reset email
+        try:
+            # Check if user exists using safer query approach
+            user = db.session.query(User.id).filter_by(email=email).first()
+            
+            # For simplicity and security, always show the same success message
+            # regardless of whether the email exists
             flash('If an account exists with that email, a password reset link has been sent.', 'info')
             # TODO: Implement email sending functionality with reset token
-        else:
-            # Same message for security (don't reveal if email exists)
+        except Exception as e:
+            # Log the error
+            print(f"Error checking email in forgot password: {str(e)}")
+            # Same message for security (don't reveal database error)
             flash('If an account exists with that email, a password reset link has been sent.', 'info')
             
         return redirect(url_for('login'))
@@ -306,16 +315,18 @@ def forgot_username():
             flash('Please provide your email address.', 'danger')
             return render_template('forgot_username.html', title='Forgot Username')
             
-        # Check if user exists
-        user = User.query.filter_by(email=email).first()
-        
-        if user:
-            # For simplicity and security, we'll just show a success message
-            # In a production app, you'd send an email with the username
+        try:
+            # Check if user exists using safer query approach
+            user = db.session.query(User.id).filter_by(email=email).first()
+            
+            # For simplicity and security, always show the same success message
+            # regardless of whether the email exists
             flash('If an account exists with that email, your username has been sent.', 'info')
             # TODO: Implement email sending functionality
-        else:
-            # Same message for security (don't reveal if email exists)
+        except Exception as e:
+            # Log the error
+            print(f"Error checking email in forgot username: {str(e)}")
+            # Same message for security (don't reveal database error)
             flash('If an account exists with that email, your username has been sent.', 'info')
             
         return redirect(url_for('login'))
