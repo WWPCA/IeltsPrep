@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+   function onSubmit(token) {
+     document.getElementById("registration-form").submit();
+   }
+</script>
 {% endblock %}
 
 {% block content %}
@@ -16,8 +22,9 @@
                         <strong>Welcome to IELTS GenAI Prep!</strong> Our platform uses advanced Generative AI technology to provide personalized feedback and assessment for your IELTS practice.
                     </div>
 
-                    <form method="POST" action="{{ url_for('register') }}">
+                    <form method="POST" action="{{ url_for('register') }}" id="registration-form">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {{ recaptcha }}
                         
                         <div class="form-group mb-3">
                             <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
@@ -73,7 +80,11 @@
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">Create My Account</button>
+                            <button type="submit" class="btn btn-primary btn-lg g-recaptcha" 
+                                data-sitekey="{{ recaptcha_site_key }}" 
+                                data-callback="onSubmit"
+                                data-action="register">Create My Account</button>
+                            <p class="text-muted small mt-2">This site is protected by reCAPTCHA v3. <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.</p>
                         </div>
                     </form>
                 </div>

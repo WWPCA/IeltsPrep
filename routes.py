@@ -6,12 +6,13 @@ import base64
 import urllib
 import logging
 import random
+import requests
 from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, session, abort, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from app import app, db
+from app import app, db, recaptcha_v3
 from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress, UserTestAssignment
 from utils import get_user_region, get_translation, compress_audio
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
@@ -151,6 +152,26 @@ def register():
         confirm_password = request.form.get('confirm_password')
         # Country selection has been removed, so we'll set a default value
         region = "Unknown"
+        
+        # Verify reCAPTCHA
+        recaptcha_token = request.form.get('g-recaptcha-response')
+        if not recaptcha_token:
+            flash('Please verify that you are not a robot.', 'danger')
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
+            
+        # Verify the token with Google
+        recaptcha_result = recaptcha_v3.verify(response=recaptcha_token, action='register')
+        if not recaptcha_result['success']:
+            # For security, don't reveal specific failure reason
+            flash('Security verification failed. Please try again.', 'danger')
+            logging.warning(f"reCAPTCHA verification failed: {recaptcha_result.get('error', 'unknown reason')}")
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
+            
+        # If successful but score is too low, show a more specific message
+        if recaptcha_result.get('score', 0) < 0.3:  # Very low scores likely indicate bots
+            flash('Your verification score was too low. Please try again later or contact support if this persists.', 'danger')
+            logging.warning(f"Low reCAPTCHA score for registration: {recaptcha_result.get('score', 0)}")
+            return render_template('register.html', title='Register', form=form, pre_filled_email=pre_filled_email)
         
         # Check if age verification was confirmed
         if not request.form.get('age_verification'):
