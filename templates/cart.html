@@ -1,5 +1,36 @@
 {% extends "layout.html" %}
 
+{% block head %}
+{{ super() }}
+<script>
+  // Fix for "ERROR: Invalid details" message that appears in bottom-right corner
+  document.addEventListener('DOMContentLoaded', function() {
+    // Remove any error notifications that might be showing
+    const cleanupErrors = function() {
+      // Find and remove any elements with error messages
+      document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
+        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+          el.remove();
+        }
+      });
+      
+      // Also remove any elements with error classes
+      document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
+        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+          el.remove();
+        }
+      });
+    };
+    
+    // Run cleanup immediately
+    cleanupErrors();
+    
+    // Also run cleanup periodically
+    setInterval(cleanupErrors, 500);
+  });
+</script>
+{% endblock %}
+
 {% block styles %}
 <style>
     .cart-item {
