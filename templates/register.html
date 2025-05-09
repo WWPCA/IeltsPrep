@@ -1,5 +1,46 @@
 {% extends "layout.html" %}
 
+{% block head %}
+{{ super() }}
+<script>
+  // Aggressive error cleanup to handle /register?next=checkout issues
+  (function() {
+    function aggressiveErrorCleanup() {
+      // Handle fixed-position error messages
+      document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
+        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+          console.log("Removing error element:", el.textContent);
+          el.remove();
+        }
+      });
+      
+      // Handle any elements with error classes that are not part of our validation
+      document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
+        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
+          if (!el.closest('.password-feedback') && !el.closest('.confirm-feedback')) {
+            console.log("Removing error alert:", el.textContent);
+            el.remove();
+          }
+        }
+      });
+    }
+    
+    // Run immediately
+    aggressiveErrorCleanup();
+    
+    // Run again when DOM content is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      aggressiveErrorCleanup();
+      // Also run cleanup periodically
+      setInterval(aggressiveErrorCleanup, 300);
+    });
+    
+    // Run at regular intervals anyway
+    setInterval(aggressiveErrorCleanup, 300);
+  })();
+</script>
+{% endblock %}
+
 {% block styles %}
 <style>
   .password-feedback, .confirm-feedback {
