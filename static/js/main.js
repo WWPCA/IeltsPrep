@@ -154,8 +154,15 @@ function checkConnectionStatus() {
 
 /**
  * Check connection speed and enable low-bandwidth mode if needed
+ * Uses a flag to prevent multiple event listeners
  */
 function checkConnectionSpeed() {
+    // Add a flag to window to prevent duplicate checks
+    if (window.bandwidthCheckInitialized) {
+        return;
+    }
+    window.bandwidthCheckInitialized = true;
+    
     // Check if the Network Information API is available
     if ('connection' in navigator && navigator.connection.effectiveType) {
         const connectionType = navigator.connection.effectiveType;
@@ -167,7 +174,7 @@ function checkConnectionSpeed() {
             enableLowBandwidthMode();
         }
         
-        // Listen for connection changes
+        // Listen for connection changes - only add the listener once
         navigator.connection.addEventListener('change', function() {
             if (navigator.connection.effectiveType === '2g' || 
                 navigator.connection.effectiveType === 'slow-2g') {
@@ -177,7 +184,7 @@ function checkConnectionSpeed() {
             }
         });
     } else {
-        // If API not available, do a simple test
+        // If API not available, do a simple test - but only once
         simpleBandwidthCheck();
     }
 }
@@ -212,39 +219,65 @@ function simpleBandwidthCheck() {
  * Enable low-bandwidth mode for slow connections
  */
 function enableLowBandwidthMode() {
-    document.body.classList.add('low-bandwidth-mode');
-    console.log('Low-bandwidth mode enabled');
-    
-    // Notify user
-    const notification = document.createElement('div');
-    notification.className = 'alert alert-info';
-    notification.innerHTML = 'Low-bandwidth mode enabled to improve performance on your connection.';
-    
-    const container = document.querySelector('.container');
-    if (container) {
-        container.insertBefore(notification, container.firstChild);
+    // Only enable if not already in low-bandwidth mode
+    if (!document.body.classList.contains('low-bandwidth-mode')) {
+        document.body.classList.add('low-bandwidth-mode');
+        console.log('Low-bandwidth mode enabled');
+        
+        // Remove any existing bandwidth notifications first
+        const existingNotifications = document.querySelectorAll('.bandwidth-notification');
+        existingNotifications.forEach(notification => notification.remove());
+        
+        // Notify user with a more compact message
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-info bandwidth-notification';
+        notification.style.padding = '8px 15px';
+        notification.style.marginBottom = '10px';
+        notification.style.fontSize = '0.9rem';
+        notification.style.position = 'fixed';
+        notification.style.top = '10px';
+        notification.style.right = '10px';
+        notification.style.zIndex = '9999';
+        notification.style.maxWidth = '300px';
+        notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        notification.innerHTML = 'Low-bandwidth mode enabled';
+        
+        document.body.appendChild(notification);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+        
+        // Prevent loading of non-essential resources
+        const images = document.querySelectorAll('img:not([data-essential="true"])');
+        images.forEach(img => {
+            img.setAttribute('loading', 'lazy');
+            img.style.display = 'none';
+        });
     }
-    
-    // Prevent loading of non-essential resources
-    const images = document.querySelectorAll('img:not([data-essential="true"])');
-    images.forEach(img => {
-        img.setAttribute('loading', 'lazy');
-        img.style.display = 'none';
-    });
 }
 
 /**
  * Disable low-bandwidth mode
  */
 function disableLowBandwidthMode() {
-    document.body.classList.remove('low-bandwidth-mode');
-    console.log('Low-bandwidth mode disabled');
-    
-    // Restore images
-    const images = document.querySelectorAll('img[loading="lazy"]');
-    images.forEach(img => {
-        img.style.display = '';
-    });
+    if (document.body.classList.contains('low-bandwidth-mode')) {
+        document.body.classList.remove('low-bandwidth-mode');
+        console.log('Low-bandwidth mode disabled');
+        
+        // Remove any existing bandwidth notifications first
+        const existingNotifications = document.querySelectorAll('.bandwidth-notification');
+        existingNotifications.forEach(notification => notification.remove());
+        
+        // Restore images
+        const images = document.querySelectorAll('img[loading="lazy"]');
+        images.forEach(img => {
+            img.style.display = '';
+        });
+    }
 }
 
 /**
