@@ -1863,31 +1863,39 @@ def payment_success():
     
     # Check if there's registration data in the session
     if 'registration_data' in session:
-        # Create the user account from stored registration data
-        reg_data = session['registration_data']
-        
-        # Create the new user
-        new_user = User(
-            username=reg_data['username'],
-            email=reg_data['email'],
-            region=reg_data.get('region', 'Unknown'),
-            test_preference=reg_data.get('test_preference', 'academic'),
-            is_active=True  # Activate immediately since payment is successful
-        )
-        new_user.set_password(reg_data['password'])
-        
-        # Add to database
-        db.session.add(new_user)
-        db.session.commit()
-        
-        # Log the new user in
-        login_user(new_user)
-        
-        # Clear registration data from session
-        session.pop('registration_data')
-        
-        # Log account creation
-        app.logger.info(f"New user account created and activated after payment: {new_user.email}")
+        try:
+            # Start a new transaction within a session context
+            with db.session.begin():
+                # Create the user account from stored registration data
+                reg_data = session['registration_data']
+                
+                # Create the new user
+                new_user = User(
+                    username=reg_data['username'],
+                    email=reg_data['email'],
+                    region=reg_data.get('region', 'Unknown'),
+                    test_preference=reg_data.get('test_preference', 'academic'),
+                    is_active=True  # Activate immediately since payment is successful
+                )
+                new_user.set_password(reg_data['password'])
+                
+                # Add to database
+                db.session.add(new_user)
+                # Commit happens automatically at the end of the context block
+            
+            # Log the new user in
+            login_user(new_user)
+            
+            # Clear registration data from session
+            session.pop('registration_data')
+            
+            # Log account creation
+            app.logger.info(f"New user account created and activated after payment: {new_user.email}")
+        except Exception as e:
+            # The transaction will be rolled back automatically
+            app.logger.error(f"Error creating user account after payment: {str(e)}")
+            flash('There was an error creating your account. Please contact support.', 'danger')
+            return redirect(url_for('assessment_products_page'))
         
     elif not current_user.is_authenticated:
         # Store details in session and redirect to login
@@ -2122,232 +2130,7 @@ def serve_audio(filename):
     app.logger.warning(f"Audio file not found: {filename}")
     abort(404)
 
-# Speaking-only routes
-@app.route('/speaking-only')
-def speaking_only():
-    """Landing page for speaking-only users"""
-    # Check if user is already logged in
-    if current_user.is_authenticated:
-        if current_user.is_speaking_only_user():
-            # Already a speaking-only user, go to speaking tests
-            return redirect(url_for('practice_test_list', test_type='speaking'))
-        else:
-            # Regular user, show them speaking tests
-            return redirect(url_for('practice_test_list', test_type='speaking'))
-    
-    # Show landing page for unregistered speaking-only users
-    return render_template('speaking_only.html', 
-                          title='IELTS Speaking Assessment')
-
-@app.route('/speaking-only-checkout/<package>')
-def speaking_only_checkout(package):
-    """Checkout page for speaking-only packages"""
-    if package not in ['basic', 'pro']:
-        flash('Invalid package selected.', 'danger')
-        return redirect(url_for('speaking_only'))
-    
-    # Get user's country for localized payment options
-    user_country = get_country_from_ip(request.remote_addr) or 'US'
-    
-    try:
-        # Create checkout session
-        checkout_data = create_stripe_checkout_speaking(package, user_country)
-        
-        # Store checkout data in session
-        session['speaking_checkout'] = {
-            'session_id': checkout_data['session_id'],
-            'package': package,
-            'processed': False
-        }
-        
-        # Redirect to Stripe checkout
-        return redirect(checkout_data['checkout_url'])
-    
-    except Exception as e:
-        app.logger.error(f"Error creating speaking checkout: {str(e)}")
-        flash('There was an error processing your request. Please try again later.', 'danger')
-        return redirect(url_for('speaking_only'))
-
-@app.route('/speaking-payment-success')
-def speaking_payment_success():
-    """Handle successful speaking package payments from Stripe"""
-    # Get session ID from URL param
-    session_id = request.args.get('session_id')
-    
-    try:
-        # If this is a new order we're processing
-        if session_id and 'speaking_checkout' not in session:
-            # We don't have checkout data, create a basic record
-            session['speaking_checkout'] = {
-                'session_id': session_id,
-                'package': 'basic',  # Default to basic if we don't know
-                'processed': False
-            }
-        
-        # Process the payment if it hasn't been processed already
-        if session_id and 'speaking_checkout' in session and not session['speaking_checkout'].get('processed', False):
-            package = session['speaking_checkout'].get('package', 'basic')
-            
-            try:
-                # Verify payment with Stripe
-                payment_verified = verify_stripe_payment(session_id)
-                
-                if not payment_verified:
-                    flash('Payment verification failed. Please contact support with your order details.', 'danger')
-                    return redirect(url_for('speaking_only'))
-                
-                # If user is not logged in, check if we have registration data in session
-                if not current_user.is_authenticated:
-                    if 'registration_data' in session:
-                        # Create user from stored registration data
-                        reg_data = session['registration_data']
-                        
-                        # Create the new user
-                        new_user = User(
-                            username=reg_data['username'],
-                            email=reg_data['email'],
-                            region=reg_data.get('region', 'Unknown'),
-                            test_preference=reg_data.get('test_preference', 'academic'),
-                            is_active=True,  # Activate immediately since payment is successful
-                            subscription_status=f"Speaking Only {package.title()}"
-                        )
-                        new_user.set_password(reg_data['password'])
-                        # No expiry date for speaking-only users
-                        new_user.subscription_expiry = None
-                        
-                        # Add speaking purchase to history
-                        total_assessments = 4 if package == 'basic' else 10
-                        amount = 15.0 if package == 'basic' else 20.0
-                        
-                        test_history = []
-                        speaking_purchase = {
-                            "speaking_purchase": {
-                                "purchase_date": datetime.utcnow().isoformat(),
-                                "expiry_date": None,  # No expiry date
-                                "package": f"Speaking Only {package.title()}",
-                                "total_assessments": total_assessments,
-                                "used_assessments": 0,
-                                "amount": amount
-                            }
-                        }
-                        test_history.append(speaking_purchase)
-                        new_user.test_history = test_history
-                        
-                        db.session.add(new_user)
-                        db.session.commit()
-                        
-                        # Log in the new user
-                        login_user(new_user)
-                        
-                        # Clear registration data from session
-                        session.pop('registration_data')
-                        
-                        # Log account creation
-                        app.logger.info(f"New speaking-only user account created after payment: {new_user.email}")
-                        
-                        # Success message
-                        flash(f'Your speaking assessment account has been created and activated. Welcome!', 'success')
-                    else:
-                        # Generate a random username and password for anonymous users
-                        random_id = uuid.uuid4().hex[:8]
-                        username = f"speaking_user_{random_id}"
-                        password = uuid.uuid4().hex[:12]
-                        email = f"speaking_{random_id}@example.com"  # Placeholder email
-                        
-                        # Create a new user
-                        new_user = User(
-                            username=username,
-                            email=email,
-                            region=get_country_from_ip(request.remote_addr) or 'US',
-                            test_preference='academic',  # Default
-                            subscription_status=f"Speaking Only {package.title()}",
-                            is_active=True  # Anonymous users are active immediately
-                        )
-                        new_user.set_password(password)
-                        # No expiry date for speaking-only users
-                        new_user.subscription_expiry = None
-                        
-                        # Add speaking purchase to history
-                        total_assessments = 4 if package == 'basic' else 10
-                        amount = 15.0 if package == 'basic' else 20.0
-                        
-                        test_history = []
-                        speaking_purchase = {
-                            "speaking_purchase": {
-                                "purchase_date": datetime.utcnow().isoformat(),
-                                "expiry_date": None,  # No expiry date
-                                "package": f"Speaking Only {package.title()}",
-                                "total_assessments": total_assessments,
-                                "used_assessments": 0,
-                                "amount": amount
-                            }
-                        }
-                        test_history.append(speaking_purchase)
-                        new_user.test_history = test_history
-                        
-                        db.session.add(new_user)
-                        db.session.commit()
-                        
-                        # Log in the new user
-                        login_user(new_user)
-                        
-                        # Display credentials to user (only once)
-                        flash(f'Your speaking assessment account has been created! Username: {username} | Password: {password} - Please save these credentials for future logins.', 'success')
-                
-                else:
-                    # Update existing user
-                    current_user.subscription_status = f"Speaking Only {package.title()}"
-                    # No expiry date for speaking-only users
-                    current_user.subscription_expiry = None
-                    
-                    # Add speaking purchase to history
-                    total_assessments = 4 if package == 'basic' else 10
-                    amount = 15.0 if package == 'basic' else 20.0
-                    
-                    test_history = current_user.test_history
-                    speaking_purchase = {
-                        "speaking_purchase": {
-                            "purchase_date": datetime.utcnow().isoformat(),
-                            "expiry_date": None,  # No expiry date
-                            "package": f"Speaking Only {package.title()}",
-                            "total_assessments": total_assessments,
-                            "used_assessments": 0,
-                            "amount": amount
-                        }
-                    }
-                    test_history.append(speaking_purchase)
-                    current_user.test_history = test_history
-                    
-                    db.session.commit()
-                    
-                    flash(f'Thank you for your purchase! Your Speaking Only {package.title()} package is now active.', 'success')
-                
-                # Mark payment as processed to prevent duplicates
-                speaking_data = session['speaking_checkout']
-                speaking_data['processed'] = True
-                session['speaking_checkout'] = speaking_data
-                
-                return redirect(url_for('practice_test_list', test_type='speaking'))
-                
-            except Exception as e:
-                app.logger.error(f"Error verifying speaking payment: {str(e)}")
-                flash('There was an error processing your payment. Please contact support.', 'danger')
-                return redirect(url_for('speaking_only'))
-                
-        elif 'speaking_checkout' in session and session['speaking_checkout'].get('processed', False):
-            # Payment was already processed, just redirect
-            flash('Your payment has already been processed.', 'info')
-            return redirect(url_for('practice_test_list', test_type='speaking'))
-            
-        else:
-            # No session ID or pending payment
-            flash('No payment information found.', 'warning')
-            return redirect(url_for('speaking_only'))
-            
-    except Exception as e:
-        app.logger.error(f"Error in speaking_payment_success: {str(e)}")
-        flash('An unexpected error occurred. Please contact support.', 'danger')
-        return redirect(url_for('speaking_only'))
+# Error handlers
 
 # Error handlers
 @app.errorhandler(404)
