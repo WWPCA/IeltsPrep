@@ -123,7 +123,6 @@ def register():
     
     if request.method == 'POST':
         email = request.form.get('email')
-        phone = request.form.get('phone')  # New field
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         region = request.form.get('region', get_user_region())
@@ -153,7 +152,6 @@ def register():
         new_user = User(
             username=email,  # Use email as the username
             email=email,
-            phone=phone,
             region=region,
             test_preference=test_preference,
             target_score=target_score
