@@ -147,6 +147,11 @@ def register():
         # Country selection has been removed, so we'll set a default value
         region = "Unknown"
         
+        # Check if age verification was confirmed
+        if not request.form.get('age_verification'):
+            flash('You must confirm that you are at least 16 years of age to register.', 'danger')
+            return render_template('register.html', title='Register', form=form)
+            
         # Check if terms were agreed to
         if not request.form.get('agree_terms'):
             flash('You must agree to the Terms of Service and Privacy Policy to register.', 'danger')
