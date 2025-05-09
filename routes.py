@@ -13,7 +13,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from app import app, db, recaptcha_v3
-from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress, UserTestAssignment
+from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress, UserTestAssignment, PaymentRecord
 from utils import get_user_region, get_translation, compress_audio
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import test_assignment_service
@@ -1861,14 +1861,41 @@ def payment_success():
         # Fallback to URL parameter
         test_preference = request.args.get('test_preference', 'academic')
     
-    # Check if there's registration data in the session
+    # Package duration and details
+    package_details = {
+        'single': {
+            'days': 15, 
+            'tests': 1, 
+            'name': 'Single Test',
+            'price': 25.00
+        },
+        'double': {
+            'days': 15, 
+            'tests': 2, 
+            'name': 'Double Package',
+            'price': 35.00
+        },
+        'pack': {
+            'days': 30, 
+            'tests': 4, 
+            'name': 'Value Pack',
+            'price': 50.00
+        }
+    }
+    
+    # Check if the package is valid
+    if package not in package_details:
+        flash('Invalid package selected.', 'danger')
+        return redirect(url_for('assessment_products_page'))
+    
+    # Handle new user registration if needed
     if 'registration_data' in session:
         try:
-            # Start a new transaction within a session context
+            # Create the user account from stored registration data
+            reg_data = session['registration_data']
+            
+            # Start a new, separate transaction for user creation
             with db.session.begin():
-                # Create the user account from stored registration data
-                reg_data = session['registration_data']
-                
                 # Create the new user
                 new_user = User(
                     username=reg_data['username'],
@@ -1881,7 +1908,7 @@ def payment_success():
                 
                 # Add to database
                 db.session.add(new_user)
-                # Commit happens automatically at the end of the context block
+                # Transaction committed here
             
             # Log the new user in
             login_user(new_user)
@@ -1889,8 +1916,13 @@ def payment_success():
             # Clear registration data from session
             session.pop('registration_data')
             
-            # Log account creation
+            # Log successful account creation
             app.logger.info(f"New user account created and activated after payment: {new_user.email}")
+            
+            # Set current_user for the rest of the function
+            # This is necessary because login_user() doesn't update current_user within this request
+            current_user._get_current_object = lambda: new_user
+            
         except Exception as e:
             # The transaction will be rolled back automatically
             app.logger.error(f"Error creating user account after payment: {str(e)}")
@@ -1907,14 +1939,7 @@ def payment_success():
         flash('Please log in or register to complete your purchase.', 'info')
         return redirect(url_for('login'))
     
-    # Package duration and details
-    package_details = {
-        'single': {'days': 15, 'tests': 1, 'name': 'Single Test'},
-        'double': {'days': 15, 'tests': 2, 'name': 'Double Package'},
-        'pack': {'days': 30, 'tests': 4, 'name': 'Value Pack'}
-    }
-    
-    # Verify the session_id with Stripe if available
+    # Verify the payment with Stripe if available
     if session_id:
         try:
             # Verify payment with Stripe
@@ -1924,80 +1949,108 @@ def payment_success():
                 flash('Payment verification failed. Please contact support.', 'danger')
                 return redirect(url_for('assessment_products_page'))
                 
-            # Create a payment record
-            payment_record = create_payment_record(
-                user_id=current_user.id,
-                amount=package_details[package].get('price', 0),
-                package=package,
-                session_id=session_id
-            )
+            # Create a payment record - in a separate transaction to avoid dependencies
+            with db.session.begin():
+                try:
+                    payment = PaymentRecord(
+                        user_id=current_user.id,
+                        amount=package_details[package]['price'],
+                        package_name=package_details[package]['name'],
+                        payment_date=datetime.utcnow(),
+                        stripe_session_id=session_id,
+                        is_successful=True
+                    )
+                    db.session.add(payment)
+                except Exception as e:
+                    app.logger.error(f"Error creating payment record: {str(e)}")
+                    # Continue even if payment record creation fails
+                    pass
             
         except Exception as e:
             app.logger.error(f"Error verifying payment: {str(e)}")
             flash('Error processing payment. Please contact support.', 'danger')
             return redirect(url_for('assessment_products_page'))
     
-    # Update user's subscription
-    if package in package_details:
-        # Calculate expiry date
-        subscription_days = package_details[package]['days']
-        expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
-        
-        # Update user's subscription status
-        current_user.subscription_status = package_details[package]['name']
-        current_user.subscription_expiry = expiry_date
-        current_user.test_preference = test_preference
-        
-        # Add to user's test history
-        test_history = current_user.test_history
-        test_history.append({
-            'date': datetime.utcnow().isoformat(),
-            'action': 'subscription',
-            'test_purchase': {
-                'package': package,
-                'test_preference': test_preference,
-                'num_tests': package_details[package]['tests'],
-                'purchase_date': datetime.utcnow().isoformat(),
-                'expiry_date': expiry_date.isoformat()
-            }
-        })
-        current_user.test_history = test_history
-        
+    # Update user's subscription in a new transaction
+    try:
+        with db.session.begin():
+            # Calculate expiry date
+            subscription_days = package_details[package]['days']
+            expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
+            
+            # Update user's subscription status
+            user = User.query.get(current_user.id)  # Get fresh user object to avoid stale data
+            if user:
+                user.subscription_status = package_details[package]['name']
+                user.subscription_expiry = expiry_date
+                user.test_preference = test_preference
+                
+                # Add to user's test history
+                test_history = user.test_history
+                test_history.append({
+                    'date': datetime.utcnow().isoformat(),
+                    'action': 'subscription',
+                    'test_purchase': {
+                        'package': package,
+                        'test_preference': test_preference,
+                        'num_tests': package_details[package]['tests'],
+                        'purchase_date': datetime.utcnow().isoformat(),
+                        'expiry_date': expiry_date.isoformat()
+                    }
+                })
+                user.test_history = test_history
+            else:
+                app.logger.error(f"Could not find user with ID {current_user.id} for subscription update")
+                flash('Error updating your subscription. Please contact support.', 'danger')
+                return redirect(url_for('assessment_products_page'))
+    except Exception as e:
+        app.logger.error(f"Error updating user subscription: {str(e)}")
+        flash('Error updating your subscription. Please contact support.', 'danger')
+        return redirect(url_for('assessment_products_page'))
+    
+    # Assign tests to user in a separate transaction
+    try:
         # Assign unique tests to the user using our test assignment service
         num_tests = package_details[package]['tests']
-        try:
-            # Assign tests from the repository
-            assigned_numbers, success = test_assignment_service.assign_tests_to_user(
-                user_id=current_user.id,
-                test_type=test_preference,  # academic or general
-                num_tests=num_tests,
-                subscription_days=subscription_days
-            )
-            
-            if success:
-                app.logger.info(f"Successfully assigned {len(assigned_numbers)} tests to user {current_user.id}")
+        assigned_numbers = []
+        success = False
+        
+        with db.session.begin():
+            try:
+                # Assign tests from the repository
+                assigned_numbers, success = test_assignment_service.assign_tests_to_user(
+                    user_id=current_user.id,
+                    test_type=test_preference,  # academic or general
+                    num_tests=num_tests,
+                    subscription_days=subscription_days
+                )
                 
-                # Add the assigned test numbers to the test history
-                test_history[-1]['test_purchase']['assigned_tests'] = assigned_numbers
-                current_user.test_history = test_history
-            else:
-                app.logger.warning(f"Could not assign {num_tests} unique tests to user {current_user.id}")
-                flash('Warning: You have already been assigned all available tests. Some tests may be repeats.', 'warning')
-        except Exception as e:
-            app.logger.error(f"Error assigning tests: {str(e)}")
-            # Continue with subscription, even if test assignment fails
-        
-        db.session.commit()
-        
-        flash(f'Thank you for your purchase! Your {package_details[package]["name"]} is now active.', 'success')
-    else:
-        flash('Invalid package selected.', 'danger')
+                if success:
+                    app.logger.info(f"Successfully assigned {len(assigned_numbers)} tests to user {current_user.id}")
+                    
+                    # Add the assigned test numbers to the test history
+                    user = User.query.get(current_user.id)
+                    test_history = user.test_history
+                    test_history[-1]['test_purchase']['assigned_tests'] = assigned_numbers
+                    user.test_history = test_history
+                else:
+                    app.logger.warning(f"Could not assign {num_tests} unique tests to user {current_user.id}")
+                    flash('Warning: You have already been assigned all available tests. Some tests may be repeats.', 'warning')
+            except Exception as e:
+                app.logger.error(f"Error assigning tests: {str(e)}")
+                # Continue even if test assignment fails
+    except Exception as e:
+        app.logger.error(f"Error in test assignment transaction: {str(e)}")
+        # Continue with success message, even if test assignment transaction fails
+    
+    # Display success message for the package purchase
+    flash(f'Thank you for your purchase! Your {package_details[package]["name"]} is now active.', 'success')
     
     # Process cart checkout if available
     if 'checkout' in session and session['checkout'].get('product_ids') and not session['checkout'].get('processed', False):
         from add_assessment_routes import handle_assessment_product_payment
         
-        # Process each product in the cart
+        # Process each product in the cart in separate transactions
         product_ids = session['checkout']['product_ids']
         for product_id in product_ids:
             try:
@@ -2013,7 +2066,7 @@ def payment_success():
         from cart import clear_cart
         clear_cart()
         
-        flash('Thank you for your purchase! Your items have been added to your account.', 'success')
+        flash('Your assessment products have been added to your account.', 'success')
     
     # Clean up session variables
     if 'checkout_session_id' in session:

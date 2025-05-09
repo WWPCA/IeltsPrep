@@ -692,6 +692,23 @@ class CompleteTestProgress(db.Model):
     def __repr__(self):
         return f'<CompleteTestProgress User:{self.user_id} Test:{self.complete_test_id}>'
 
+class PaymentRecord(db.Model):
+    """Tracks payment details and transaction records"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    package_name = db.Column(db.String(50), nullable=False)
+    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+    stripe_session_id = db.Column(db.String(100), nullable=True)
+    is_successful = db.Column(db.Boolean, default=True)
+    transaction_details = db.Column(db.Text, nullable=True)
+    
+    # Relationship to user
+    user = db.relationship('User', backref=db.backref('payment_records', lazy=True))
+    
+    def __repr__(self):
+        return f'<PaymentRecord {self.id} User:{self.user_id} Amount:{self.amount}>'
+
 class UserTestAttempt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
