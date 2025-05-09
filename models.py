@@ -22,6 +22,8 @@ class User(UserMixin, db.Model):
     # but not used in UI
     preferred_language = db.Column(db.String(10), default="en")
     test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
+    # Account activation flag - only true after successful payment
+    is_active = db.Column(db.Boolean, default=False)
     # target_score field removed as it doesn't exist in database
     # is_admin field removed as it doesn't exist in database
     

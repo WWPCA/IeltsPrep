@@ -1861,7 +1861,35 @@ def payment_success():
         # Fallback to URL parameter
         test_preference = request.args.get('test_preference', 'academic')
     
-    if not current_user.is_authenticated:
+    # Check if there's registration data in the session
+    if 'registration_data' in session:
+        # Create the user account from stored registration data
+        reg_data = session['registration_data']
+        
+        # Create the new user
+        new_user = User(
+            username=reg_data['username'],
+            email=reg_data['email'],
+            region=reg_data.get('region', 'Unknown'),
+            test_preference=reg_data.get('test_preference', 'academic'),
+            is_active=True  # Activate immediately since payment is successful
+        )
+        new_user.set_password(reg_data['password'])
+        
+        # Add to database
+        db.session.add(new_user)
+        db.session.commit()
+        
+        # Log the new user in
+        login_user(new_user)
+        
+        # Clear registration data from session
+        session.pop('registration_data')
+        
+        # Log account creation
+        app.logger.info(f"New user account created and activated after payment: {new_user.email}")
+        
+    elif not current_user.is_authenticated:
         # Store details in session and redirect to login
         session['pending_payment'] = {
             'session_id': session_id,
@@ -2011,6 +2039,12 @@ def payment_cancel():
         session.pop('checkout_test_preference')
     if 'checkout' in session:
         session.pop('checkout')
+    
+    # Clean up registration data if payment was cancelled during registration flow
+    if 'registration_data' in session:
+        app.logger.info(f"Cleaning up registration data for cancelled payment: {session['registration_data'].get('email')}")
+        session.pop('registration_data')
+        flash('Registration process has been cancelled. Please try again when you're ready to complete your purchase.', 'info')
     
     # Check if this was a cart checkout
     if 'cart' in session and session['cart']:
@@ -2162,52 +2196,103 @@ def speaking_payment_success():
                     flash('Payment verification failed. Please contact support with your order details.', 'danger')
                     return redirect(url_for('speaking_only'))
                 
-                # If user is not logged in, create a new speaking-only user account
+                # If user is not logged in, check if we have registration data in session
                 if not current_user.is_authenticated:
-                    # Generate a random username and password
-                    random_id = uuid.uuid4().hex[:8]
-                    username = f"speaking_user_{random_id}"
-                    password = uuid.uuid4().hex[:12]
-                    email = f"speaking_{random_id}@example.com"  # Placeholder email
-                    
-                    # Create a new user
-                    new_user = User(
-                        username=username,
-                        email=email,
-                        region=get_country_from_ip(request.remote_addr) or 'US',
-                        test_preference='academic',  # Default
-                        subscription_status=f"Speaking Only {package.title()}"
-                    )
-                    new_user.set_password(password)
-                    # No expiry date for speaking-only users
-                    new_user.subscription_expiry = None
-                    
-                    # Add speaking purchase to history
-                    total_assessments = 4 if package == 'basic' else 10
-                    amount = 15.0 if package == 'basic' else 20.0
-                    
-                    test_history = []
-                    speaking_purchase = {
-                        "speaking_purchase": {
-                            "purchase_date": datetime.utcnow().isoformat(),
-                            "expiry_date": None,  # No expiry date
-                            "package": f"Speaking Only {package.title()}",
-                            "total_assessments": total_assessments,
-                            "used_assessments": 0,
-                            "amount": amount
+                    if 'registration_data' in session:
+                        # Create user from stored registration data
+                        reg_data = session['registration_data']
+                        
+                        # Create the new user
+                        new_user = User(
+                            username=reg_data['username'],
+                            email=reg_data['email'],
+                            region=reg_data.get('region', 'Unknown'),
+                            test_preference=reg_data.get('test_preference', 'academic'),
+                            is_active=True,  # Activate immediately since payment is successful
+                            subscription_status=f"Speaking Only {package.title()}"
+                        )
+                        new_user.set_password(reg_data['password'])
+                        # No expiry date for speaking-only users
+                        new_user.subscription_expiry = None
+                        
+                        # Add speaking purchase to history
+                        total_assessments = 4 if package == 'basic' else 10
+                        amount = 15.0 if package == 'basic' else 20.0
+                        
+                        test_history = []
+                        speaking_purchase = {
+                            "speaking_purchase": {
+                                "purchase_date": datetime.utcnow().isoformat(),
+                                "expiry_date": None,  # No expiry date
+                                "package": f"Speaking Only {package.title()}",
+                                "total_assessments": total_assessments,
+                                "used_assessments": 0,
+                                "amount": amount
+                            }
                         }
-                    }
-                    test_history.append(speaking_purchase)
-                    new_user.test_history = test_history
-                    
-                    db.session.add(new_user)
-                    db.session.commit()
-                    
-                    # Log in the new user
-                    login_user(new_user)
-                    
-                    # Display credentials to user (only once)
-                    flash(f'Your speaking assessment account has been created! Username: {username} | Password: {password} - Please save these credentials for future logins.', 'success')
+                        test_history.append(speaking_purchase)
+                        new_user.test_history = test_history
+                        
+                        db.session.add(new_user)
+                        db.session.commit()
+                        
+                        # Log in the new user
+                        login_user(new_user)
+                        
+                        # Clear registration data from session
+                        session.pop('registration_data')
+                        
+                        # Log account creation
+                        app.logger.info(f"New speaking-only user account created after payment: {new_user.email}")
+                        
+                        # Success message
+                        flash(f'Your speaking assessment account has been created and activated. Welcome!', 'success')
+                    else:
+                        # Generate a random username and password for anonymous users
+                        random_id = uuid.uuid4().hex[:8]
+                        username = f"speaking_user_{random_id}"
+                        password = uuid.uuid4().hex[:12]
+                        email = f"speaking_{random_id}@example.com"  # Placeholder email
+                        
+                        # Create a new user
+                        new_user = User(
+                            username=username,
+                            email=email,
+                            region=get_country_from_ip(request.remote_addr) or 'US',
+                            test_preference='academic',  # Default
+                            subscription_status=f"Speaking Only {package.title()}",
+                            is_active=True  # Anonymous users are active immediately
+                        )
+                        new_user.set_password(password)
+                        # No expiry date for speaking-only users
+                        new_user.subscription_expiry = None
+                        
+                        # Add speaking purchase to history
+                        total_assessments = 4 if package == 'basic' else 10
+                        amount = 15.0 if package == 'basic' else 20.0
+                        
+                        test_history = []
+                        speaking_purchase = {
+                            "speaking_purchase": {
+                                "purchase_date": datetime.utcnow().isoformat(),
+                                "expiry_date": None,  # No expiry date
+                                "package": f"Speaking Only {package.title()}",
+                                "total_assessments": total_assessments,
+                                "used_assessments": 0,
+                                "amount": amount
+                            }
+                        }
+                        test_history.append(speaking_purchase)
+                        new_user.test_history = test_history
+                        
+                        db.session.add(new_user)
+                        db.session.commit()
+                        
+                        # Log in the new user
+                        login_user(new_user)
+                        
+                        # Display credentials to user (only once)
+                        flash(f'Your speaking assessment account has been created! Username: {username} | Password: {password} - Please save these credentials for future logins.', 'success')
                 
                 else:
                     # Update existing user
