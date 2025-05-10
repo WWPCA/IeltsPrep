@@ -20,6 +20,7 @@ import test_assignment_service
 from openai_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation, transcribe_audio, generate_polly_speech
 from geoip_services import get_country_from_ip, get_pricing_for_country
+from country_restrictions import country_access_required, is_country_restricted, RESTRICTION_MESSAGE
 
 # Import the test details route
 try:
