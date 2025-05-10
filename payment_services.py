@@ -4,6 +4,7 @@ import logging
 import json
 from tenacity import retry, stop_after_attempt, wait_fixed
 from datetime import datetime, timedelta
+from country_restrictions import is_country_restricted, get_allowed_countries, validate_billing_country
 
 # Set Stripe API key
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
@@ -282,8 +283,16 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         
     Returns:
         dict: Contains session_id and checkout_url
+        
+    Raises:
+        ValueError: If the country is restricted by our policy
     """
     try:
+        # Check if the country is restricted
+        if country_code and is_country_restricted(country_code):
+            logging.warning(f"Attempted checkout from restricted country: {country_code}")
+            raise ValueError(f"We do not provide services in your region ({country_code}) due to regulatory requirements.")
+            
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
             raise ValueError("Stripe API key is required")
@@ -314,6 +323,9 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 payment_methods.extend(additional_methods)
         
         # Build checkout session parameters
+        # Get the list of allowed countries (countries that are not restricted)
+        allowed_countries = get_allowed_countries()
+        
         session_params = {
             'payment_method_types': payment_methods,
             'line_items': [
@@ -341,6 +353,8 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 'setup_future_usage': 'off_session',    # Allow future payments without authentication
                 'capture_method': 'automatic',          # Capture funds automatically
             },
+            # Restrict billing to allowed countries only
+            'allowed_countries': allowed_countries,
         }
         
         # Add customer email if provided
@@ -372,8 +386,16 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         
     Returns:
         dict: Contains session_id and checkout_url
+        
+    Raises:
+        ValueError: If the country is restricted by our policy
     """
     try:
+        # Check if the country is restricted
+        if country_code and is_country_restricted(country_code):
+            logging.warning(f"Attempted checkout from restricted country: {country_code}")
+            raise ValueError(f"We do not provide services in your region ({country_code}) due to regulatory requirements.")
+            
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
             raise ValueError("Stripe API key is required")
@@ -532,7 +554,14 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
     
     Returns:
         dict: Contains session_id and checkout_url
+        
+    Raises:
+        ValueError: If the country is restricted by our policy
     """
+    # Check if the country is restricted
+    if country_code and is_country_restricted(country_code):
+        logging.warning(f"Attempted checkout from restricted country: {country_code}")
+        raise ValueError(f"We do not provide services in your region ({country_code}) due to regulatory requirements.")
     try:
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
