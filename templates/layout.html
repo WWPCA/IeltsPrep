@@ -218,6 +218,9 @@
                             <a href="#" class="dropdown-toggle"><i class="fas fa-shield-alt"></i> Admin <i class="fas fa-caret-down"></i></a>
                             <ul class="dropdown-menu">
                                 <li><a href="{{ url_for('test_country_restriction', country_code='US') }}"><i class="fas fa-globe"></i> Test Country Restrictions</a></li>
+                                {% if session.get('simulated_country') %}
+                                <li><a href="{{ url_for('reset_country_simulation') }}" class="text-warning"><i class="fas fa-undo"></i> Reset Country Simulation</a></li>
+                                {% endif %}
                             </ul>
                         </li>
                         {% endif %}

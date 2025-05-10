@@ -54,14 +54,20 @@ def country_access_required(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        from geoip_services import get_country_from_ip
+        # Check if there's already a country code in the session (for simulations)
+        country_code = session.get('country_code')
         
-        # Get the user's country code
-        country_code, _ = get_country_from_ip()
-        
-        # Store the country code in the session for future reference
-        if country_code:
-            session['country_code'] = country_code
+        # If no simulated country, get the real country from IP
+        if not country_code or not session.get('simulated_country'):
+            from geoip_services import get_country_from_ip
+            
+            # Get the user's country code
+            detected_country, _ = get_country_from_ip()
+            
+            # Store the country code in the session for future reference
+            if detected_country:
+                session['country_code'] = detected_country
+                country_code = detected_country
         
         # Check if the country is restricted
         if country_code and is_country_restricted(country_code):

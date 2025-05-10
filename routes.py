@@ -118,6 +118,7 @@ def simulate_country_access(country_code):
     
     # Store the simulated country in session
     session['country_code'] = country_code.upper()
+    session['simulated_country'] = True
     is_restricted = is_country_restricted(country_code)
     
     if is_restricted:
@@ -126,6 +127,24 @@ def simulate_country_access(country_code):
     else:
         flash(f"Simulating access from allowed country: {country_code.upper()}", "success")
         return redirect(url_for('index'))
+
+# Reset simulated country (admin only)
+@app.route('/reset-country-simulation')
+@login_required
+def reset_country_simulation():
+    """Reset any simulated country code in the session."""
+    if not current_user.is_admin:
+        flash("Admin access required for this function.", "danger")
+        return redirect(url_for('index'))
+    
+    # Remove simulated country from session
+    if 'country_code' in session:
+        session.pop('country_code')
+    if 'simulated_country' in session:
+        session.pop('simulated_country')
+    
+    flash("Country simulation has been reset. Your actual location will now be used.", "success")
+    return redirect(url_for('index'))
 
 # Home route with country access check
 @app.route('/')
