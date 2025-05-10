@@ -200,6 +200,36 @@
         {% block content %}{% endblock %}
     </main>
     
+    <!-- Mobile Bottom Navigation (only visible on small screens) -->
+    <div class="bottom-nav d-md-none">
+        <a href="{{ url_for('index') }}">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('assessment_products_page') }}">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Assessments</span>
+        </a>
+        <a href="{{ url_for('cart.view_cart') }}">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+            {% if session.get('cart') and session['cart']|length > 0 %}
+            <span class="badge bg-danger rounded-pill">{{ session['cart']|length }}</span>
+            {% endif %}
+        </a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('profile') }}">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+        {% else %}
+        <a href="{{ url_for('login') }}">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Login</span>
+        </a>
+        {% endif %}
+    </div>
+    
     <!-- Footer -->
     <footer class="site-footer">
         <div class="container">

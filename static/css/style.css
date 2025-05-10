@@ -924,6 +924,142 @@ body.menu-open {
   .pricing-table {
     grid-template-columns: 1fr;
   }
+  
+  /* Enhanced mobile form elements */
+  .form-control {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 12px;
+    height: auto;
+  }
+  
+  input[type="submit"], 
+  button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+  }
+  
+  /* Improved touch targets */
+  .btn, 
+  .nav-link, 
+  input[type="checkbox"], 
+  input[type="radio"], 
+  select {
+    min-height: 44px; /* Apple's recommended minimum touch target size */
+  }
+  
+  /* Navigation improvements */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+  
+  /* Fixed timer display for test pages */
+  .timer {
+    top: 70px; /* Below the sticky header */
+    right: 10px;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  /* Improved reading experience for test content */
+  .reading-passage {
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  /* Audio controls enhancement */
+  audio {
+    width: 100%;
+    margin: 10px 0;
+  }
+  
+  /* Speaking test mobile improvements */
+  .speaking-test {
+    padding: 1.25rem;
+  }
+  
+  .prompt-text {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+  
+  .recording-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .recording-controls button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Writing test mobile improvements */
+  .writing-area textarea {
+    min-height: 200px;
+    font-size: 16px;
+    padding: 12px;
+  }
+  
+  /* Table display improvements */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  /* Product/assessment cards */
+  .product-card {
+    margin-bottom: 1.25rem;
+  }
+  
+  /* Bottom navigation for mobile */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--primary-color);
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 900;
+  }
+  
+  .bottom-nav a {
+    color: white;
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .bottom-nav i {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* Add padding to page bottom to account for bottom nav */
+  .page-with-bottom-nav {
+    padding-bottom: 70px;
+  }
+  
+  /* Checkout and payment improvements */
+  .checkout-summary {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .payment-method-selection label {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
 }
 
 /* Utility Classes */
