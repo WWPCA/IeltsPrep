@@ -91,34 +91,61 @@ def handle_checkout_session_completed(session):
     Handle a successful checkout session completion.
     
     Args:
-        session (dict): The Stripe session object
+        session (object): The Stripe session object
     """
     try:
-        logger.info(f"Processing checkout session completion: {session.id}")
+        session_id = getattr(session, 'id', None)
+        if not session_id:
+            logger.error("Invalid session object: no ID found")
+            return
+            
+        logger.info(f"Processing checkout session completion: {session_id}")
         
-        # Get the metadata from the session
-        metadata = session.get('metadata', {})
-        customer_email = session.get('customer_email')
+        # Get the metadata from the session using safe access
+        metadata = {}
+        if hasattr(session, 'metadata') and session.metadata:
+            # Stripe session metadata can be accessed via dictionary-like or attribute access
+            if isinstance(session.metadata, dict):
+                metadata = session.metadata
+            else:
+                # Build metadata dictionary from attributes
+                for key in dir(session.metadata):
+                    if not key.startswith('_') and not callable(getattr(session.metadata, key)):
+                        metadata[key] = getattr(session.metadata, key)
+        
+        # Get customer email using similar safe access
+        customer_email = None
+        if hasattr(session, 'customer_email'):
+            customer_email = session.customer_email
+        elif hasattr(session, 'customer_details') and hasattr(session.customer_details, 'email'):
+            customer_email = session.customer_details.email
+            
+        if not customer_email:
+            logger.error(f"No customer email found in session {session_id}")
+            return
         
         # Verify the payment and get payment details
-        payment_verified = verify_stripe_payment(session.id)
+        payment_verified = verify_stripe_payment(session_id)
         
         if not payment_verified:
-            logger.error(f"Payment verification failed for session {session.id}")
+            logger.error(f"Payment verification failed for session {session_id}")
             return
         
         # Find the user by customer email
         user = User.query.filter_by(email=customer_email).first()
         
         if not user:
-            logger.warning(f"User not found for email {customer_email} from session {session.id}")
+            logger.warning(f"User not found for email {customer_email} from session {session_id}")
             return
         
         # Create a payment record
-        payment_amount = session.get('amount_total', 0) / 100  # Convert from cents to dollars
+        payment_amount = 0
+        if hasattr(session, 'amount_total') and session.amount_total is not None:
+            payment_amount = session.amount_total / 100  # Convert from cents to dollars
+            
         plan_name = metadata.get('plan', 'Unknown Plan')
         
-        create_payment_record(user.id, payment_amount, plan_name, session.id)
+        create_payment_record(user.id, payment_amount, plan_name, session_id)
         
         # Activate the user account if needed
         activate_user_account(user)
@@ -136,7 +163,7 @@ def handle_checkout_session_completed(session):
             # Handle individual test purchases
             handle_test_purchase(user, metadata)
         
-        logger.info(f"Successfully processed payment for user {user.id} with session {session.id}")
+        logger.info(f"Successfully processed payment for user {user.id} with session {session_id}")
         
     except Exception as e:
         logger.error(f"Error handling checkout session completion: {str(e)}")
@@ -216,8 +243,42 @@ def handle_speaking_payment(user, metadata):
         metadata (dict): Stripe session metadata
     """
     logger.info(f"Processing speaking payment for user {user.id}")
-    # This should call the function that assigns speaking assessments to the user
-    # Details would be based on your specific implementation
+    
+    # Get the speaking package type from metadata
+    package_type = metadata.get('package')
+    if not package_type:
+        logger.error(f"No package type found in metadata for user {user.id}")
+        return
+    
+    try:
+        # Import assessment functions
+        from add_assessment_routes import handle_assessment_product_payment, assessment_products
+        
+        # Map speaking_only package types to assessment product IDs
+        product_map = {
+            'basic': 'speaking_only_basic',
+            'pro': 'speaking_only_pro'
+        }
+        
+        product_id = product_map.get(package_type)
+        if not product_id:
+            logger.error(f"Invalid speaking package type: {package_type}")
+            return
+            
+        # Handle the payment using the existing function
+        success = handle_assessment_product_payment(user, product_id)
+        
+        if success:
+            # Assign assessment sets
+            from add_assessment_routes import assign_assessment_sets
+            assign_assessment_sets(user, product_id)
+            logger.info(f"Successfully processed speaking payment for user {user.id}")
+        else:
+            logger.error(f"Failed to process speaking payment for user {user.id}")
+            
+    except Exception as e:
+        logger.error(f"Error handling speaking payment: {str(e)}")
+        log_api_error('stripe', 'handle_speaking_payment', e)
     
     
 def handle_subscription_payment(user, metadata):
@@ -229,9 +290,35 @@ def handle_subscription_payment(user, metadata):
         metadata (dict): Stripe session metadata
     """
     logger.info(f"Processing subscription payment for user {user.id}")
-    # This should call the function that activates user subscription
-    # Details would be based on your specific implementation
     
+    plan_code = metadata.get('plan')
+    if not plan_code:
+        logger.error(f"No plan code found in metadata for user {user.id}")
+        return
+        
+    try:
+        # Add subscription to user's record
+        if not user.subscriptions:
+            user.subscriptions = []
+            
+        # Create a new subscription record
+        new_subscription = {
+            'plan': plan_code,
+            'start_date': datetime.utcnow().isoformat(),
+            'days': int(metadata.get('days', 30)),
+            'active': True
+        }
+        
+        user.subscriptions.append(new_subscription)
+        db.session.commit()
+        
+        logger.info(f"Added subscription {plan_code} for user {user.id}")
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error handling subscription payment: {str(e)}")
+        log_api_error('stripe', 'handle_subscription_payment', e)
+
 
 def handle_test_purchase(user, metadata):
     """
@@ -242,5 +329,39 @@ def handle_test_purchase(user, metadata):
         metadata (dict): Stripe session metadata
     """
     logger.info(f"Processing test purchase for user {user.id}")
-    # This should call the function that assigns purchased tests to the user
-    # Details would be based on your specific implementation
+    
+    # Get product details from metadata
+    product_type = metadata.get('type')
+    product_id = None
+    
+    # Determine the product ID based on metadata
+    if product_type in ['academic', 'general']:
+        test_package = metadata.get('package')
+        if test_package:
+            # For academic/general writing and speaking products
+            product_id = f"{product_type}_{metadata.get('package', '')}"
+    else:
+        # For other assessment products that already have a complete product ID
+        product_id = metadata.get('product_id')
+    
+    if not product_id:
+        logger.error(f"No product ID determined from metadata for user {user.id}")
+        return
+        
+    try:
+        # Import assessment functions
+        from add_assessment_routes import handle_assessment_product_payment, assign_assessment_sets
+        
+        # Handle the payment using the existing function
+        success = handle_assessment_product_payment(user, product_id)
+        
+        if success:
+            # Assign assessment sets
+            assign_assessment_sets(user, product_id)
+            logger.info(f"Successfully processed test purchase for user {user.id}, product {product_id}")
+        else:
+            logger.error(f"Failed to process test purchase for user {user.id}, product {product_id}")
+            
+    except Exception as e:
+        logger.error(f"Error handling test purchase: {str(e)}")
+        log_api_error('stripe', 'handle_test_purchase', e)
