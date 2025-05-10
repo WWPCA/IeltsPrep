@@ -494,6 +494,9 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             'days': str(purchase_details['days'])
         }
         
+        # Get the list of allowed countries (countries that are not restricted)
+        allowed_countries = get_allowed_countries()
+        
         # Create checkout session with direct price_data for better compatibility
         session_params = {
             'payment_method_types': payment_method_types,
@@ -517,6 +520,8 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             'metadata': metadata,
             'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
             'billing_address_collection': 'required',  # Collect billing address for tax purposes
+            # Restrict billing to allowed countries only
+            'allowed_countries': allowed_countries,
             'payment_intent_data': {
                 'setup_future_usage': 'off_session',  # Allow future payments without authentication
                 'capture_method': 'automatic',  # Capture funds automatically
@@ -690,6 +695,9 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             'days': str(purchase_details['days'])
         }
         
+        # Get the list of allowed countries (countries that are not restricted)
+        allowed_countries = get_allowed_countries()
+        
         # Create checkout session with direct price_data for better compatibility
         session_params = {
             'payment_method_types': payment_method_types,
@@ -713,6 +721,8 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             'metadata': metadata,
             'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
             'billing_address_collection': 'required',  # Collect billing address for tax purposes
+            # Restrict billing to allowed countries only
+            'allowed_countries': allowed_countries,
             'payment_intent_data': {
                 'setup_future_usage': 'off_session',  # Allow future payments without authentication
                 'capture_method': 'automatic',  # Capture funds automatically

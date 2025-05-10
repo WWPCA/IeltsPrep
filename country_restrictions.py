@@ -101,7 +101,11 @@ def get_allowed_countries():
     ALL_COUNTRIES = [
         'US', 'CA', 'GB', 'DE', 'FR', 'IT', 'ES', 'AU', 'NZ', 'JP', 'SG', 'HK',
         'MY', 'IN', 'AE', 'SA', 'ZA', 'NG', 'EG', 'IL', 'TR', 'MX', 'AR', 'CO',
-        'CL', 'PE', 'VE', 'TH', 'ID', 'PH', 'VN', 'KR', 'CN', 'RU', 'BR'
+        'CL', 'PE', 'VE', 'TH', 'ID', 'PH', 'VN', 'TW', 'KZ', 'UA', 'SE', 'NO',
+        'DK', 'FI', 'NL', 'BE', 'CH', 'AT', 'PL', 'CZ', 'SK', 'HU', 'RO', 'BG',
+        'GR', 'PT', 'IE', 'UY', 'PR', 'PY', 'EC', 'BO', 'JM', 'TT', 'BS', 'BB',
+        'CR', 'PA', 'DO', 'HN', 'GT', 'SV', 'NI'
     ]
     
-    return [country for country in ALL_COUNTRIES if country not in RESTRICTED_COUNTRIES]
+    # No need to filter since we're not including restricted countries in the list above
+    return ALL_COUNTRIES
