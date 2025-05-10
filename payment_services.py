@@ -2,9 +2,33 @@ import os
 import stripe
 import logging
 import json
+from flask import session
 from tenacity import retry, stop_after_attempt, wait_fixed
 from datetime import datetime, timedelta
 from country_restrictions import is_country_restricted, get_allowed_countries, validate_billing_country
+
+def get_effective_country_code(provided_country_code=None):
+    """
+    Get the effective country code by checking both the session (for simulations)
+    and the provided country code parameter.
+    
+    Args:
+        provided_country_code (str, optional): Country code provided to the function
+        
+    Returns:
+        tuple: (country_code, is_simulated) where:
+            - country_code is the effective country code to use
+            - is_simulated is a boolean indicating if this is a simulated country
+    """
+    # Check for simulated country in session
+    session_country = session.get('country_code')
+    is_simulated = session.get('simulated_country', False)
+    
+    if session_country and is_simulated:
+        return session_country, True
+    
+    # Otherwise use the provided country code
+    return provided_country_code, False
 
 # Set Stripe API key
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
