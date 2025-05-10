@@ -682,15 +682,14 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
     
     try:
         # Create a new payment record
-        payment = PaymentRecord(
-            user_id=user_id,
-            amount=amount,
-            package_name=package_name,
-            payment_date=datetime.utcnow(),
-            stripe_session_id=session_id,
-            is_successful=True,
-            transaction_details=None  # Can be updated later if needed
-        )
+        payment = PaymentRecord()
+        payment.user_id = user_id
+        payment.amount = amount
+        payment.package_name = package_name
+        payment.payment_date = datetime.utcnow()
+        payment.stripe_session_id = session_id
+        payment.is_successful = True
+        payment.transaction_details = f"Stripe payment: {session_id}"
         
         # Add to database with proper error handling
         try:
@@ -705,15 +704,14 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
             # Try again with a new session context
             try:
                 # Create a new payment record since the old one may be in an inconsistent state
-                new_payment = PaymentRecord(
-                    user_id=user_id,
-                    amount=amount,
-                    package_name=package_name,
-                    payment_date=datetime.utcnow(),
-                    stripe_session_id=session_id,
-                    is_successful=True,
-                    transaction_details=None
-                )
+                new_payment = PaymentRecord()
+                new_payment.user_id = user_id
+                new_payment.amount = amount
+                new_payment.package_name = package_name
+                new_payment.payment_date = datetime.utcnow()
+                new_payment.stripe_session_id = session_id
+                new_payment.is_successful = True
+                new_payment.transaction_details = "Retry attempt after database error"
                 db.session.add(new_payment)
                 db.session.commit()
                 return new_payment

@@ -183,14 +183,14 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
     """
     try:
         # Create a new payment record
-        payment_record = PaymentRecord(
-            user_id=user_id,
-            amount=amount,
-            package_name=package_name,
-            payment_date=datetime.utcnow(),
-            stripe_session_id=session_id,
-            status='completed'
-        )
+        payment_record = PaymentRecord()
+        payment_record.user_id = user_id
+        payment_record.amount = amount
+        payment_record.package_name = package_name
+        payment_record.payment_date = datetime.utcnow()
+        payment_record.stripe_session_id = session_id
+        payment_record.is_successful = True
+        payment_record.transaction_details = f"Stripe payment: {session_id}"
         
         # Add to database and commit
         db.session.add(payment_record)
