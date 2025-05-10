@@ -468,9 +468,9 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         }
         
         # Create checkout session with direct price_data for better compatibility
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
+        session_params = {
+            'payment_method_types': payment_method_types,
+            'line_items': [
                 {
                     'price_data': {
                         'currency': 'usd',
@@ -479,15 +479,23 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
                             'description': purchase_details['description'],
                         },
                         'unit_amount': purchase_details['price'],
+                        'tax_behavior': 'exclusive',  # Tax is calculated on top of this price
                     },
                     'quantity': 1,
                 },
             ],
-            mode='payment',
-            success_url=f'https://{domain}/speaking-payment-success?session_id={{CHECKOUT_SESSION_ID}}',
-            cancel_url=f'https://{domain}/payment-cancel',
-            metadata=metadata
-        )
+            'mode': 'payment',
+            'success_url': f'https://{domain}/speaking-payment-success?session_id={{CHECKOUT_SESSION_ID}}',
+            'cancel_url': f'https://{domain}/payment-cancel',
+            'metadata': metadata,
+            'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
+        }
+        
+        # Add customer email if provided
+        if customer_email:
+            session_params['customer_email'] = customer_email
+            
+        checkout_session = stripe.checkout.Session.create(**session_params)
         
         return {
             'session_id': checkout_session.id,
@@ -499,7 +507,7 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         raise
 
 # For backward compatibility
-def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_package=None):
+def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_package=None, customer_email=None):
     """
     Create a Stripe checkout session for test purchase.
     
@@ -509,6 +517,7 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         country_code (str, optional): Two-letter country code for regional payment methods
         test_type (str, optional): 'academic' or 'general' - required if plan_info is 'purchase'
         test_package (str, optional): 'single', 'double', or 'pack' - required if plan_info is 'purchase'
+        customer_email (str, optional): Pre-fill customer email if available
     
     Returns:
         dict: Contains session_id and checkout_url
@@ -524,7 +533,7 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         # Special case for speaking-only purchases
         if test_type == 'speaking_only' and test_package and 'speaking_only' in TEST_PURCHASE_OPTIONS:
             if test_package in TEST_PURCHASE_OPTIONS.get('speaking_only', {}):
-                return create_stripe_checkout_speaking(test_package, country_code)
+                return create_stripe_checkout_speaking(test_package, country_code, customer_email)
             else:
                 logging.error(f"Invalid speaking package: {test_package}")
                 raise ValueError(f"Invalid speaking package: {test_package}")
@@ -642,9 +651,9 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         }
         
         # Create checkout session with direct price_data for better compatibility
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
+        session_params = {
+            'payment_method_types': payment_method_types,
+            'line_items': [
                 {
                     'price_data': {
                         'currency': 'usd',
@@ -653,15 +662,23 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
                             'description': purchase_details['description'],
                         },
                         'unit_amount': purchase_details['price'],
+                        'tax_behavior': 'exclusive',  # Tax is calculated on top of this price
                     },
                     'quantity': 1,
                 },
             ],
-            mode='payment',  # Using one-time payment
-            success_url=f'https://{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}',
-            cancel_url=f'https://{domain}/payment-cancel',
-            metadata=metadata
-        )
+            'mode': 'payment',  # Using one-time payment
+            'success_url': f'https://{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}',
+            'cancel_url': f'https://{domain}/payment-cancel',
+            'metadata': metadata,
+            'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
+        }
+        
+        # Add customer email if provided
+        if customer_email:
+            session_params['customer_email'] = customer_email
+            
+        checkout_session = stripe.checkout.Session.create(**session_params)
         
         return {
             'session_id': checkout_session.id,
