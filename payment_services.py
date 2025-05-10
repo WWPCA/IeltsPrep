@@ -1,11 +1,104 @@
 import os
 import stripe
 import logging
+import json
 from tenacity import retry, stop_after_attempt, wait_fixed
 from datetime import datetime, timedelta
 
 # Set Stripe API key
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+
+# Comprehensive region payment mapping for Stripe
+# NOTE: Only include payment methods actually supported by Stripe
+REGION_PAYMENT_MAPPING = {
+    # East Asia
+    'CN': ['alipay', 'wechat_pay'],
+    'HK': ['alipay', 'fps', 'octopus'],
+    'JP': ['konbini', 'jcb', 'payeasy'],
+    'KR': ['kakaopay'],
+    'TW': ['line_pay'],
+    
+    # Southeast Asia
+    'MY': ['grabpay', 'fpx', 'boost'],
+    'TH': ['promptpay'],
+    'ID': ['gopay', 'ovo'],
+    'PH': ['gcash', 'paymaya'],
+    'SG': ['grabpay', 'paynow'],
+    'VN': ['momo'],
+    
+    # South Asia
+    'IN': ['upi', 'netbanking'],
+    'PK': ['bacs_debit'],
+    'BD': ['bacs_debit'],
+    'NP': ['bacs_debit'],
+    
+    # Latin America
+    'BR': ['boleto', 'pix'],
+    'MX': ['oxxo', 'spei'],
+    'AR': ['rapipago'],
+    'CL': ['webpay'],
+    'CO': ['pse'],
+    
+    # Middle East
+    'AE': ['benefit'],
+    'SA': ['mada'],
+    'IL': ['eps'],
+    'TR': ['sofort'],
+    
+    # Africa
+    'ZA': ['eftsecure'],
+    'NG': ['paystack'],
+    'EG': ['fawry'],
+    'KE': ['bacs_debit'],
+    
+    # Oceania
+    'AU': ['afterpay_clearpay', 'au_becs_debit'],
+    'NZ': ['afterpay_clearpay'],
+    
+    # North America
+    'CA': ['acss_debit', 'interac'],
+    'US': ['affirm', 'us_bank_account', 'cashapp', 'link', 'apple_pay', 'google_pay'],
+    
+    # Europe
+    'GB': ['bacs_debit', 'ideal'],
+    'FR': ['sepa_debit', 'bancontact'],
+    'DE': ['giropay', 'sepa_debit', 'sofort'],
+    'IT': ['p24', 'sepa_debit'],
+    'ES': ['sepa_debit', 'multibanco'],
+    'NL': ['ideal', 'sepa_debit'],
+    'BE': ['bancontact', 'sepa_debit'],
+    'AT': ['eps', 'sepa_debit'],
+    'PL': ['blik', 'p24'],
+    'PT': ['multibanco', 'sepa_debit'],
+    'CH': ['sofort', 'twint', 'sepa_debit'],
+    'SE': ['klarna', 'swish'],
+    'NO': ['vipps'],
+    'FI': ['mobile_pay'],
+    'DK': ['mobile_pay'],
+    'IE': ['sepa_debit'],
+    'CZ': ['eps'],
+    'RO': ['sepa_debit'],
+    'HU': ['eps']
+}
+
+def get_country_payment_methods(country_code):
+    """
+    Get the list of supported payment methods for a given country.
+    
+    Args:
+        country_code (str): Two-letter country code
+        
+    Returns:
+        list: Supported payment methods for the country
+    """
+    if not country_code:
+        return []
+        
+    # Standardize the country code
+    country_code = country_code.upper()
+    
+    # Get payment methods for the country
+    return REGION_PAYMENT_MAPPING.get(country_code, [])
 
 # New purchase options following the updated pricing structure
 TEST_PURCHASE_OPTIONS = {
@@ -263,13 +356,14 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         raise
 
 # Create a Stripe checkout session for speaking assessments
-def create_stripe_checkout_speaking(package_type, country_code=None):
+def create_stripe_checkout_speaking(package_type, country_code=None, customer_email=None):
     """
     Create a Stripe checkout session for speaking assessments purchase.
     
     Args:
         package_type (str): 'basic' (4 assessments) or 'pro' (10 assessments)
         country_code (str, optional): Two-letter country code for regional payment methods
+        customer_email (str, optional): Pre-fill customer email if available
         
     Returns:
         dict: Contains session_id and checkout_url
