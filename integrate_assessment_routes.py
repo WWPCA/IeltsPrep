@@ -12,6 +12,7 @@ import json
 from payment_services import create_stripe_checkout_session
 from geoip_services import get_country_from_ip
 from routes import get_pricing_for_country
+from country_restrictions import country_access_required, is_country_restricted
 
 # Define the assessment products with pricing
 assessment_products = {
@@ -39,6 +40,7 @@ assessment_products = {
 
 # Add assessment routes directly to the app
 @app.route('/assessment-products')
+@country_access_required
 def assessment_products_page():
     """Display available assessment products."""
     # Detect country for pricing
@@ -64,6 +66,7 @@ def assessment_products_page():
                           country_code=country_code)
 
 @app.route('/product-checkout')
+@country_access_required
 def product_checkout():
     """Handle checkout for assessment products."""
     # Get product ID from URL parameters

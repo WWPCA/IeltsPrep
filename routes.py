@@ -79,13 +79,21 @@ def subscription_required(f):
 
 # Streak tracking removed as requested
 
-# Home route
+# Restricted access page
+@app.route('/restricted-access')
+def restricted_access():
+    """Show restricted access page for users from blocked countries."""
+    return render_template('restricted_access.html', title='Region Restricted')
+
+# Home route with country access check
 @app.route('/')
+@country_access_required
 def index():
-    return render_template('index.html', title='IELTS AI Prep')
+    return render_template('index.html', title='IELTS GenAI Prep')
 
 # Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
+@country_access_required
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -141,6 +149,7 @@ def login():
     return render_template('login.html', title='Login')
 
 @app.route('/register', methods=['GET', 'POST'])
+@country_access_required
 def register():
     if current_user.is_authenticated:
         # If user is coming from checkout, redirect back there
