@@ -85,6 +85,48 @@ def restricted_access():
     """Show restricted access page for users from blocked countries."""
     return render_template('restricted_access.html', title='Region Restricted')
 
+# Test route for country restrictions (admin only)
+@app.route('/test-country-restriction/<country_code>')
+@login_required
+def test_country_restriction(country_code):
+    """Test route to check if a specific country is restricted."""
+    if not current_user.is_admin:
+        flash("Admin access required for this function.", "danger")
+        return redirect(url_for('index'))
+        
+    from country_restrictions import is_country_restricted, RESTRICTED_COUNTRIES
+    
+    country_info = {
+        'code': country_code.upper(),
+        'is_restricted': is_country_restricted(country_code),
+        'all_restricted': RESTRICTED_COUNTRIES,
+        'checkout_allowed': country_code.upper() not in RESTRICTED_COUNTRIES,
+    }
+    
+    return render_template('admin/test_country.html', country_info=country_info, title='Test Country Restriction')
+
+# Simulate access from a restricted country (admin only)
+@app.route('/simulate-country-access/<country_code>')
+@login_required
+def simulate_country_access(country_code):
+    """Simulate accessing the site from a specific country code."""
+    if not current_user.is_admin:
+        flash("Admin access required for this function.", "danger")
+        return redirect(url_for('index'))
+    
+    from country_restrictions import is_country_restricted, RESTRICTED_COUNTRIES
+    
+    # Store the simulated country in session
+    session['country_code'] = country_code.upper()
+    is_restricted = is_country_restricted(country_code)
+    
+    if is_restricted:
+        flash(f"Simulating access from restricted country: {country_code.upper()}", "warning")
+        return redirect(url_for('restricted_access'))
+    else:
+        flash(f"Simulating access from allowed country: {country_code.upper()}", "success")
+        return redirect(url_for('index'))
+
 # Home route with country access check
 @app.route('/')
 @country_access_required

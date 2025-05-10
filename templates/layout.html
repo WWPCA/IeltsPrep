@@ -134,6 +134,47 @@
                 text-align: center;
             }
         }
+        
+        /* Admin menu styling */
+        .admin-menu {
+            position: relative;
+        }
+        
+        .admin-menu .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 220px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            padding: 0.5rem 0;
+            z-index: 1000;
+            list-style: none;
+        }
+        
+        .admin-menu:hover .dropdown-menu {
+            display: block;
+        }
+        
+        .admin-menu .dropdown-menu li a {
+            color: #333;
+            padding: 0.5rem 1rem;
+            display: block;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .admin-menu .dropdown-menu li a:hover {
+            background-color: #f8f9fa;
+        }
+        
+        @media (max-width: 767px) {
+            .admin-menu .dropdown-menu {
+                position: static;
+                box-shadow: none;
+                padding-left: 1rem;
+            }
+        }
     </style>
     {% block styles %}{% endblock %}
     
@@ -172,6 +213,14 @@
                     </a></li>
                     {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> My Profile</a></li>
+                        {% if current_user.is_admin %}
+                        <li class="admin-menu">
+                            <a href="#" class="dropdown-toggle"><i class="fas fa-shield-alt"></i> Admin <i class="fas fa-caret-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{{ url_for('test_country_restriction', country_code='US') }}"><i class="fas fa-globe"></i> Test Country Restrictions</a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
                         <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     {% else %}
                         <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
