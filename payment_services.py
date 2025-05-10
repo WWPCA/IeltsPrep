@@ -325,6 +325,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                             'description': description,
                         },
                         'unit_amount': price_in_cents,
+                        'tax_behavior': 'exclusive',  # Tax is calculated on top of this price
                     },
                     'quantity': 1,
                 },
@@ -333,9 +334,13 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             'success_url': success_url,
             'cancel_url': cancel_url,
             'metadata': metadata,
-            'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
-            'customer_creation': 'always',       # Always create a customer
-            'billing_address_collection': 'auto', # Collect billing address when required for tax
+            'automatic_tax': {'enabled': True},         # Enable automatic tax calculation
+            'customer_creation': 'always',              # Always create a customer
+            'billing_address_collection': 'required',   # Always collect billing address for tax
+            'payment_intent_data': {
+                'setup_future_usage': 'off_session',    # Allow future payments without authentication
+                'capture_method': 'automatic',          # Capture funds automatically
+            },
         }
         
         # Add customer email if provided
@@ -489,6 +494,12 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             'cancel_url': f'https://{domain}/payment-cancel',
             'metadata': metadata,
             'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
+            'billing_address_collection': 'required',  # Collect billing address for tax purposes
+            'payment_intent_data': {
+                'setup_future_usage': 'off_session',  # Allow future payments without authentication
+                'capture_method': 'automatic',  # Capture funds automatically
+            },
+            'customer_creation': 'always',  # Always create a customer in Stripe
         }
         
         # Add customer email if provided
@@ -672,6 +683,12 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             'cancel_url': f'https://{domain}/payment-cancel',
             'metadata': metadata,
             'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
+            'billing_address_collection': 'required',  # Collect billing address for tax purposes
+            'payment_intent_data': {
+                'setup_future_usage': 'off_session',  # Allow future payments without authentication
+                'capture_method': 'automatic',  # Capture funds automatically
+            },
+            'customer_creation': 'always',  # Always create a customer in Stripe
         }
         
         # Add customer email if provided
