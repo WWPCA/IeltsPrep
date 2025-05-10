@@ -174,9 +174,9 @@ def create_or_get_price_for_purchase(product_id, price_in_cents, plan_code, test
         raise
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def create_stripe_checkout_session(product_name, description, price, success_url, cancel_url, country_code=None):
+def create_stripe_checkout_session(product_name, description, price, success_url, cancel_url, country_code=None, customer_email=None):
     """
-    Create a Stripe checkout session.
+    Create a Stripe checkout session with enhanced features based on the latest Stripe guidelines.
     
     Args:
         product_name (str): Name of the product
@@ -185,9 +185,10 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         success_url (str): URL to redirect to on successful payment
         cancel_url (str): URL to redirect to if payment is canceled
         country_code (str, optional): Two-letter country code for regional payment methods
+        customer_email (str, optional): Pre-fill customer email if available
         
     Returns:
-        stripe.checkout.Session: The created Stripe checkout session
+        dict: Contains session_id and checkout_url
     """
     try:
         if not stripe.api_key:
@@ -200,13 +201,29 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         metadata = {
             'product_name': product_name,
             'price': str(price),
-            'description': description
+            'description': description,
+            'source': 'ielts_genai_prep',
+            'created_at': datetime.utcnow().isoformat()
         }
         
-        # Create simplified checkout session with minimal options
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
+        # Ensure the success_url includes the session ID parameter
+        if '{CHECKOUT_SESSION_ID}' not in success_url:
+            if '?' in success_url:
+                success_url += '&session_id={CHECKOUT_SESSION_ID}'
+            else:
+                success_url += '?session_id={CHECKOUT_SESSION_ID}'
+        
+        # Determine payment method types based on country
+        payment_methods = ['card']
+        if country_code:
+            additional_methods = get_country_payment_methods(country_code)
+            if additional_methods:
+                payment_methods.extend(additional_methods)
+        
+        # Build checkout session parameters
+        session_params = {
+            'payment_method_types': payment_methods,
+            'line_items': [
                 {
                     'price_data': {
                         'currency': 'usd',
@@ -219,11 +236,21 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                     'quantity': 1,
                 },
             ],
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata=metadata
-        )
+            'mode': 'payment',
+            'success_url': success_url,
+            'cancel_url': cancel_url,
+            'metadata': metadata,
+            'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
+            'customer_creation': 'always',       # Always create a customer
+            'billing_address_collection': 'auto', # Collect billing address when required for tax
+        }
+        
+        # Add customer email if provided
+        if customer_email:
+            session_params['customer_email'] = customer_email
+        
+        # Create checkout session with enhanced options
+        checkout_session = stripe.checkout.Session.create(**session_params)
         
         # Format the return value to match what add_assessment_routes.py expects
         return {
