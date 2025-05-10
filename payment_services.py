@@ -522,18 +522,26 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         using_new_purchase = plan_info == 'purchase' and test_type and test_package
         
         # Special case for speaking-only purchases
-        if test_type == 'speaking_only' and test_package in TEST_PURCHASE_OPTIONS['speaking_only']:
-            return create_stripe_checkout_speaking(test_package, country_code)
+        if test_type == 'speaking_only' and test_package and 'speaking_only' in TEST_PURCHASE_OPTIONS:
+            if test_package in TEST_PURCHASE_OPTIONS.get('speaking_only', {}):
+                return create_stripe_checkout_speaking(test_package, country_code)
+            else:
+                logging.error(f"Invalid speaking package: {test_package}")
+                raise ValueError(f"Invalid speaking package: {test_package}")
         
         # Validate parameters for new purchase system
         if using_new_purchase:
-            if test_type not in TEST_PURCHASE_OPTIONS:
+            if not test_type or test_type not in TEST_PURCHASE_OPTIONS:
+                logging.error(f"Invalid test type: {test_type}")
                 raise ValueError(f"Invalid test type: {test_type}. Must be 'academic' or 'general'")
-            if test_package not in TEST_PURCHASE_OPTIONS[test_type]:
+                
+            test_options = TEST_PURCHASE_OPTIONS.get(test_type, {})
+            if not test_package or test_package not in test_options:
+                logging.error(f"Invalid package: {test_package}")
                 raise ValueError(f"Invalid package: {test_package}. Must be 'single', 'double', or 'pack'")
             
             # Get the purchase details
-            purchase_details = TEST_PURCHASE_OPTIONS[test_type][test_package]
+            purchase_details = test_options.get(test_package)
             plan_code = f"{test_type}_{test_package}"  # Create a unique plan code
         else:
             # Legacy subscription handling
@@ -736,24 +744,39 @@ def verify_stripe_payment(session_id):
         dict: Payment details if verified, None otherwise
     """
     try:
+        if not stripe.api_key:
+            logging.error("Stripe API key not found. Cannot verify payment.")
+            return None
+            
         session = stripe.checkout.Session.retrieve(session_id)
         
         # Check if payment was successful
-        if session.payment_status != 'paid':
+        if not session or not hasattr(session, 'payment_status') or session.payment_status != 'paid':
             logging.warning(f"Payment not completed for session {session_id}")
             return None
         
         # Get detailed payment info
         payment_details = {}
         
-        # Add standard fields
-        payment_details['amount'] = session.amount_total / 100  # Convert from cents to dollars
-        payment_details['currency'] = session.currency
+        # Add standard fields - the Stripe API returns objects with attributes, not dictionaries
+        if hasattr(session, 'amount_total') and session.amount_total is not None:
+            payment_details['amount'] = session.amount_total / 100  # Convert from cents to dollars
+        else:
+            payment_details['amount'] = 0
+            
+        payment_details['currency'] = getattr(session, 'currency', 'usd')
         
         # Add metadata if available
-        if session.metadata:
-            for key, value in session.metadata.items():
-                payment_details[key] = value
+        metadata = getattr(session, 'metadata', None)
+        if metadata:
+            # Some Stripe objects return dictionaries, others return objects with attributes
+            if isinstance(metadata, dict):
+                for key, value in metadata.items():
+                    payment_details[key] = value
+            else:
+                for key in dir(metadata):
+                    if not key.startswith('_') and not callable(getattr(metadata, key)):
+                        payment_details[key] = getattr(metadata, key)
             
         return payment_details
         
