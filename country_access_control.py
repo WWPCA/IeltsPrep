@@ -218,8 +218,6 @@ def setup_country_restriction_routes(app):
             message = "Service Not Available in Your Region"
             description = (
                 "We're sorry, but our service is not yet available in your country. "
-                "AI Learning Hub is currently only available in select countries: "
-                "Canada, United States, India, Nepal, Kuwait, and Qatar. "
                 "We're working to expand our service area in the future."
             )
         else:

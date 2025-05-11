@@ -23,49 +23,7 @@
                         <p class="lead">{{ description }}</p>
                     </div>
                     
-                    <div class="card bg-light mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title">Currently Available In:</h5>
-                            <div class="row text-center">
-                                <div class="col-md-4 mb-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-flag me-2"></i>
-                                        <span>Canada</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-flag me-2"></i>
-                                        <span>United States</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-flag me-2"></i>
-                                        <span>India</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-flag me-2"></i>
-                                        <span>Nepal</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-flag me-2"></i>
-                                        <span>Kuwait</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-flag me-2"></i>
-                                        <span>Qatar</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                     
                     {% if reason == 'regulatory' %}
                     <div class="alert alert-info">
@@ -74,15 +32,6 @@
                             Our service involves data processing activities that require specific regulatory compliance. 
                             We're currently unable to offer our services in your region due to these requirements.
                             We're working to expand our service and hope to be available in your region in the future.
-                        </p>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <h5><i class="fas fa-info-circle me-2"></i>Why am I seeing this?</h5>
-                        <p class="mb-0">
-                            AI Learning Hub is currently only available in select countries as we carefully scale our operations.
-                            We're expanding our country list gradually to ensure the highest quality of service.
-                            Please check back in the future as we continue to grow our global presence.
                         </p>
                     </div>
                     {% endif %}
