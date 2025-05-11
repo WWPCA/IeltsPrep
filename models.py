@@ -719,6 +719,11 @@ class UserTestAttempt(db.Model):
     score = db.Column(db.Float, nullable=True)
     assessment = db.Column(db.Text, nullable=True)  # JSON string with full assessment details
     
+    # GCP Storage references
+    gcp_transcript_path = db.Column(db.String(255), nullable=True)  # Path to transcript in GCP
+    gcp_assessment_path = db.Column(db.String(255), nullable=True)  # Path to assessment in GCP
+    transcript_expiry_date = db.Column(db.DateTime, nullable=True)  # When transcript expires (6 months)
+    
     @property
     def user_answers(self):
         return json.loads(self._user_answers)
@@ -726,6 +731,12 @@ class UserTestAttempt(db.Model):
     @user_answers.setter
     def user_answers(self, value):
         self._user_answers = json.dumps(value)
+    
+    def is_transcript_expired(self):
+        """Check if the transcript has expired (6-month retention policy)"""
+        if not self.transcript_expiry_date:
+            return False
+        return datetime.utcnow() > self.transcript_expiry_date
     
     def __repr__(self):
         return f'<UserTestAttempt User:{self.user_id} Test:{self.test_id}>'
