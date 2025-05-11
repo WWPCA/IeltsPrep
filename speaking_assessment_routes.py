@@ -14,6 +14,7 @@ import tempfile
 from datetime import datetime, timedelta
 from utils import compress_audio
 from aws_services import generate_polly_speech
+import gcp_storage
 
 speaking_assessment = Blueprint('speaking_assessment', __name__)
 
@@ -113,6 +114,12 @@ def submit_speaking_response(test_id):
         # Get the audio file from the request
         audio_blob = request.form.get('audio_blob')
         
+        # Initialize user_answers variable to ensure it's always defined
+        user_answers = {
+            'transcription': '',
+            'audio_url': ''  # Explicitly empty for privacy
+        }
+        
         if not audio_blob:
             flash("No audio recording was provided.", "danger")
             return redirect(url_for('practice.take_test', test_type='speaking', test_id=test_id))
@@ -143,6 +150,38 @@ def submit_speaking_response(test_id):
                 # Process the speaking response using AssemblyAI + GPT-4o
                 assessment = process_speaking_response(compressed_path, prompt_text, part_number)
                 
+                # The following will be our assessment_id after the record is created
+                assessment_id = None  
+                
+                # Store transcript and assessment in GCP storage if available
+                if gcp_storage.is_available():
+                    try:
+                        # Store transcript data - we'll update the paths after attempt is created
+                        transcript_data = {
+                            'test_id': test.id,
+                            'prompt': prompt_text,
+                            'transcription': assessment.get('transcription', '')
+                        }
+                        
+                        # We'll set these fields in user_answers and move them to DB columns later
+                        user_answers = {
+                            'transcription': assessment.get('transcription', ''),
+                            'audio_url': '',  # Explicitly empty for privacy
+                            'needs_gcp_update': True  # Flag to update after we have attempt.id
+                        }
+                    except Exception as gcp_error:
+                        print(f"Warning: Failed to prepare GCP data: {str(gcp_error)}")
+                        # Continue with process - local storage is used as fallback
+                        user_answers = {
+                            'transcription': assessment.get('transcription', ''),
+                            'audio_url': ''  # Explicitly empty for privacy
+                        }
+                else:
+                    user_answers = {
+                        'transcription': assessment.get('transcription', ''),
+                        'audio_url': ''  # Explicitly empty for privacy
+                    }
+                
                 # Get the overall band score
                 overall_band_score = assessment.get('overall_band', 0)
             else:
@@ -161,6 +200,12 @@ def submit_speaking_response(test_id):
                     "overall_feedback": "Assessment service unavailable. Please contact support."
                 }
                 overall_band_score = 5.0
+                
+                # Initialize user_answers for the fallback case
+                user_answers = {
+                    'transcription': transcription,
+                    'audio_url': ''  # Explicitly empty for privacy
+                }
         finally:
             # Delete temporary audio files regardless of assessment outcome
             try:
@@ -175,11 +220,7 @@ def submit_speaking_response(test_id):
         attempt = UserTestAttempt()
         attempt.user_id = current_user.id
         attempt.test_id = test_id
-        attempt._user_answers = json.dumps({
-            'transcription': assessment.get('transcription', ''),
-            # Explicitly set audio_url to empty string to ensure no audio URLs are stored
-            'audio_url': '' 
-        })
+        attempt._user_answers = json.dumps(user_answers)
         attempt.score = overall_band_score
         attempt.assessment = json.dumps(assessment)
         
@@ -228,7 +269,60 @@ def submit_speaking_response(test_id):
                 session_record.mark_complete()
                 session_record.mark_submitted()
         
+        # Commit the changes to get an ID for our new attempt
         db.session.commit()
+        
+        # Now that we have attempt.id, update GCP paths if needed
+        if user_answers.get('needs_gcp_update', False) and gcp_storage.is_available():
+            try:
+                # Store transcript in GCP with the attempt ID
+                transcript_data = {
+                    'test_id': test.id,
+                    'prompt': prompt_text,
+                    'transcription': assessment.get('transcription', '')
+                }
+                
+                # Calculate transcript expiry date (6 months from now)
+                expiry_date = datetime.utcnow() + timedelta(days=180)
+                
+                # Store in GCP with appropriate metadata
+                transcript_success, transcript_path = gcp_storage.store_transcript(
+                    user_id=current_user.id,
+                    assessment_id=attempt.id,
+                    transcript_data=transcript_data,
+                    metadata={
+                        'test_type': 'speaking',
+                        'expiry_date': expiry_date.isoformat()
+                    }
+                )
+                
+                # Store assessment data separately (kept indefinitely)
+                assessment_data = {key: value for key, value in assessment.items() if key != 'transcription'}
+                assessment_success, assessment_path = gcp_storage.store_assessment(
+                    user_id=current_user.id,
+                    assessment_id=attempt.id,
+                    assessment_data=assessment_data
+                )
+                
+                # Update attempt with GCP storage paths
+                if transcript_success:
+                    attempt.gcp_transcript_path = transcript_path
+                    attempt.transcript_expiry_date = expiry_date
+                
+                if assessment_success:
+                    attempt.gcp_assessment_path = assessment_path
+                
+                # Remove temporary flags from user_answers
+                updated_user_answers = attempt.user_answers
+                updated_user_answers.pop('needs_gcp_update', None)
+                attempt.user_answers = updated_user_answers
+                
+                # Commit the updates
+                db.session.commit()
+                print(f"Successfully stored assessment data in GCP for attempt {attempt.id}")
+            except Exception as e:
+                print(f"Warning: Failed to update GCP paths: {str(e)}")
+                # Don't block the process if this fails
         
         # Redirect to the results page
         return redirect(url_for('speaking_assessment.speaking_assessment_results', attempt_id=attempt.id))
@@ -268,11 +362,38 @@ def speaking_assessment_results(attempt_id):
     # Get the test
     test = PracticeTest.query.get_or_404(attempt.test_id)
     
-    # Get the assessment data
-    assessment = json.loads(attempt.assessment) if attempt.assessment else {}
+    # Get the assessment data from GCP if available
+    assessment = {}
+    if attempt.gcp_assessment_path and gcp_storage.is_available():
+        success, gcp_assessment = gcp_storage.retrieve_assessment(
+            attempt.gcp_assessment_path, 
+            user_id=current_user.id
+        )
+        if success:
+            assessment = gcp_assessment
+        else:
+            # Fall back to database storage
+            assessment = json.loads(attempt.assessment) if attempt.assessment else {}
+    else:
+        # Use database storage
+        assessment = json.loads(attempt.assessment) if attempt.assessment else {}
     
     # Get the user answers
     user_answers = json.loads(attempt.user_answers) if attempt.user_answers else {}
+    
+    # Get transcript from GCP if available
+    transcription = ""
+    if attempt.gcp_transcript_path and gcp_storage.is_available() and not attempt.is_transcript_expired():
+        success, gcp_transcript = gcp_storage.retrieve_transcript(
+            attempt.gcp_transcript_path, 
+            user_id=current_user.id
+        )
+        if success:
+            transcription = gcp_transcript.get('transcription', '')
+        else:
+            transcription = user_answers.get('transcription', '')
+    else:
+        transcription = user_answers.get('transcription', '')
     
     # Determine if this is part of a complete test
     is_part_of_complete_test = attempt.complete_test_progress_id is not None
@@ -283,10 +404,12 @@ def speaking_assessment_results(attempt_id):
         'test': test,
         'assessment': assessment,
         'audio_url': user_answers.get('audio_url', ''),
-        'transcription': user_answers.get('transcription', ''),
+        'transcription': transcription,
         'band_score': round(float(attempt.score or 0), 1),
         'part_number': min(3, max(1, test.section)),
-        'is_part_of_complete_test': is_part_of_complete_test
+        'is_part_of_complete_test': is_part_of_complete_test,
+        'using_gcp_storage': bool(attempt.gcp_transcript_path or attempt.gcp_assessment_path),
+        'transcript_expiry_date': attempt.transcript_expiry_date
     }
     
     # Render the results template
