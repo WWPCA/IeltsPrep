@@ -172,15 +172,14 @@ def submit_speaking_response(test_id):
                 print(f"Error deleting temporary audio files: {str(e)}")
         
         # Create a new attempt record - audio not saved, only the transcription and assessment
-        attempt = UserTestAttempt(
-            user_id=current_user.id,
-            test_id=test_id,
-            user_answers=json.dumps({
-                'transcription': assessment.get('transcription', '')
-            }),
-            score=overall_band_score,
-            assessment=json.dumps(assessment)
-        )
+        attempt = UserTestAttempt()
+        attempt.user_id = current_user.id
+        attempt.test_id = test_id
+        attempt._user_answers = json.dumps({
+            'transcription': assessment.get('transcription', '')
+        })
+        attempt.score = overall_band_score
+        attempt.assessment = json.dumps(assessment)
         
         # If this is part of a complete test, link it to the test progress
         complete_test_progress_id = session.get('complete_test_progress_id')
@@ -237,7 +236,12 @@ def submit_speaking_response(test_id):
         print(f"Error processing speaking submission: {str(e)}")
         
         # Mark any active session as failed
-        if 'product_id' in locals() and product_id:
+        product_id = None
+        test = PracticeTest.query.get(test_id)
+        if test and test.assessment_product_id:
+            product_id = test.assessment_product_id
+            
+        if product_id:
             session_record = AssessmentSession.get_active_session(current_user.id, product_id)
             if session_record:
                 session_record.mark_failed(reason=str(e)[:255])  # Limit reason length
