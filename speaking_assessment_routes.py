@@ -176,7 +176,9 @@ def submit_speaking_response(test_id):
         attempt.user_id = current_user.id
         attempt.test_id = test_id
         attempt._user_answers = json.dumps({
-            'transcription': assessment.get('transcription', '')
+            'transcription': assessment.get('transcription', ''),
+            # Explicitly set audio_url to empty string to ensure no audio URLs are stored
+            'audio_url': '' 
         })
         attempt.score = overall_band_score
         attempt.assessment = json.dumps(assessment)
