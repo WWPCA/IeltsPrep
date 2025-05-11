@@ -31,16 +31,14 @@ app.register_blueprint(stripe_webhook_bp, url_prefix='/api')
 # Set up country restriction routes (but don't apply restrictions yet - use apply_country_restrictions.py for that)
 setup_country_restriction_routes(app)
 
-# Check if country restrictions should be applied automatically at startup
-APPLY_COUNTRY_RESTRICTIONS = os.environ.get('APPLY_COUNTRY_RESTRICTIONS', 'false').lower() == 'true'
-if APPLY_COUNTRY_RESTRICTIONS:
-    try:
-        from country_access_control import apply_country_restrictions
-        logger.info("Applying country restrictions at startup (APPLY_COUNTRY_RESTRICTIONS=true)")
-        apply_country_restrictions(app)
-        logger.info("Country restrictions applied successfully")
-    except Exception as e:
-        logger.error(f"Failed to apply country restrictions: {str(e)}")
+# Apply country restrictions automatically at startup
+try:
+    from country_access_control import apply_country_restrictions
+    logger.info("Applying country restrictions at startup")
+    apply_country_restrictions(app)
+    logger.info("Country restrictions applied successfully - access limited to CA, US, IN, NP, KW, QA")
+except Exception as e:
+    logger.error(f"Failed to apply country restrictions: {str(e)}")
 
 # Import assessment products routes
 import integrate_assessment_routes  # noqa: F401

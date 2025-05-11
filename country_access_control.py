@@ -165,8 +165,9 @@ def country_access_required(view_function):
         ip_address = request.remote_addr
         
         # Handle proxied requests (common in production)
-        if request.headers.get('X-Forwarded-For'):
-            ip_address = request.headers.get('X-Forwarded-For').split(',')[0].strip()
+        forwarded_for = request.headers.get('X-Forwarded-For')
+        if forwarded_for and isinstance(forwarded_for, str):
+            ip_address = forwarded_for.split(',')[0].strip()
         
         # Get country from IP
         country_code = get_country_code(ip_address)
