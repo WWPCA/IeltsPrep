@@ -175,12 +175,12 @@ def country_access_required(view_function):
         # If country couldn't be determined, block access
         if not country_code:
             log_access_attempt(ip_address, 'UNKNOWN', False)
-            return redirect(url_for('access_restricted', reason='unknown'))
+            return redirect(url_for('access_restricted_page', reason='unknown'))
         
         # Check if country is explicitly blocked (e.g., EU/UK for GDPR)
         if is_country_explicitly_blocked(country_code):
             log_access_attempt(ip_address, country_code, False)
-            return redirect(url_for('access_restricted', reason='regulatory'))
+            return redirect(url_for('access_restricted_page', reason='regulatory'))
         
         # Check if country is allowed
         if is_country_allowed(country_code):
@@ -191,7 +191,7 @@ def country_access_required(view_function):
             return view_function(*args, **kwargs)
         else:
             log_access_attempt(ip_address, country_code, False)
-            return redirect(url_for('access_restricted', reason='not_available'))
+            return redirect(url_for('access_restricted_page', reason='not_available'))
     
     return decorated_function
 
@@ -204,7 +204,7 @@ def setup_country_restriction_routes(app):
         app: Flask application instance
     """
     @app.route('/access-restricted')
-    def access_restricted():
+    def access_restricted_page():
         reason = request.args.get('reason', 'unknown')
         
         if reason == 'regulatory':
@@ -218,8 +218,9 @@ def setup_country_restriction_routes(app):
             message = "Service Not Available in Your Region"
             description = (
                 "We're sorry, but our service is not yet available in your country. "
-                "We're currently operating in the following regions: Canada, United States, "
-                "India, Nepal, Kuwait, and Qatar. We're working to expand our service area soon."
+                "AI Learning Hub is currently only available in select countries: "
+                "Canada, United States, India, Nepal, Kuwait, and Qatar. "
+                "We're working to expand our service area in the future."
             )
         else:
             message = "Access Restricted"
