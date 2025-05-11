@@ -290,10 +290,8 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         ValueError: If the country is restricted by our policy
     """
     try:
-        # Check if the country is restricted
-        if country_code and is_country_restricted(country_code):
-            logging.warning(f"Attempted checkout from restricted country: {country_code}")
-            raise ValueError(f"We do not provide services in your region ({country_code}) due to regulatory requirements.")
+        # Check country restrictions
+        check_country_restriction(country_code, is_country_restricted)
             
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
@@ -393,10 +391,8 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         ValueError: If the country is restricted by our policy
     """
     try:
-        # Check if the country is restricted
-        if country_code and is_country_restricted(country_code):
-            logging.warning(f"Attempted checkout from restricted country: {country_code}")
-            raise ValueError(f"We do not provide services in your region ({country_code}) due to regulatory requirements.")
+        # Check country restrictions
+        check_country_restriction(country_code, is_country_restricted)
             
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
@@ -565,10 +561,8 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
     Raises:
         ValueError: If the country is restricted by our policy
     """
-    # Check if the country is restricted
-    if country_code and is_country_restricted(country_code):
-        logging.warning(f"Attempted checkout from restricted country: {country_code}")
-        raise ValueError(f"We do not provide services in your region ({country_code}) due to regulatory requirements.")
+    # Check country restrictions
+    check_country_restriction(country_code, is_country_restricted)
     try:
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
