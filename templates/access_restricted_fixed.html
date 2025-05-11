@@ -8,23 +8,14 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header bg-warning">
-                    <h1 class="h3 mb-0 text-dark">{{ message }}</h1>
+                    <h1 class="h3 mb-0 text-dark">Service Not Available in Your Region</h1>
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        {% if reason == 'regulatory' %}
-                            <i class="fas fa-balance-scale fa-4x text-warning mb-3"></i>
-                        {% elif reason == 'not_available' %}
-                            <i class="fas fa-globe fa-4x text-warning mb-3"></i>
-                        {% else %}
-                            <i class="fas fa-map-marker-alt fa-4x text-warning mb-3"></i>
-                        {% endif %}
+                        <i class="fas fa-globe fa-4x text-warning mb-3"></i>
                         
-                        <p class="lead">{{ description }}</p>
+                        <p class="lead">We're sorry, but our service is not yet available in your country. We're working to expand our service area in the future.</p>
                     </div>
-                    
-
-
                     
                     <div class="text-center mt-4">
                         <h5>Need Help?</h5>

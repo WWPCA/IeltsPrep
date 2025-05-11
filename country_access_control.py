@@ -207,14 +207,7 @@ def setup_country_restriction_routes(app):
     def access_restricted_page():
         reason = request.args.get('reason', 'unknown')
         
-        if reason == 'regulatory':
-            message = "Access Restricted for Regulatory Compliance"
-            description = (
-                "We're sorry, but our service is not currently available in your region due to "
-                "regulatory requirements. We're working to expand our service area and hope to "
-                "be able to serve you in the future."
-            )
-        elif reason == 'not_available':
+        if reason == 'not_available' or reason == 'regulatory':
             message = "Service Not Available in Your Region"
             description = (
                 "We're sorry, but our service is not yet available in your country. "
