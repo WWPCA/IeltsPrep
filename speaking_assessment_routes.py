@@ -120,16 +120,13 @@ def submit_speaking_response(test_id):
         # Decode the audio data
         audio_data = base64.b64decode(audio_blob.split(',')[1])
         
-        # Save the audio file
-        filename = f"user_{current_user.id}_test_{test_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp3"
-        audio_path = os.path.join('static', 'uploads', 'audio', filename)
-        os.makedirs(os.path.dirname(audio_path), exist_ok=True)
-        
-        with open(audio_path, 'wb') as f:
-            f.write(audio_data)
+        # Create a temporary file for processing
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_file:
+            temp_file.write(audio_data)
+            temp_audio_path = temp_file.name
         
         # Compress the audio file
-        compressed_path = compress_audio(audio_path)
+        compressed_path = compress_audio(temp_audio_path)
         
         # Get the test data
         test_questions = test.questions
@@ -140,36 +137,45 @@ def submit_speaking_response(test_id):
         # Get the speaking prompt
         prompt_text = test_questions[0]['question'] if test_questions else ''
         
-        # Check if we have both ASSEMBLY_API_KEY and OPENAI_API_KEY
-        if 'ASSEMBLY_API_KEY' in os.environ and 'OPENAI_API_KEY' in os.environ:
-            # Process the speaking response using AssemblyAI + GPT-4o
-            assessment = process_speaking_response(compressed_path, prompt_text, part_number)
-            
-            # Get the overall band score
-            overall_band_score = assessment.get('overall_band', 0)
-        else:
-            # Missing API key(s)
-            transcription = "Transcription service unavailable. Please ask administrator to set up ASSEMBLY_API_KEY and OPENAI_API_KEY."
-            assessment = {
-                "error": "Assessment service unavailable.",
-                "transcription": transcription,
-                "scores": {
-                    "Fluency and Coherence": 5,
-                    "Lexical Resource": 5,
-                    "Grammatical Range and Accuracy": 5,
-                    "Pronunciation": 5
-                },
-                "overall_band": 5,
-                "overall_feedback": "API keys not configured. Contact administrator."
-            }
-            overall_band_score = 5  # Default score when API keys are missing
+        try:
+            # Check if we have both ASSEMBLY_API_KEY and OPENAI_API_KEY
+            if 'ASSEMBLY_API_KEY' in os.environ and 'OPENAI_API_KEY' in os.environ:
+                # Process the speaking response using AssemblyAI + GPT-4o
+                assessment = process_speaking_response(compressed_path, prompt_text, part_number)
+                
+                # Get the overall band score
+                overall_band_score = assessment.get('overall_band', 0)
+            else:
+                # Missing API key(s)
+                transcription = "Transcription service unavailable. Please ask administrator to set up ASSEMBLY_API_KEY and OPENAI_API_KEY."
+                assessment = {
+                    "error": "Assessment service unavailable.",
+                    "transcription": transcription,
+                    "scores": {
+                        "Fluency and Coherence": 5,
+                        "Lexical Resource": 5,
+                        "Grammatical Range and Accuracy": 5,
+                        "Pronunciation": 5
+                    },
+                    "overall_band": 5,
+                    "overall_feedback": "Assessment service unavailable. Please contact support."
+                }
+                overall_band_score = 5.0
+        finally:
+            # Delete temporary audio files regardless of assessment outcome
+            try:
+                if os.path.exists(temp_audio_path):
+                    os.remove(temp_audio_path)
+                if os.path.exists(compressed_path) and compressed_path != temp_audio_path:
+                    os.remove(compressed_path)
+            except Exception as e:
+                print(f"Error deleting temporary audio files: {str(e)}")
         
-        # Create a new attempt record
+        # Create a new attempt record - audio not saved, only the transcription and assessment
         attempt = UserTestAttempt(
             user_id=current_user.id,
             test_id=test_id,
             user_answers=json.dumps({
-                'audio_url': url_for('static', filename=f'uploads/audio/{filename}'),
                 'transcription': assessment.get('transcription', '')
             }),
             score=overall_band_score,
@@ -298,28 +304,28 @@ def api_assess_speaking():
         if not audio_file or not prompt_text:
             return jsonify({'error': 'Missing required parameters'}), 400
             
-        # Save the audio file temporarily
-        temp_filename = f"temp_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp3"
-        temp_path = os.path.join('static', 'uploads', 'audio', temp_filename)
-        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+        # Create a temporary file for processing
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_file:
+            audio_file.save(temp_file)
+            temp_path = temp_file.name
         
-        audio_file.save(temp_path)
-        
-        # Check if we have both ASSEMBLY_API_KEY and OPENAI_API_KEY
-        if 'ASSEMBLY_API_KEY' in os.environ and 'OPENAI_API_KEY' in os.environ:
-            # Process the speaking response using AssemblyAI + GPT-4o
-            assessment = process_speaking_response(temp_path, prompt_text, part_number)
-        else:
-            # Missing API key(s)
-            return jsonify({
-                'error': 'Assessment service unavailable. Please configure ASSEMBLY_API_KEY and OPENAI_API_KEY.'
-            }), 500
-            
-        # Clean up the temporary file
         try:
-            os.remove(temp_path)
-        except:
-            pass
+            # Check if we have both ASSEMBLY_API_KEY and OPENAI_API_KEY
+            if 'ASSEMBLY_API_KEY' in os.environ and 'OPENAI_API_KEY' in os.environ:
+                # Process the speaking response using AssemblyAI + GPT-4o
+                assessment = process_speaking_response(temp_path, prompt_text, part_number)
+            else:
+                # Missing API key(s)
+                return jsonify({
+                    'error': 'Assessment service unavailable. Please configure ASSEMBLY_API_KEY and OPENAI_API_KEY.'
+                }), 500
+        finally:
+            # Clean up the temporary file
+            try:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+            except Exception as e:
+                print(f"Error removing temporary file: {str(e)}")
             
         return jsonify(assessment)
         
