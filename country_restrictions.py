@@ -113,5 +113,21 @@ def get_allowed_countries():
         'CR', 'PA', 'DO', 'HN', 'GT', 'SV', 'NI'
     ]
     
-    # No need to filter since we're not including restricted countries in the list above
-    return ALL_COUNTRIES
+    # Filter out restricted countries
+    allowed_countries = [country for country in ALL_COUNTRIES if country not in RESTRICTED_COUNTRIES]
+    return allowed_countries
+    
+def is_country_allowed(country_code):
+    """
+    Check if a country is allowed for Stripe checkout.
+    
+    Args:
+        country_code (str): ISO 3166-1 alpha-2 country code
+        
+    Returns:
+        bool: True if the country is allowed, False if it's restricted
+    """
+    if not country_code:
+        return True  # If no country code is provided, allow it
+        
+    return country_code.upper() not in RESTRICTED_COUNTRIES
