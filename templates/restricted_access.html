@@ -13,10 +13,21 @@
                     
                     <h3 class="mb-4">Access Restricted in Your Region</h3>
                     
+                    {% if session.get('restriction_reason') == 'eu_uk' %}
+                    <p class="lead mb-4">
+                        We're sorry, but our services are not currently available in European Union and United Kingdom regions.
+                        We're working to implement enhanced data protection features to serve these regions in the future.
+                    </p>
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This restriction is due to data protection regulatory requirements.
+                    </div>
+                    {% else %}
                     <p class="lead mb-4">
                         We're sorry, but our services are not available in your region due to regulatory requirements.
                         We're working to expand our coverage in the future.
                     </p>
+                    {% endif %}
                     
                     {% if session.get('country_code') %}
                     <div class="alert alert-warning mb-4">
