@@ -94,7 +94,7 @@ def test_country_restriction(country_code):
         flash("Admin access required for this function.", "danger")
         return redirect(url_for('index'))
         
-    from country_restrictions import is_country_restricted, RESTRICTED_COUNTRIES
+    from country_restrictions import is_country_restricted, is_country_allowed, RESTRICTED_COUNTRIES, get_allowed_countries
     from payment_country_check import check_country_restriction
     
     # Test if the payment service check works correctly
@@ -120,11 +120,15 @@ def test_country_restriction(country_code):
             'message': f'Unexpected error: {str(e)}'
         }
     
+    # Get the allowed countries list to check if this country is in it
+    allowed_countries = get_allowed_countries()
+    
     country_info = {
         'code': country_code.upper(),
         'is_restricted': is_country_restricted(country_code),
+        'is_allowed': is_country_allowed(country_code),
         'all_restricted': RESTRICTED_COUNTRIES,
-        'checkout_allowed': country_code.upper() not in RESTRICTED_COUNTRIES,
+        'checkout_allowed': country_code.upper() in allowed_countries,
         'payment_test_result': payment_test_result
     }
     

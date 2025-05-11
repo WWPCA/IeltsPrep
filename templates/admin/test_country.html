@@ -25,7 +25,7 @@
                         {% endif %}
                         
                         <div class="alert {% if country_info.is_restricted %}alert-danger{% else %}alert-success{% endif %} mt-3">
-                            <strong>Status:</strong> 
+                            <strong>Site Access:</strong> 
                             {% if country_info.is_restricted %}
                                 <span class="text-danger">RESTRICTED</span>
                                 <p class="mt-2 mb-0">Users from this country will be redirected to the restricted access page.</p>
@@ -35,14 +35,25 @@
                             {% endif %}
                         </div>
 
-                        <div class="alert {% if country_info.checkout_allowed %}alert-success{% else %}alert-danger{% endif %} mt-3">
-                            <strong>Checkout:</strong> 
-                            {% if country_info.checkout_allowed %}
+                        <div class="alert {% if country_info.is_allowed %}alert-success{% else %}alert-danger{% endif %} mt-3">
+                            <strong>Direct Country Check:</strong> 
+                            {% if country_info.is_allowed %}
                                 <span class="text-success">ALLOWED</span>
-                                <p class="mt-2 mb-0">This country is allowed for Stripe checkout.</p>
+                                <p class="mt-2 mb-0">This country passes the is_country_allowed() check.</p>
                             {% else %}
                                 <span class="text-danger">RESTRICTED</span>
-                                <p class="mt-2 mb-0">This country is blocked from Stripe checkout.</p>
+                                <p class="mt-2 mb-0">This country is blocked by the is_country_allowed() check.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert {% if country_info.checkout_allowed %}alert-success{% else %}alert-danger{% endif %} mt-3">
+                            <strong>Stripe Checkout:</strong> 
+                            {% if country_info.checkout_allowed %}
+                                <span class="text-success">ALLOWED</span>
+                                <p class="mt-2 mb-0">This country is in the allowed_countries list for Stripe checkout.</p>
+                            {% else %}
+                                <span class="text-danger">RESTRICTED</span>
+                                <p class="mt-2 mb-0">This country is not in the allowed_countries list for Stripe checkout.</p>
                             {% endif %}
                         </div>
                         
