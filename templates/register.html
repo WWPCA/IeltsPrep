@@ -319,6 +319,45 @@
                             </div>
                         </div>
                         
+                        <!-- GDPR-Specific Consent -->
+                        <div class="card mb-4 bg-light">
+                            <div class="card-header">
+                                <h5 class="mb-0 fs-6">Data Processing Consent</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="data_processing_consent" name="data_processing_consent" required>
+                                    <label class="form-check-label" for="data_processing_consent">
+                                        I consent to the collection and processing of my personal data as described in the Privacy Policy
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="assessment_data_consent" name="assessment_data_consent" required>
+                                    <label class="form-check-label" for="assessment_data_consent">
+                                        I understand that my assessment results will be stored to track my progress
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="speaking_data_consent" name="speaking_data_consent" required>
+                                    <label class="form-check-label" for="speaking_data_consent">
+                                        I consent to the temporary processing of my speaking recordings for assessment purposes only (recordings are not stored permanently)
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="marketing_consent" name="marketing_consent">
+                                    <label class="form-check-label" for="marketing_consent">
+                                        I agree to receive updates, tips, and promotional information about IELTS preparation (optional)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">Create My Account</button>
                             <p class="text-muted small mt-2">This site is protected by Google reCAPTCHA v3 and the Google <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.</p>
