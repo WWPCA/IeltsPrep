@@ -95,12 +95,37 @@ def test_country_restriction(country_code):
         return redirect(url_for('index'))
         
     from country_restrictions import is_country_restricted, RESTRICTED_COUNTRIES
+    from payment_country_check import check_country_restriction
+    
+    # Test if the payment service check works correctly
+    payment_test_result = None
+    try:
+        # Try to run the check_country_restriction function
+        check_country_restriction(country_code, is_country_restricted)
+        # If we get here, the country was allowed
+        payment_test_result = {
+            'success': True,
+            'message': 'Country allowed for payments'
+        }
+    except ValueError as e:
+        # If we get a ValueError, it means the country was restricted as expected
+        payment_test_result = {
+            'success': country_code.upper() in RESTRICTED_COUNTRIES,  # Success if restricted and caught
+            'message': str(e)
+        }
+    except Exception as e:
+        # If we get any other exception, it's an unexpected error
+        payment_test_result = {
+            'success': False,
+            'message': f'Unexpected error: {str(e)}'
+        }
     
     country_info = {
         'code': country_code.upper(),
         'is_restricted': is_country_restricted(country_code),
         'all_restricted': RESTRICTED_COUNTRIES,
         'checkout_allowed': country_code.upper() not in RESTRICTED_COUNTRIES,
+        'payment_test_result': payment_test_result
     }
     
     return render_template('admin/test_country.html', country_info=country_info, title='Test Country Restriction')
