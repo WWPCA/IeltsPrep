@@ -4,6 +4,12 @@ import routes_general_reading  # noqa: F401
 from flask import jsonify, request
 from flask_login import login_required, current_user
 from models import PracticeTest, AssessmentSession, ConnectionIssueLog, db
+import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Import and register assessment blueprints
 from writing_assessment_routes import writing_assessment
@@ -12,12 +18,29 @@ from cart_routes import cart_bp
 from admin_routes import admin_bp
 from stripe_webhook import stripe_webhook_bp
 
+# Import country restriction module
+from country_access_control import setup_country_restriction_routes
+
 # Register blueprints
 app.register_blueprint(writing_assessment)
 app.register_blueprint(speaking_assessment)
 app.register_blueprint(cart_bp, url_prefix='/cart')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(stripe_webhook_bp, url_prefix='/api')
+
+# Set up country restriction routes (but don't apply restrictions yet - use apply_country_restrictions.py for that)
+setup_country_restriction_routes(app)
+
+# Check if country restrictions should be applied automatically at startup
+APPLY_COUNTRY_RESTRICTIONS = os.environ.get('APPLY_COUNTRY_RESTRICTIONS', 'false').lower() == 'true'
+if APPLY_COUNTRY_RESTRICTIONS:
+    try:
+        from country_access_control import apply_country_restrictions
+        logger.info("Applying country restrictions at startup (APPLY_COUNTRY_RESTRICTIONS=true)")
+        apply_country_restrictions(app)
+        logger.info("Country restrictions applied successfully")
+    except Exception as e:
+        logger.error(f"Failed to apply country restrictions: {str(e)}")
 
 # Import assessment products routes
 import integrate_assessment_routes  # noqa: F401

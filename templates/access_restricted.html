@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+
+{% block title %}Access Restricted - AI Learning Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h1 class="h3 mb-0 text-dark">{{ message }}</h1>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        {% if reason == 'regulatory' %}
+                            <i class="fas fa-balance-scale fa-4x text-warning mb-3"></i>
+                        {% elif reason == 'not_available' %}
+                            <i class="fas fa-globe fa-4x text-warning mb-3"></i>
+                        {% else %}
+                            <i class="fas fa-map-marker-alt fa-4x text-warning mb-3"></i>
+                        {% endif %}
+                        
+                        <p class="lead">{{ description }}</p>
+                    </div>
+                    
+                    {% if reason == 'not_available' %}
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Currently Available In:</h5>
+                            <div class="row text-center">
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-flag me-2"></i>
+                                        <span>Canada</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-flag me-2"></i>
+                                        <span>United States</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-flag me-2"></i>
+                                        <span>India</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-flag me-2"></i>
+                                        <span>Nepal</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-flag me-2"></i>
+                                        <span>Kuwait</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-flag me-2"></i>
+                                        <span>Qatar</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if reason == 'regulatory' %}
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Why am I seeing this?</h5>
+                        <p class="mb-0">
+                            Our service involves data processing activities that require specific regulatory compliance. 
+                            We're currently unable to offer our services in your region due to these requirements.
+                            We're working to expand our service and hope to be available in your region in the future.
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                        <h5>Need Help?</h5>
+                        <p>
+                            If you believe you're seeing this message in error or have other questions,
+                            please contact our support team.
+                        </p>
+                        <a href="mailto:support@ailearninghub.com" class="btn btn-primary">
+                            <i class="fas fa-envelope me-2"></i>Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
