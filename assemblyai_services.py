@@ -195,6 +195,7 @@ def assess_speaking_with_gpt4o(transcription, prompt_text, part_number):
 def process_speaking_response(audio_file_path, prompt_text, part_number):
     """
     Process a complete IELTS speaking response from audio file to assessment.
+    The audio is processed temporarily and not stored permanently for privacy protection.
     
     Args:
         audio_file_path (str): Path to the audio file containing the speaking response
@@ -220,6 +221,9 @@ def process_speaking_response(audio_file_path, prompt_text, part_number):
         
         # Step 4: Add the transcription to the result
         assessment['transcription'] = transcription_text
+        
+        # Note: We don't include the audio URL in the returned assessment
+        # to ensure privacy protection - audio is only used temporarily
         
         return assessment
         
