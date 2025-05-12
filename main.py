@@ -1,11 +1,13 @@
 from app import app  # noqa: F401
 import routes  # noqa: F401
 import routes_general_reading  # noqa: F401
-from flask import jsonify, request
+from flask import jsonify, request, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
 from models import PracticeTest, AssessmentSession, ConnectionIssueLog, db
 import os
 import logging
+import markdown
+from admin_routes import admin_required
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,6 +62,20 @@ add_contact_routes(app)
 def ping():
     """Simple ping endpoint to keep sessions alive."""
     return jsonify({"status": "ok"})
+
+# Add route to serve documentation files
+@app.route('/stripe-integration-guide')
+@admin_required
+def stripe_integration_guide():
+    """Serve the Stripe integration guide documentation."""
+    try:
+        with open('STRIPE_INTEGRATION_GUIDE.md', 'r') as f:
+            content = f.read()
+            html = markdown.markdown(content, extensions=['fenced_code', 'tables'])
+            return render_template('documentation.html', title='Stripe Integration Guide', content=html)
+    except FileNotFoundError:
+        flash('Documentation file not found.', 'danger')
+        return redirect(url_for('index'))
 
 # Add an API endpoint to log connection issues
 @app.route('/api/log_connection_issue', methods=['POST'])

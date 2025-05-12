@@ -28,4 +28,10 @@ dependencies = [
     "twilio>=9.6.0",
     "google-cloud-storage>=3.1.0",
     "wtforms>=3.2.1",
+    "google-cloud-core>=2.4.3",
+    "redis>=6.0.0",
+    "sift-stack-py>=0.5.2",
+    "markdown>=3.8",
+    "flask-session>=0.8.0",
+    "google-auth>=2.40.1",
 ]
