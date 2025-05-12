@@ -346,7 +346,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             'success_url': success_url,
             'cancel_url': cancel_url,
             'metadata': metadata,
-            'automatic_tax': {'enabled': True},         # Enable automatic tax calculation
+            'automatic_tax': {'enabled': False},        # Disable automatic tax calculation for testing
             'customer_creation': 'always',              # Always create a customer
             'billing_address_collection': 'required',   # Always collect billing address for tax
             'payment_intent_data': {
@@ -516,7 +516,7 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             'success_url': f'https://{domain}/speaking-payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             'cancel_url': f'https://{domain}/payment-cancel',
             'metadata': metadata,
-            'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
+            'automatic_tax': {'enabled': False},  # Enable automatic tax calculation
             'billing_address_collection': 'required',  # Collect billing address for tax purposes
             # Restrict billing to allowed countries only
             # Country restrictions will be handled post-checkout via webhook validation
@@ -716,7 +716,7 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             'success_url': f'https://{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}',
             'cancel_url': f'https://{domain}/payment-cancel',
             'metadata': metadata,
-            'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
+            'automatic_tax': {'enabled': False},  # Enable automatic tax calculation
             'billing_address_collection': 'required',  # Collect billing address for tax purposes
             # Restrict billing to allowed countries only
             # Country restrictions will be handled post-checkout via webhook validation
