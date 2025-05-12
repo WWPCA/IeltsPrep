@@ -56,6 +56,7 @@ The framework implements privacy-by-design principles for data storage:
 - **Transcript Retention**: Speaking test transcripts are stored for 6 months and then automatically deleted.
 - **Assessment Data**: Test results and assessments are kept until the user requests deletion.
 - **Audio Processing**: Audio recordings are only used for immediate assessment and not permanently stored.
+- **Customer Address Data**: Billing and shipping addresses are collected during payment processing for tax compliance purposes and stored securely with payment records.
 - **Automatic Cleanup**: `cleanup_expired_transcripts.py` ensures proper implementation of retention policies.
 
 ## Data Portability & Export
@@ -64,7 +65,7 @@ Users can export their data in multiple formats:
 
 - **JSON Export**: Complete data export in JSON format for technical usability.
 - **CSV Export**: Simplified data export in CSV format for use in spreadsheet applications.
-- **Export Contents**: Includes account information, test results, assessment data, and usage statistics.
+- **Export Contents**: Includes account information, test results, assessment data, payment history with billing addresses, and usage statistics.
 - **Security Verification**: Requires identity verification before data export.
 
 ## Right to Be Forgotten

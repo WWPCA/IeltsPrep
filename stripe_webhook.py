@@ -245,7 +245,59 @@ def handle_checkout_session_completed(session):
             
         plan_name = metadata.get('plan', 'Unknown Plan')
         
-        create_payment_record(user.id, payment_amount, plan_name, session_id)
+        # Extract customer address information
+        address_data = {}
+        
+        # Try to get shipping address first
+        shipping_address = None
+        if hasattr(session, 'shipping') and hasattr(session.shipping, 'address'):
+            shipping_address = session.shipping.address
+        elif isinstance(session, dict) and 'shipping' in session and 'address' in session['shipping']:
+            shipping_address = session['shipping']['address']
+            
+        # If no shipping address, try customer details
+        if shipping_address is None:
+            if hasattr(session, 'customer_details') and hasattr(session.customer_details, 'address'):
+                shipping_address = session.customer_details.address
+            elif isinstance(session, dict) and 'customer_details' in session and 'address' in session['customer_details']:
+                shipping_address = session['customer_details']['address']
+                
+        # Extract address fields
+        if shipping_address:
+            if hasattr(shipping_address, 'line1'):
+                address_data['line1'] = shipping_address.line1
+            elif isinstance(shipping_address, dict) and 'line1' in shipping_address:
+                address_data['line1'] = shipping_address['line1']
+                
+            if hasattr(shipping_address, 'line2'):
+                address_data['line2'] = shipping_address.line2
+            elif isinstance(shipping_address, dict) and 'line2' in shipping_address:
+                address_data['line2'] = shipping_address['line2']
+                
+            if hasattr(shipping_address, 'city'):
+                address_data['city'] = shipping_address.city
+            elif isinstance(shipping_address, dict) and 'city' in shipping_address:
+                address_data['city'] = shipping_address['city']
+                
+            if hasattr(shipping_address, 'state'):
+                address_data['state'] = shipping_address.state
+            elif isinstance(shipping_address, dict) and 'state' in shipping_address:
+                address_data['state'] = shipping_address['state']
+                
+            if hasattr(shipping_address, 'postal_code'):
+                address_data['postal_code'] = shipping_address.postal_code
+            elif isinstance(shipping_address, dict) and 'postal_code' in shipping_address:
+                address_data['postal_code'] = shipping_address['postal_code']
+                
+            if hasattr(shipping_address, 'country'):
+                address_data['country'] = shipping_address.country
+            elif isinstance(shipping_address, dict) and 'country' in shipping_address:
+                address_data['country'] = shipping_address['country']
+        
+        logger.info(f"Customer address collected for user {user.id} - country: {address_data.get('country', 'Unknown')}")
+        
+        # Create payment record with address data
+        create_payment_record(user.id, payment_amount, plan_name, session_id, address_data)
         
         # Activate the user account if needed - this will send verification email
         # We're using a slight delay to ensure database transactions are complete
@@ -386,7 +438,7 @@ def handle_invoice_payment_succeeded(invoice):
         log_api_error('stripe', 'handle_invoice_payment_succeeded', e)
 
 
-def create_payment_record(user_id, amount, package_name, session_id=None):
+def create_payment_record(user_id, amount, package_name, session_id=None, address_data=None):
     """
     Create a payment record in the database.
     
@@ -395,6 +447,7 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
         amount (float): Payment amount
         package_name (str): Name of the purchased package
         session_id (str, optional): Stripe session ID
+        address_data (dict, optional): Customer address information
         
     Returns:
         PaymentRecord: The created payment record
@@ -407,6 +460,15 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
         payment_record.package_name = package_name
         payment_record.payment_date = datetime.utcnow()
         payment_record.stripe_session_id = session_id
+        
+        # Add address information if provided
+        if address_data:
+            payment_record.address_line1 = address_data.get('line1')
+            payment_record.address_line2 = address_data.get('line2')
+            payment_record.address_city = address_data.get('city')
+            payment_record.address_state = address_data.get('state')
+            payment_record.address_postal_code = address_data.get('postal_code')
+            payment_record.address_country = address_data.get('country')
         payment_record.is_successful = True
         payment_record.transaction_details = f"Stripe payment: {session_id}"
         
