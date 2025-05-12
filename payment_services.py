@@ -323,7 +323,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         
         session_params = {
             'payment_method_types': payment_methods,
-            # 'automatic_payment_methods' parameter removed - not supported by current Stripe version
+            'automatic_payment_methods': {'enabled': True},
             'line_items': [
                 {
                     'price_data': {
@@ -457,6 +457,7 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         # Enable automatic payment methods to detect and enable Apple Pay, Google Pay, etc.
         session_params = {
             'payment_method_types': payment_method_types,
+            'automatic_payment_methods': {'enabled': True},
             'line_items': [
                 {
                     'price_data': {
@@ -605,7 +606,7 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         # Enable automatic payment methods to detect and enable Apple Pay, Google Pay, etc.
         session_params = {
             'payment_method_types': payment_method_types,
-            # 'automatic_payment_methods' parameter removed - not supported by current Stripe version
+            'automatic_payment_methods': {'enabled': True},
             'line_items': [
                 {
                     'price_data': {
