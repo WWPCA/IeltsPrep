@@ -79,11 +79,7 @@ def subscription_required(f):
 
 # Streak tracking removed as requested
 
-# Restricted access page
-@app.route('/restricted-access')
-def restricted_access():
-    """Show restricted access page for users from blocked countries."""
-    return render_template('restricted_access.html', title='Region Restricted')
+# Note: Restricted access page is now handled by country_access_control.py via the /access-restricted route
 
 # Test route for country restrictions (admin only)
 @app.route('/test-country-restriction/<country_code>')

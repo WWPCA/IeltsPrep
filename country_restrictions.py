@@ -182,7 +182,7 @@ def country_access_required(f):
                 
             # Store the reason in session for the restriction page (for admin reference)
             session['restriction_reason'] = reason
-            return redirect(url_for('restricted_access'))
+            return redirect(url_for('access_restricted_page', reason=reason))
             
         return f(*args, **kwargs)
     
