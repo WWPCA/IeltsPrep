@@ -25,8 +25,8 @@ SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
 SMTP_USERNAME = os.environ.get('SMTP_USERNAME')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'notifications@ieltsgenaiprep.com')
-SUPPORT_EMAIL = os.environ.get('SUPPORT_EMAIL', 'support@ieltsgenaiprep.com')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'worldwidepublishingco@gmail.com')
+SUPPORT_EMAIL = os.environ.get('SUPPORT_EMAIL', 'worldwidepublishingco@gmail.com')
 
 def generate_verification_token():
     """
@@ -118,7 +118,7 @@ To complete your registration and access your account, please verify your email 
 
 This link will expire in 24 hours.
 
-If you didn't create this account, please ignore this email or contact us at {SUPPORT_EMAIL} if you have any questions.
+If you didn't create this account, please ignore this email or use our Contact Us form on the website if you have any questions.
 
 Best regards,
 The IELTS GenAI Prep Team
@@ -191,7 +191,7 @@ The IELTS GenAI Prep Team
             
             <p>If you don't see the button above, you can also click on this link: <a href="{verification_url}">{verification_url}</a></p>
             
-            <p>If you didn't create this account, please ignore this email or contact us at <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a> if you have any questions.</p>
+            <p>If you didn't create this account, please ignore this email or use our Contact Us form on the website if you have any questions.</p>
             
             <p>Best regards,<br>The IELTS GenAI Prep Team</p>
         </div>
