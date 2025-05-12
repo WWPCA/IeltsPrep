@@ -138,6 +138,13 @@ stripe-buy-button {
         <div class="col-12">
             <h1 class="text-center">GenAI Assessed IELTS Modules</h1>
             <p class="lead text-center">Our specialized GenAI technologies provide accurate assessment for IELTS preparation</p>
+            {% if current_user.is_authenticated %}
+            <div class="text-center mb-4">
+                <a href="{{ url_for('view_cart') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-shopping-cart me-2"></i>View Cart
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
     
@@ -168,8 +175,14 @@ stripe-buy-button {
                         <p class="text-muted small"><i class="fas fa-info-circle"></i> Each assessment can only be taken once to ensure operational efficiency and cost control.</p>
                     </div>
                     <div class="card-footer">
-                        <div class="stripe-buy-button-container">
-                            <!-- Stripe Buy Button for Academic Writing -->
+                        <div class="d-grid">
+                            <!-- Regular Add to Cart button as a fallback -->
+                            <a href="{{ url_for('add_to_cart', product_id='academic_writing_assessment') }}" class="btn btn-success">
+                                <i class="fas fa-cart-plus me-2"></i>Add to Cart - $25
+                            </a>
+                        </div>
+                        <!-- Hidden Stripe Buy Button (not working yet) -->
+                        <div class="stripe-buy-button-container d-none">
                             <stripe-buy-button
                               buy-button-id="{{ academic_writing_button_id }}"
                               publishable-key="{{ stripe_publishable_key }}"
@@ -196,8 +209,14 @@ stripe-buy-button {
                         <p class="text-muted small"><i class="fas fa-info-circle"></i> Each assessment can only be taken once to ensure operational efficiency and cost control.</p>
                     </div>
                     <div class="card-footer">
-                        <div class="stripe-buy-button-container">
-                            <!-- Stripe Buy Button for General Writing -->
+                        <div class="d-grid">
+                            <!-- Regular Add to Cart button as a fallback -->
+                            <a href="{{ url_for('add_to_cart', product_id='general_writing_assessment') }}" class="btn btn-success">
+                                <i class="fas fa-cart-plus me-2"></i>Add to Cart - $25
+                            </a>
+                        </div>
+                        <!-- Hidden Stripe Buy Button (not working yet) -->
+                        <div class="stripe-buy-button-container d-none">
                             <stripe-buy-button
                               buy-button-id="{{ general_writing_button_id }}"
                               publishable-key="{{ stripe_publishable_key }}"
@@ -237,8 +256,14 @@ stripe-buy-button {
                         <p class="text-muted small"><i class="fas fa-info-circle"></i> Each assessment can only be taken once to ensure operational efficiency and cost control.</p>
                     </div>
                     <div class="card-footer">
-                        <div class="stripe-buy-button-container">
-                            <!-- Stripe Buy Button for Academic Speaking -->
+                        <div class="d-grid">
+                            <!-- Regular Add to Cart button as a fallback -->
+                            <a href="{{ url_for('add_to_cart', product_id='academic_speaking_assessment') }}" class="btn btn-primary">
+                                <i class="fas fa-cart-plus me-2"></i>Add to Cart - $25
+                            </a>
+                        </div>
+                        <!-- Hidden Stripe Buy Button (not working yet) -->
+                        <div class="stripe-buy-button-container d-none">
                             <stripe-buy-button
                               buy-button-id="{{ academic_speaking_button_id }}"
                               publishable-key="{{ stripe_publishable_key }}"
@@ -265,8 +290,14 @@ stripe-buy-button {
                         <p class="text-muted small"><i class="fas fa-info-circle"></i> Each assessment can only be taken once to ensure operational efficiency and cost control.</p>
                     </div>
                     <div class="card-footer">
-                        <div class="stripe-buy-button-container">
-                            <!-- Stripe Buy Button for General Speaking -->
+                        <div class="d-grid">
+                            <!-- Regular Add to Cart button as a fallback -->
+                            <a href="{{ url_for('add_to_cart', product_id='general_speaking_assessment') }}" class="btn btn-primary">
+                                <i class="fas fa-cart-plus me-2"></i>Add to Cart - $25
+                            </a>
+                        </div>
+                        <!-- Hidden Stripe Buy Button (not working yet) -->
+                        <div class="stripe-buy-button-container d-none">
                             <stripe-buy-button
                               buy-button-id="{{ general_speaking_button_id }}"
                               publishable-key="{{ stripe_publishable_key }}"
@@ -279,15 +310,16 @@ stripe-buy-button {
         </div>
     </div>
     
-    <!-- Buy Button Info Section -->
+    <!-- Cart Info Section -->
     <div class="card shadow-sm mt-4 mb-4">
         <div class="card-body">
-            <h4 class="mb-3"><i class="fas fa-info-circle text-primary me-2"></i> About Direct Purchase</h4>
-            <p>We've updated our payment process to simplify your experience:</p>
+            <h4 class="mb-3"><i class="fas fa-info-circle text-primary me-2"></i> About Assessment Purchases</h4>
+            <p>How our assessment products work:</p>
             <ul class="list-unstyled ps-3">
-                <li><i class="fas fa-check-circle text-success me-2"></i> Click any "Buy" button to purchase directly</li>
-                <li><i class="fas fa-check-circle text-success me-2"></i> Secure checkout is provided by Stripe</li>
-                <li><i class="fas fa-check-circle text-success me-2"></i> Your purchase will be automatically activated after payment</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i> Click "Add to Cart" to purchase your assessment products</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i> Secure checkout is provided through our cart system</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i> Your assessments will be available immediately after payment</li>
+                <li><i class="fas fa-check-circle text-success me-2"></i> Each assessment provides detailed GenAI-powered feedback</li>
             </ul>
             <p class="mt-3 small text-muted">For technical support with purchases, please contact our support team.</p>
         </div>
