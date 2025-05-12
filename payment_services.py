@@ -322,7 +322,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             else:
                 success_url += '?session_id={CHECKOUT_SESSION_ID}'
         
-        # Use card payments and enable wallet options
+        # Use card payments - this plus automatic_payment_methods will enable Apple Pay/Google Pay
         payment_methods = ['card']
         
         # Build checkout session parameters with automatic payment methods enabled
@@ -350,9 +350,9 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             'success_url': success_url,
             'cancel_url': cancel_url,
             'metadata': metadata,
-            # In Stripe test mode, automatic tax requires a valid business address in the Dashboard
-            # For testing purposes, we'll conditionally enable it
-            'automatic_tax': {'enabled': False},        # Temporarily disabled for testing
+            # Enable automatic tax calculation through Stripe's tax engine
+            # Requires collecting billing address which we do
+            'automatic_tax': {'enabled': True},
             'customer_creation': 'always',              # Always create a customer
             'billing_address_collection': 'required',   # Always collect billing address for tax
             'payment_intent_data': {
