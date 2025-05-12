@@ -49,7 +49,19 @@ EU_UK_COUNTRIES = [
     'UK',  # United Kingdom (redundant with GB, but included for completeness)
 ]
 
-# List of country codes that are restricted from accessing the application for other reasons
+# List of explicitly allowed countries (whitelisted)
+# ISO 3166-1 alpha-2 country codes (2 letter codes)
+ALLOWED_COUNTRIES = [
+    'US',  # United States
+    'CA',  # Canada
+    'IN',  # India
+    'NP',  # Nepal
+    'KW',  # Kuwait
+    'QA',  # Qatar
+]
+
+# List of country codes that are restricted from accessing the application for other reasons 
+# This is kept for backwards compatibility, but we now primarily use the allowlist approach
 # ISO 3166-1 alpha-2 country codes (2 letter codes)
 RESTRICTED_COUNTRIES = [
     'BR',  # Brazil
@@ -73,7 +85,7 @@ EU_UK_RESTRICTION_MESSAGE = (
 
 def is_country_restricted(country_code):
     """
-    Check if a country is in the restricted list.
+    Check if a country is restricted (not in the allowed list).
     
     Args:
         country_code (str): ISO 3166-1 alpha-2 country code
@@ -83,8 +95,15 @@ def is_country_restricted(country_code):
     """
     if not country_code:
         return False
+    
+    country_code = country_code.upper()
+    
+    # First check if the country is explicitly allowed
+    if country_code in ALLOWED_COUNTRIES:
+        return False
         
-    return country_code.upper() in RESTRICTED_COUNTRIES
+    # Otherwise, it's restricted
+    return True
 
 def is_eu_uk_country(country_code):
     """
@@ -103,7 +122,7 @@ def is_eu_uk_country(country_code):
     
 def is_country_blocked(country_code):
     """
-    Check if a country is blocked for any reason (restricted or EU/UK).
+    Check if a country is blocked for any reason (not allowed or EU/UK).
     
     Args:
         country_code (str): ISO 3166-1 alpha-2 country code
@@ -116,15 +135,16 @@ def is_country_blocked(country_code):
     
     country_code = country_code.upper()
     
-    # Check general restrictions first
-    if country_code in RESTRICTED_COUNTRIES:
-        return (True, 'restricted')
+    # Check if country is explicitly allowed first
+    if country_code in ALLOWED_COUNTRIES:
+        return (False, None)
     
-    # Check EU/UK restrictions if enabled
+    # Check EU/UK restrictions separately (for different error message)
     if BLOCK_EU_UK and country_code in EU_UK_COUNTRIES:
         return (True, 'eu_uk')
     
-    return (False, None)
+    # All other countries not in ALLOWED_COUNTRIES are restricted by default
+    return (True, 'restricted')
 
 def country_access_required(f):
     """
@@ -174,8 +194,8 @@ def country_access_required(f):
 
 def validate_billing_country(billing_country):
     """
-    Validate that the billing country is not restricted or blocked.
-    Used during checkout to prevent users from restricted/blocked countries.
+    Validate that the billing country is in our allowed list.
+    Used during checkout to prevent users from non-allowed countries.
     
     Args:
         billing_country (str): The country code from the billing address
@@ -183,49 +203,44 @@ def validate_billing_country(billing_country):
     Returns:
         tuple: (is_valid, message) where is_valid is a boolean and message is an error message if invalid
     """
-    is_blocked, reason = is_country_blocked(billing_country)
+    if not billing_country:
+        return False, "Billing country information is required."
     
-    if is_blocked:
-        if reason == 'eu_uk':
-            return False, f"Due to data protection requirements, we do not currently provide services in {billing_country}. We're working to serve these regions in the future."
-        else:
-            return False, f"We do not currently provide services in {billing_country}. Please contact support for assistance."
+    billing_country = billing_country.upper()
     
-    return True, ""
+    # Check if the country is in our allowed list
+    if billing_country in ALLOWED_COUNTRIES:
+        return True, ""
+    
+    # Special message for EU/UK countries
+    if billing_country in EU_UK_COUNTRIES:
+        return False, f"Due to data protection requirements, we do not currently provide services in {billing_country}. We're working to serve these regions in the future."
+    
+    # Generic message for all other countries
+    return False, f"We do not currently provide services in {billing_country}. Our services are only available in select countries."
 
 def get_allowed_countries():
     """
     Get a list of allowed countries for Stripe checkout.
-    This excludes all restricted countries.
+    Returns our explicitly allowed countries list.
     
     Returns:
         list: List of country codes that are allowed
     """
-    # This is a simplified list - in a real application, you'd have a complete list of countries
-    ALL_COUNTRIES = [
-        'US', 'CA', 'GB', 'DE', 'FR', 'IT', 'ES', 'AU', 'NZ', 'JP', 'SG', 'HK',
-        'MY', 'IN', 'AE', 'SA', 'ZA', 'NG', 'EG', 'IL', 'TR', 'MX', 'AR', 'CO',
-        'CL', 'PE', 'VE', 'TH', 'ID', 'PH', 'VN', 'TW', 'KZ', 'UA', 'SE', 'NO',
-        'DK', 'FI', 'NL', 'BE', 'CH', 'AT', 'PL', 'CZ', 'SK', 'HU', 'RO', 'BG',
-        'GR', 'PT', 'IE', 'UY', 'PR', 'PY', 'EC', 'BO', 'JM', 'TT', 'BS', 'BB',
-        'CR', 'PA', 'DO', 'HN', 'GT', 'SV', 'NI'
-    ]
-    
-    # Filter out restricted countries
-    allowed_countries = [country for country in ALL_COUNTRIES if country not in RESTRICTED_COUNTRIES]
-    return allowed_countries
+    # Return the explicitly defined allowed countries
+    return ALLOWED_COUNTRIES
     
 def is_country_allowed(country_code):
     """
-    Check if a country is allowed for Stripe checkout.
+    Check if a country is in the allowed list for Stripe checkout.
     
     Args:
         country_code (str): ISO 3166-1 alpha-2 country code
         
     Returns:
-        bool: True if the country is allowed, False if it's restricted
+        bool: True if the country is in the allowed list, False otherwise
     """
     if not country_code:
-        return True  # If no country code is provided, allow it
+        return False  # If no country code is provided, don't allow it by default
         
-    return country_code.upper() not in RESTRICTED_COUNTRIES
+    return country_code.upper() in ALLOWED_COUNTRIES
