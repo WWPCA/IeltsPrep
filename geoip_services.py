@@ -145,6 +145,9 @@ def get_country_name_from_code(country_code):
 
 def get_pricing_for_country(country_code=None):
     """
+    DEPRECATED: This function is no longer actively used as we've moved to fixed pricing.
+    Kept for backward compatibility with existing code.
+    
     Get the appropriate pricing for a country.
     
     Args:

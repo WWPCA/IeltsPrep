@@ -191,6 +191,9 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
 
 def create_stripe_checkout_speaking(package_type, country_code=None, customer_email=None):
     """
+    DEPRECATED: This function is no longer actively used as we've moved to cart-based checkout.
+    Kept for backward compatibility with existing code.
+    
     Create a Stripe checkout session for speaking assessments.
     
     Args:

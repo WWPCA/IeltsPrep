@@ -1,5 +1,9 @@
 """
-Update subscription routes to handle our new product types.
+DEPRECATED: Update subscription routes to handle our new product types.
+
+This file should no longer be actively used as we've moved to cart-based checkout.
+The implementation was functional but has been superceded by cart_routes.py.
+Kept for historical reference.
 """
 
 from main import app
