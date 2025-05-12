@@ -7,6 +7,7 @@ from flask import Blueprint, redirect, url_for, render_template, flash, session,
 from datetime import datetime
 
 import cart
+import stripe
 from models import User, db
 from payment_services import create_stripe_checkout_session
 
@@ -50,6 +51,26 @@ def clear_cart():
     cart.clear_cart()
     flash('Your cart has been cleared.', 'info')
     return redirect(url_for('cart.view_cart'))
+
+@cart_bp.route('/debug-checkout/<session_id>')
+def debug_checkout(session_id):
+    """Show debug information for a checkout session."""
+    try:
+        # Retrieve the session from Stripe to get the latest info
+        from payment_services import get_stripe_api_key
+        stripe.api_key = get_stripe_api_key()
+        
+        stripe_session = stripe.checkout.Session.retrieve(session_id)
+        
+        # Render the debug template with all session details
+        return render_template('stripe_debug.html',
+                              checkout_url=stripe_session.url,
+                              session_id=session_id,
+                              created_at=datetime.fromtimestamp(stripe_session.created).strftime('%Y-%m-%d %H:%M:%S'),
+                              amount=stripe_session.amount_total)
+    except Exception as e:
+        flash(f"Error retrieving checkout session: {str(e)}", "danger")
+        return redirect(url_for('cart.view_cart'))
 
 @cart_bp.route('/checkout', methods=['GET', 'POST'])
 def checkout():
@@ -184,12 +205,10 @@ def create_checkout_session():
                 'session_id': session_id
             })
         else:
-            # Use our debugging template to show the URL and provide multiple ways to access checkout
-            return render_template('stripe_debug.html', 
+            # Use direct redirect template with fallback to debug
+            return render_template('stripe_direct.html', 
                                   checkout_url=checkout_url,
-                                  session_id=session_id,
-                                  created_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                  amount=250000)
+                                  session_id=session_id)
         
     except Exception as e:
         # Log the error 

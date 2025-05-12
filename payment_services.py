@@ -11,6 +11,10 @@ from payment_country_check import get_effective_country_code, check_country_rest
 # Set Stripe API key
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 
+def get_stripe_api_key():
+    """Get the Stripe API key from environment variables."""
+    return os.environ.get('STRIPE_SECRET_KEY', '')
+
 # Comprehensive region payment mapping for Stripe
 # NOTE: Only include payment methods actually supported by Stripe
 REGION_PAYMENT_MAPPING = {
