@@ -75,18 +75,19 @@
                                 <tbody>
                                     {% for test in current_user.test_history|sort(attribute='date', reverse=true) %}
                                     <tr>
-                                        <td>{{ test.date.split('T')[0] }}</td>
-                                        <td>{{ test.test_type|capitalize }}</td>
-                                        <td>{{ test.title }}</td>
+                                        <td>{{ test.get('date', '')|string|split('T')[0] if test is mapping else test.date|string|split('T')[0] }}</td>
+                                        <td>{{ test.get('test_type', '')|capitalize if test is mapping else test.test_type|default('')|capitalize }}</td>
+                                        <td>{{ test.get('title', '') if test is mapping else test.title|default('') }}</td>
                                         <td>
                                             <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar bg-{{ 'success' if test.score >= 70 else 'warning' if test.score >= 50 else 'danger' }}" 
+                                                {% set score = test.get('score', 0) if test is mapping else test.score|default(0) %}
+                                                <div class="progress-bar bg-{{ 'success' if score >= 70 else 'warning' if score >= 50 else 'danger' }}" 
                                                      role="progressbar" 
-                                                     style="width: {{ test.score }}%;" 
-                                                     aria-valuenow="{{ test.score }}" 
+                                                     style="width: {{ score }}%;" 
+                                                     aria-valuenow="{{ score }}" 
                                                      aria-valuemin="0" 
                                                      aria-valuemax="100">
-                                                    {{ "%.1f"|format(test.score) }}%
+                                                    {{ "%.1f"|format(score) }}%
                                                 </div>
                                             </div>
                                         </td>
