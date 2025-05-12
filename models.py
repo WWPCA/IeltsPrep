@@ -24,6 +24,10 @@ class User(UserMixin, db.Model):
     test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
     # Account activation flag - only true after successful payment
     is_active = db.Column(db.Boolean, default=False)
+    # Email verification fields
+    email_verified = db.Column(db.Boolean, default=False)
+    email_verification_token = db.Column(db.String(100), nullable=True)
+    email_verification_sent_at = db.Column(db.DateTime, nullable=True)
     # target_score field removed as it doesn't exist in database
     # is_admin field removed as it doesn't exist in database
     
