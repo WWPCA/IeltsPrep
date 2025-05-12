@@ -26,8 +26,11 @@ GENERAL_BUTTONS = {
     'speaking': 'buy_btn_0ABCxyzExampleID890' # Replace with your actual button ID
 }
 
+# Get Stripe Publishable Key from environment
+import os
+
 # Stripe Publishable Key
-STRIPE_PUBLISHABLE_KEY = 'pk_test_yourkeyhere'  # Replace with your actual publishable key
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')  # Get from environment
 
 def get_button_id(test_type, product_type):
     """
