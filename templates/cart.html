@@ -164,9 +164,19 @@
                     <a href="{{ url_for('assessment_products_page') }}" class="btn btn-outline-primary">
                         <i class="fas fa-arrow-left"></i> Continue Shopping
                     </a>
-                    <a href="{{ url_for('cart.checkout') }}" class="btn btn-success btn-lg">
+                    
+                    <!-- Stripe Buy Button (low code approach) -->
+                    <form action="{{ url_for('cart.checkout') }}" method="post" id="checkout-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-credit-card"></i> Proceed to Checkout
+                        </button>
+                    </form>
+                    
+                    <!-- Alternative method if above doesn't work -->
+                    <!-- <a href="{{ url_for('cart.checkout') }}" class="btn btn-success btn-lg">
                         <i class="fas fa-credit-card"></i> Proceed to Checkout
-                    </a>
+                    </a> -->
                 </div>
             {% else %}
                 <div class="alert alert-info text-center" role="alert">

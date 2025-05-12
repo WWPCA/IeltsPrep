@@ -47,7 +47,7 @@ def clear_cart():
     flash('Your cart has been cleared.', 'info')
     return redirect(url_for('cart.view_cart'))
 
-@cart_bp.route('/checkout')
+@cart_bp.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     """Start the checkout process by checking user status."""
     from flask_login import current_user
