@@ -10,9 +10,10 @@ import os
 import stripe
 import logging
 import json
+import time
 from flask import Blueprint, request, jsonify
-from datetime import datetime
-from tenacity import retry, stop_after_attempt, wait_fixed
+from datetime import datetime, timedelta
+from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
 
 from api_issues import log_api_error
 from app import db
@@ -73,36 +74,86 @@ def handle_stripe_webhook():
     This endpoint receives webhook events from Stripe and processes them accordingly.
     It verifies the webhook signature to ensure it's coming from Stripe.
     """
-    payload = request.data
-    sig_header = request.headers.get('Stripe-Signature')
+    # Validate request method
+    if request.method != 'POST':
+        return jsonify(success=False, error="Invalid request method"), 405
     
-    logger.info(f"Received webhook from Stripe: {request.headers.get('Stripe-Event-Id')}")
+    # Get the payload and signature header
+    payload = request.data
+    if not payload:
+        logger.error("Empty webhook payload received")
+        return jsonify(success=False, error="Empty payload"), 400
+        
+    sig_header = request.headers.get('Stripe-Signature')
+    event_id = request.headers.get('Stripe-Event-Id')
+    
+    logger.info(f"Received webhook from Stripe: {event_id or 'unknown event ID'}")
     
     try:
+        # Validate Stripe API key is set
+        if not stripe.api_key:
+            logger.error("Stripe API key not set")
+            return jsonify(success=False, error="Stripe API key not configured"), 500
+        
+        # Construct the event with proper signature verification
         if not STRIPE_WEBHOOK_SECRET:
             # For development without webhook signature verification
-            logger.warning("STRIPE_WEBHOOK_SECRET not set. Processing webhook without signature verification.")
-            event = json.loads(payload)
+            # This should never happen in production
+            logger.critical(
+                "STRIPE_WEBHOOK_SECRET not set. Processing webhook without signature verification. "
+                "This is a serious security risk in production environments."
+            )
+            # Parse the payload as JSON
+            try:
+                event = json.loads(payload)
+            except json.JSONDecodeError as e:
+                logger.error(f"Invalid JSON payload: {str(e)}")
+                return jsonify(success=False, error="Invalid JSON payload"), 400
         else:
             # For production with webhook signature verification
-            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+            if not sig_header:
+                logger.error("Missing Stripe-Signature header")
+                return jsonify(success=False, error="Missing Stripe-Signature header"), 400
+                
+            try:
+                event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+            except stripe.error.SignatureVerificationError as e:
+                logger.error(f"Invalid signature: {str(e)}")
+                return jsonify(success=False, error="Invalid signature"), 401
             
-        # Handle the event
-        if event['type'] == 'checkout.session.completed':
-            handle_checkout_session_completed(event['data']['object'])
-        elif event['type'] == 'payment_intent.succeeded':
-            handle_payment_intent_succeeded(event['data']['object'])
-        elif event['type'] == 'charge.succeeded':
-            handle_charge_succeeded(event['data']['object'])
-        else:
-            logger.info(f"Unhandled event type: {event['type']}")
+        # Validate the event structure
+        if not isinstance(event, dict) or 'type' not in event or 'data' not in event:
+            logger.error("Invalid event structure")
+            return jsonify(success=False, error="Invalid event structure"), 400
+            
+        # Handle the event based on type
+        event_type = event.get('type')
+        event_object = event.get('data', {}).get('object')
         
-        return jsonify(success=True)
+        if not event_object:
+            logger.error("Event data object is missing")
+            return jsonify(success=False, error="Event data object is missing"), 400
+        
+        # Process different event types
+        if event_type == 'checkout.session.completed':
+            handle_checkout_session_completed(event_object)
+        elif event_type == 'payment_intent.succeeded':
+            handle_payment_intent_succeeded(event_object)
+        elif event_type == 'charge.succeeded':
+            handle_charge_succeeded(event_object)
+        elif event_type == 'invoice.payment_succeeded':
+            # Handle subscription renewal payments
+            handle_invoice_payment_succeeded(event_object)
+        else:
+            logger.info(f"Unhandled event type: {event_type}")
+        
+        # Return success response
+        return jsonify(success=True, event_type=event_type)
     
     except Exception as e:
         logger.error(f"Error processing Stripe webhook: {str(e)}")
         log_api_error('stripe', '/webhooks/stripe', e, request_obj=request)
-        return jsonify(success=False, error=str(e)), 400
+        return jsonify(success=False, error=str(e)), 500
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
@@ -213,6 +264,87 @@ def handle_charge_succeeded(charge):
     logger.info(f"Processing charge: {charge.id}")
     # This is a redundant check, as checkout.session.completed is the primary handler
     # But we implement it as a backup for certain payment flows
+    
+    # Get customer email from charge (if available)
+    customer_email = None
+    
+    # For direct charges, the receipt_email field contains the customer's email
+    if hasattr(charge, 'receipt_email'):
+        customer_email = charge.receipt_email
+    
+    # If we have a customer ID but no email, try to get the email from the customer object
+    elif hasattr(charge, 'customer') and charge.customer:
+        try:
+            customer = stripe.Customer.retrieve(charge.customer)
+            if hasattr(customer, 'email'):
+                customer_email = customer.email
+        except Exception as e:
+            logger.error(f"Error retrieving customer for charge {charge.id}: {str(e)}")
+    
+    if not customer_email:
+        logger.warning(f"No customer email found for charge {charge.id}")
+        return
+        
+    # Find the user by email and process payment if found
+    user = User.query.filter_by(email=customer_email).first()
+    if user:
+        logger.info(f"Found user {user.id} for charge {charge.id}")
+        # Activate account if needed
+        activate_user_account(user)
+    else:
+        logger.warning(f"No user found for email {customer_email} from charge {charge.id}")
+        
+def handle_invoice_payment_succeeded(invoice):
+    """
+    Handle a successful invoice payment (for subscription renewals).
+    
+    Args:
+        invoice (dict): The Stripe invoice object
+    """
+    logger.info(f"Processing invoice payment: {invoice.id}")
+    
+    # Get customer information
+    customer_id = getattr(invoice, 'customer', None)
+    if not customer_id:
+        logger.error(f"No customer found in invoice {invoice.id}")
+        return
+        
+    try:
+        # Retrieve customer to get email
+        customer = stripe.Customer.retrieve(customer_id)
+        customer_email = getattr(customer, 'email', None)
+        
+        if not customer_email:
+            logger.error(f"No email found for customer {customer_id}")
+            return
+            
+        # Find the user by email
+        user = User.query.filter_by(email=customer_email).first()
+        
+        if not user:
+            logger.warning(f"No user found for email {customer_email} from invoice {invoice.id}")
+            return
+            
+        # Get subscription info from invoice
+        subscription_id = getattr(invoice, 'subscription', None)
+        if subscription_id:
+            try:
+                subscription = stripe.Subscription.retrieve(subscription_id)
+                # Check if this is a recurring payment for an existing subscription
+                if hasattr(subscription, 'metadata') and subscription.metadata:
+                    metadata = subscription.metadata
+                    # Process the subscription renewal using the same logic as initial subscriptions
+                    handle_subscription_payment(user, metadata)
+                    logger.info(f"Processed subscription renewal for user {user.id}")
+            except Exception as e:
+                logger.error(f"Error retrieving subscription for invoice {invoice.id}: {str(e)}")
+                
+        # Ensure account is active
+        activate_user_account(user)
+        
+    except Exception as e:
+        logger.error(f"Error processing invoice payment: {str(e)}")
+        log_api_error('stripe', 'handle_invoice_payment_succeeded', e)
 
 
 def create_payment_record(user_id, amount, package_name, session_id=None):
