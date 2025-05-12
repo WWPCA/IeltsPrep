@@ -13,24 +13,33 @@ This guide explains the Stripe integration in the IELTS AI Prep application, inc
 
 ## Automatic Tax Calculation
 
-Stripe's automatic tax calculation is enabled for all payments to ensure proper tax compliance in different jurisdictions where our customers are located.
+Stripe's automatic tax calculation is enabled for all payments to ensure proper tax compliance in different jurisdictions where our customers are located. This feature is particularly important as we operate in multiple countries with varied tax regulations.
 
 ### Implementation Details
 
 1. **Customer Address Collection**:
-   - Billing address is collected during payment
-   - Address is stored in PaymentRecord model
-   - Used for tax calculation and compliance
+   - Complete billing address is collected during checkout
+   - Address includes country, state/province, city, postal code, and street address
+   - All address components are required for accurate tax calculation
+   - Address information is stored in the PaymentRecord model for compliance and reporting
 
 2. **Tax Configuration**:
-   - Automatic tax calculation enabled in all payment intents
-   - Tax calculation works in both production and test modes
-   - Tax rates are determined based on customer location
+   - Automatic tax calculation is enabled for all payment intents via the `automatic_tax` parameter
+   - Tax rates are determined dynamically based on customer location and current tax regulations
+   - System supports both sales tax (US) and VAT (international) calculation
+   - Tax calculation works in both production and test/sandbox modes
 
-3. **Test Environment**:
-   - Test environment supports automatic tax calculation
-   - Testing tool includes address fields for proper tax simulation
-   - Simulates real tax rates for testing purposes
+3. **Country-Specific Considerations**:
+   - **United States**: Calculates state and local sales taxes based on precise location
+   - **Canada**: Handles GST, HST, and PST/QST depending on province
+   - **India**: Applies appropriate GST rates
+   - **Nepal, Kuwait, Qatar**: Implements country-specific VAT or sales tax requirements
+
+4. **Test Environment Support**:
+   - Full tax calculation functionality is available in test/sandbox mode
+   - Address validation works the same as in production
+   - Test mode simulates actual tax rates without creating real charges
+   - Comprehensive testing framework available in `tax_verification_script.py`
 
 ### Code Implementation
 
@@ -59,6 +68,49 @@ stripe.Customer.modify(
     tax_exempt='none'  # Ensure customer is not tax-exempt
 )
 ```
+
+### Tax Verification Tool
+
+The application includes a tax verification script (`tax_verification_script.py`) to test automatic tax calculation across different countries and postal codes. This script:
+
+1. Creates a temporary test customer with a specific location
+2. Attaches a test payment method
+3. Creates a payment intent with automatic tax calculation
+4. Reports the calculated tax amount and percentage
+5. Cleans up by removing the test customer
+
+Example output for different regions:
+
+```
+# United States (California)
+{
+  "country": "US",
+  "postal_code": "94103",
+  "amount": "$10.00",
+  "tax_enabled": true,
+  "tax_status": "complete",
+  "tax_amount": "$0.88",
+  "tax_percentage": "8.80%"
+}
+
+# Canada (Toronto)
+{
+  "country": "CA",
+  "postal_code": "M5V 2N4",
+  "amount": "$10.00",
+  "tax_enabled": true,
+  "tax_status": "complete",
+  "tax_amount": "$1.30",
+  "tax_percentage": "13.00%"
+}
+```
+
+To run the verification script:
+```bash
+python tax_verification_script.py
+```
+
+This tool is intended for administrative use only to verify tax calculation functionality.
 
 ## Payment Testing Area
 

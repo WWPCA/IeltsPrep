@@ -1,0 +1,177 @@
+{% extends "layout.html" %}
+
+{% block title %}Tax Verification Tool{% endblock %}
+
+{% block styles %}
+<style>
+    .tax-result {
+        margin-bottom: 20px;
+        border-left: 5px solid #007bff;
+        padding-left: 15px;
+    }
+    
+    .tax-result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .tax-result-header h5 {
+        margin-bottom: 0;
+    }
+    
+    .tax-result-header .badge {
+        font-size: 0.9rem;
+    }
+    
+    .tax-amount {
+        font-weight: bold;
+        color: #28a745;
+    }
+    
+    .tax-error {
+        color: #dc3545;
+    }
+    
+    pre {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        overflow-x: auto;
+    }
+    
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_dashboard') }}">Admin Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Tax Verification Tool</li>
+                </ol>
+            </nav>
+            <h1 class="mb-4">Stripe Tax Verification Tool</h1>
+            <p class="text-muted">
+                This tool verifies that automatic tax calculation is working properly across different countries 
+                in the Stripe sandbox environment.
+            </p>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Run Tax Verification Tests</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        This will test automatic tax calculation for the following regions:
+                    </p>
+                    <ul>
+                        <li><strong>United States</strong>: California, New York, Florida</li>
+                        <li><strong>Canada</strong>: Toronto</li>
+                        <li><strong>India</strong>: Mumbai</li>
+                        <li><strong>Nepal</strong>: Kathmandu</li>
+                        <li><strong>Kuwait</strong>: Kuwait City</li>
+                        <li><strong>Qatar</strong>: Doha</li>
+                    </ul>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This test will create and immediately delete test customers and payment methods in your 
+                        Stripe account. No actual charges will be made.
+                    </div>
+                    
+                    <form id="taxVerificationForm" method="POST" action="{{ url_for('admin.run_tax_verification') }}">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="runTestsButton">
+                                <i class="fas fa-play me-2"></i> Run Tax Verification Tests
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="loading-spinner mt-4" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Running tax verification tests...</p>
+                        <p class="small text-muted">This may take up to 30 seconds</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if results %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Tax Verification Results</h5>
+                </div>
+                <div class="card-body">
+                    {% for result in results %}
+                    <div class="tax-result">
+                        <div class="tax-result-header">
+                            <h5>
+                                {{ result.country }} {% if result.postal_code %}({{ result.postal_code }}){% endif %}
+                            </h5>
+                            {% if result.error %}
+                            <span class="badge bg-danger">Error</span>
+                            {% else %}
+                            <span class="badge bg-success">Success</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if result.error %}
+                        <p class="tax-error">{{ result.error }}</p>
+                        {% else %}
+                        <div>
+                            <p>
+                                Amount: {{ result.amount }} | 
+                                Tax: <span class="tax-amount">{{ result.tax_amount }}</span> 
+                                ({{ result.tax_percentage }})
+                            </p>
+                            <pre>{{ result|tojson(indent=2) }}</pre>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('taxVerificationForm');
+        const button = document.getElementById('runTestsButton');
+        const spinner = document.getElementById('loadingSpinner');
+        
+        form.addEventListener('submit', function() {
+            button.disabled = true;
+            spinner.style.display = 'block';
+        });
+    });
+</script>
+{% endblock %}
