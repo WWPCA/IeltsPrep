@@ -384,8 +384,37 @@ The GCP deployment maintains GDPR compliance through:
 
 The IELTS AI Prep application has implemented a comprehensive GDPR compliance framework covering all aspects of the regulation. While the application currently restricts access to users in the EU/UK, this framework ensures that:
 
-1. User privacy and data protection are built into the core of the platform
-2. A foundation exists for potential future expansion to EU/UK markets
+1. User privacy and data protection are built into the core of the platform (Article 5)
+2. A foundation exists for potential future expansion to EU/UK markets (Articles 3, 44-50)
 3. Users worldwide benefit from strong privacy protections regardless of their location
 
 The framework is regularly reviewed and updated to reflect evolving interpretations of GDPR requirements, changes in the application's functionality, and emerging best practices in data protection.
+
+## GDPR Article Coverage Matrix
+
+The following matrix shows how our implementation covers the key GDPR articles:
+
+| GDPR Article | Article Title | Implementation |
+|--------------|---------------|----------------|
+| Article 5 | Principles relating to processing of personal data | Data Protection Principles section |
+| Article 6 | Lawfulness of processing | Legal Basis for Processing section |
+| Article 7 | Conditions for consent | Consent Management System section |
+| Article 8 | Conditions applicable to child's consent | Age verification (16+) during registration |
+| Article 9 | Processing of special categories of personal data | Special handling of biometric data (voice) |
+| Articles 12-14 | Transparency information | Privacy Policy, layered notices |
+| Article 15 | Right of access | My Data Dashboard feature |
+| Article 16 | Right to rectification | Profile editing features |
+| Article 17 | Right to erasure | Account and data deletion features |
+| Article 18 | Right to restriction of processing | Processing pause features |
+| Article 20 | Right to data portability | Data export in structured formats |
+| Article 21 | Right to object | Processing objection mechanisms |
+| Article 22 | Automated decision-making | Human review of AI assessments |
+| Article 24 | Responsibility of the controller | Accountability framework |
+| Article 25 | Data protection by design and by default | Privacy by Design section |
+| Article 30 | Records of processing activities | ROPA documentation |
+| Article 32 | Security of processing | Technical & Organizational Measures |
+| Articles 33-34 | Breach notification | Data Breach Management section |
+| Articles 37-39 | Data Protection Officer | DPO designation |
+| Articles 44-50 | Transfers to third countries | International Data Transfers section |
+
+This matrix demonstrates our comprehensive approach to GDPR compliance, addressing each relevant article through specific implementation details.
