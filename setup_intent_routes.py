@@ -9,6 +9,7 @@ from stripe_setup_intents import create_setup_intent, get_setup_intent, create_t
 import cart
 import json
 import logging
+from datetime import datetime
 from models import db, PaymentRecord, User
 
 setup_intent_bp = Blueprint('setup_intent', __name__, url_prefix='/payment-test')
@@ -45,11 +46,15 @@ def setup_payment():
             'customer_id': setup_intent_result['customer_id']
         }
         
+        # Get the Stripe publishable key from environment
+        import os
+        stripe_pk = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+        
         return render_template(
             'payment_test/setup.html',
             title='Setup Payment Method',
             client_secret=setup_intent_result['client_secret'],
-            stripe_pk=session.get('STRIPE_PUBLISHABLE_KEY', '')
+            stripe_pk=stripe_pk
         )
     except Exception as e:
         flash(f'Error setting up payment method: {str(e)}', 'danger')
@@ -138,19 +143,20 @@ def process_test_payment():
         
         if payment_intent.status == 'succeeded':
             # Create payment record
-            payment_record = PaymentRecord(
-                user_id=current_user.id,
-                amount=cart_total,
-                currency='usd',
-                payment_id=payment_intent.id,
-                payment_method='card',
-                status='succeeded',
-                payment_type='test_payment',
-                metadata=json.dumps({
-                    'product_ids': cart.get_product_ids(),
-                    'payment_intent_id': payment_intent.id
-                })
-            )
+            payment_record = PaymentRecord()
+            payment_record.user_id = current_user.id
+            payment_record.amount = cart_total
+            payment_record.package_name = 'Test Payment'
+            payment_record.payment_date = datetime.utcnow()
+            payment_record.stripe_session_id = payment_intent.id
+            payment_record.is_successful = True
+            payment_record.transaction_details = json.dumps({
+                'product_ids': cart.get_product_ids(),
+                'payment_intent_id': payment_intent.id,
+                'payment_method': 'card',
+                'currency': 'usd',
+                'type': 'test_payment'
+            })
             db.session.add(payment_record)
             
             # Update user's payment status

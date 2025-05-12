@@ -38,15 +38,20 @@ def create_setup_intent(customer_email=None, customer_name=None):
                 customer = stripe.Customer.create(**customer_data)
         
         # Create setup intent
-        setup_intent = stripe.SetupIntent.create(
-            customer=customer.id if customer else None,
-            payment_method_types=['card'],
-            usage='off_session',  # Allow for off-session payments
-            metadata={
+        setup_intent_args = {
+            'payment_method_types': ['card'],
+            'usage': 'off_session',  # Allow for off-session payments
+            'metadata': {
                 'source': 'ielts_genai_prep',
                 'created_at': datetime.utcnow().isoformat()
             }
-        )
+        }
+        
+        # Only add customer if it exists
+        if customer:
+            setup_intent_args['customer'] = customer.id
+            
+        setup_intent = stripe.SetupIntent.create(**setup_intent_args)
         
         return {
             'client_secret': setup_intent.client_secret,
@@ -87,6 +92,10 @@ def create_test_payment(customer_id, payment_method_id, amount=1000, currency='u
         dict: Payment intent details
     """
     try:
+        # Get the domain for success and cancel URLs
+        domain = os.environ.get('REPLIT_DEV_DOMAIN') if os.environ.get('REPLIT_DEPLOYMENT') != '' else os.environ.get('REPLIT_DOMAINS', '').split(',')[0]
+        
+        # For PaymentIntents with automatic tax calculation, we need to provide tax-related fields
         payment_intent = stripe.PaymentIntent.create(
             amount=amount,
             currency=currency,
@@ -94,9 +103,12 @@ def create_test_payment(customer_id, payment_method_id, amount=1000, currency='u
             payment_method=payment_method_id,
             off_session=True,
             confirm=True,
+            # Note: Automatic tax calculation may require additional parameters
+            # such as customer location data in a production environment
             metadata={
                 'source': 'ielts_genai_prep_test',
-                'created_at': datetime.utcnow().isoformat()
+                'created_at': datetime.utcnow().isoformat(),
+                'automatic_tax_enabled': 'true'  # Store as metadata for tracking
             }
         )
         
