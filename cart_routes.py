@@ -145,10 +145,15 @@ def create_checkout_session():
             country_code=country_code
         )
         
+        # Make sure we're working with the correct return value format
+        # The function returns a dictionary with session_id and checkout_url
+        session_id = checkout_session.get('session_id')
+        checkout_url = checkout_session.get('checkout_url')
+        
         # Store cart details in session for use in payment_success
         session['checkout'] = {
             'product_ids': cart.get_product_ids(),
-            'session_id': checkout_session.id if hasattr(checkout_session, 'id') else checkout_session.get('session_id'),
+            'session_id': session_id,
             'processed': False
         }
         
@@ -156,17 +161,13 @@ def create_checkout_session():
         is_ajax = request.headers.get('Content-Type') == 'application/json'
         
         if is_ajax:
-            # For AJAX requests (our Buy Button)
-            checkout_url = checkout_session.url if hasattr(checkout_session, 'url') else checkout_session.get('checkout_url')
-            session_id = checkout_session.id if hasattr(checkout_session, 'id') else checkout_session.get('session_id')
-            
+            # For AJAX requests
             return jsonify({
                 'checkout_url': checkout_url,
                 'session_id': session_id
             })
         else:
             # For traditional form submissions
-            checkout_url = checkout_session.url if hasattr(checkout_session, 'url') else checkout_session.get('checkout_url')
             return redirect(checkout_url)
         
     except Exception as e:
