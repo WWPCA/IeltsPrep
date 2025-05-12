@@ -28,9 +28,19 @@ def add_contact_routes(app):
             email = form.email.data
             message = form.message.data
             
-            # In a production environment, you would send an email here
-            # For now, we'll just display a success message
-            flash(f"Thank you, {name}! Your message has been received. We'll get back to you shortly at {email}.", "success")
+            # Send the contact form message to the backend email
+            from email_service import send_email
+            
+            # Email subject and content
+            subject = f"Contact Form Submission from {name}"
+            text_body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
+            
+            # Send the email to the admin
+            admin_email = os.environ.get('ADMIN_EMAIL', 'worldwidepublishingco@gmail.com')
+            send_email(admin_email, subject, text_body)
+            
+            # Display success message without revealing the email address
+            flash(f"Thank you, {name}! Your message has been received. We'll get back to you shortly.", "success")
             return redirect(url_for('contact'))
         
         return render_template('contact.html', form=form)
