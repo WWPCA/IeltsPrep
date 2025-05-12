@@ -218,7 +218,13 @@ class User(UserMixin, db.Model):
         }
     
     def is_subscribed(self):
-        """Check if user has an active subscription"""
+        """
+        Check if user has access to purchased assessment packages
+        
+        DEPRECATED TERMINOLOGY: This method is named "is_subscribed" for backward compatibility,
+        but it actually checks for active assessment packages, not subscriptions, as we've moved 
+        from a subscription model to individual package purchases.
+        """
         # Check if subscription has expired first
         if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
             # Subscription has expired - update status

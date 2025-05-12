@@ -65,7 +65,13 @@ def inject_cache_buster():
     return dict(cache_buster=cache_buster)
 
 def subscription_required(f):
-    """Decorator to check if user has an active subscription"""
+    """
+    Decorator to check if user has active assessment packages
+    
+    DEPRECATED TERMINOLOGY: This decorator is named "subscription_required" for backward compatibility,
+    but it actually checks for active assessment packages, not subscriptions, as we've moved 
+    from a subscription model to individual package purchases.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
@@ -73,7 +79,7 @@ def subscription_required(f):
             return redirect(url_for('login'))
             
         if not current_user.is_subscribed():
-            flash('This feature requires a subscription. Please subscribe to access all features.', 'warning')
+            flash('This feature requires an active assessment package. Please purchase a package to access this feature.', 'warning')
             return redirect(url_for('assessment_products_page'))
             
         return f(*args, **kwargs)
