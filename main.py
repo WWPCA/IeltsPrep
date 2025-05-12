@@ -17,6 +17,7 @@ from speaking_assessment_routes import speaking_assessment
 from cart_routes import cart_bp
 from admin_routes import admin_bp
 from stripe_webhook import stripe_webhook_bp
+from email_verification_routes import setup_email_verification_routes
 
 # Import country restriction module
 from country_access_control import setup_country_restriction_routes
@@ -30,6 +31,9 @@ app.register_blueprint(stripe_webhook_bp, url_prefix='/api')
 
 # Set up country restriction routes (but don't apply restrictions yet - use apply_country_restrictions.py for that)
 setup_country_restriction_routes(app)
+
+# Set up email verification routes
+setup_email_verification_routes(app)
 
 # Apply country restrictions automatically at startup
 try:

@@ -18,18 +18,38 @@ from api_issues import log_api_error
 from app import db
 from models import User, PaymentRecord
 from payment_services import verify_stripe_payment
+from account_activation import send_verification_email_to_user
+
 # Account activation helper function
 def activate_user_account(user):
     """
-    Activate a user account after successful payment.
+    Activate a user account after successful payment and send verification email.
     
     Args:
         user (User): The user to activate
     """
+    user_updated = False
+    
     if not user.is_active:
         user.is_active = True
-        db.session.commit()
+        user_updated = True
         logger.info(f"Account activated for user {user.id}")
+    
+    # Send verification email if email is not verified
+    if not user.is_email_verified():
+        # Save activation change first if needed
+        if user_updated:
+            db.session.commit()
+            
+        # Send verification email
+        result = send_verification_email_to_user(user.id)
+        if result:
+            logger.info(f"Verification email sent to user {user.id}")
+        else:
+            logger.warning(f"Failed to send verification email to user {user.id}")
+    elif user_updated:
+        # Only commit if we updated the user but didn't send an email
+        db.session.commit()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

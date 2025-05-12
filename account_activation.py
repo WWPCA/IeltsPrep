@@ -44,7 +44,28 @@ def verified_email_required(f):
         
         if not current_user.is_email_verified():
             flash('Please verify your email address before accessing this page.', 'warning')
-            return redirect(url_for('email_verification_notice'))
+            return redirect(url_for('email_verification.email_verification_notice'))
+            
+        return f(*args, **kwargs)
+    return decorated_function
+
+def authenticated_user_required(f):
+    """
+    Decorator to ensure the user is authenticated, has an active account,
+    and has verified their email address.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login', next=request.url))
+        
+        if not current_user.is_active:
+            flash('Your account has not been activated yet. Please complete the payment process.', 'warning')
+            return redirect(url_for('dashboard'))
+        
+        if not current_user.is_email_verified():
+            flash('Please verify your email address before accessing this page.', 'warning')
+            return redirect(url_for('email_verification.email_verification_notice'))
             
         return f(*args, **kwargs)
     return decorated_function
