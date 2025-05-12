@@ -55,24 +55,28 @@ The IELTS AI Prep application processes personal data under the following legal 
 - **Process Documentation**: Internal documentation of all data flows
 
 ### 2. Purpose Limitation
+*Article 5(1)(b)*
 
 - **Defined Purposes**: Clear documentation of all data processing purposes
 - **Function Separation**: Technical controls preventing purpose creep
 - **Purpose Review**: Regular audits to ensure alignment with stated purposes
 
 ### 3. Data Minimization
+*Article 5(1)(c)*
 
 - **Minimal Collection**: Only data necessary for service provision is collected
 - **Field Justification**: Documentation justifying every data field collected
 - **Default Settings**: Privacy-enhancing default settings
 
 ### 4. Accuracy
+*Article 5(1)(d)*
 
 - **User-Controlled**: Self-service profile management for users
 - **Verification Process**: Email verification for account information
 - **Update Mechanisms**: Regular prompts to verify information accuracy
 
 ### 5. Storage Limitation
+*Article 5(1)(e)*
 
 - **Retention Policies**: Clear timeframes for all data categories
 - **Automatic Deletion**: Scheduled purging of expired data
@@ -80,55 +84,68 @@ The IELTS AI Prep application processes personal data under the following legal 
 - **Account Deletion**: Complete data removal upon account termination
 
 ### 6. Integrity and Confidentiality
+*Article 5(1)(f) and Article 32*
 
 - **Encryption**: All data encrypted at rest and in transit
 - **Access Controls**: Role-based access controls for all systems
 - **Security Testing**: Regular penetration testing and vulnerability assessments
 
 ### 7. Accountability
+*Article 5(2) and Article 24*
 
-- **DPO Role**: Designated Data Protection Officer for oversight
-- **ROPA Maintenance**: Regularly updated Record of Processing Activities
+- **DPO Role**: Designated Data Protection Officer for oversight (Article 37)
+- **ROPA Maintenance**: Regularly updated Record of Processing Activities (Article 30)
 - **Staff Training**: Comprehensive privacy training for all personnel
 
 ## User Rights Implementation
 
+*Compliant with GDPR Articles 12-22 (Rights of the data subject)*
+
 The application provides direct mechanisms for users to exercise their GDPR rights:
 
 ### 1. Right to Access
+*Article 15*
 - **My Data Dashboard**: Centralized page showing all user data
 - **Data Export**: One-click JSON/CSV export of all personal data
 - **Processing Transparency**: Clear listing of how data is used
 
 ### 2. Right to Rectification
+*Article 16*
 - **Edit Profile**: Self-service correction of account information
 - **Data Verification**: Process to verify and update assessment information
 
 ### 3. Right to Erasure
+*Article 17 (Right to be forgotten)*
 - **Account Deletion**: One-click process to initiate account deletion
 - **Partial Deletion**: Options to delete specific data categories
 - **Verification System**: Two-factor authentication for deletion requests
 
-### 4. Right to Restriction
+### 4. Right to Restriction of Processing
+*Article 18*
 - **Processing Pause**: Ability to temporarily restrict processing
 - **Flagging System**: Backend markers for processing restrictions
 
 ### 5. Right to Data Portability
+*Article 20*
 - **Structured Format**: Export in machine-readable formats (JSON/CSV)
 - **Complete Dataset**: All user-provided data included in exports
 - **Direct Transfer**: Option to transfer data to another provider (where feasible)
 
 ### 6. Right to Object
+*Article 21*
 - **Processing Objection**: Clear mechanism to object to processing
 - **Automated Decisions**: System to request human review of automated decisions
 - **Marketing Opt-Out**: One-click unsubscribe from all communications
 
 ### 7. Rights Related to Automated Decision Making
+*Article 22*
 - **Transparency**: Clear indication when automated assessment is used
 - **Human Review**: Option to request human verification of AI assessments
 - **Logic Explanation**: Documentation explaining assessment algorithms
 
 ## Technical & Organizational Measures
+
+*Compliant with GDPR Article 32 (Security of processing)*
 
 ### Technical Measures
 
@@ -178,6 +195,8 @@ The application provides direct mechanisms for users to exercise their GDPR righ
 
 ## Data Processing Activities
 
+*Compliant with GDPR Article 30 (Records of processing activities)*
+
 ### Record of Processing Activities (ROPA)
 
 The platform maintains a comprehensive ROPA including:
@@ -214,6 +233,8 @@ The platform maintains a comprehensive ROPA including:
 
 ## Data Retention Policies
 
+*Compliant with GDPR Article 5(1)(e) (Storage limitation)*
+
 The platform implements granular retention policies for different data categories:
 
 | Data Category | Retention Period | Justification | Deletion Method |
@@ -235,6 +256,8 @@ The platform implements granular retention policies for different data categorie
 - **Audit Trail**: Records of deletion events retained for compliance purposes
 
 ## Data Breach Management
+
+*Compliant with GDPR Articles 33 (Notification of a personal data breach to the supervisory authority) and 34 (Communication of a personal data breach to the data subject)*
 
 The platform has a comprehensive data breach response plan:
 
@@ -261,6 +284,8 @@ The platform has a comprehensive data breach response plan:
 
 ## Privacy by Design & Default
 
+*Compliant with GDPR Article 25 (Data protection by design and by default)*
+
 Privacy is embedded into the platform's development process:
 
 ### Design Phase
@@ -284,6 +309,8 @@ Privacy is embedded into the platform's development process:
 
 ## International Data Transfers
 
+*Compliant with GDPR Articles 44-50 (Transfers of personal data to third countries or international organisations)*
+
 While the application is currently restricted to specific countries, the framework includes:
 
 ### Transfer Mechanisms
@@ -305,6 +332,8 @@ While the application is currently restricted to specific countries, the framewo
 - **Compliance Documentation**: GCP-specific data protection agreements
 
 ## Documentation & Accountability
+
+*Compliant with GDPR Article 5(2) (Accountability) and Article 24 (Responsibility of the controller)*
 
 The platform maintains comprehensive documentation:
 
