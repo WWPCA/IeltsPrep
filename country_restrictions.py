@@ -56,6 +56,7 @@ RESTRICTED_COUNTRIES = [
     'RU',  # Russia
     'CN',  # China
     'KR',  # South Korea
+    'AF',  # Afghanistan
 ]
 
 # Message to display to users from generally restricted countries

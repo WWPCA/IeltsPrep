@@ -159,9 +159,12 @@ def create_checkout_session():
         
         # Get user details if available
         customer_email = None
-        country_code = None
         if hasattr(current_user, 'email') and current_user.email:
             customer_email = current_user.email
+            
+        # Always get the country code from GeoIP to enforce restrictions
+        from geoip_services import get_country_from_ip
+        country_code, _ = get_country_from_ip()
         
         # Create a custom checkout session for multiple products
         checkout_session = create_stripe_checkout_session(
