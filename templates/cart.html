@@ -153,7 +153,10 @@
                     {% endfor %}
                     
                     <div class="cart-total">
-                        <span class="fw-bold">Total: ${{ cart_total }}</span>
+                        <span class="fw-bold">Subtotal: ${{ cart_total }}</span>
+                        <div class="mt-2 text-muted small">
+                            <i class="fas fa-info-circle"></i> Taxes will be calculated at checkout based on your location
+                        </div>
                     </div>
                 </div>
                 

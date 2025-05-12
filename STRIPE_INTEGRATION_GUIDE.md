@@ -69,48 +69,26 @@ stripe.Customer.modify(
 )
 ```
 
-### Tax Verification Tool
+### Tax Calculation Testing
 
-The application includes a tax verification script (`tax_verification_script.py`) to test automatic tax calculation across different countries and postal codes. This script:
+Tax calculation is now fully managed through Stripe's automatic tax features. We've updated our approach to tax testing:
 
-1. Creates a temporary test customer with a specific location
-2. Attaches a test payment method
-3. Creates a payment intent with automatic tax calculation
-4. Reports the calculated tax amount and percentage
-5. Cleans up by removing the test customer
+1. **Checkout Flow Testing**: Test tax calculation directly through the checkout flow rather than separate scripts
+2. **Stripe Dashboard**: Monitor and verify tax calculations in the Stripe Dashboard
+3. **Visual Indicators**: Added tax notification in the cart interface for user awareness
 
-Example output for different regions:
+The tax calculation is now transparent to users with notifications in:
+- Desktop cart view (subtotal with tax notice)
+- Mobile cart view (subtotal with tax notice)
+- Checkout flow (user status check page)
 
+Example user notification:
 ```
-# United States (California)
-{
-  "country": "US",
-  "postal_code": "94103",
-  "amount": "$10.00",
-  "tax_enabled": true,
-  "tax_status": "complete",
-  "tax_amount": "$0.88",
-  "tax_percentage": "8.80%"
-}
-
-# Canada (Toronto)
-{
-  "country": "CA",
-  "postal_code": "M5V 2N4",
-  "amount": "$10.00",
-  "tax_enabled": true,
-  "tax_status": "complete",
-  "tax_amount": "$1.30",
-  "tax_percentage": "13.00%"
-}
+Subtotal: $25.00
+Taxes will be calculated at checkout based on your location
 ```
 
-To run the verification script:
-```bash
-python tax_verification_script.py
-```
-
-This tool is intended for administrative use only to verify tax calculation functionality.
+This approach simplifies testing while providing better transparency to users about tax calculations.
 
 ## Payment Testing Area
 
@@ -176,6 +154,8 @@ Common issues and solutions:
    - Check server logs for webhook processing errors
 
 3. **Tax Calculation Problems**:
-   - Ensure customer address is complete
-   - Verify tax calculation is enabled in params
-   - Check Stripe Dashboard for tax settings
+   - Ensure customer address is complete and properly formatted
+   - Verify tax calculation is enabled in checkout session parameters (`automatic_tax: {enabled: true}`)
+   - Check Stripe Dashboard for tax settings and calculation details
+   - Test the complete checkout flow rather than using separate verification tools
+   - Verify tax-related notices appear correctly in cart and checkout pages
