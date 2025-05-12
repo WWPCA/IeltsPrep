@@ -8,18 +8,20 @@ While the application is currently restricted from EU/UK markets, this GDPR fram
 
 ## Table of Contents
 
-1. [Legal Basis for Processing](#legal-basis-for-processing)
-2. [Data Protection Principles](#data-protection-principles)
-3. [User Rights Implementation](#user-rights-implementation)
-4. [Technical & Organizational Measures](#technical--organizational-measures)
-5. [Data Processing Activities](#data-processing-activities)
-6. [Data Retention Policies](#data-retention-policies)
-7. [Data Breach Management](#data-breach-management)
-8. [Privacy by Design & Default](#privacy-by-design--default)
-9. [International Data Transfers](#international-data-transfers)
-10. [Documentation & Accountability](#documentation--accountability)
+1. [Legal Basis for Processing](#legal-basis-for-processing) (GDPR Articles 6, 7, 9)
+2. [Data Protection Principles](#data-protection-principles) (GDPR Article 5)
+3. [User Rights Implementation](#user-rights-implementation) (GDPR Articles 12-22)
+4. [Technical & Organizational Measures](#technical--organizational-measures) (GDPR Article 32)
+5. [Data Processing Activities](#data-processing-activities) (GDPR Article 30)
+6. [Data Retention Policies](#data-retention-policies) (GDPR Article 5(1)(e))
+7. [Data Breach Management](#data-breach-management) (GDPR Articles 33, 34)
+8. [Privacy by Design & Default](#privacy-by-design--default) (GDPR Article 25)
+9. [International Data Transfers](#international-data-transfers) (GDPR Articles 44-50)
+10. [Documentation & Accountability](#documentation--accountability) (GDPR Article 5(2), 24)
 
 ## Legal Basis for Processing
+
+*Compliant with GDPR Articles 6 (Lawfulness of processing), 7 (Conditions for consent), and 9 (Processing of special categories of data)*
 
 The IELTS AI Prep application processes personal data under the following legal bases:
 
@@ -34,14 +36,19 @@ The IELTS AI Prep application processes personal data under the following legal 
 
 ### Consent Management System
 
+*Compliant with GDPR Article 7 (Conditions for consent)*
+
 1. **Granular Consent**: All consent is collected through separate, unticked checkboxes
 2. **Specific Purpose**: Each consent request clearly states the purpose
-3. **Withdrawable**: Simple interface to withdraw consent in user dashboard
-4. **Documented**: All consent events are timestamped and stored securely
+3. **Withdrawable**: Simple interface to withdraw consent in user dashboard (Article 7(3))
+4. **Documented**: All consent events are timestamped and stored securely (Article 7(1))
 
 ## Data Protection Principles
 
-### 1. Lawfulness, Fairness, and Transparency
+*Compliant with GDPR Article 5 (Principles relating to processing of personal data)*
+
+### 1. Lawfulness, Fairness, and Transparency 
+*Article 5(1)(a)*
 
 - **Privacy Policy**: Comprehensive, easily accessible policy in plain language
 - **Layered Notices**: Summary notices with links to detailed information
