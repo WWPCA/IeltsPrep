@@ -205,10 +205,12 @@ def create_checkout_session():
                 'session_id': session_id
             })
         else:
-            # Use direct redirect template with fallback to debug
-            return render_template('stripe_direct.html', 
+            # Use our debugging template that worked previously
+            return render_template('stripe_debug.html', 
                                   checkout_url=checkout_url,
-                                  session_id=session_id)
+                                  session_id=session_id,
+                                  created_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                  amount=int(cart.get_cart_total() * 100))
         
     except Exception as e:
         # Log the error 

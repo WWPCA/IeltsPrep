@@ -44,6 +44,17 @@
                         <i class="fas fa-external-link-alt"></i> Open Checkout in New Tab
                     </a>
                 </div>
+                
+                <div class="alert alert-info mt-4">
+                    <h5>Experiencing Issues?</h5>
+                    <p>If you're having trouble with the Stripe checkout page:</p>
+                    <ol>
+                        <li>Try clicking the green button above to open checkout in a new tab</li>
+                        <li>Check if your browser is blocking pop-ups or redirects</li>
+                        <li>Copy the URL above and paste it directly into a new browser tab</li>
+                        <li>If problems persist, please try a different browser</li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
@@ -57,10 +68,8 @@
             alert("Copied checkout URL to clipboard");
         }
         
-        // Auto-redirect after 5 seconds
-        setTimeout(function() {
-            window.location.href = "{{ checkout_url }}";
-        }, 5000);
+        // No automatic redirect - it causes issues
+        // Let users choose how to proceed instead
     </script>
 </body>
 </html>
