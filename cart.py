@@ -104,6 +104,8 @@ def get_cart_total():
     initialize_cart()
     # Prices are stored in dollars
     total = sum(item['price'] for item in session['cart'])
+    # Debug log to help diagnose price issues
+    print(f"Cart items: {len(session['cart'])}, Total price: ${total}")
     return total
 
 

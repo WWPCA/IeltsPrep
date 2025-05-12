@@ -314,15 +314,16 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             else:
                 success_url += '?session_id={CHECKOUT_SESSION_ID}'
         
-        # Use only card payments for universal compatibility
-        payment_methods = ['card']  # Wallets managed through Stripe Dashboard
+        # Use card payments and enable wallet options
+        payment_methods = ['card']
         
-        # Build checkout session parameters
+        # Build checkout session parameters with automatic payment methods enabled
         # Get the list of allowed countries (countries that are not restricted)
         allowed_countries = get_allowed_countries()
         
         session_params = {
             'payment_method_types': payment_methods,
+            'automatic_payment_methods': {'enabled': True},
             'line_items': [
                 {
                     'price_data': {
