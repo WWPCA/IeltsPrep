@@ -112,26 +112,92 @@ def test_tax_calculation(country_code, postal_code, amount=1000):
 
 
 def run_tax_tests():
-    """Run tax calculation tests for various locations"""
+    """Run tax calculation tests for various locations.
+    
+    Returns:
+        list: List of dictionaries with test results for each country.
+    """
+    test_countries = [
+        {'country_code': 'US', 'postal_code': '94103', 'country_name': 'United States (California)'},
+        {'country_code': 'US', 'postal_code': '10001', 'country_name': 'United States (New York)'},
+        {'country_code': 'US', 'postal_code': '33139', 'country_name': 'United States (Florida)'},
+        {'country_code': 'CA', 'postal_code': 'M5V 2N4', 'country_name': 'Canada (Toronto)'},
+        {'country_code': 'IN', 'postal_code': '400001', 'country_name': 'India (Mumbai)'},
+        {'country_code': 'NP', 'postal_code': '44600', 'country_name': 'Nepal (Kathmandu)'},
+        {'country_code': 'KW', 'postal_code': '13001', 'country_name': 'Kuwait (Kuwait City)'},
+        {'country_code': 'QA', 'postal_code': '00974', 'country_name': 'Qatar (Doha)'}
+    ]
+    
+    # Standard price amount for IELTS assessment test
+    price_amount = 2500  # $25.00 USD
+    
     results = []
     
-    # Test USA (different states have different tax rates)
-    results.append(test_tax_calculation('US', '94103'))  # California
-    results.append(test_tax_calculation('US', '10001'))  # New York
-    results.append(test_tax_calculation('US', '33139'))  # Florida
-    
-    # Test Canada
-    results.append(test_tax_calculation('CA', 'M5V 2N4'))  # Toronto
-    
-    # Test India
-    results.append(test_tax_calculation('IN', '400001'))  # Mumbai
-    
-    # Test Nepal
-    results.append(test_tax_calculation('NP', '44600'))  # Kathmandu
-    
-    # Test Kuwait and Qatar (these may have different VAT structures)
-    results.append(test_tax_calculation('KW', '13001'))  # Kuwait City
-    results.append(test_tax_calculation('QA', '00974'))  # Doha
+    for country in test_countries:
+        try:
+            # Create a test customer
+            customer = stripe.Customer.create(
+                email=f"test_{country['country_code'].lower()}_{country['postal_code']}@example.com",
+                name=f"Test Customer {country['country_code']}",
+                address={
+                    'line1': '123 Test Street',
+                    'city': 'Test City',
+                    'state': 'Test State',
+                    'postal_code': country['postal_code'],
+                    'country': country['country_code'],
+                },
+                tax_exempt='none'  # Ensure customer is not tax-exempt
+            )
+            
+            # Create a test price calculation
+            calculation = stripe.tax.Calculation.create(
+                currency="usd",
+                customer=customer.id,
+                line_items=[
+                    {
+                        "amount": price_amount, 
+                        "reference": "ielts_assessment",
+                        "tax_behavior": "exclusive",
+                    }
+                ],
+                expand=["line_items"]
+            )
+            
+            # Extract useful tax information
+            tax_amount = calculation.tax_breakdown[0]['tax_amount'] if calculation.tax_breakdown else 0
+            tax_rate = (tax_amount / price_amount) * 100 if price_amount > 0 else 0
+            
+            # Format the result
+            result = {
+                'country_code': country['country_code'],
+                'country_name': country['country_name'],
+                'postal_code': country['postal_code'],
+                'price_amount': price_amount,
+                'tax_amount': tax_amount,
+                'tax_rate': tax_rate,
+                'total_amount': price_amount + tax_amount,
+                'success': True,
+                'error': None
+            }
+            
+            # Clean up the test customer
+            stripe.Customer.delete(customer.id)
+                        
+        except Exception as e:
+            result = {
+                'country_code': country['country_code'],
+                'country_name': country['country_name'],
+                'postal_code': country['postal_code'],
+                'price_amount': price_amount,
+                'tax_amount': 0,
+                'tax_rate': 0,
+                'total_amount': price_amount,
+                'success': False,
+                'error': str(e)
+            }
+        
+        results.append(result)
+        print(f"Tested {country['country_name']}: {'Success' if result['success'] else 'Failed - ' + result['error']}")
     
     return results
 
