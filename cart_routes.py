@@ -6,6 +6,9 @@ This module defines routes for the shopping cart functionality.
 from flask import Blueprint, redirect, url_for, render_template, flash, session, request, jsonify
 from datetime import datetime
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 import cart
 import stripe
@@ -129,7 +132,10 @@ def check_email():
 def create_checkout_session():
     """Create a Stripe checkout session for the current cart."""
     from flask_login import current_user
-    from flask import jsonify
+    from flask import json
+    import logging
+
+    logger = logging.getLogger(__name__)
     
     # Get cart items
     cart_items = cart.get_cart_items()

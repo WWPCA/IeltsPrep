@@ -216,6 +216,21 @@ def create_or_get_product_for_purchase(product_name, product_description):
         stripe.Product: The created or retrieved Stripe product
     """
     try:
+        # Validate price - ensure it is an integer in cents
+        if not isinstance(price, int):
+            try:
+                # Try converting to integer cents if it\'s a float in dollars
+                price = int(float(price) * 100)
+                logging.info(f"Converted price to {price} cents")
+            except (ValueError, TypeError):
+                logging.error(f"Invalid price format: {price} - must be numeric")
+                raise ValueError(f"Invalid price: {price}")
+        
+        # Sanity check - ensure price is reasonable (between $1 and $500)
+        if price < 100 or price > 50000:
+            logging.error(f"Price out of reasonable range: {price} cents")
+            raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
         # Search for existing products with the same name
         existing_products = stripe.Product.list(limit=10)
         for product in existing_products.data:
@@ -247,6 +262,21 @@ def create_or_get_price_for_purchase(product_id, price_in_cents, plan_code, test
         stripe.Price: The created or retrieved Stripe price
     """
     try:
+        # Validate price - ensure it is an integer in cents
+        if not isinstance(price, int):
+            try:
+                # Try converting to integer cents if it\'s a float in dollars
+                price = int(float(price) * 100)
+                logging.info(f"Converted price to {price} cents")
+            except (ValueError, TypeError):
+                logging.error(f"Invalid price format: {price} - must be numeric")
+                raise ValueError(f"Invalid price: {price}")
+        
+        # Sanity check - ensure price is reasonable (between $1 and $500)
+        if price < 100 or price > 50000:
+            logging.error(f"Price out of reasonable range: {price} cents")
+            raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
         # Check for existing prices for this product
         existing_prices = stripe.Price.list(
             product=product_id,
@@ -297,6 +327,21 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         ValueError: If the country is restricted by our policy
     """
     try:
+        # Validate price - ensure it is an integer in cents
+        if not isinstance(price, int):
+            try:
+                # Try converting to integer cents if it\'s a float in dollars
+                price = int(float(price) * 100)
+                logging.info(f"Converted price to {price} cents")
+            except (ValueError, TypeError):
+                logging.error(f"Invalid price format: {price} - must be numeric")
+                raise ValueError(f"Invalid price: {price}")
+        
+        # Sanity check - ensure price is reasonable (between $1 and $500)
+        if price < 100 or price > 50000:
+            logging.error(f"Price out of reasonable range: {price} cents")
+            raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
         # Check country restrictions
         check_country_restriction(country_code, is_country_restricted)
             
@@ -387,6 +432,21 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         
         # Create checkout session with enhanced options
         try:
+            # Validate price - ensure it is an integer in cents
+            if not isinstance(price, int):
+                try:
+                    # Try converting to integer cents if it's a float in dollars
+                    price = int(float(price) * 100)
+                    logging.info(f"Converted price to {price} cents")
+                except (ValueError, TypeError):
+                    logging.error(f"Invalid price format: {price} - must be numeric")
+                    raise ValueError(f"Invalid price: {price}")
+            
+            # Sanity check - ensure price is reasonable (between $1 and $500)
+            if price < 100 or price > 50000:
+                logging.error(f"Price out of reasonable range: {price} cents")
+                raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
             # Direct creation without retry logic for simplicity and better error handling
             checkout_session = stripe.checkout.Session.create(**session_params)
             logging.debug(f"Stripe session created successfully: {checkout_session.id}")
@@ -429,6 +489,21 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         ValueError: If the country is restricted by our policy
     """
     try:
+        # Validate price - ensure it is an integer in cents
+        if not isinstance(price, int):
+            try:
+                # Try converting to integer cents if it\'s a float in dollars
+                price = int(float(price) * 100)
+                logging.info(f"Converted price to {price} cents")
+            except (ValueError, TypeError):
+                logging.error(f"Invalid price format: {price} - must be numeric")
+                raise ValueError(f"Invalid price: {price}")
+        
+        # Sanity check - ensure price is reasonable (between $1 and $500)
+        if price < 100 or price > 50000:
+            logging.error(f"Price out of reasonable range: {price} cents")
+            raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
         # Check country restrictions
         check_country_restriction(country_code, is_country_restricted)
             
@@ -555,6 +630,21 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
     # Check country restrictions
     check_country_restriction(country_code, is_country_restricted)
     try:
+        # Validate price - ensure it is an integer in cents
+        if not isinstance(price, int):
+            try:
+                # Try converting to integer cents if it\'s a float in dollars
+                price = int(float(price) * 100)
+                logging.info(f"Converted price to {price} cents")
+            except (ValueError, TypeError):
+                logging.error(f"Invalid price format: {price} - must be numeric")
+                raise ValueError(f"Invalid price: {price}")
+        
+        # Sanity check - ensure price is reasonable (between $1 and $500)
+        if price < 100 or price > 50000:
+            logging.error(f"Price out of reasonable range: {price} cents")
+            raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
             
@@ -709,6 +799,21 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
     from app import db
     
     try:
+        # Validate price - ensure it is an integer in cents
+        if not isinstance(price, int):
+            try:
+                # Try converting to integer cents if it\'s a float in dollars
+                price = int(float(price) * 100)
+                logging.info(f"Converted price to {price} cents")
+            except (ValueError, TypeError):
+                logging.error(f"Invalid price format: {price} - must be numeric")
+                raise ValueError(f"Invalid price: {price}")
+        
+        # Sanity check - ensure price is reasonable (between $1 and $500)
+        if price < 100 or price > 50000:
+            logging.error(f"Price out of reasonable range: {price} cents")
+            raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
         # Create a new payment record
         payment = PaymentRecord()
         payment.user_id = user_id
@@ -721,6 +826,21 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
         
         # Add to database with proper error handling
         try:
+            # Validate price - ensure it is an integer in cents
+            if not isinstance(price, int):
+                try:
+                    # Try converting to integer cents if it's a float in dollars
+                    price = int(float(price) * 100)
+                    logging.info(f"Converted price to {price} cents")
+                except (ValueError, TypeError):
+                    logging.error(f"Invalid price format: {price} - must be numeric")
+                    raise ValueError(f"Invalid price: {price}")
+            
+            # Sanity check - ensure price is reasonable (between $1 and $500)
+            if price < 100 or price > 50000:
+                logging.error(f"Price out of reasonable range: {price} cents")
+                raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
             db.session.add(payment)
             db.session.commit()
             return payment
@@ -731,6 +851,21 @@ def create_payment_record(user_id, amount, package_name, session_id=None):
             
             # Try again with a new session context
             try:
+                # Validate price - ensure it is an integer in cents
+                if not isinstance(price, int):
+                    try:
+                        # Try converting to integer cents if it's a float in dollars
+                        price = int(float(price) * 100)
+                        logging.info(f"Converted price to {price} cents")
+                    except (ValueError, TypeError):
+                        logging.error(f"Invalid price format: {price} - must be numeric")
+                        raise ValueError(f"Invalid price: {price}")
+                
+                # Sanity check - ensure price is reasonable (between $1 and $500)
+                if price < 100 or price > 50000:
+                    logging.error(f"Price out of reasonable range: {price} cents")
+                    raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
                 # Create a new payment record since the old one may be in an inconsistent state
                 new_payment = PaymentRecord()
                 new_payment.user_id = user_id
@@ -764,6 +899,21 @@ def verify_stripe_payment(session_id):
         dict: Payment details if verified, None otherwise
     """
     try:
+        # Validate price - ensure it is an integer in cents
+        if not isinstance(price, int):
+            try:
+                # Try converting to integer cents if it\'s a float in dollars
+                price = int(float(price) * 100)
+                logging.info(f"Converted price to {price} cents")
+            except (ValueError, TypeError):
+                logging.error(f"Invalid price format: {price} - must be numeric")
+                raise ValueError(f"Invalid price: {price}")
+        
+        # Sanity check - ensure price is reasonable (between $1 and $500)
+        if price < 100 or price > 50000:
+            logging.error(f"Price out of reasonable range: {price} cents")
+            raise ValueError(f"Price out of reasonable range: ${price/100:.2f}")
+
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot verify payment.")
             return None
