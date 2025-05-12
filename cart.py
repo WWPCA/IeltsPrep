@@ -48,7 +48,7 @@ def add_to_cart(product_id):
         'id': product_id,
         'name': product['name'],
         'description': product['description'],
-        'price': product['price'] / 100  # Convert from cents to dollars for display
+        'price': product['price']  # Price is already in dollars
     }
     
     session['cart'].append(cart_item)
