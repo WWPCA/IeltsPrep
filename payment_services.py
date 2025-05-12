@@ -320,7 +320,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 success_url += '?session_id={CHECKOUT_SESSION_ID}'
         
         # Determine payment method types based on country
-        payment_methods = ['card']
+        payment_methods = ['card']  # Wallets are now enabled through Stripe dashboard
         if country_code:
             additional_methods = get_country_payment_methods(country_code)
             if additional_methods:
@@ -444,12 +444,11 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             purchase_details['days']
         )
         
-        # Simplify payment methods to only use card payments (universally supported)
-        payment_method_types = ['card']
+        # Use card payments plus popular digital wallets
+        payment_method_types = ['card']  # Wallets are now enabled through Stripe dashboard
         
-        # Note: We've removed the complex region mapping to fix the Stripe checkout error
-        # If region-specific payment methods are needed in the future, ensure they're 
-        # approved by Stripe and match their supported payment method types.
+        # Note: Apple Pay and Google Pay are enabled globally where supported by the browser
+        # These are presented automatically by Stripe when the browser/device supports them
             
         metadata = {
             'plan': plan_code,
@@ -592,12 +591,11 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             purchase_details['days']
         )
         
-        # Simplify payment methods to only use card payments (universally supported)
-        payment_method_types = ['card']
+        # Use card payments plus popular digital wallets
+        payment_method_types = ['card']  # Wallets are now enabled through Stripe dashboard
         
-        # Note: We've removed the complex region mapping to fix the Stripe checkout error
-        # If region-specific payment methods are needed in the future, ensure they're 
-        # approved by Stripe and match their supported payment method types.
+        # Note: Apple Pay and Google Pay are enabled globally where supported by the browser
+        # These are presented automatically by Stripe when the browser/device supports them
             
         metadata = {
             'plan': plan_code,
