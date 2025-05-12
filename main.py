@@ -17,6 +17,7 @@ from speaking_assessment_routes import speaking_assessment
 from cart_routes import cart_bp
 from admin_routes import admin_bp
 from stripe_webhook import stripe_webhook_bp
+from setup_intent_routes import setup_intent_bp
 from email_verification_routes import setup_email_verification_routes
 from gdpr_routes import gdpr_bp
 
@@ -28,6 +29,7 @@ app.register_blueprint(writing_assessment)
 app.register_blueprint(speaking_assessment)
 app.register_blueprint(cart_bp, url_prefix='/cart')
 app.register_blueprint(admin_bp, url_prefix='/admin')
+app.register_blueprint(setup_intent_bp)
 app.register_blueprint(stripe_webhook_bp, url_prefix='/api')
 app.register_blueprint(gdpr_bp, url_prefix='/privacy')
 

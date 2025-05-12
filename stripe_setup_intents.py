@@ -1,0 +1,106 @@
+"""
+Stripe Setup Intents Integration
+This module provides functionality for creating and managing Stripe Setup Intents
+for testing payment integration in sandbox mode.
+"""
+
+import os
+import stripe
+import logging
+from flask import url_for
+from datetime import datetime
+
+# Set Stripe API key
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+
+def create_setup_intent(customer_email=None, customer_name=None):
+    """
+    Create a Stripe Setup Intent for testing payment method setup.
+    
+    Args:
+        customer_email (str, optional): Customer email for pre-filling
+        customer_name (str, optional): Customer name for pre-filling
+        
+    Returns:
+        dict: Contains client_secret and other setup intent details
+    """
+    try:
+        # Create a customer if email is provided
+        customer = None
+        if customer_email:
+            customers = stripe.Customer.list(email=customer_email, limit=1)
+            if customers.data:
+                customer = customers.data[0]
+            else:
+                customer_data = {'email': customer_email}
+                if customer_name:
+                    customer_data['name'] = customer_name
+                customer = stripe.Customer.create(**customer_data)
+        
+        # Create setup intent
+        setup_intent = stripe.SetupIntent.create(
+            customer=customer.id if customer else None,
+            payment_method_types=['card'],
+            usage='off_session',  # Allow for off-session payments
+            metadata={
+                'source': 'ielts_genai_prep',
+                'created_at': datetime.utcnow().isoformat()
+            }
+        )
+        
+        return {
+            'client_secret': setup_intent.client_secret,
+            'id': setup_intent.id,
+            'customer_id': customer.id if customer else None
+        }
+    except Exception as e:
+        logging.error(f"Error creating Stripe setup intent: {str(e)}")
+        raise
+
+def get_setup_intent(setup_intent_id):
+    """
+    Retrieve a Stripe Setup Intent.
+    
+    Args:
+        setup_intent_id (str): The ID of the setup intent to retrieve
+        
+    Returns:
+        dict: Setup intent details
+    """
+    try:
+        return stripe.SetupIntent.retrieve(setup_intent_id)
+    except Exception as e:
+        logging.error(f"Error retrieving Stripe setup intent: {str(e)}")
+        raise
+
+def create_test_payment(customer_id, payment_method_id, amount=1000, currency='usd'):
+    """
+    Create a test payment using a stored payment method.
+    
+    Args:
+        customer_id (str): Stripe customer ID
+        payment_method_id (str): Stripe payment method ID
+        amount (int): Amount in cents
+        currency (str): Currency code
+        
+    Returns:
+        dict: Payment intent details
+    """
+    try:
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency=currency,
+            customer=customer_id,
+            payment_method=payment_method_id,
+            off_session=True,
+            confirm=True,
+            metadata={
+                'source': 'ielts_genai_prep_test',
+                'created_at': datetime.utcnow().isoformat()
+            }
+        )
+        
+        return payment_intent
+    except Exception as e:
+        logging.error(f"Error creating test payment: {str(e)}")
+        raise
