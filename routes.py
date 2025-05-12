@@ -1948,7 +1948,9 @@ def payment_success():
     session_id = request.args.get('session_id') or session.get('checkout_session_id')
     
     # Check if this is a cart checkout
-    if 'checkout' in session and session['checkout'].get('product_ids'):
+    is_cart_checkout = 'checkout' in session and session['checkout'].get('product_ids')
+    
+    if is_cart_checkout:
         # Get the product IDs from the cart
         from cart import determine_test_preference
         product_ids = session['checkout']['product_ids']
@@ -1983,8 +1985,8 @@ def payment_success():
         }
     }
     
-    # Check if the package is valid
-    if package not in package_details:
+    # For cart checkouts, skip the package validation
+    if not is_cart_checkout and package not in package_details:
         flash('Invalid package selected.', 'danger')
         return redirect(url_for('assessment_products_page'))
     
@@ -2046,101 +2048,111 @@ def payment_success():
             if not payment_verified:
                 flash('Payment verification failed. Please contact support.', 'danger')
                 return redirect(url_for('assessment_products_page'))
-                
-            # Create a payment record using our service function
-            payment = create_payment_record(
-                user_id=current_user.id,
-                amount=package_details[package]['price'],
-                package_name=package_details[package]['name'],
-                session_id=session_id
-            )
             
-            if not payment:
-                app.logger.warning(f"Failed to create payment record for user {current_user.id}, but continuing checkout process")
-                # Continue even if payment record creation fails
+            # For cart checkout, the payment record is created by the webhook
+            if not is_cart_checkout:    
+                # Create a payment record using our service function
+                payment = create_payment_record(
+                    user_id=current_user.id,
+                    amount=package_details[package]['price'],
+                    package_name=package_details[package]['name'],
+                    session_id=session_id
+                )
+                
+                if not payment:
+                    app.logger.warning(f"Failed to create payment record for user {current_user.id}, but continuing checkout process")
+                    # Continue even if payment record creation fails
             
         except Exception as e:
             app.logger.error(f"Error verifying payment: {str(e)}")
             flash('Error processing payment. Please contact support.', 'danger')
             return redirect(url_for('assessment_products_page'))
     
-    # Update user's subscription with better error handling
-    try:
-        # Calculate expiry date
-        subscription_days = package_details[package]['days']
-        expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
-        
-        # Update user's subscription status
-        user = User.query.get(current_user.id)  # Get fresh user object to avoid stale data
-        if not user:
-            app.logger.error(f"Could not find user with ID {current_user.id} for subscription update")
-            flash('Error updating your subscription. Please contact support.', 'danger')
-            return redirect(url_for('assessment_products_page'))
-            
-        # Update user properties
-        user.subscription_status = package_details[package]['name']
-        user.subscription_expiry = expiry_date
-        user.test_preference = test_preference
-        
-        # Add to user's test history
-        test_history = user.test_history
-        test_history.append({
-            'date': datetime.utcnow().isoformat(),
-            'action': 'subscription',
-            'test_purchase': {
-                'package': package,
-                'test_preference': test_preference,
-                'num_tests': package_details[package]['tests'],
-                'purchase_date': datetime.utcnow().isoformat(),
-                'expiry_date': expiry_date.isoformat()
-            }
-        })
-        user.test_history = test_history
-        
-        # Commit changes with proper error handling
+    # Process cart checkout
+    if is_cart_checkout and session['checkout'].get('product_ids') and not session['checkout'].get('processed', False):
         try:
-            db.session.commit()
-        except Exception as db_error:
-            # If there's an error during commit, rollback and try again
-            db.session.rollback()
-            app.logger.warning(f"Initial subscription update commit failed, rolling back: {str(db_error)}")
+            from add_assessment_routes import handle_assessment_product_payment
             
-            # Try again with a fresh query
-            try:
-                # Get a fresh user object after rollback
-                user = User.query.get(current_user.id)
-                if user:
-                    user.subscription_status = package_details[package]['name']
-                    user.subscription_expiry = expiry_date
-                    user.test_preference = test_preference
-                    
-                    # Re-add the test history entry
-                    test_history = user.test_history
-                    test_history.append({
-                        'date': datetime.utcnow().isoformat(),
-                        'action': 'subscription',
-                        'test_purchase': {
-                            'package': package,
-                            'test_preference': test_preference,
-                            'num_tests': package_details[package]['tests'],
-                            'purchase_date': datetime.utcnow().isoformat(),
-                            'expiry_date': expiry_date.isoformat()
-                        }
-                    })
-                    user.test_history = test_history
-                    db.session.commit()
-                else:
-                    raise ValueError(f"Could not find user with ID {current_user.id} on retry")
-            except Exception as retry_error:
-                db.session.rollback()
-                app.logger.error(f"Retry subscription update failed: {str(retry_error)}")
+            # Process each product in the cart in separate transactions
+            product_ids = session['checkout']['product_ids']
+            for product_id in product_ids:
+                try:
+                    handle_assessment_product_payment(current_user, product_id)
+                    app.logger.info(f"Processed cart product: {product_id} for user {current_user.id}")
+                except Exception as e:
+                    app.logger.error(f"Error processing cart product {product_id}: {str(e)}")
+            
+            # Mark checkout as processed
+            session['checkout']['processed'] = True
+            
+            # Clear the cart after successful checkout
+            from cart import clear_cart
+            clear_cart()
+            
+            flash('Your assessment products have been added to your account.', 'success')
+        except Exception as cart_error:
+            app.logger.error(f"Error processing cart checkout: {str(cart_error)}")
+            flash('Error processing your purchase. Please contact support.', 'danger')
+    
+    # For regular package-based subscriptions, update the subscription
+    elif not is_cart_checkout:
+        try:
+            # Calculate expiry date
+            subscription_days = package_details[package]['days']
+            expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
+            
+            # Update user's subscription status
+            user = User.query.get(current_user.id)  # Get fresh user object to avoid stale data
+            if not user:
+                app.logger.error(f"Could not find user with ID {current_user.id} for subscription update")
                 flash('Error updating your subscription. Please contact support.', 'danger')
                 return redirect(url_for('assessment_products_page'))
+                
+            # Update user properties
+            user.subscription_status = package_details[package]['name']
+            user.subscription_expiry = expiry_date
+            user.test_preference = test_preference
             
-    except Exception as e:
-        app.logger.error(f"Error updating user subscription: {str(e)}")
-        flash('Error updating your subscription. Please contact support.', 'danger')
-        return redirect(url_for('assessment_products_page'))
+            # Add to user's test history
+            test_history = user.test_history
+            test_history.append({
+                'date': datetime.utcnow().isoformat(),
+                'action': 'subscription',
+                'test_purchase': {
+                    'package': package,
+                    'test_preference': test_preference,
+                    'num_tests': package_details[package]['tests'],
+                    'purchase_date': datetime.utcnow().isoformat(),
+                    'expiry_date': expiry_date.isoformat()
+                }
+            })
+            user.test_history = test_history
+            
+            # Commit changes with proper error handling
+            try:
+                db.session.commit()
+                app.logger.info(f"Subscription updated for user {user.id} - package: {package}")
+            except Exception as db_error:
+                db.session.rollback()
+                app.logger.error(f"Database error updating subscription: {str(db_error)}")
+                flash('Database error updating your subscription. Please contact support.', 'danger')
+                return redirect(url_for('assessment_products_page'))
+            
+            # Assign new tests to the user based on package type and preference
+            try:
+                test_assignment_service.assign_tests_to_user(
+                    user.id, 
+                    package_details[package]['tests'], 
+                    test_preference
+                )
+                app.logger.info(f"Tests assigned to user {user.id}")
+            except Exception as assign_error:
+                app.logger.error(f"Error assigning tests: {str(assign_error)}")
+                flash('Your payment was processed, but there was an error assigning tests. Please contact support.', 'warning')
+        except Exception as e:
+            app.logger.error(f"Error updating subscription: {str(e)}")
+            flash('Your payment was processed, but there was an error updating your subscription. Please contact support.', 'warning')
+            return redirect(url_for('assessment_products_page'))
     
     # Assign tests to user in a separate step
     try:
