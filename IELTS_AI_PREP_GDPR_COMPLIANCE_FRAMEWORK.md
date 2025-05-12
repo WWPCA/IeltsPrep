@@ -267,20 +267,67 @@ The platform has a comprehensive data breach response plan:
 - **Anomaly Detection**: Pattern analysis to identify unusual data activities
 - **Staff Reporting**: Clear protocols for internal breach reporting
 
+### Automated Breach Detection System
+
+*Compliant with GDPR Article 33 (72-hour notification requirement)*
+
+The platform includes an automated breach detection system that:
+
+1. **Continuous Monitoring**: Utilizes security tools to detect unusual database access, unauthorized API calls, and potential data exposure
+2. **Alert Classification**: Automatically classifies potential incidents by severity and likelihood
+3. **Immediate Notification**: Sends real-time alerts to the designated Data Protection team
+4. **Evidence Collection**: Automatically preserves evidence of the potential breach
+5. **Impact Assessment**: Provides preliminary assessment of affected data and users
+6. **Administrator Dashboard**: Displays breach details with approval buttons for official reporting
+
 ### Response Protocol
 
-1. **Containment**: Immediate steps to contain the breach
-2. **Assessment**: Evaluation of breach scope and impact
-3. **Notification**: Timely notification to authorities (within 72 hours)
-4. **Communication**: Clear communication to affected users
-5. **Remediation**: Steps to address the breach cause
-6. **Documentation**: Comprehensive breach records
+1. **Containment**: Immediate steps to contain the breach through automated and manual processes
+2. **Assessment**: Evaluation of breach scope and impact using the automated assessment and manual verification
+3. **Notification to Authorities**: Upon administrator approval, automated submission to relevant DPAs (within 72 hours)
+4. **Communication to Data Subjects**: Automated preparation of communications to affected users (required under Article 34)
+5. **Remediation**: Implementation of technical fixes and security enhancements
+6. **Documentation**: Comprehensive breach records maintained in a secure breach register
 
-### Notification Templates
+### Supervisory Authority Reporting
 
-- **Authority Notification**: Pre-prepared templates for DPA reporting
-- **User Communication**: Clear, actionable notifications for affected users
-- **Website Notice**: Public breach notification templates when required
+*Compliant with GDPR Article 33 (Notification of a personal data breach to the supervisory authority)*
+
+The platform maintains current contact details and reporting methods for Data Protection Authorities in relevant jurisdictions:
+
+| Country | Supervisory Authority | Reporting Method | Contact Details |
+|---------|------------------------|------------------|-----------------|
+| Canada | Office of the Privacy Commissioner | Web form | [priv.gc.ca](https://www.priv.gc.ca/en/report-a-concern/) |
+| USA | Federal Trade Commission | Online portal | [ftccomplaintassistant.gov](https://www.ftccomplaintassistant.gov/) |
+| India | Data Protection Authority of India | Email notification | [info@dpai.gov.in](mailto:info@dpai.gov.in) |
+| Nepal | Ministry of Communication and Information Technology | Email notification | [info@mocit.gov.np](mailto:info@mocit.gov.np) |
+| Kuwait | Communication and Information Technology Regulatory Authority | Web portal | [citra.gov.kw](https://www.citra.gov.kw/) |
+| Qatar | Ministry of Transport and Communications | Email notification | [info@motc.gov.qa](mailto:info@motc.gov.qa) |
+
+For potential EU/UK expansion in the future:
+| EU/UK | European Data Protection Board | One-stop-shop mechanism | [edpb.europa.eu](https://edpb.europa.eu/) |
+| UK | Information Commissioner's Office | Online portal | [ico.org.uk/report-a-breach](https://ico.org.uk/report-a-breach/) |
+
+### Data Subject Notification
+
+*Compliant with GDPR Article 34 (Communication of a personal data breach to the data subject)*
+
+When a breach is likely to result in a high risk to individuals' rights and freedoms, the platform:
+
+1. **Required Notification**: Automatically prepares communications to affected users without undue delay
+2. **Notification Channels**: Employs multiple channels (email, in-app notification, SMS) to ensure receipt
+3. **Content Requirements**: Provides clear description of the breach nature, contact details of DPO, likely consequences, and measures taken
+4. **Plain Language**: Ensures all communications use clear, plain language appropriate for non-technical users
+5. **Action Guidance**: Includes specific steps users should take to protect themselves
+6. **Notification Exemptions**: Documents situations where notification may not be required (data encrypted, risk mitigation measures, disproportionate effort)
+
+### Notification Templates and Automation
+
+- **Authority Notification**: Pre-prepared, jurisdiction-specific templates for DPA reporting with auto-fill of incident details
+- **User Communication**: Tailored notifications based on breach type and affected data categories
+- **Website Notice**: Public breach notification templates when required by supervisory authorities
+- **Approval Workflow**: Administrator review and approval before automated submission
+- **Submission Tracking**: Documentation of all communications for compliance verification
 
 ## Privacy by Design & Default
 

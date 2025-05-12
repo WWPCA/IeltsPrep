@@ -1,539 +1,835 @@
 """
-GDPR Data Breach Notification System
-
-This module implements a data breach notification system as required by GDPR Article 33 and 34.
-It provides functionality to log data breaches, notify affected users, and report to authorities.
+GDPR Breach Notification System
+This module provides functions for automated breach detection, assessment, and notification.
 """
 
-import csv
+import os
 import json
 import logging
-import os
-from datetime import datetime
-
+import datetime
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import smtplib
+import requests
+from flask import render_template
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from app import db
-from flask import current_app, render_template, url_for
-from sqlalchemy.dialects.postgresql import JSONB
+from models import User
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Ensure the GDPR logs directory exists
-if not os.path.exists('gdpr_logs/breaches'):
-    os.makedirs('gdpr_logs/breaches', exist_ok=True)
+# Data Protection Authority contact information
+DPA_CONTACTS = {
+    'CA': {
+        'name': 'Office of the Privacy Commissioner',
+        'method': 'web_form',
+        'url': 'https://www.priv.gc.ca/en/report-a-concern/',
+        'email': 'notification@priv.gc.ca'
+    },
+    'US': {
+        'name': 'Federal Trade Commission',
+        'method': 'portal',
+        'url': 'https://www.ftccomplaintassistant.gov/',
+        'email': 'security@ftc.gov'
+    },
+    'IN': {
+        'name': 'Data Protection Authority of India',
+        'method': 'email',
+        'email': 'info@dpai.gov.in'
+    },
+    'NP': {
+        'name': 'Ministry of Communication and Information Technology',
+        'method': 'email',
+        'email': 'info@mocit.gov.np'
+    },
+    'KW': {
+        'name': 'Communication and Information Technology Regulatory Authority',
+        'method': 'portal',
+        'url': 'https://www.citra.gov.kw/',
+        'email': 'info@citra.gov.kw'
+    },
+    'QA': {
+        'name': 'Ministry of Transport and Communications',
+        'method': 'email',
+        'email': 'info@motc.gov.qa'
+    },
+    # For future EU/UK expansion
+    'EU': {
+        'name': 'European Data Protection Board',
+        'method': 'one_stop_shop',
+        'url': 'https://edpb.europa.eu/',
+        'email': 'edpb@edpb.europa.eu'
+    },
+    'GB': {
+        'name': 'Information Commissioner\'s Office',
+        'method': 'portal',
+        'url': 'https://ico.org.uk/report-a-breach/',
+        'email': 'security@ico.org.uk'
+    }
+}
 
 
 class DataBreach(db.Model):
-    """
-    Model for tracking data breaches and notification status.
-    Implements GDPR Article 33 (notification to authority) and 34 (notification to data subject).
-    """
+    """Model for tracking data breaches and notification status."""
     id = db.Column(db.Integer, primary_key=True)
+    detected_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    breach_type = db.Column(db.String(100), nullable=False)
+    severity = db.Column(db.String(50), nullable=False)  # low, medium, high, critical
+    description = db.Column(db.Text)
+    affected_data = db.Column(db.Text)  # JSON string of affected data categories
+    affected_users_count = db.Column(db.Integer, default=0)
+    is_contained = db.Column(db.Boolean, default=False)
+    containment_measures = db.Column(db.Text)
     
-    # Breach details
-    breach_date = db.Column(db.DateTime, nullable=False)
-    discovery_date = db.Column(db.DateTime, nullable=False)
-    breach_type = db.Column(db.String(100), nullable=False)  # unauthorized access, loss, etc.
-    breach_description = db.Column(db.Text, nullable=False)
-    affected_data = db.Column(db.Text, nullable=False)  # what data was compromised
-    affected_users_count = db.Column(db.Integer, nullable=False)
+    # Authority notification
+    requires_authority_notification = db.Column(db.Boolean, default=True)
+    authority_notification_approved = db.Column(db.Boolean, default=False)
+    authority_notification_sent = db.Column(db.Boolean, default=False)
+    authority_notification_time = db.Column(db.DateTime)
+    authority_notification_proof = db.Column(db.Text)  # JSON string with notification details
     
-    # Risk assessment
-    risk_level = db.Column(db.String(50), nullable=False)  # low, medium, high, very high
-    potential_consequences = db.Column(db.Text, nullable=False)
+    # User notification
+    requires_user_notification = db.Column(db.Boolean, default=True)
+    user_notification_approved = db.Column(db.Boolean, default=False)
+    user_notification_sent = db.Column(db.Boolean, default=False)
+    user_notification_time = db.Column(db.DateTime)
     
-    # Containment and recovery
-    containment_measures = db.Column(db.Text, nullable=True)
-    recovery_actions = db.Column(db.Text, nullable=True)
+    # Remediation
+    remediation_status = db.Column(db.String(50), default='pending')  # pending, in_progress, completed
+    remediation_measures = db.Column(db.Text)
+    remediation_completed = db.Column(db.DateTime)
     
-    # Authority notification (Article 33)
-    authority_notification_required = db.Column(db.Boolean, default=True)
-    authority_notified = db.Column(db.Boolean, default=False)
-    authority_notification_date = db.Column(db.DateTime, nullable=True)
-    authority_reference = db.Column(db.String(100), nullable=True)
-    
-    # Data subject notification (Article 34)
-    user_notification_required = db.Column(db.Boolean, default=True)
-    user_notification_date = db.Column(db.DateTime, nullable=True)
-    notification_method = db.Column(db.String(100), nullable=True)  # email, in-app, etc.
-    notification_message = db.Column(db.Text, nullable=True)
-    
-    # Affected users (can be stored as JSON or in a separate table)
-    affected_user_ids = db.Column(db.Text, nullable=True)  # CSV of user IDs or JSON
-    
-    # Record maintenance
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    reported_by = db.Column(db.String(100), nullable=False)
-    status = db.Column(db.String(50), default="Open")  # Open, Contained, Resolved
+    # Relations
+    affected_users = relationship('AffectedUser', backref='data_breach', lazy=True)
     
     def __repr__(self):
-        return f'<DataBreach #{self.id} [{self.breach_type}] {self.status}>'
+        return f'<DataBreach {self.id}: {self.breach_type} ({self.severity})>'
+    
+    def is_notification_due(self):
+        """Check if the 72-hour deadline for authority notification is approaching."""
+        if self.authority_notification_sent:
+            return False
+            
+        deadline = self.detected_at + datetime.timedelta(hours=72)
+        now = datetime.datetime.utcnow()
+        
+        # Return True if less than 12 hours remaining
+        return (deadline - now).total_seconds() < (12 * 3600)
     
     def to_dict(self):
-        """Convert breach record to dictionary for export"""
+        """Convert breach data to dictionary for templates and API responses."""
         return {
             'id': self.id,
-            'breach_date': self.breach_date.isoformat() if self.breach_date else None,
-            'discovery_date': self.discovery_date.isoformat() if self.discovery_date else None,
+            'detected_at': self.detected_at.isoformat(),
             'breach_type': self.breach_type,
-            'breach_description': self.breach_description,
-            'affected_data': self.affected_data,
+            'severity': self.severity,
+            'description': self.description,
+            'affected_data': json.loads(self.affected_data) if self.affected_data else {},
             'affected_users_count': self.affected_users_count,
-            'risk_level': self.risk_level,
-            'potential_consequences': self.potential_consequences,
+            'is_contained': self.is_contained,
             'containment_measures': self.containment_measures,
-            'recovery_actions': self.recovery_actions,
-            'authority_notification_required': self.authority_notification_required,
-            'authority_notified': self.authority_notified,
-            'authority_notification_date': self.authority_notification_date.isoformat() if self.authority_notification_date else None,
-            'authority_reference': self.authority_reference,
-            'user_notification_required': self.user_notification_required,
-            'user_notification_date': self.user_notification_date.isoformat() if self.user_notification_date else None,
-            'notification_method': self.notification_method,
-            'notification_message': self.notification_message,
-            'status': self.status,
-            'reported_by': self.reported_by,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'requires_authority_notification': self.requires_authority_notification,
+            'authority_notification_status': 'sent' if self.authority_notification_sent else 
+                                            'approved' if self.authority_notification_approved else 'pending',
+            'requires_user_notification': self.requires_user_notification,
+            'user_notification_status': 'sent' if self.user_notification_sent else 
+                                       'approved' if self.user_notification_approved else 'pending',
+            'remediation_status': self.remediation_status
         }
 
 
-def log_data_breach(
-    breach_date,
-    discovery_date,
-    breach_type,
-    breach_description,
-    affected_data,
-    affected_users_count,
-    risk_level,
-    potential_consequences,
-    reported_by,
-    authority_notification_required=True,
-    user_notification_required=True,
-    affected_user_ids=None,
-    containment_measures=None,
-    recovery_actions=None
-):
+class AffectedUser(db.Model):
+    """Model for tracking users affected by a data breach."""
+    id = db.Column(db.Integer, primary_key=True)
+    data_breach_id = db.Column(db.Integer, db.ForeignKey('data_breach.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    affected_data = db.Column(db.Text)  # JSON string of affected data for this user
+    notification_sent = db.Column(db.Boolean, default=False)
+    notification_time = db.Column(db.DateTime)
+    
+    # Relations
+    user = relationship('User', backref=db.backref('breach_notifications', lazy=True))
+
+
+def detect_potential_breach(event_type, details, severity='medium'):
     """
-    Create a new data breach record.
+    Register a potential data breach event from automated detection.
     
     Args:
-        breach_date (datetime): Date and time when the breach occurred
-        discovery_date (datetime): Date and time when the breach was discovered
-        breach_type (str): Type of breach (unauthorized access, loss, etc.)
-        breach_description (str): Detailed description of the breach
-        affected_data (str): What data was compromised
-        affected_users_count (int): Number of affected users
-        risk_level (str): Risk level assessment (low, medium, high, very high)
-        potential_consequences (str): Potential impact on affected users
-        reported_by (str): Person who reported the breach
-        authority_notification_required (bool): Whether notification to authorities is required
-        user_notification_required (bool): Whether notification to users is required
-        affected_user_ids (list): List of affected user IDs
-        containment_measures (str): Measures taken to contain the breach
-        recovery_actions (str): Actions taken to recover from the breach
+        event_type (str): Type of security event (e.g., 'unauthorized_access', 'data_exposure')
+        details (dict): Details about the event
+        severity (str): Initial severity assessment (low, medium, high, critical)
         
     Returns:
         DataBreach: The created breach record
     """
-    try:
-        # Convert affected_user_ids list to JSON or CSV string
-        if affected_user_ids:
-            if isinstance(affected_user_ids, list):
-                affected_user_ids = ','.join(map(str, affected_user_ids))
-            elif not isinstance(affected_user_ids, str):
-                affected_user_ids = str(affected_user_ids)
-        
-        # Create new breach record
-        breach = DataBreach(
-            breach_date=breach_date,
-            discovery_date=discovery_date,
-            breach_type=breach_type,
-            breach_description=breach_description,
-            affected_data=affected_data,
-            affected_users_count=affected_users_count,
-            risk_level=risk_level,
-            potential_consequences=potential_consequences,
-            reported_by=reported_by,
-            authority_notification_required=authority_notification_required,
-            user_notification_required=user_notification_required,
-            affected_user_ids=affected_user_ids,
-            containment_measures=containment_measures,
-            recovery_actions=recovery_actions,
-            status="Open"
-        )
-        
-        db.session.add(breach)
-        db.session.commit()
-        
-        # Log breach to file
-        log_breach_to_file(breach)
-        
-        logger.info(f"Data breach #{breach.id} logged successfully")
-        
-        return breach
+    logger.info(f"Potential data breach detected: {event_type}")
     
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error logging data breach: {str(e)}")
-        raise
+    # Create the breach record
+    breach = DataBreach(
+        breach_type=event_type,
+        severity=severity,
+        description=details.get('description', ''),
+        affected_data=json.dumps(details.get('affected_data', {})),
+        affected_users_count=details.get('affected_users_count', 0)
+    )
+    
+    db.session.add(breach)
+    db.session.commit()
+    
+    # Link affected users if available
+    if 'affected_user_ids' in details and details['affected_user_ids']:
+        for user_id in details['affected_user_ids']:
+            affected_user = AffectedUser(
+                data_breach_id=breach.id,
+                user_id=user_id,
+                affected_data=json.dumps(details.get('user_data', {}).get(str(user_id), {}))
+            )
+            db.session.add(affected_user)
+        
+        db.session.commit()
+    
+    # Send alert to administrators
+    alert_administrators(breach)
+    
+    return breach
 
 
-def update_breach_status(breach_id, status, containment_measures=None, recovery_actions=None):
+def alert_administrators(breach):
     """
-    Update the status of a data breach.
+    Send immediate alert to administrators about a potential breach.
     
     Args:
-        breach_id (int): ID of the breach to update
-        status (str): New status (Open, Contained, Resolved)
-        containment_measures (str): Measures taken to contain the breach
-        recovery_actions (str): Actions taken to recover from the breach
-        
-    Returns:
-        bool: True if successful, False otherwise
+        breach (DataBreach): The breach record
     """
-    try:
-        breach = DataBreach.query.get(breach_id)
-        
-        if not breach:
-            logger.error(f"Data breach #{breach_id} not found")
-            return False
-        
-        breach.status = status
-        
-        if containment_measures:
-            breach.containment_measures = containment_measures
-        
-        if recovery_actions:
-            breach.recovery_actions = recovery_actions
-        
-        breach.updated_at = datetime.utcnow()
-        
-        db.session.commit()
-        
-        # Log update to file
-        log_breach_to_file(breach, update=True)
-        
-        logger.info(f"Data breach #{breach_id} status updated to {status}")
-        
-        return True
+    # Email notification to administrators
+    admin_email = os.environ.get('ADMIN_EMAIL')
     
+    if not admin_email:
+        logger.warning("Admin email not configured, can't send breach alert")
+        return
+    
+    try:
+        message = MIMEMultipart('alternative')
+        message['Subject'] = f"URGENT: Data Breach Alert - {breach.severity.upper()} severity"
+        message['From'] = os.environ.get('NOTIFICATION_EMAIL', 'notifications@ieltsaiprep.com')
+        message['To'] = admin_email
+        
+        # Plain text version
+        text = f"""
+        URGENT: Potential Data Breach Detected
+        
+        Breach ID: {breach.id}
+        Type: {breach.breach_type}
+        Severity: {breach.severity.upper()}
+        Detected: {breach.detected_at.strftime('%Y-%m-%d %H:%M:%S UTC')}
+        Affected Users: {breach.affected_users_count}
+        
+        Description:
+        {breach.description}
+        
+        Please log in to the admin dashboard immediately to review and take action:
+        https://ieltsaiprep.com/admin/breach/{breach.id}
+        
+        REMINDER: GDPR requires notification to authorities within 72 hours.
+        """
+        
+        # HTML version
+        html = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; }}
+                .urgent {{ color: red; font-weight: bold; }}
+                .info {{ margin: 20px 0; }}
+                .action {{ background-color: #f8f8f8; padding: 15px; margin: 20px 0; }}
+                .reminder {{ font-weight: bold; color: #c00; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="urgent">URGENT: Potential Data Breach Detected</h1>
+            
+            <div class="info">
+                <p><strong>Breach ID:</strong> {breach.id}</p>
+                <p><strong>Type:</strong> {breach.breach_type}</p>
+                <p><strong>Severity:</strong> {breach.severity.upper()}</p>
+                <p><strong>Detected:</strong> {breach.detected_at.strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+                <p><strong>Affected Users:</strong> {breach.affected_users_count}</p>
+            </div>
+            
+            <div class="description">
+                <h2>Description:</h2>
+                <p>{breach.description}</p>
+            </div>
+            
+            <div class="action">
+                <h2>Action Required:</h2>
+                <p>Please log in to the admin dashboard immediately to review and take action:</p>
+                <p><a href="https://ieltsaiprep.com/admin/breach/{breach.id}">Breach Management Dashboard</a></p>
+            </div>
+            
+            <p class="reminder">REMINDER: GDPR requires notification to authorities within 72 hours.</p>
+        </body>
+        </html>
+        """
+        
+        message.attach(MIMEText(text, 'plain'))
+        message.attach(MIMEText(html, 'html'))
+        
+        # Send email
+        smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+        smtp_username = os.environ.get('SMTP_USERNAME')
+        smtp_password = os.environ.get('SMTP_PASSWORD')
+        
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.send_message(message)
+        
+        logger.info(f"Breach alert sent to administrator: {admin_email}")
+        
     except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error updating data breach status: {str(e)}")
-        return False
+        logger.error(f"Failed to send breach alert: {str(e)}")
 
 
-def record_authority_notification(breach_id, notification_date, authority_reference):
+def prepare_authority_notification(breach_id):
     """
-    Record notification to data protection authority.
+    Prepare notification to the relevant data protection authorities.
     
     Args:
-        breach_id (int): ID of the breach
-        notification_date (datetime): Date of notification
-        authority_reference (str): Reference number or ID from the authority
+        breach_id (int): ID of the breach record
         
     Returns:
-        bool: True if successful, False otherwise
+        dict: The prepared notification data
     """
-    try:
-        breach = DataBreach.query.get(breach_id)
-        
-        if not breach:
-            logger.error(f"Data breach #{breach_id} not found")
-            return False
-        
-        breach.authority_notified = True
-        breach.authority_notification_date = notification_date
-        breach.authority_reference = authority_reference
-        breach.updated_at = datetime.utcnow()
-        
-        db.session.commit()
-        
-        # Log update to file
-        log_breach_to_file(breach, update=True)
-        
-        logger.info(f"Authority notification recorded for data breach #{breach_id}")
-        
-        return True
+    breach = DataBreach.query.get(breach_id)
+    if not breach:
+        logger.error(f"Breach ID {breach_id} not found")
+        return None
     
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error recording authority notification: {str(e)}")
-        return False
-
-
-def prepare_user_notification(breach_id, notification_message, notification_method="email"):
-    """
-    Prepare notification to affected users.
+    # Get all affected countries
+    affected_countries = db.session.query(User.country).join(
+        AffectedUser, AffectedUser.user_id == User.id
+    ).filter(
+        AffectedUser.data_breach_id == breach_id
+    ).distinct().all()
     
-    Args:
-        breach_id (int): ID of the breach
-        notification_message (str): Message to send to affected users
-        notification_method (str): Method of notification (email, in-app, etc.)
+    affected_countries = [c[0] for c in affected_countries if c[0]]
+    
+    # Prepare notifications for each country
+    notifications = {}
+    for country_code in affected_countries:
+        # Use a default if the country is not in our DPA contacts
+        dpa_info = DPA_CONTACTS.get(country_code, DPA_CONTACTS.get('US'))
         
-    Returns:
-        dict: Dictionary with notification details if successful, None otherwise
-    """
-    try:
-        breach = DataBreach.query.get(breach_id)
-        
-        if not breach:
-            logger.error(f"Data breach #{breach_id} not found")
-            return None
-        
-        breach.notification_message = notification_message
-        breach.notification_method = notification_method
-        breach.updated_at = datetime.utcnow()
-        
-        db.session.commit()
-        
-        # Get affected user IDs
-        affected_user_ids = []
-        if breach.affected_user_ids:
-            affected_user_ids = breach.affected_user_ids.split(',')
-        
-        # Prepare notification details
         notification = {
-            'breach_id': breach.id,
-            'affected_user_ids': affected_user_ids,
-            'message': notification_message,
-            'method': notification_method,
-            'breach_date': breach.breach_date,
-            'affected_data': breach.affected_data,
-            'risk_level': breach.risk_level,
-            'potential_consequences': breach.potential_consequences,
-            'containment_measures': breach.containment_measures,
-            'recovery_actions': breach.recovery_actions
+            'dpa': dpa_info['name'],
+            'country': country_code,
+            'method': dpa_info['method'],
+            'contact': dpa_info.get('email') or dpa_info.get('url'),
+            'content': generate_authority_notification_content(breach, country_code)
         }
         
-        # Log update to file
-        log_breach_to_file(breach, update=True)
-        
-        logger.info(f"User notification prepared for data breach #{breach_id}")
-        
-        return notification
+        notifications[country_code] = notification
     
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error preparing user notification: {str(e)}")
-        return None
+    return notifications
 
 
-def record_user_notification(breach_id, notification_date):
+def generate_authority_notification_content(breach, country_code):
     """
-    Record that users have been notified.
+    Generate the content for authority notification based on country-specific templates.
     
     Args:
-        breach_id (int): ID of the breach
-        notification_date (datetime): Date of notification
+        breach (DataBreach): The breach record
+        country_code (str): Two-letter country code
         
     Returns:
-        bool: True if successful, False otherwise
+        dict: The notification content with subject and body
     """
+    # Get breach details
+    breach_data = breach.to_dict()
+    
+    # Get country-specific template if exists
     try:
-        breach = DataBreach.query.get(breach_id)
+        template_base = f"gdpr/breach_notification_{country_code.lower()}"
+        # Try to render the template
+        notification_subject = render_template(f"{template_base}_subject.txt", breach=breach_data)
+        notification_body = render_template(f"{template_base}_body.txt", breach=breach_data)
+    except:
+        # Fall back to generic template
+        notification_subject = render_template("gdpr/breach_notification_subject.txt", breach=breach_data)
+        notification_body = render_template("gdpr/breach_notification_body.txt", breach=breach_data)
+    
+    return {
+        'subject': notification_subject,
+        'body': notification_body
+    }
+
+
+def send_authority_notification(breach_id, approved_by_user_id):
+    """
+    Send approved notifications to the relevant data protection authorities.
+    
+    Args:
+        breach_id (int): ID of the breach record
+        approved_by_user_id (int): ID of the admin who approved the notification
         
-        if not breach:
-            logger.error(f"Data breach #{breach_id} not found")
-            return False
+    Returns:
+        dict: Result of the notification attempts
+    """
+    breach = DataBreach.query.get(breach_id)
+    if not breach:
+        logger.error(f"Breach ID {breach_id} not found")
+        return {'success': False, 'error': 'Breach not found'}
+    
+    if not breach.authority_notification_approved:
+        logger.error(f"Breach ID {breach_id} notification not approved")
+        return {'success': False, 'error': 'Notification not approved'}
+    
+    notifications = prepare_authority_notification(breach_id)
+    results = {}
+    
+    for country_code, notification in notifications.items():
+        method = notification['method']
+        result = {'success': False, 'details': 'Unknown error'}
         
-        breach.user_notification_date = notification_date
-        breach.updated_at = datetime.utcnow()
+        try:
+            if method == 'email':
+                # Send email notification
+                result = send_email_notification(
+                    notification['contact'],
+                    notification['content']['subject'],
+                    notification['content']['body']
+                )
+            elif method == 'portal' or method == 'web_form':
+                # For portals, we can't automate the submission but can prepare the data
+                result = {
+                    'success': True, 
+                    'details': f"Prepared for manual submission to {notification['dpa']} portal",
+                    'url': notification['contact'],
+                    'data': notification['content']
+                }
+            elif method == 'one_stop_shop':
+                # Special handling for EU one-stop-shop
+                result = {
+                    'success': True,
+                    'details': f"Prepared for manual submission via One-Stop-Shop mechanism",
+                    'url': notification['contact'],
+                    'data': notification['content']
+                }
+            else:
+                result = {'success': False, 'details': f"Unsupported notification method: {method}"}
+                
+        except Exception as e:
+            result = {'success': False, 'details': str(e)}
         
+        results[country_code] = result
+    
+    # Update breach record
+    successful_notifications = [k for k, v in results.items() if v['success']]
+    
+    if successful_notifications:
+        breach.authority_notification_sent = True
+        breach.authority_notification_time = datetime.datetime.utcnow()
+        breach.authority_notification_proof = json.dumps(results)
         db.session.commit()
         
-        # Log update to file
-        log_breach_to_file(breach, update=True)
-        
-        logger.info(f"User notification recorded for data breach #{breach_id}")
-        
-        return True
+        logger.info(f"Authority notifications sent for breach ID {breach_id}")
+    else:
+        logger.error(f"All authority notifications failed for breach ID {breach_id}")
     
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error recording user notification: {str(e)}")
-        return False
+    return {
+        'success': bool(successful_notifications),
+        'results': results
+    }
 
 
-def log_breach_to_file(breach, update=False):
+def send_email_notification(recipient, subject, body):
     """
-    Log breach details to a file for audit purposes.
+    Send an email notification.
     
     Args:
-        breach (DataBreach): The breach record to log
-        update (bool): Whether this is an update to an existing record
-    """
-    try:
-        action = "UPDATE" if update else "CREATE"
-        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-        filename = f'gdpr_logs/breaches/breach_{breach.id}_{action}_{timestamp}.json'
-        
-        with open(filename, 'w') as f:
-            json.dump(breach.to_dict(), f, indent=2)
-        
-        logger.info(f"Logged breach details to {filename}")
-    
-    except Exception as e:
-        logger.error(f"Error logging breach to file: {str(e)}")
-
-
-def generate_breach_report(breach_id):
-    """
-    Generate a detailed report for a specific breach.
-    
-    Args:
-        breach_id (int): ID of the breach
+        recipient (str): Email recipient
+        subject (str): Email subject
+        body (str): Email body text
         
     Returns:
-        dict: Report data if successful, None otherwise
+        dict: Result of the email sending attempt
     """
     try:
-        breach = DataBreach.query.get(breach_id)
+        message = MIMEMultipart('alternative')
+        message['Subject'] = subject
+        message['From'] = os.environ.get('NOTIFICATION_EMAIL', 'notifications@ieltsaiprep.com')
+        message['To'] = recipient
         
-        if not breach:
-            logger.error(f"Data breach #{breach_id} not found")
-            return None
+        message.attach(MIMEText(body, 'plain'))
         
-        report_data = breach.to_dict()
+        # Send email
+        smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+        smtp_username = os.environ.get('SMTP_USERNAME')
+        smtp_password = os.environ.get('SMTP_PASSWORD')
         
-        # Add timeline information
-        report_data['timeline'] = [
-            {
-                'event': 'Breach Occurred',
-                'date': breach.breach_date.isoformat() if breach.breach_date else None
-            },
-            {
-                'event': 'Breach Discovered',
-                'date': breach.discovery_date.isoformat() if breach.discovery_date else None
-            }
-        ]
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.send_message(message)
         
-        if breach.authority_notification_date:
-            report_data['timeline'].append({
-                'event': 'Authority Notified',
-                'date': breach.authority_notification_date.isoformat()
-            })
+        return {'success': True, 'details': f"Email sent to {recipient}"}
         
-        if breach.user_notification_date:
-            report_data['timeline'].append({
-                'event': 'Users Notified',
-                'date': breach.user_notification_date.isoformat()
-            })
-        
-        # Calculate time metrics
-        if breach.breach_date and breach.discovery_date:
-            time_to_discovery = (breach.discovery_date - breach.breach_date).total_seconds() / 3600  # hours
-            report_data['time_to_discovery_hours'] = round(time_to_discovery, 2)
-        
-        if breach.discovery_date and breach.authority_notification_date:
-            time_to_authority_notification = (breach.authority_notification_date - breach.discovery_date).total_seconds() / 3600  # hours
-            report_data['time_to_authority_notification_hours'] = round(time_to_authority_notification, 2)
-        
-        if breach.discovery_date and breach.user_notification_date:
-            time_to_user_notification = (breach.user_notification_date - breach.discovery_date).total_seconds() / 3600  # hours
-            report_data['time_to_user_notification_hours'] = round(time_to_user_notification, 2)
-        
-        # Export report to file
-        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-        filename = f'gdpr_logs/breaches/breach_{breach.id}_REPORT_{timestamp}.json'
-        
-        with open(filename, 'w') as f:
-            json.dump(report_data, f, indent=2)
-        
-        logger.info(f"Generated breach report: {filename}")
-        
-        return report_data
-    
     except Exception as e:
-        logger.error(f"Error generating breach report: {str(e)}")
+        return {'success': False, 'details': str(e)}
+
+
+def prepare_user_notifications(breach_id):
+    """
+    Prepare notifications to affected users.
+    
+    Args:
+        breach_id (int): ID of the breach record
+        
+    Returns:
+        dict: The prepared user notifications
+    """
+    breach = DataBreach.query.get(breach_id)
+    if not breach:
+        logger.error(f"Breach ID {breach_id} not found")
         return None
-
-
-def get_breach_notification_template(breach_id):
-    """
-    Get the template for user breach notification.
     
-    Args:
-        breach_id (int): ID of the breach
-        
-    Returns:
-        str: HTML notification template if successful, None otherwise
-    """
-    try:
-        breach = DataBreach.query.get(breach_id)
-        
-        if not breach:
-            logger.error(f"Data breach #{breach_id} not found")
-            return None
-        
-        # Render notification template
-        template = render_template(
-            'gdpr/breach_notification_email.html',
-            breach=breach,
-            breach_date=breach.breach_date.strftime('%B %d, %Y'),
-            discovery_date=breach.discovery_date.strftime('%B %d, %Y'),
-            support_email='support@ailearninghub.com',  # Update with your support email
-            privacy_url=url_for('gdpr.privacy_policy', _external=True),
-            help_url=url_for('contact', _external=True)
-        )
-        
-        return template
-    
-    except Exception as e:
-        logger.error(f"Error getting breach notification template: {str(e)}")
+    # Only proceed if user notification is required and approved
+    if not breach.requires_user_notification or not breach.user_notification_approved:
         return None
-
-
-def export_all_breaches():
-    """
-    Export all breach records to a CSV file.
     
-    Returns:
-        str: Path to the exported file if successful, None otherwise
-    """
-    try:
-        breaches = DataBreach.query.all()
-        
-        if not breaches:
-            logger.info("No breach records found to export")
-            return None
-        
-        # Create timestamp for filename
-        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-        filename = f'gdpr_logs/breaches/all_breaches_{timestamp}.csv'
-        
-        with open(filename, 'w', newline='') as csvfile:
-            fieldnames = [
-                'id', 'breach_date', 'discovery_date', 'breach_type',
-                'affected_data', 'affected_users_count', 'risk_level',
-                'authority_notified', 'authority_notification_date',
-                'user_notification_date', 'status', 'reported_by'
-            ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    # Get all affected users
+    affected_users = db.session.query(
+        User, AffectedUser
+    ).join(
+        AffectedUser, AffectedUser.user_id == User.id
+    ).filter(
+        AffectedUser.data_breach_id == breach_id
+    ).all()
+    
+    # Prepare notifications for each user
+    notifications = {}
+    for user, affected_user in affected_users:
+        # Skip users who have already been notified
+        if affected_user.notification_sent:
+            continue
             
-            writer.writeheader()
-            for breach in breaches:
-                writer.writerow({
-                    'id': breach.id,
-                    'breach_date': breach.breach_date.strftime('%Y-%m-%d %H:%M:%S') if breach.breach_date else '',
-                    'discovery_date': breach.discovery_date.strftime('%Y-%m-%d %H:%M:%S') if breach.discovery_date else '',
-                    'breach_type': breach.breach_type,
-                    'affected_data': breach.affected_data,
-                    'affected_users_count': breach.affected_users_count,
-                    'risk_level': breach.risk_level,
-                    'authority_notified': 'Yes' if breach.authority_notified else 'No',
-                    'authority_notification_date': breach.authority_notification_date.strftime('%Y-%m-%d %H:%M:%S') if breach.authority_notification_date else '',
-                    'user_notification_date': breach.user_notification_date.strftime('%Y-%m-%d %H:%M:%S') if breach.user_notification_date else '',
-                    'status': breach.status,
-                    'reported_by': breach.reported_by
-                })
+        notification = {
+            'user_id': user.id,
+            'email': user.email,
+            'name': getattr(user, 'name', user.email),
+            'content': generate_user_notification_content(breach, user, affected_user)
+        }
         
-        logger.info(f"Exported all breach records to {filename}")
-        return filename
+        notifications[user.id] = notification
     
-    except Exception as e:
-        logger.error(f"Error exporting breach records: {str(e)}")
+    return notifications
+
+
+def generate_user_notification_content(breach, user, affected_user):
+    """
+    Generate the content for user notification.
+    
+    Args:
+        breach (DataBreach): The breach record
+        user (User): The affected user
+        affected_user (AffectedUser): The affected user record for this breach
+        
+    Returns:
+        dict: The notification content with subject and body
+    """
+    # Get breach details
+    breach_data = breach.to_dict()
+    
+    # Add user-specific data
+    user_data = {
+        'id': user.id,
+        'email': user.email,
+        'name': getattr(user, 'name', user.email),
+        'affected_data': json.loads(affected_user.affected_data) if affected_user.affected_data else {}
+    }
+    
+    # Render templates
+    notification_subject = render_template("gdpr/user_breach_notification_subject.txt", 
+                                          breach=breach_data, user=user_data)
+    notification_body = render_template("gdpr/user_breach_notification_body.txt", 
+                                        breach=breach_data, user=user_data)
+    
+    return {
+        'subject': notification_subject,
+        'body': notification_body,
+        'in_app_message': notification_body  # Could be different if needed
+    }
+
+
+def send_user_notifications(breach_id):
+    """
+    Send approved notifications to affected users.
+    
+    Args:
+        breach_id (int): ID of the breach record
+        
+    Returns:
+        dict: Result of the notification attempts
+    """
+    breach = DataBreach.query.get(breach_id)
+    if not breach:
+        logger.error(f"Breach ID {breach_id} not found")
+        return {'success': False, 'error': 'Breach not found'}
+    
+    if not breach.user_notification_approved:
+        logger.error(f"Breach ID {breach_id} user notification not approved")
+        return {'success': False, 'error': 'User notification not approved'}
+    
+    notifications = prepare_user_notifications(breach_id)
+    if not notifications:
+        return {'success': False, 'error': 'No notifications to send or already sent'}
+    
+    results = {}
+    
+    for user_id, notification in notifications.items():
+        result = {'success': False, 'details': 'Unknown error'}
+        
+        try:
+            # Send email notification
+            email_result = send_email_notification(
+                notification['email'],
+                notification['content']['subject'],
+                notification['content']['body']
+            )
+            
+            # Also send in-app notification if email was successful
+            if email_result['success']:
+                # Record the notification in the database
+                affected_user = AffectedUser.query.filter_by(
+                    data_breach_id=breach_id,
+                    user_id=user_id
+                ).first()
+                
+                if affected_user:
+                    affected_user.notification_sent = True
+                    affected_user.notification_time = datetime.datetime.utcnow()
+                    db.session.commit()
+            
+            result = email_result
+                
+        except Exception as e:
+            result = {'success': False, 'details': str(e)}
+        
+        results[user_id] = result
+    
+    # Update breach record if at least one notification was successful
+    successful_notifications = len([k for k, v in results.items() if v['success']])
+    
+    if successful_notifications > 0:
+        breach.user_notification_sent = True
+        breach.user_notification_time = datetime.datetime.utcnow()
+        db.session.commit()
+        
+        logger.info(f"User notifications sent for breach ID {breach_id}: {successful_notifications} successful")
+    else:
+        logger.error(f"All user notifications failed for breach ID {breach_id}")
+    
+    return {
+        'success': successful_notifications > 0,
+        'count': successful_notifications,
+        'results': results
+    }
+
+
+def approve_authority_notification(breach_id, admin_id):
+    """
+    Approve a breach for notification to authorities.
+    
+    Args:
+        breach_id (int): ID of the breach record
+        admin_id (int): ID of the admin approving the notification
+        
+    Returns:
+        bool: Success of the approval
+    """
+    breach = DataBreach.query.get(breach_id)
+    if not breach:
+        return False
+    
+    breach.authority_notification_approved = True
+    db.session.commit()
+    
+    return True
+
+
+def approve_user_notification(breach_id, admin_id):
+    """
+    Approve a breach for notification to affected users.
+    
+    Args:
+        breach_id (int): ID of the breach record
+        admin_id (int): ID of the admin approving the notification
+        
+    Returns:
+        bool: Success of the approval
+    """
+    breach = DataBreach.query.get(breach_id)
+    if not breach:
+        return False
+    
+    breach.user_notification_approved = True
+    db.session.commit()
+    
+    return True
+
+
+def get_breach_status(breach_id):
+    """
+    Get comprehensive status of a breach and its notifications.
+    
+    Args:
+        breach_id (int): ID of the breach record
+        
+    Returns:
+        dict: Status information about the breach
+    """
+    breach = DataBreach.query.get(breach_id)
+    if not breach:
         return None
+    
+    # Get breach details
+    breach_data = breach.to_dict()
+    
+    # Add notification preparation status
+    authority_notifications = None
+    if breach.authority_notification_approved and not breach.authority_notification_sent:
+        authority_notifications = prepare_authority_notification(breach_id)
+    
+    user_notifications = None
+    if breach.user_notification_approved and not breach.user_notification_sent:
+        user_notifications = prepare_user_notifications(breach_id)
+    
+    # Calculate time remaining for 72-hour deadline
+    deadline = breach.detected_at + datetime.timedelta(hours=72)
+    now = datetime.datetime.utcnow()
+    hours_remaining = max(0, (deadline - now).total_seconds() / 3600)
+    
+    status = {
+        'breach': breach_data,
+        'deadline': {
+            'timestamp': deadline.isoformat(),
+            'hours_remaining': round(hours_remaining, 1),
+            'is_critical': hours_remaining < 12
+        },
+        'authority_notifications': authority_notifications,
+        'user_notifications': user_notifications,
+        'affected_users_count': db.session.query(AffectedUser).filter_by(data_breach_id=breach_id).count()
+    }
+    
+    return status
+
+
+def monitor_for_suspicious_activity():
+    """
+    Run monitoring checks for suspicious database activity.
+    Should be scheduled to run regularly (e.g., every 15 minutes).
+    
+    Returns:
+        list: Any breach events that were detected
+    """
+    detected_breaches = []
+    
+    # Check for unusual database access patterns
+    # This would need to be customized for your specific application
+    # Example: Unusual number of queries from a single IP, excessive data retrieval, etc.
+    
+    # Placeholder for demonstration
+    if False:  # Replace with actual detection logic
+        breach = detect_potential_breach(
+            'unusual_database_access',
+            {
+                'description': 'Unusual pattern of database access detected from unknown IP',
+                'affected_data': {'tables': ['users', 'test_results']},
+                'affected_users_count': 15,
+                'affected_user_ids': [1, 2, 3]  # Example user IDs
+            },
+            severity='high'
+        )
+        detected_breaches.append(breach.id)
+    
+    # Check for unauthorized API usage
+    # Example: API calls with invalid tokens, excessive failed auth attempts
+    
+    # Check for unusual file access patterns
+    # Example: Mass downloads of user data or audio files
+    
+    return detected_breaches
+
+
+def check_notification_deadlines():
+    """
+    Check for breaches approaching the 72-hour notification deadline.
+    Should be scheduled to run regularly (e.g., every hour).
+    
+    Returns:
+        list: Breach IDs that need urgent attention
+    """
+    now = datetime.datetime.utcnow()
+    deadline_threshold = now + datetime.timedelta(hours=12)  # Alert if less than 12 hours remaining
+    
+    # Find breaches that require notification and are approaching the deadline
+    urgent_breaches = DataBreach.query.filter(
+        DataBreach.detected_at + datetime.timedelta(hours=72) <= deadline_threshold,
+        DataBreach.requires_authority_notification == True,
+        DataBreach.authority_notification_sent == False
+    ).all()
+    
+    # Send urgent reminders for each
+    for breach in urgent_breaches:
+        hours_remaining = (breach.detected_at + datetime.timedelta(hours=72) - now).total_seconds() / 3600
+        
+        logger.warning(f"URGENT: Breach ID {breach.id} has {hours_remaining:.1f} hours remaining for notification")
+        
+        # Send urgent email to administrators
+        admin_email = os.environ.get('ADMIN_EMAIL')
+        if admin_email:
+            try:
+                message = MIMEMultipart('alternative')
+                message['Subject'] = f"URGENT: {hours_remaining:.1f} hours remaining for breach notification"
+                message['From'] = os.environ.get('NOTIFICATION_EMAIL', 'notifications@ieltsaiprep.com')
+                message['To'] = admin_email
+                
+                text = f"""
+                URGENT GDPR COMPLIANCE ALERT
+                
+                Breach ID {breach.id} has only {hours_remaining:.1f} hours remaining for mandatory authority notification.
+                
+                Breach Type: {breach.breach_type}
+                Severity: {breach.severity}
+                Detected: {breach.detected_at.strftime('%Y-%m-%d %H:%M:%S UTC')}
+                
+                Please take immediate action to approve and submit the authority notification:
+                https://ieltsaiprep.com/admin/breach/{breach.id}
+                
+                FAILURE TO NOTIFY WITHIN 72 HOURS MAY RESULT IN REGULATORY PENALTIES.
+                """
+                
+                message.attach(MIMEText(text, 'plain'))
+                
+                # Send email
+                smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+                smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+                smtp_username = os.environ.get('SMTP_USERNAME')
+                smtp_password = os.environ.get('SMTP_PASSWORD')
+                
+                with smtplib.SMTP(smtp_server, smtp_port) as server:
+                    server.starttls()
+                    server.login(smtp_username, smtp_password)
+                    server.send_message(message)
+                
+            except Exception as e:
+                logger.error(f"Failed to send urgent deadline reminder: {str(e)}")
+    
+    return [breach.id for breach in urgent_breaches]
