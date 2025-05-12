@@ -253,7 +253,12 @@ class User(UserMixin, db.Model):
         return False
         
     def is_speaking_only_user(self):
-        """Check if user has speaking-only access"""
+        """
+        DEPRECATED: This method is no longer actively used as we've moved away from speaking-only packages.
+        Kept for backward compatibility with existing users.
+        
+        Check if user has speaking-only access
+        """
         # Speaking-only users have permanent account access (no expiry)
         # Check for speaking-only subscription status
         speaking_only_subscriptions = ["Speaking Only Basic", "Speaking Only Pro"]
@@ -272,7 +277,12 @@ class User(UserMixin, db.Model):
         return False
         
     def get_remaining_speaking_assessments(self):
-        """Get the number of speaking assessments remaining for speaking-only users"""
+        """
+        DEPRECATED: This method is no longer actively used as we've moved away from speaking-only packages.
+        Kept for backward compatibility with existing users.
+        
+        Get the number of speaking assessments remaining for speaking-only users
+        """
         # Default to 0 if not a speaking-only user
         if not self.is_speaking_only_user():
             return 0
@@ -324,7 +334,12 @@ class User(UserMixin, db.Model):
         return False
     
     def use_speaking_assessment(self):
-        """Mark that a speaking assessment has been used"""
+        """
+        DEPRECATED: This method is no longer actively used as we've moved away from speaking-only packages.
+        Kept for backward compatibility with existing users.
+        
+        Mark that a speaking assessment has been used
+        """
         if not self.is_speaking_only_user():
             return False
             
