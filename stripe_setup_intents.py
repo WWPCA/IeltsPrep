@@ -78,7 +78,7 @@ def get_setup_intent(setup_intent_id):
         logging.error(f"Error retrieving Stripe setup intent: {str(e)}")
         raise
 
-def create_test_payment(customer_id, payment_method_id, amount=1000, currency='usd'):
+def create_test_payment(customer_id, payment_method_id, amount=1000, currency='usd', address=None):
     """
     Create a test payment using a stored payment method.
     
@@ -87,6 +87,7 @@ def create_test_payment(customer_id, payment_method_id, amount=1000, currency='u
         payment_method_id (str): Stripe payment method ID
         amount (int): Amount in cents
         currency (str): Currency code
+        address (dict, optional): Address information for tax calculation
         
     Returns:
         dict: Payment intent details
@@ -95,22 +96,42 @@ def create_test_payment(customer_id, payment_method_id, amount=1000, currency='u
         # Get the domain for success and cancel URLs
         domain = os.environ.get('REPLIT_DEV_DOMAIN') if os.environ.get('REPLIT_DEPLOYMENT') != '' else os.environ.get('REPLIT_DOMAINS', '').split(',')[0]
         
-        # For PaymentIntents with automatic tax calculation, we need to provide tax-related fields
-        payment_intent = stripe.PaymentIntent.create(
-            amount=amount,
-            currency=currency,
-            customer=customer_id,
-            payment_method=payment_method_id,
-            off_session=True,
-            confirm=True,
-            # Note: Automatic tax calculation may require additional parameters
-            # such as customer location data in a production environment
-            metadata={
+        # Set up the payment intent params
+        payment_intent_params = {
+            'amount': amount,
+            'currency': currency,
+            'customer': customer_id,
+            'payment_method': payment_method_id,
+            'off_session': True,
+            'confirm': True,
+            'metadata': {
                 'source': 'ielts_genai_prep_test',
                 'created_at': datetime.utcnow().isoformat(),
-                'automatic_tax_enabled': 'true'  # Store as metadata for tracking
             }
-        )
+        }
+        
+        # Enable automatic tax calculation if address is provided
+        if address:
+            # Update the customer with tax information
+            stripe.Customer.modify(
+                customer_id,
+                address={
+                    'line1': address.get('line1', ''),
+                    'line2': address.get('line2', ''),
+                    'city': address.get('city', ''),
+                    'state': address.get('state', ''),
+                    'postal_code': address.get('postal_code', ''),
+                    'country': address.get('country', 'US'),
+                },
+                tax_exempt='none'  # Ensure customer is not tax-exempt
+            )
+            
+            # Enable automatic tax calculation for this payment
+            payment_intent_params['automatic_tax'] = {'enabled': True}
+            payment_intent_params['metadata']['automatic_tax_enabled'] = 'true'
+        
+        # Create the payment intent
+        payment_intent = stripe.PaymentIntent.create(**payment_intent_params)
         
         return payment_intent
     except Exception as e:

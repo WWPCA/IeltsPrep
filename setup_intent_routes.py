@@ -134,11 +134,22 @@ def process_test_payment():
         cart_total = cart.get_cart_total()
         amount_in_cents = int(cart_total * 100)
         
-        # Create a test payment
+        # Get address information from the form
+        address = {
+            'line1': request.form.get('line1'),
+            'line2': request.form.get('line2', ''),
+            'city': request.form.get('city'),
+            'state': request.form.get('state'),
+            'postal_code': request.form.get('postal_code'),
+            'country': request.form.get('country')
+        }
+        
+        # Create a test payment with address for tax calculation
         payment_intent = create_test_payment(
             customer_id=customer_id,
             payment_method_id=payment_method_id,
-            amount=amount_in_cents
+            amount=amount_in_cents,
+            address=address
         )
         
         if payment_intent.status == 'succeeded':
@@ -150,12 +161,27 @@ def process_test_payment():
             payment_record.payment_date = datetime.utcnow()
             payment_record.stripe_session_id = payment_intent.id
             payment_record.is_successful = True
+            
+            # Store address information in payment record
+            payment_record.address_line1 = address.get('line1')
+            payment_record.address_line2 = address.get('line2')
+            payment_record.address_city = address.get('city')
+            payment_record.address_state = address.get('state')
+            payment_record.address_postal_code = address.get('postal_code')
+            payment_record.address_country = address.get('country')
+            
+            # Get tax details if available
+            tax_enabled = getattr(payment_intent, 'automatic_tax', {}).get('enabled', False)
+            tax_amount = getattr(payment_intent, 'tax', {}).get('amount', 0)
+            
             payment_record.transaction_details = json.dumps({
                 'product_ids': cart.get_product_ids(),
                 'payment_intent_id': payment_intent.id,
                 'payment_method': 'card',
                 'currency': 'usd',
-                'type': 'test_payment'
+                'type': 'test_payment',
+                'automatic_tax_enabled': tax_enabled,
+                'tax_amount': tax_amount
             })
             db.session.add(payment_record)
             
@@ -166,11 +192,15 @@ def process_test_payment():
             # Clear cart
             cart.clear_cart()
             
+            # Log the success for monitoring
+            logging.info(f"Test payment processed successfully with automatic tax: {tax_enabled}")
+            
             flash('Test payment processed successfully!', 'success')
             return redirect(url_for('payment_success'))
         else:
             flash(f'Payment not successful. Status: {payment_intent.status}', 'warning')
             return redirect(url_for('setup_intent.test_payment'))
     except Exception as e:
+        logging.error(f"Error processing test payment: {str(e)}")
         flash(f'Error processing test payment: {str(e)}', 'danger')
         return redirect(url_for('setup_intent.test_payment'))

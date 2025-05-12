@@ -47,6 +47,51 @@
                         </div>
                         
                         <form action="{{ url_for('setup_intent.process_test_payment') }}" method="POST">
+                            <h5 class="mb-3">Billing Address (for Tax Calculation)</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="line1" class="form-label">Address Line 1</label>
+                                    <input type="text" class="form-control" id="line1" name="line1" 
+                                           placeholder="123 Main St" required>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="line2" class="form-label">Address Line 2</label>
+                                    <input type="text" class="form-control" id="line2" name="line2" 
+                                           placeholder="Apt 4B">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="city" class="form-label">City</label>
+                                    <input type="text" class="form-control" id="city" name="city" 
+                                           placeholder="San Francisco" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="state" class="form-label">State</label>
+                                    <input type="text" class="form-control" id="state" name="state" 
+                                           placeholder="CA" required>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label for="postal_code" class="form-label">Postal Code</label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code" 
+                                           placeholder="94105" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="country" class="form-label">Country</label>
+                                    <select class="form-select" id="country" name="country" required>
+                                        <option value="US">United States</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="IN">India</option>
+                                        <option value="NP">Nepal</option>
+                                        <option value="KW">Kuwait</option>
+                                        <option value="QA">Qatar</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-credit-card me-2"></i>Process Test Payment
