@@ -8,9 +8,11 @@ closes their browser after completing the checkout process.
 
 import os
 import stripe
+import stripe.error  # Import Stripe error classes explicitly
 import logging
 import json
 import time
+import threading
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_exponential
@@ -117,7 +119,7 @@ def handle_stripe_webhook():
                 
             try:
                 event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-            except stripe.error.SignatureVerificationError as e:
+            except Exception as e:
                 logger.error(f"Invalid signature: {str(e)}")
                 return jsonify(success=False, error="Invalid signature"), 401
             
@@ -156,7 +158,7 @@ def handle_stripe_webhook():
         return jsonify(success=False, error=str(e)), 500
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def handle_checkout_session_completed(session):
     """
     Handle a successful checkout session completion.
@@ -165,9 +167,20 @@ def handle_checkout_session_completed(session):
         session (object): The Stripe session object
     """
     try:
-        session_id = getattr(session, 'id', None)
-        if not session_id:
-            logger.error("Invalid session object: no ID found")
+        # Validate the session object
+        if session is None:
+            logger.error("Session object is None")
+            return
+            
+        # Get session ID with validation
+        session_id = None
+        if hasattr(session, 'id'):
+            session_id = session.id
+        elif isinstance(session, dict) and 'id' in session:
+            session_id = session['id']
+            
+        if not session_id or not isinstance(session_id, str):
+            logger.error("Invalid session ID: not a string or not found")
             return
             
         logger.info(f"Processing checkout session completion: {session_id}")
@@ -183,19 +196,33 @@ def handle_checkout_session_completed(session):
                 for key in dir(session.metadata):
                     if not key.startswith('_') and not callable(getattr(session.metadata, key)):
                         metadata[key] = getattr(session.metadata, key)
+        elif isinstance(session, dict) and 'metadata' in session and session['metadata']:
+            metadata = session['metadata']
         
-        # Get customer email using similar safe access
+        # Validate required metadata
+        required_fields = ['plan']
+        for field in required_fields:
+            if field not in metadata:
+                logger.warning(f"Missing required metadata field: {field} in session {session_id}")
+                # Continue processing even if metadata is incomplete
+        
+        # Get customer email using safe access for different object types
         customer_email = None
         if hasattr(session, 'customer_email'):
             customer_email = session.customer_email
         elif hasattr(session, 'customer_details') and hasattr(session.customer_details, 'email'):
             customer_email = session.customer_details.email
+        elif isinstance(session, dict):
+            if 'customer_email' in session:
+                customer_email = session['customer_email']
+            elif 'customer_details' in session and 'email' in session['customer_details']:
+                customer_email = session['customer_details']['email']
             
-        if not customer_email:
-            logger.error(f"No customer email found in session {session_id}")
+        if not customer_email or not isinstance(customer_email, str):
+            logger.error(f"No valid customer email found in session {session_id}")
             return
         
-        # Verify the payment and get payment details
+        # Verify the payment with Stripe
         payment_verified = verify_stripe_payment(session_id)
         
         if not payment_verified:
@@ -213,13 +240,25 @@ def handle_checkout_session_completed(session):
         payment_amount = 0
         if hasattr(session, 'amount_total') and session.amount_total is not None:
             payment_amount = session.amount_total / 100  # Convert from cents to dollars
+        elif isinstance(session, dict) and 'amount_total' in session and session['amount_total'] is not None:
+            payment_amount = session['amount_total'] / 100
             
         plan_name = metadata.get('plan', 'Unknown Plan')
         
         create_payment_record(user.id, payment_amount, plan_name, session_id)
         
-        # Activate the user account if needed
-        activate_user_account(user)
+        # Activate the user account if needed - this will send verification email
+        # We're using a slight delay to ensure database transactions are complete
+        # before sending emails
+        def delayed_activation():
+            time.sleep(2)  # 2-second delay
+            activate_user_account(user)
+            logger.info(f"Delayed account activation completed for user {user.id}")
+            
+        # Start a thread for delayed activation
+        activation_thread = threading.Thread(target=delayed_activation)
+        activation_thread.daemon = True
+        activation_thread.start()
         
         # Handle specific plan types
         plan_type = metadata.get('type')
