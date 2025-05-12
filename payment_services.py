@@ -382,13 +382,12 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         # Use card payments and enable wallet options
         payment_methods = ['card']
         
-        # Build checkout session parameters with automatic payment methods enabled
+        # Build checkout session parameters with card payment method
         # Get the list of allowed countries (countries that are not restricted)
         allowed_countries = get_allowed_countries()
         
         session_params = {
             'payment_method_types': payment_methods,
-            'automatic_payment_methods': {'enabled': True},
             'line_items': [
                 {
                     'price_data': {
