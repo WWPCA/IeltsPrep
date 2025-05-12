@@ -300,12 +300,16 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             raise ValueError("Stripe API key is empty or invalid")
         
         # Create a simple price-based checkout
-        # IMPORTANT: cart_routes.py already converts dollars to cents,
-        # so we assume price is already in cents here
-        price_in_cents = price
-        
-        # Log for debugging
-        logging.info(f"Using price in cents: {price_in_cents} (${price_in_cents/100:.2f})")
+        # Handle the most common error: Price is already in cents
+            if price > 1000 and price % 100 == 0:
+                # This is likely already in cents (e.g. 5000 instead of 50.00)
+                logging.warning(f"Price appears to be already in cents: ${price/100:.2f} - adjusting to dollars")
+                price_in_cents = price  # Already in cents
+            else:
+                # Normal case - price is in dollars, convert to cents
+                price_in_cents = int(price * 100)
+                
+            logging.info(f"Price conversion: ${price:.2f} → {price_in_cents} cents")
         
         metadata = {
             'product_name': product_name,
