@@ -15,6 +15,7 @@
                         <p class="badge bg-{{ 'success' if current_user.is_subscribed() else 'secondary' }}">
                             {{ current_user.subscription_status if current_user.is_subscribed() else 'No Active Package' }}
                         </p>
+                        <!-- Note: Using is_subscribed() for backward compatibility but it checks for active packages -->
                     </div>
                     
                     <div class="profile-details">
