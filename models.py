@@ -292,6 +292,36 @@ class User(UserMixin, db.Model):
             return 10  # Default for pro speaking package
             
         return 0
+        
+    def is_email_verified(self):
+        """
+        Check if the user's email is verified.
+        
+        Returns:
+            bool: True if the email is verified, False otherwise
+        """
+        return self.email_verified
+        
+    def verify_email(self, token):
+        """
+        Verify the user's email with the provided token.
+        
+        Args:
+            token (str): The verification token to check
+            
+        Returns:
+            bool: True if verification was successful, False otherwise
+        """
+        if not self.email_verification_token or not token:
+            return False
+            
+        if self.email_verification_token == token:
+            self.email_verified = True
+            self.email_verification_token = None
+            db.session.commit()
+            return True
+            
+        return False
     
     def use_speaking_assessment(self):
         """Mark that a speaking assessment has been used"""
