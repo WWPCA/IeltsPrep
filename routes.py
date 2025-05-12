@@ -2262,6 +2262,11 @@ def privacy_policy():
     """Show privacy policy information"""
     return render_template('privacy.html', title='Privacy Policy')
 
+@app.route('/address-usage-policy')
+def address_usage_policy():
+    """Show address usage policy information"""
+    return render_template('gdpr/address_usage_policy.html', title='Address Usage Policy')
+
 @app.route('/api/sync-data', methods=['POST'])
 @login_required
 def sync_data():

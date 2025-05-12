@@ -18,6 +18,7 @@ from cart_routes import cart_bp
 from admin_routes import admin_bp
 from stripe_webhook import stripe_webhook_bp
 from email_verification_routes import setup_email_verification_routes
+from gdpr_routes import gdpr_bp
 
 # Import country restriction module
 from country_access_control import setup_country_restriction_routes
@@ -28,6 +29,7 @@ app.register_blueprint(speaking_assessment)
 app.register_blueprint(cart_bp, url_prefix='/cart')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(stripe_webhook_bp, url_prefix='/api')
+app.register_blueprint(gdpr_bp, url_prefix='/privacy')
 
 # Set up country restriction routes (but don't apply restrictions yet - use apply_country_restrictions.py for that)
 setup_country_restriction_routes(app)

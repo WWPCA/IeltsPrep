@@ -41,6 +41,11 @@ def cookie_policy():
     cookie_categories = gdpr.get_cookie_categories()
     return render_template('gdpr/cookie_policy.html', cookie_categories=cookie_categories)
 
+@gdpr_bp.route('/address-usage-policy')
+def address_usage_policy():
+    """Display the customer address usage policy"""
+    return render_template('gdpr/address_usage_policy.html')
+
 # ==================================================
 # Cookie Management
 # ==================================================
