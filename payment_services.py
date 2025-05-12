@@ -8,12 +8,20 @@ from datetime import datetime, timedelta
 from country_restrictions import is_country_restricted, get_allowed_countries, validate_billing_country
 from payment_country_check import get_effective_country_code, check_country_restriction
 
-# Set Stripe API key
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+# Set Stripe API key - ensure it's loaded for all Stripe operations
+stripe_api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+if stripe_api_key:
+    stripe.api_key = stripe_api_key
+else:
+    logging.warning("STRIPE_SECRET_KEY not found in environment variables")
 
 def get_stripe_api_key():
-    """Get the Stripe API key from environment variables."""
-    return os.environ.get('STRIPE_SECRET_KEY', '')
+    """Get the Stripe API key from environment variables and set it globally."""
+    api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+    if api_key:
+        # Set the API key globally for all stripe calls
+        stripe.api_key = api_key
+    return api_key
 
 # Comprehensive region payment mapping for Stripe
 # NOTE: Only include payment methods actually supported by Stripe
@@ -395,6 +403,13 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         
     except Exception as e:
         logging.error(f"Error creating Stripe checkout: {str(e)}")
+        
+        # Check if it's a connection error
+        if "connection" in str(e).lower() or "network" in str(e).lower() or "timeout" in str(e).lower():
+            logging.error("Stripe connection error detected - service may be temporarily unavailable")
+            raise ValueError("Could not connect to payment service. Please try again later.")
+        
+        # Re-raise the original exception
         raise
 
 # Create a Stripe checkout session for speaking assessments
@@ -668,6 +683,13 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         
     except Exception as e:
         logging.error(f"Error creating Stripe checkout: {str(e)}")
+        
+        # Check if it's a connection error
+        if "connection" in str(e).lower() or "network" in str(e).lower() or "timeout" in str(e).lower():
+            logging.error("Stripe connection error detected - service may be temporarily unavailable")
+            raise ValueError("Could not connect to payment service. Please try again later.")
+        
+        # Re-raise the original exception
         raise
 
 def create_payment_record(user_id, amount, package_name, session_id=None):
