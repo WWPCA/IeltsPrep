@@ -13,7 +13,7 @@ from geoip_services import get_country_from_ip
 from routes import get_pricing_for_country
 from stripe_buy_buttons import get_button_id
 
-# Define the assessment products with pricing
+# Define the assessment products with pricing (speaking-only packages removed)
 assessment_products = {
     'academic_writing': {
         'name': 'Academic Writing Assessment',
@@ -34,16 +34,6 @@ assessment_products = {
         'name': 'General Training Speaking Assessment',
         'description': 'Complete General Training Speaking assessment with all three parts',
         'price': 25,  # Price in dollars
-    },
-    'speaking_only_basic': {
-        'name': 'Speaking Only - Basic Package',
-        'description': '4 Speaking Assessments with detailed feedback',
-        'price': 15,  # Price in dollars
-    },
-    'speaking_only_pro': {
-        'name': 'Speaking Only - Pro Package',
-        'description': '10 Speaking Assessments with detailed feedback',
-        'price': 20,  # Price in dollars
     }
 }
 

@@ -53,20 +53,9 @@
                             <i class="fas fa-info-circle fa-2x"></i>
                         </div>
                         <div>
-                            {% if current_user.subscription_status == 'Value Pack' %}
-                                <!-- Keep Value Pack for existing users but hide it from new signups -->
-                                <h4>Value Pack (4 Assessment Sets)</h4>
-                                <p>Your subscription gives you access to 4 reading materials with AI-powered writing and speaking assessments. Each assessment set can only be used once during your subscription period.</p>
-                            {% elif current_user.subscription_status == 'Double Package' %}
-                                <h4>Double Package (2 Tests)</h4>
-                                <p>Your subscription gives you access to 2 reading tests with AI-powered writing and speaking assessments. Each test can only be taken once during your subscription period.</p>
-                            {% elif current_user.subscription_status == 'Single Test' %}
-                                <h4>Single Test Package</h4>
-                                <p>Your subscription gives you access to 1 reading test with AI-powered writing and speaking assessments. This test can only be taken once during your subscription period.</p>
-                            {% else %}
-                                <h4>Active Subscription</h4>
-                                <p>Your subscription gives you access to reading tests with AI-powered writing and speaking assessments based on your package. Each test can only be taken once during your subscription period.</p>
-                            {% endif %}
+                            <!-- All users now use the assessment-based model instead of subscriptions -->
+                            <h4>GenAI Assessment Access</h4>
+                            <p>You have access to specific GenAI assessment modules that provide detailed feedback using TrueScore® and Elaris® technology. Each assessment can only be taken once.</p>
                             
                             {% if current_user.subscription_expiry %}
                                 <p><strong>Expires:</strong> {{ current_user.subscription_expiry.strftime('%B %d, %Y') }}</p>
