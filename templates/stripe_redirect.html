@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Your Order</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+        }
+        .card {
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .redirect-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-body redirect-container">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h2 class="mb-3">Processing Your Order</h2>
+            <p class="mb-4">You will be redirected to our secure payment page in a moment...</p>
+            <p class="mb-4">If you are not automatically redirected, please click the button below:</p>
+            <a href="{{ checkout_url }}" class="btn btn-primary btn-lg" id="manual-redirect">Continue to Checkout</a>
+        </div>
+    </div>
+
+    <script>
+        // Print the checkout URL to console for debugging
+        console.log('Redirecting to: {{ checkout_url }}');
+        
+        // Store the URL in a variable
+        const checkoutUrl = '{{ checkout_url }}';
+        
+        // Redirect immediately with window.location.href
+        window.location.href = checkoutUrl;
+        
+        // Fallback - if the above redirect doesn't work after 2 seconds, try another method
+        setTimeout(function() {
+            console.log('Fallback redirect attempt');
+            document.getElementById('manual-redirect').click();
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@ Shopping cart routes for IELTS GenAI Prep.
 This module defines routes for the shopping cart functionality.
 """
 
-from flask import Blueprint, redirect, url_for, render_template, flash, session, request
+from flask import Blueprint, redirect, url_for, render_template, flash, session, request, jsonify
 from datetime import datetime
 
 import cart
@@ -184,8 +184,12 @@ def create_checkout_session():
                 'session_id': session_id
             })
         else:
-            # For traditional form submissions, use our intermediate page
-            return render_template('redirect_to_checkout.html', checkout_url=checkout_url)
+            # Use our debugging template to show the URL and provide multiple ways to access checkout
+            return render_template('stripe_debug.html', 
+                                  checkout_url=checkout_url,
+                                  session_id=session_id,
+                                  created_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                  amount=250000)
         
     except Exception as e:
         # Log the error 
