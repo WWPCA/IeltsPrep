@@ -8,8 +8,10 @@ from flask_login import current_user
 from models import db, User, CompletePracticeTest
 from datetime import datetime
 import json
+import os
 from geoip_services import get_country_from_ip
 from routes import get_pricing_for_country
+from stripe_buy_buttons import get_button_id
 
 # Define the assessment products with pricing
 assessment_products = {
@@ -67,11 +69,25 @@ def add_assessment_routes():
         if current_user.is_authenticated:
             test_preference = current_user.test_preference
         
+        # Get Stripe Buy Button IDs for each product
+        academic_writing_button_id = get_button_id('academic', 'writing')
+        academic_speaking_button_id = get_button_id('academic', 'speaking')
+        general_writing_button_id = get_button_id('general', 'writing')
+        general_speaking_button_id = get_button_id('general', 'speaking')
+        
+        # Get Stripe publishable key
+        stripe_publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+        
         return render_template('assessment_products.html', 
                               title='IELTS Assessment Products', 
                               pricing=pricing,
                               test_preference=test_preference,
-                              country_code=country_code)
+                              country_code=country_code,
+                              academic_writing_button_id=academic_writing_button_id,
+                              academic_speaking_button_id=academic_speaking_button_id,
+                              general_writing_button_id=general_writing_button_id,
+                              general_speaking_button_id=general_speaking_button_id,
+                              stripe_publishable_key=stripe_publishable_key)
 
     @app.route('/product-checkout')
     def product_checkout():
