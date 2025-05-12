@@ -71,16 +71,10 @@ RESTRICTED_COUNTRIES = [
     'AF',  # Afghanistan
 ]
 
-# Message to display to users from generally restricted countries
+# Standardized message for all blocked countries (both EU/UK and other regions)
 RESTRICTION_MESSAGE = (
     "We're sorry, but our services are not available in your region due to regulatory requirements. "
     "We're working to expand our coverage. Thank you for your understanding."
-)
-
-# Message to display to users from EU/UK (different reason - GDPR compliance)
-EU_UK_RESTRICTION_MESSAGE = (
-    "We're sorry, but our services are not currently available in European Union and United Kingdom regions. "
-    "We're working to implement enhanced data protection features to serve these regions in the future."
 )
 
 def is_country_restricted(country_code):
@@ -177,14 +171,16 @@ def country_access_required(f):
         # Check if the country is blocked for any reason
         is_blocked, reason = is_country_blocked(country_code)
         if is_blocked:
+            # Log with specific reason for internal tracking, but use standard message for user
             if reason == 'eu_uk':
                 logger.info(f"Blocked access from EU/UK region: {country_code}")
-                flash(EU_UK_RESTRICTION_MESSAGE, "warning")
             else:
                 logger.info(f"Blocked access from restricted country: {country_code}")
-                flash(RESTRICTION_MESSAGE, "warning")
                 
-            # Store the reason in session for the restriction page
+            # Use standardized message for all blocked countries
+            flash(RESTRICTION_MESSAGE, "warning")
+                
+            # Store the reason in session for the restriction page (for admin reference)
             session['restriction_reason'] = reason
             return redirect(url_for('restricted_access'))
             
@@ -212,12 +208,8 @@ def validate_billing_country(billing_country):
     if billing_country in ALLOWED_COUNTRIES:
         return True, ""
     
-    # Special message for EU/UK countries
-    if billing_country in EU_UK_COUNTRIES:
-        return False, f"Due to data protection requirements, we do not currently provide services in {billing_country}. We're working to serve these regions in the future."
-    
-    # Generic message for all other countries
-    return False, f"We do not currently provide services in {billing_country}. Our services are only available in select countries."
+    # Standardized message for all non-allowed countries
+    return False, RESTRICTION_MESSAGE
 
 def get_allowed_countries():
     """

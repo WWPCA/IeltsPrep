@@ -207,19 +207,12 @@ def setup_country_restriction_routes(app):
     def access_restricted_page():
         reason = request.args.get('reason', 'unknown')
         
-        if reason == 'not_available' or reason == 'regulatory':
-            message = "Service Not Available in Your Region"
-            description = (
-                "We're sorry, but our service is not yet available in your country. "
-                "We're working to expand our service area in the future."
-            )
-        else:
-            message = "Access Restricted"
-            description = (
-                "We're unable to verify your location. Our service is currently only available "
-                "in specific regions. Please try again later or contact support if you believe "
-                "this is an error."
-            )
+        # Use standardized message for all blocked countries
+        from country_restrictions import RESTRICTION_MESSAGE
+        
+        # Use standardized message regardless of reason
+        message = "Service Not Available in Your Region"
+        description = RESTRICTION_MESSAGE
         
         return render_template(
             'access_restricted.html',
