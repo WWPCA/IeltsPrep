@@ -380,7 +380,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 'session_id': checkout_session.id,
                 'checkout_url': checkout_session.url
             }
-        except stripe.error.StripeError as e:
+        except Exception as e:
             # Log specific Stripe error type for better debugging
             logging.error(f"Stripe API Error: {type(e).__name__} - {str(e)}")
             raise

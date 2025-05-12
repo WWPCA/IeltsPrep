@@ -18,11 +18,15 @@ def view_cart():
     cart_items = cart.get_cart_items()
     cart_total = cart.get_cart_total()
     
+    # Get any checkout error from session and remove it
+    checkout_error = session.pop('checkout_error', None)
+    
     return render_template(
         'cart.html', 
         title='Shopping Cart',
         cart_items=cart_items,
-        cart_total=cart_total
+        cart_total=cart_total,
+        checkout_error=checkout_error
     )
 
 @cart_bp.route('/add/<product_id>')
@@ -180,8 +184,8 @@ def create_checkout_session():
                 'session_id': session_id
             })
         else:
-            # For traditional form submissions
-            return redirect(checkout_url)
+            # For traditional form submissions, use our intermediate page
+            return render_template('redirect_to_checkout.html', checkout_url=checkout_url)
         
     except Exception as e:
         # Log the error 
@@ -203,6 +207,8 @@ def create_checkout_session():
                 'error': 'Payment processing error',
                 'message': user_error
             })
-            
+        
+        # Store the error in session to display on cart page
+        session['checkout_error'] = user_error
         flash(user_error, 'danger')
         return redirect(url_for('cart.view_cart'))

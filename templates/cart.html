@@ -165,13 +165,19 @@
                         <i class="fas fa-arrow-left"></i> Continue Shopping
                     </a>
                     
-                    <!-- Simplest possible approach with no JavaScript dependencies -->
+                    <!-- Direct Stripe checkout approach -->
                     <form action="{{ url_for('cart.checkout') }}" method="post">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-success btn-lg">
                             <i class="fas fa-credit-card"></i> Proceed to Checkout
                         </button>
                     </form>
+                    
+                    {% if checkout_error %}
+                    <div class="alert alert-danger mt-3">
+                        {{ checkout_error }}
+                    </div>
+                    {% endif %}
                 </div>
             {% else %}
                 <div class="alert alert-info text-center" role="alert">
