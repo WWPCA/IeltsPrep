@@ -103,11 +103,15 @@ def check_email():
 def create_checkout_session():
     """Create a Stripe checkout session for the current cart."""
     from flask_login import current_user
+    from flask import jsonify
     
     # Get cart items
     cart_items = cart.get_cart_items()
     
     if not cart_items:
+        # Check if this is an AJAX request
+        if request.headers.get('Content-Type') == 'application/json':
+            return jsonify({'error': 'Your cart is empty.'})
         flash('Your cart is empty.', 'warning')
         return redirect(url_for('cart.view_cart'))
     
@@ -144,13 +148,32 @@ def create_checkout_session():
         # Store cart details in session for use in payment_success
         session['checkout'] = {
             'product_ids': cart.get_product_ids(),
-            'session_id': checkout_session['session_id'],
+            'session_id': checkout_session.id if hasattr(checkout_session, 'id') else checkout_session.get('session_id'),
             'processed': False
         }
         
-        # Redirect to Stripe checkout
-        return redirect(checkout_session['checkout_url'])
+        # Handle different response types based on request
+        is_ajax = request.headers.get('Content-Type') == 'application/json'
+        
+        if is_ajax:
+            # For AJAX requests (our Buy Button)
+            checkout_url = checkout_session.url if hasattr(checkout_session, 'url') else checkout_session.get('checkout_url')
+            session_id = checkout_session.id if hasattr(checkout_session, 'id') else checkout_session.get('session_id')
+            
+            return jsonify({
+                'checkout_url': checkout_url,
+                'session_id': session_id
+            })
+        else:
+            # For traditional form submissions
+            checkout_url = checkout_session.url if hasattr(checkout_session, 'url') else checkout_session.get('checkout_url')
+            return redirect(checkout_url)
         
     except Exception as e:
+        print(f"Error creating checkout session: {str(e)}")
+        
+        if request.headers.get('Content-Type') == 'application/json':
+            return jsonify({'error': f'Payment processing error: {str(e)}'})
+            
         flash(f'An error occurred during checkout: {str(e)}', 'danger')
         return redirect(url_for('cart.view_cart'))
