@@ -363,14 +363,27 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         if customer_email:
             session_params['customer_email'] = customer_email
         
-        # Create checkout session with enhanced options
-        checkout_session = stripe.checkout.Session.create(**session_params)
+        # Log the session parameters for debugging (removing sensitive info)
+        debug_params = session_params.copy()
+        if 'customer_email' in debug_params:
+            debug_params['customer_email'] = '***@***.com'  # Redacted for privacy
+        logging.debug(f"Stripe checkout params: {json.dumps(debug_params, indent=2)}")
         
-        # Format the return value to match what add_assessment_routes.py expects
-        return {
-            'session_id': checkout_session.id,
-            'checkout_url': checkout_session.url
-        }
+        # Create checkout session with enhanced options
+        try:
+            # Direct creation without retry logic for simplicity and better error handling
+            checkout_session = stripe.checkout.Session.create(**session_params)
+            logging.debug(f"Stripe session created successfully: {checkout_session.id}")
+            
+            # Format the return value to match what add_assessment_routes.py expects
+            return {
+                'session_id': checkout_session.id,
+                'checkout_url': checkout_session.url
+            }
+        except stripe.error.StripeError as e:
+            # Log specific Stripe error type for better debugging
+            logging.error(f"Stripe API Error: {type(e).__name__} - {str(e)}")
+            raise
         
     except Exception as e:
         logging.error(f"Error creating Stripe checkout: {str(e)}")

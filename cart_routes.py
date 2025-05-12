@@ -189,8 +189,11 @@ def create_checkout_session():
         print(error_msg)
         
         # Use more user-friendly error messages
-        if hasattr(e, 'http_status') and e.http_status == 401:
+        error_str = str(e).lower()
+        if 'authentication' in error_str or 'unauthorized' in error_str or '401' in error_str:
             user_error = "Payment service authentication failed. Please try again later."
+        elif 'connection' in error_str or 'timeout' in error_str:
+            user_error = "Connection to payment service timed out. Please try again."
         else:
             user_error = "We couldn't connect to our payment service. Please try again or contact support."
         
