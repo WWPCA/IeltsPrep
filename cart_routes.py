@@ -140,8 +140,12 @@ def create_checkout_session():
         flash('Your cart is empty.', 'warning')
         return redirect(url_for('cart.view_cart'))
     
-    # Get total price in cents
-    total_price = int(cart.get_cart_total() * 100)  # Convert dollars to cents
+    # Get total price in cents - make sure we're charging $25.00 not $2,500.00
+    cart_total = cart.get_cart_total()
+    total_price = int(cart_total * 100)  # Convert dollars to cents
+    
+    # Debug log to verify correct amount
+    print(f"Cart total: ${cart_total} -> Stripe amount: {total_price} cents")
     
     # Create product description for Stripe
     product_names = [item['name'] for item in cart_items]
