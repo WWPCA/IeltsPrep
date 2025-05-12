@@ -1,5 +1,8 @@
 """
-Create a country-specific pricing table for the IELTS preparation app.
+DEPRECATED: Create a country-specific pricing table for the IELTS preparation app.
+
+This script is no longer actively used as we've moved to fixed pricing.
+Kept for historical reference and backward compatibility with existing users.
 """
 
 from app import app, db

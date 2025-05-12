@@ -834,7 +834,11 @@ class Translation(db.Model):
 
 
 class CountryPricing(db.Model):
-    """Table for storing country-specific pricing information."""
+    """
+    DEPRECATED: This model is no longer actively used as we've moved to fixed pricing.
+    Table for storing country-specific pricing information that was used in the subscription model.
+    Kept for historical reference and backward compatibility with existing users.
+    """
     id = db.Column(db.Integer, primary_key=True)
     country_code = db.Column(db.String(2), nullable=False, unique=True)
     country_name = db.Column(db.String(100), nullable=False)
