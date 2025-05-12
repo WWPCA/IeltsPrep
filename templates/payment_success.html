@@ -29,7 +29,7 @@
                                             Single and Double test packages provide access for 15 days.
                                         {% endif %}
                                     </p>
-                                    {% break %}
+                                    {% endif %}
                                 {% elif entry.test_purchase %}
                                     <p><strong>Test Type:</strong> {{ entry.test_purchase.test_type.capitalize() }}</p>
                                     <p><strong>Package:</strong> {{ entry.test_purchase.plan.split('_')[1]|replace('_', ' ')|capitalize }}</p>
@@ -42,7 +42,7 @@
                                             Single and Double test packages provide access for 15 days.
                                         {% endif %}
                                     </p>
-                                    {% break %}
+                                    {% endif %}
                                 {% endif %}
                             {% endfor %}
                         </div>

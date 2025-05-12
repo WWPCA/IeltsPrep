@@ -91,7 +91,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         
         # Create Stripe checkout session
         session_params = {
-            'payment_method_types': ['card'],
+            'payment_method_types': ['card', 'apple_pay', 'google_pay'],
             'line_items': [
                 {
                     'price_data': {
