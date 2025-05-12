@@ -124,13 +124,21 @@ def create_checkout_session():
         success_url = url_for('payment_success', _external=True)
         cancel_url = url_for('cart.view_cart', _external=True)
         
+        # Get user details if available
+        customer_email = None
+        country_code = None
+        if hasattr(current_user, 'email') and current_user.email:
+            customer_email = current_user.email
+        
         # Create a custom checkout session for multiple products
         checkout_session = create_stripe_checkout_session(
             product_name="IELTS GenAI Prep Products",
             description=product_description,
             price=total_price,
             success_url=success_url,
-            cancel_url=cancel_url
+            cancel_url=cancel_url,
+            customer_email=customer_email,
+            country_code=country_code
         )
         
         # Store cart details in session for use in payment_success
