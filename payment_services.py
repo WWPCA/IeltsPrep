@@ -453,8 +453,10 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         allowed_countries = get_allowed_countries()
         
         # Create checkout session with direct price_data for better compatibility
+        # Enable automatic payment methods to detect and enable Apple Pay, Google Pay, etc.
         session_params = {
             'payment_method_types': payment_method_types,
+            'automatic_payment_methods': {'enabled': True},
             'line_items': [
                 {
                     'price_data': {
@@ -600,8 +602,10 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         allowed_countries = get_allowed_countries()
         
         # Create checkout session with direct price_data for better compatibility
+        # Enable automatic payment methods to detect and enable Apple Pay, Google Pay, etc.
         session_params = {
             'payment_method_types': payment_method_types,
+            'automatic_payment_methods': {'enabled': True},
             'line_items': [
                 {
                     'price_data': {
