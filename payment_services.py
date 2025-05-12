@@ -294,10 +294,22 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
-            raise ValueError("Stripe API key is required")
+            
+            api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+            logging.error(f"Stripe API key empty or invalid: '{api_key[:4]}...' (length: {len(api_key)})")
+            raise ValueError("Stripe API key is empty or invalid")
         
         # Create a simple price-based checkout
-        price_in_cents = int(price * 100)
+        # Handle the most common error: Price is already in cents
+            if price > 1000 and price % 100 == 0:
+                # This is likely already in cents (e.g. 5000 instead of 50.00)
+                logging.warning(f"Price appears to be already in cents: ${price/100:.2f} - adjusting to dollars")
+                price_in_cents = price  # Already in cents
+            else:
+                # Normal case - price is in dollars, convert to cents
+                price_in_cents = int(price * 100)
+                
+            logging.info(f"Price conversion: ${price:.2f} → {price_in_cents} cents")
         
         metadata = {
             'product_name': product_name,
@@ -407,7 +419,10 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
-            raise ValueError("Stripe API key is required")
+            
+            api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+            logging.error(f"Stripe API key empty or invalid: '{api_key[:4]}...' (length: {len(api_key)})")
+            raise ValueError("Stripe API key is empty or invalid")
             
         # Validate parameters
         if package_type not in TEST_PURCHASE_OPTIONS['speaking_only']:
@@ -527,7 +542,10 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
     try:
         if not stripe.api_key:
             logging.error("Stripe API key not found. Cannot create checkout session.")
-            raise ValueError("Stripe API key is required")
+            
+            api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+            logging.error(f"Stripe API key empty or invalid: '{api_key[:4]}...' (length: {len(api_key)})")
+            raise ValueError("Stripe API key is empty or invalid")
         
         # Check if we're using the new purchase system or legacy subscription
         using_new_purchase = plan_info == 'purchase' and test_type and test_package

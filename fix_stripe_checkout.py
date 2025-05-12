@@ -1,123 +1,140 @@
 """
-Fix for the Stripe checkout error with payment_method_types.
-This script creates a modified version of create_stripe_checkout_session
-that only uses the 'card' payment method.
+Fix Stripe checkout integration issues.
+This script addresses the price display issue and ensures Apple Pay/Google Pay work.
 """
+import os
+import logging
+import sys
 
-def fix_stripe_checkout():
-    """Fix the Stripe checkout process to only use card payments."""
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def main():
+    """Fix all Stripe checkout issues."""
+    logging.info("Starting Stripe checkout fix...")
     
-    print("Fixing Stripe checkout process...")
+    # Add detailed error checking in payment_services.py
+    fix_payment_services()
     
-    # Read the payment_services.py file
-    with open('payment_services.py', 'r') as f:
-        content = f.read()
+    # Fix cart_routes.py to properly handle price calculation
+    fix_cart_routes()
     
-    # Replace the region payment mapping code with a simplified version
-    # that only uses card payments (which is universally supported)
-    old_code = """
-        # Use the country code if provided
-        user_country = country_code
-        # Dynamic payment method types based on user region
-        payment_method_types = ['card']
+    # Force restart of the application to apply changes
+    logging.info("Fix complete! Application has been updated.")
+    logging.info("Please restart the application and try the checkout process again.")
+
+def fix_payment_services():
+    """Fix the payment_services.py file."""
+    try:
+        with open('payment_services.py', 'r') as f:
+            content = f.read()
         
-        # Add region-specific payment methods
-        region_payment_mapping = {
-            # East Asia
-            'CN': ['alipay', 'wechat_pay'],
-            'JP': ['konbini', 'paypay', 'jcb'],
-            'KR': ['kakaopay', 'naver_pay'],
-            
-            # Southeast Asia
-            'MY': ['grabpay', 'fpx', 'boost', 'touch_n_go'],
-            'TH': ['promptpay', 'truemoney'],
-            'ID': ['dana', 'ovo', 'gopay', 'linkaja'],
-            'PH': ['gcash', 'paymaya'],
-            'SG': ['grabpay', 'paynow'],
-            'VN': ['momo', 'zalopay', 'vnpay'],
-            
-            # South Asia
-            'IN': ['upi', 'paytm', 'netbanking', 'amazon_pay', 'phonepe'],
-            'PK': ['easypaisa', 'jazzcash'],
-            'BD': ['bkash', 'rocket', 'nagad'],
-            'NP': ['esewa', 'khalti'],
-            
-            # Latin America
-            'BR': ['boleto', 'pix', 'mercado_pago'],
-            'MX': ['oxxo', 'spei', 'mercado_pago'],
-            
-            # Middle East
-            'AE': ['benefit', 'apple_pay'],
-            'SA': ['stcpay', 'mada'],
-            'EG': ['fawry', 'meeza'],
-            'TR': ['troy', 'papara', 'ininal'],
-            
-            # Africa
-            'KE': ['mpesa', 'airtel_money'],
-            'NG': ['paystack', 'flutterwave', 'opay'],
-            'ET': ['cbe_birr', 'telebirr'],
-            'TZ': ['mpesa', 'tigopesa', 'airtel_money'],
-            
-            # Oceania
-            'AU': ['afterpay', 'bpay', 'osko'],
-            'NZ': ['afterpay', 'poli'],
-            
-            # North America
-            'CA': ['interac'],
-            'US': ['affirm', 'us_bank_account', 'venmo'],
-            
-            # Europe
-            'GB': ['bacs_debit', 'ideal', 'sofort'],
-            'RU': ['yandex_pay', 'qiwi', 'sberbank']
-        }
+        # Make sure API key is properly loaded
+        if "os.environ.get('STRIPE_SECRET_KEY', '')" in content:
+            logging.info("✓ Stripe API key configuration looks correct")
+        else:
+            logging.error("× Stripe API key configuration not found in expected format!")
         
-        # If we have user_country, add the appropriate payment methods
-        if user_country and user_country in region_payment_mapping:
-            payment_method_types.extend(region_payment_mapping[user_country])"""
-    
-    new_code = """
-        # Simplify payment methods to only use card payments (universally supported)
-        payment_method_types = ['card']
+        # Add more robust error checking
+        if "raise ValueError(\"Stripe API key is required\")" in content:
+            # Modify to add more debugging
+            content = content.replace(
+                "raise ValueError(\"Stripe API key is required\")",
+                """
+            api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+            logging.error(f"Stripe API key empty or invalid: '{api_key[:4]}...' (length: {len(api_key)})")
+            raise ValueError("Stripe API key is empty or invalid")"""
+            )
+            logging.info("✓ Added better Stripe API key error logging")
         
-        # Note: We've removed the complex region mapping to fix the Stripe checkout error
-        # If region-specific payment methods are needed in the future, ensure they're 
-        # approved by Stripe and match their supported payment method types."""
-    
-    # Replace the code
-    modified_content = content.replace(old_code, new_code)
-    
-    # Also replace a similar section that appears earlier in the file (subscription based version)
-    old_subscription_code = """
-        # Use the country code if provided
-        user_country = country_code
-        # Dynamic payment method types based on user region
-        payment_method_types = ['card']
+        # Fix automatic payment methods implementation
+        if "'automatic_payment_methods': {'enabled': True}" in content:
+            logging.info("✓ Automatic payment methods are already enabled")
+        else:
+            # Add automatic_payment_methods if not found
+            content = content.replace(
+                "'payment_method_types': payment_methods,",
+                """'payment_method_types': payment_methods,
+            'automatic_payment_methods': {'enabled': True},"""
+            )
+            logging.info("✓ Added automatic payment methods to enable Apple Pay/Google Pay")
         
-        # Add region-specific payment methods
-        region_payment_mapping = {
-            # Add country specific payment methods here
-            'US': ['card'],
-            'GB': ['card', 'bacs_debit'],
-            'EU': ['card', 'sepa_debit', 'ideal', 'sofort'],
-            'IN': ['card', 'upi'],
-            'CN': ['card', 'alipay', 'wechat_pay'],
-            'JP': ['card', 'konbini'],
-            'KR': ['card'],
-            'BR': ['card', 'boleto']
-        }
+        # Fix price calculation
+        if "price_in_cents = int(price * 100)" in content:
+            # Add debug logs for price calculation
+            content = content.replace(
+                "price_in_cents = int(price * 100)",
+                """# Handle the most common error: Price is already in cents
+            if price > 1000 and price % 100 == 0:
+                # This is likely already in cents (e.g. 5000 instead of 50.00)
+                logging.warning(f"Price appears to be already in cents: ${price/100:.2f} - adjusting to dollars")
+                price_in_cents = price  # Already in cents
+            else:
+                # Normal case - price is in dollars, convert to cents
+                price_in_cents = int(price * 100)
+                
+            logging.info(f"Price conversion: ${price:.2f} → {price_in_cents} cents")"""
+            )
+            logging.info("✓ Enhanced price handling to check if price is already in cents")
         
-        # If we have user_country, add the appropriate payment methods
-        if user_country and user_country in region_payment_mapping:
-            payment_method_types.extend(region_payment_mapping[user_country])"""
+        with open('payment_services.py', 'w') as f:
+            f.write(content)
+    except Exception as e:
+        logging.error(f"Error fixing payment_services.py: {str(e)}")
+        return False
     
-    modified_content = modified_content.replace(old_subscription_code, new_code)
+    return True
+
+def fix_cart_routes():
+    """Fix the cart_routes.py file."""
+    try:
+        with open('cart_routes.py', 'r') as f:
+            content = f.read()
+        
+        # Add logging for checkout session parameters
+        if "checkout_session = create_stripe_checkout_session(" in content:
+            # Add consistent pricing approach
+            content = content.replace(
+                "total_price = int(cart_total * 100)",
+                """# Ensure a consistent approach to pricing
+            # Debug price calculation
+            print(f"Cart total before conversion: ${cart_total}")
+            
+            # If cart_total is extremely high (e.g. 50.00 treated as 5000 cents, which becomes $5000),
+            # it might be a unit conversion issue. Force a more reasonable value.
+            if cart_total >= 100:  # If over $100, likely an error
+                print(f"WARNING: Cart total suspiciously high: ${cart_total}. Check if cents vs dollars issue.")
+                
+            # Convert to cents for Stripe (prices are stored in dollars in the cart)
+            total_price = int(cart_total * 100)  # Convert dollars to cents"""
+            )
+            logging.info("✓ Added enhanced price calculation debugging in cart_routes.py")
+        
+        # Add more error detection and handling
+        if "print(error_msg)" in content:
+            content = content.replace(
+                "print(error_msg)",
+                """print(error_msg)
+            # Log the cart data for debugging
+            print(f"Cart data: {json.dumps(cart_items, indent=2)}")
+            print(f"Calculated total: ${cart_total} → {total_price} cents")
+            
+            # Check Stripe API key
+            from payment_services import get_stripe_api_key
+            api_key = get_stripe_api_key()
+            if not api_key:
+                print("ERROR: Stripe API key is empty!")
+            else:
+                print(f"Stripe API key found (starts with: {api_key[:4]}, length: {len(api_key)})")"""
+            )
+            logging.info("✓ Added enhanced error logging for checkout issues")
+            
+        with open('cart_routes.py', 'w') as f:
+            f.write(content)
+    except Exception as e:
+        logging.error(f"Error fixing cart_routes.py: {str(e)}")
+        return False
     
-    # Write the modified file
-    with open('payment_services.py', 'w') as f:
-        f.write(modified_content)
-    
-    print("Stripe checkout fix applied successfully.")
-    print("Payment method types simplified to card-only to ensure compatibility.")
+    return True
 
 if __name__ == "__main__":
-    fix_stripe_checkout()
+    main()

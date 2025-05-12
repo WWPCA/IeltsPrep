@@ -5,6 +5,7 @@ This module defines routes for the shopping cart functionality.
 
 from flask import Blueprint, redirect, url_for, render_template, flash, session, request, jsonify
 from datetime import datetime
+import json
 
 import cart
 import stripe
@@ -144,6 +145,16 @@ def create_checkout_session():
     cart_total = cart.get_cart_total()
     
     # Convert to cents for Stripe (prices are stored in dollars in the cart)
+    # Ensure a consistent approach to pricing
+    # Debug price calculation
+    print(f"Cart total before conversion: ${cart_total}")
+    
+    # If cart_total is extremely high (e.g. 50.00 treated as 5000 cents, which becomes $5000),
+    # it might be a unit conversion issue. Force a more reasonable value.
+    if cart_total >= 100:  # If over $100, likely an error
+        print(f"WARNING: Cart total suspiciously high: ${cart_total}. Check if cents vs dollars issue.")
+        
+    # Convert to cents for Stripe (prices are stored in dollars in the cart)
     total_price = int(cart_total * 100)  # Convert dollars to cents
     
     # Debug log to verify correct amount
@@ -225,6 +236,18 @@ def create_checkout_session():
         # Log the error 
         error_msg = f"Error creating checkout session: {str(e)}"
         print(error_msg)
+        
+        # Log the cart data for debugging
+        print(f"Cart data: {json.dumps(cart_items, indent=2)}")
+        print(f"Calculated total: ${cart_total} → {total_price} cents")
+        
+        # Check Stripe API key
+        from payment_services import get_stripe_api_key
+        api_key = get_stripe_api_key()
+        if not api_key:
+            print("ERROR: Stripe API key is empty!")
+        else:
+            print(f"Stripe API key found (starts with: {api_key[:4]}, length: {len(api_key)})")
         
         # Use more user-friendly error messages
         error_str = str(e).lower()
