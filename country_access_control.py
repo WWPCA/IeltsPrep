@@ -246,6 +246,11 @@ def apply_country_restrictions(app):
     Args:
         app: Flask application instance
     """
+    # Skip applying a second time if already applied
+    if hasattr(app, 'country_restrictions_applied') and app.country_restrictions_applied:
+        logger.info("Country restrictions already applied, skipping")
+        return
+        
     # Set up the restriction routes
     setup_country_restriction_routes(app)
     
@@ -263,12 +268,12 @@ def apply_country_restrictions(app):
     ]
     
     # Apply country restrictions to all non-exempt routes
-    for endpoint, view_func in app.view_functions.items():
+    for endpoint, view_func in list(app.view_functions.items()):
         # Skip endpoints that don't have a route or are exempt
         skip_endpoint = False
         
-        # Skip static endpoints
-        if endpoint == 'static':
+        # Skip endpoints we know are problematic or exempt
+        if endpoint == 'static' or endpoint == 'access_restricted_page':
             skip_endpoint = True
         
         # Check exempt routes
@@ -286,5 +291,8 @@ def apply_country_restrictions(app):
         
         # Wrap the view function with country_access_required
         app.view_functions[endpoint] = country_access_required(view_func)
+    
+    # Mark as applied to prevent duplicate application
+    app.country_restrictions_applied = True
     
     logger.info("Country restrictions applied to all relevant routes")

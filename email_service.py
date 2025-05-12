@@ -25,8 +25,8 @@ SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
 SMTP_USERNAME = os.environ.get('SMTP_USERNAME')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'notifications@ieltsaiprep.com')
-SUPPORT_EMAIL = os.environ.get('SUPPORT_EMAIL', 'support@ieltsaiprep.com')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'notifications@ieltsgenaiprep.com')
+SUPPORT_EMAIL = os.environ.get('SUPPORT_EMAIL', 'support@ieltsgenaiprep.com')
 
 def generate_verification_token():
     """
@@ -104,13 +104,13 @@ def send_verification_email(user):
     verification_url = url_for('verify_email', token=token, _external=True)
     
     # Email subject
-    subject = "IELTS AI Prep - Verify Your Email Address"
+    subject = "IELTS GenAI Prep - Verify Your Email Address"
     
     # Plain text email
     text_body = f"""
 Hello {user.username},
 
-Thank you for registering with IELTS AI Prep!
+Thank you for registering with IELTS GenAI Prep!
 
 To complete your registration and access your account, please verify your email address by clicking the link below:
 
@@ -121,7 +121,7 @@ This link will expire in 24 hours.
 If you didn't create this account, please ignore this email or contact us at {SUPPORT_EMAIL} if you have any questions.
 
 Best regards,
-The IELTS AI Prep Team
+The IELTS GenAI Prep Team
     """
     
     # HTML email
@@ -179,7 +179,7 @@ The IELTS AI Prep Team
         <div class="content">
             <p>Hello {user.username},</p>
             
-            <p>Thank you for registering with IELTS AI Prep!</p>
+            <p>Thank you for registering with IELTS GenAI Prep!</p>
             
             <p>To complete your registration and access your account, please verify your email address by clicking the button below:</p>
             
@@ -193,7 +193,7 @@ The IELTS AI Prep Team
             
             <p>If you didn't create this account, please ignore this email or contact us at <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a> if you have any questions.</p>
             
-            <p>Best regards,<br>The IELTS AI Prep Team</p>
+            <p>Best regards,<br>The IELTS GenAI Prep Team</p>
         </div>
         <div class="footer">
             <p>This is an automated message. Please do not reply to this email.</p>
