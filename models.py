@@ -737,6 +737,14 @@ class PaymentRecord(db.Model):
     is_successful = db.Column(db.Boolean, default=True)
     transaction_details = db.Column(db.Text, nullable=True)
     
+    # Customer address information
+    address_line1 = db.Column(db.String(255), nullable=True)
+    address_line2 = db.Column(db.String(255), nullable=True)
+    address_city = db.Column(db.String(100), nullable=True)
+    address_state = db.Column(db.String(100), nullable=True)
+    address_postal_code = db.Column(db.String(20), nullable=True)
+    address_country = db.Column(db.String(2), nullable=True)
+    
     # Relationship to user
     user = db.relationship('User', backref=db.backref('payment_records', lazy=True))
     
