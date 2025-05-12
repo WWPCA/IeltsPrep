@@ -90,16 +90,11 @@ REGION_PAYMENT_MAPPING = {
 
 def get_country_payment_methods(country_code):
     """
-    Get the list of supported payment methods for a given country.
-    
-    Args:
-        country_code (str): Two-letter country code
-        
-    Returns:
-        list: Supported payment methods for the country
+    This function has been disabled to fix Stripe checkout issues.
+    All payment methods are now managed through the Stripe Dashboard.
     """
-    if not country_code:
-        return []
+    # Always return empty list to prevent additional payment methods
+    return []
         
     # Standardize the country code
     country_code = country_code.upper()
@@ -319,12 +314,8 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             else:
                 success_url += '?session_id={CHECKOUT_SESSION_ID}'
         
-        # Determine payment method types based on country
-        payment_methods = ['card']  # Wallets are now enabled through Stripe dashboard
-        if country_code:
-            additional_methods = get_country_payment_methods(country_code)
-            if additional_methods:
-                payment_methods.extend(additional_methods)
+        # Use only card payments for universal compatibility
+        payment_methods = ['card']  # Wallets managed through Stripe Dashboard
         
         # Build checkout session parameters
         # Get the list of allowed countries (countries that are not restricted)
@@ -445,7 +436,7 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
         )
         
         # Use card payments plus popular digital wallets
-        payment_method_types = ['card']  # Wallets are now enabled through Stripe dashboard
+        payment_method_types = ['card']  # Wallets managed through Stripe Dashboard  # Wallets are now enabled through Stripe dashboard
         
         # Note: Apple Pay and Google Pay are enabled globally where supported by the browser
         # These are presented automatically by Stripe when the browser/device supports them
@@ -592,7 +583,7 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
         )
         
         # Use card payments plus popular digital wallets
-        payment_method_types = ['card']  # Wallets are now enabled through Stripe dashboard
+        payment_method_types = ['card']  # Wallets managed through Stripe Dashboard  # Wallets are now enabled through Stripe dashboard
         
         # Note: Apple Pay and Google Pay are enabled globally where supported by the browser
         # These are presented automatically by Stripe when the browser/device supports them
