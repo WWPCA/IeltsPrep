@@ -35,11 +35,10 @@ app.register_blueprint(setup_intent_bp)
 app.register_blueprint(stripe_webhook_bp, url_prefix='/api')
 app.register_blueprint(gdpr_bp, url_prefix='/privacy')
 
-# Set up country restriction routes (but don't apply restrictions yet - use apply_country_restrictions.py for that)
-setup_country_restriction_routes(app)
-
 # Set up email verification routes
 setup_email_verification_routes(app)
+
+# Country restriction routes are set up within apply_country_restrictions below
 
 # Apply country restrictions automatically at startup
 try:
