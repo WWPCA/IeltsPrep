@@ -444,64 +444,12 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             purchase_details['days']
         )
         
-        # Use the country code if provided
-        user_country = country_code
-        # Dynamic payment method types based on user region
+        # Simplify payment methods to only use card payments (universally supported)
         payment_method_types = ['card']
         
-        # Add region-specific payment methods
-        region_payment_mapping = {
-            # East Asia
-            'CN': ['alipay', 'wechat_pay'],
-            'JP': ['konbini', 'paypay', 'jcb'],
-            'KR': ['kakaopay', 'naver_pay'],
-            
-            # Southeast Asia
-            'MY': ['grabpay', 'fpx', 'boost', 'touch_n_go'],
-            'TH': ['promptpay', 'truemoney'],
-            'ID': ['dana', 'ovo', 'gopay', 'linkaja'],
-            'PH': ['gcash', 'paymaya'],
-            'SG': ['grabpay', 'paynow'],
-            'VN': ['momo', 'zalopay', 'vnpay'],
-            
-            # South Asia
-            'IN': ['upi', 'paytm', 'netbanking', 'amazon_pay', 'phonepe'],
-            'PK': ['easypaisa', 'jazzcash'],
-            'BD': ['bkash', 'rocket', 'nagad'],
-            'NP': ['esewa', 'khalti'],
-            
-            # Latin America
-            'BR': ['boleto', 'pix', 'mercado_pago'],
-            'MX': ['oxxo', 'spei', 'mercado_pago'],
-            
-            # Middle East
-            'AE': ['benefit', 'apple_pay'],
-            'SA': ['stcpay', 'mada'],
-            'EG': ['fawry', 'meeza'],
-            'TR': ['troy', 'papara', 'ininal'],
-            
-            # Africa
-            'KE': ['mpesa', 'airtel_money'],
-            'NG': ['paystack', 'flutterwave', 'opay'],
-            'ET': ['cbe_birr', 'telebirr'],
-            'TZ': ['mpesa', 'tigopesa', 'airtel_money'],
-            
-            # Oceania
-            'AU': ['afterpay', 'bpay', 'osko'],
-            'NZ': ['afterpay', 'poli'],
-            
-            # North America
-            'CA': ['interac'],
-            'US': ['affirm', 'us_bank_account', 'venmo'],
-            
-            # Europe
-            'GB': ['bacs_debit', 'ideal', 'sofort'],
-            'RU': ['yandex_pay', 'qiwi', 'sberbank']
-        }
-        
-        # If we have user_country, add the appropriate payment methods
-        if user_country and user_country in region_payment_mapping:
-            payment_method_types.extend(region_payment_mapping[user_country])
+        # Note: We've removed the complex region mapping to fix the Stripe checkout error
+        # If region-specific payment methods are needed in the future, ensure they're 
+        # approved by Stripe and match their supported payment method types.
             
         metadata = {
             'plan': plan_code,
@@ -644,64 +592,12 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             purchase_details['days']
         )
         
-        # Use the country code if provided
-        user_country = country_code
-        # Dynamic payment method types based on user region
+        # Simplify payment methods to only use card payments (universally supported)
         payment_method_types = ['card']
         
-        # Add region-specific payment methods
-        region_payment_mapping = {
-            # East Asia
-            'CN': ['alipay', 'wechat_pay'],
-            'JP': ['konbini', 'paypay', 'jcb'],
-            'KR': ['kakaopay', 'naver_pay'],
-            
-            # Southeast Asia
-            'MY': ['grabpay', 'fpx', 'boost', 'touch_n_go'],
-            'TH': ['promptpay', 'truemoney'],
-            'ID': ['dana', 'ovo', 'gopay', 'linkaja'],
-            'PH': ['gcash', 'paymaya'],
-            'SG': ['grabpay', 'paynow'],
-            'VN': ['momo', 'zalopay', 'vnpay'],
-            
-            # South Asia
-            'IN': ['upi', 'paytm', 'netbanking', 'amazon_pay', 'phonepe'],
-            'PK': ['easypaisa', 'jazzcash'],
-            'BD': ['bkash', 'rocket', 'nagad'],
-            'NP': ['esewa', 'khalti'],
-            
-            # Latin America
-            'BR': ['boleto', 'pix', 'mercado_pago'],
-            'MX': ['oxxo', 'spei', 'mercado_pago'],
-            
-            # Middle East
-            'AE': ['benefit', 'apple_pay'],
-            'SA': ['stcpay', 'mada'],
-            'EG': ['fawry', 'meeza'],
-            'TR': ['troy', 'papara', 'ininal'],
-            
-            # Africa
-            'KE': ['mpesa', 'airtel_money'],
-            'NG': ['paystack', 'flutterwave', 'opay'],
-            'ET': ['cbe_birr', 'telebirr'],
-            'TZ': ['mpesa', 'tigopesa', 'airtel_money'],
-            
-            # Oceania
-            'AU': ['afterpay', 'bpay', 'osko'],
-            'NZ': ['afterpay', 'poli'],
-            
-            # North America
-            'CA': ['interac'],
-            'US': ['affirm', 'us_bank_account', 'venmo'],
-            
-            # Europe
-            'GB': ['bacs_debit', 'ideal', 'sofort'],
-            'RU': ['yandex_pay', 'qiwi', 'sberbank']
-        }
-        
-        # If we have user_country, add the appropriate payment methods
-        if user_country and user_country in region_payment_mapping:
-            payment_method_types.extend(region_payment_mapping[user_country])
+        # Note: We've removed the complex region mapping to fix the Stripe checkout error
+        # If region-specific payment methods are needed in the future, ensure they're 
+        # approved by Stripe and match their supported payment method types.
             
         metadata = {
             'plan': plan_code,
