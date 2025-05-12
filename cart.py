@@ -102,6 +102,7 @@ def get_cart_total():
         float: Total price in dollars (not cents).
     """
     initialize_cart()
+    # Prices are stored in dollars
     total = sum(item['price'] for item in session['cart'])
     return total
 
