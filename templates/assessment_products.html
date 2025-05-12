@@ -2,6 +2,9 @@
 
 {% block head %}
 {{ super() }}
+<!-- Include Stripe Buy Button JavaScript -->
+<script async src="https://js.stripe.com/v3/buy-button.js"></script>
+
 <script>
   // Fix for "ERROR: Invalid details" message that appears in bottom-right corner
   document.addEventListener('DOMContentLoaded', function() {
@@ -149,9 +152,14 @@
                         <p class="text-muted small"><i class="fas fa-info-circle"></i> Each assessment can only be taken once to ensure operational efficiency and cost control.</p>
                     </div>
                     <div class="card-footer">
-                        <a href="{{ url_for('cart.add_to_cart', product_id='academic_writing') }}" class="btn btn-success btn-block w-100">
-                            <i class="fas fa-cart-plus"></i> Add to Cart
-                        </a>
+                        <div class="stripe-buy-button-container">
+                            <!-- Stripe Buy Button for Academic Writing -->
+                            <stripe-buy-button
+                              buy-button-id="{{ academic_writing_button_id }}"
+                              publishable-key="{{ stripe_publishable_key }}"
+                            >
+                            </stripe-buy-button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -172,9 +180,14 @@
                         <p class="text-muted small"><i class="fas fa-info-circle"></i> Each assessment can only be taken once to ensure operational efficiency and cost control.</p>
                     </div>
                     <div class="card-footer">
-                        <a href="{{ url_for('cart.add_to_cart', product_id='general_writing') }}" class="btn btn-success btn-block w-100">
-                            <i class="fas fa-cart-plus"></i> Add to Cart
-                        </a>
+                        <div class="stripe-buy-button-container">
+                            <!-- Stripe Buy Button for General Writing -->
+                            <stripe-buy-button
+                              buy-button-id="{{ general_writing_button_id }}"
+                              publishable-key="{{ stripe_publishable_key }}"
+                            >
+                            </stripe-buy-button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -208,9 +221,14 @@
                         <p class="text-muted small"><i class="fas fa-info-circle"></i> Each assessment can only be taken once to ensure operational efficiency and cost control.</p>
                     </div>
                     <div class="card-footer">
-                        <a href="{{ url_for('cart.add_to_cart', product_id='academic_speaking') }}" class="btn btn-primary btn-block w-100">
-                            <i class="fas fa-cart-plus"></i> Add to Cart
-                        </a>
+                        <div class="stripe-buy-button-container">
+                            <!-- Stripe Buy Button for Academic Speaking -->
+                            <stripe-buy-button
+                              buy-button-id="{{ academic_speaking_button_id }}"
+                              publishable-key="{{ stripe_publishable_key }}"
+                            >
+                            </stripe-buy-button>
+                        </div>
                     </div>
                 </div>
             </div>
