@@ -353,8 +353,8 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 'setup_future_usage': 'off_session',    # Allow future payments without authentication
                 'capture_method': 'automatic',          # Capture funds automatically
             },
-            # Restrict billing to allowed countries only
-            'allowed_countries': allowed_countries,
+            # Country restrictions will be handled post-checkout via webhook validation
+            # Stripe doesn't support allowed_countries parameter directly
         }
         
         # Add customer email if provided
@@ -519,7 +519,8 @@ def create_stripe_checkout_speaking(package_type, country_code=None, customer_em
             'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
             'billing_address_collection': 'required',  # Collect billing address for tax purposes
             # Restrict billing to allowed countries only
-            'allowed_countries': allowed_countries,
+            # Country restrictions will be handled post-checkout via webhook validation
+            # Stripe doesn't support allowed_countries parameter directly
             'payment_intent_data': {
                 'setup_future_usage': 'off_session',  # Allow future payments without authentication
                 'capture_method': 'automatic',  # Capture funds automatically
@@ -718,7 +719,8 @@ def create_stripe_checkout(plan_info, country_code=None, test_type=None, test_pa
             'automatic_tax': {'enabled': True},  # Enable automatic tax calculation
             'billing_address_collection': 'required',  # Collect billing address for tax purposes
             # Restrict billing to allowed countries only
-            'allowed_countries': allowed_countries,
+            # Country restrictions will be handled post-checkout via webhook validation
+            # Stripe doesn't support allowed_countries parameter directly
             'payment_intent_data': {
                 'setup_future_usage': 'off_session',  # Allow future payments without authentication
                 'capture_method': 'automatic',  # Capture funds automatically
