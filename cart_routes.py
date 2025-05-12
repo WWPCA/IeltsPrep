@@ -145,10 +145,17 @@ def create_checkout_session():
             country_code=country_code
         )
         
-        # Make sure we're working with the correct return value format
-        # The function returns a dictionary with session_id and checkout_url
-        session_id = checkout_session.get('session_id')
-        checkout_url = checkout_session.get('checkout_url')
+        # The checkout_session could be either a dictionary with session_id and checkout_url
+        # or a direct Stripe Session object depending on the implementation
+        
+        # Check if it's a dictionary
+        if isinstance(checkout_session, dict):
+            session_id = checkout_session.get('session_id', '')
+            checkout_url = checkout_session.get('checkout_url', '')
+        else:
+            # It's a Stripe Session object
+            session_id = getattr(checkout_session, 'id', '')
+            checkout_url = getattr(checkout_session, 'url', '')
         
         # Store cart details in session for use in payment_success
         session['checkout'] = {
@@ -159,6 +166,12 @@ def create_checkout_session():
         
         # Handle different response types based on request
         is_ajax = request.headers.get('Content-Type') == 'application/json'
+        
+        # Make sure checkout_url is valid
+        if not checkout_url:
+            # Handle error - couldn't create checkout session properly
+            flash('Error creating checkout session. Please try again.', 'danger')
+            return redirect(url_for('cart.view_cart')) if not is_ajax else jsonify({'error': 'Failed to create checkout session'})
         
         if is_ajax:
             # For AJAX requests
@@ -171,10 +184,22 @@ def create_checkout_session():
             return redirect(checkout_url)
         
     except Exception as e:
-        print(f"Error creating checkout session: {str(e)}")
+        # Log the error 
+        error_msg = f"Error creating checkout session: {str(e)}"
+        print(error_msg)
         
+        # Use more user-friendly error messages
+        if hasattr(e, 'http_status') and e.http_status == 401:
+            user_error = "Payment service authentication failed. Please try again later."
+        else:
+            user_error = "We couldn't connect to our payment service. Please try again or contact support."
+        
+        # Handle different response types
         if request.headers.get('Content-Type') == 'application/json':
-            return jsonify({'error': f'Payment processing error: {str(e)}'})
+            return jsonify({
+                'error': 'Payment processing error',
+                'message': user_error
+            })
             
-        flash(f'An error occurred during checkout: {str(e)}', 'danger')
+        flash(user_error, 'danger')
         return redirect(url_for('cart.view_cart'))
