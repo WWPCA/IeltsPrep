@@ -310,7 +310,7 @@ def learn(course_slug):
     
     # Get completed lessons
     completed_lessons = CompletedLesson.query.filter_by(
-        aihub_user_id=current_user.id
+        ielts_genai_user_id=current_user.id
     ).all()
     completed_lesson_ids = [cl.lesson_id for cl in completed_lessons]
     
@@ -400,7 +400,7 @@ def lesson(lesson_id):
     
     # Check if lesson is completed
     is_completed = CompletedLesson.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         lesson_id=lesson.id
     ).first() is not None
     
@@ -435,14 +435,14 @@ def complete_lesson():
     
     # Check if already completed
     existing = CompletedLesson.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         lesson_id=lesson_id
     ).first()
     
     if not existing:
         # Mark lesson as completed
         completed = CompletedLesson(
-            aihub_user_id=current_user.id,
+            ielts_genai_user_id=current_user.id,
             lesson_id=lesson_id
         )
         db.session.add(completed)
@@ -566,7 +566,7 @@ def submit_quiz():
     if passed:
         # Check if already completed
         existing = CompletedLesson.query.filter_by(
-            aihub_user_id=current_user.id,
+            ielts_genai_user_id=current_user.id,
             lesson_id=lesson_id
         ).first()
         
