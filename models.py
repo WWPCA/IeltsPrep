@@ -261,15 +261,8 @@ class User(UserMixin, db.Model):
                 
         return False
             
-    def is_subscribed(self):
-        """
-        DEPRECATED: Use has_active_assessment_package() instead.
-        
-        Check if user has access to purchased assessment packages
-        This method is named "is_subscribed" for backward compatibility,
-        but it actually checks for active assessment packages, not subscriptions.
-        """
-        return self.has_active_assessment_package()
+    # is_subscribed method has been completely removed
+    # All code should use has_active_assessment_package() directly
         
     def is_speaking_only_user(self):
         """

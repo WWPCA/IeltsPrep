@@ -99,7 +99,7 @@ def get_ad_config_for_platform(platform):
 def should_show_ads(user):
     """
     Determine if ads should be shown to the user.
-    Ads are only shown to non-subscribed users.
+    Ads are only shown to users without active assessment packages.
     
     Args:
         user: User object
@@ -107,10 +107,10 @@ def should_show_ads(user):
     Returns:
         bool: True if ads should be shown, False otherwise
     """
-    # Check if user is not subscribed
-    if not user or not hasattr(user, 'is_subscribed'):
+    # Check if user has an active assessment package
+    if not user or not hasattr(user, 'has_active_assessment_package'):
         return True
-    return not user.is_subscribed()
+    return not user.has_active_assessment_package()
 
 def user_ad_preferences(user_id):
     """

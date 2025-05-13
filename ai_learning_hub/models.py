@@ -23,7 +23,10 @@ class AIHubUser(UserMixin, db.Model):
     bio = db.Column(db.Text, nullable=True)
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=True) 
+    assessment_package_status = db.Column(db.String(20), default="none")
+    assessment_package_expiry = db.Column(db.DateTime, nullable=True)
+    # Legacy fields for backward compatibility during transition
     subscription_status = db.Column(db.String(20), default="none")
     subscription_expiry = db.Column(db.DateTime, nullable=True)
     preferred_language = db.Column(db.String(10), default="en")
@@ -50,7 +53,7 @@ class AIHubUser(UserMixin, db.Model):
         """Set user preferences"""
         self._preferences = json.dumps(value)
     
-    def is_subscribed(self):
+    def has_active_assessment_package(self):
         """Check if the user has an active assessment package"""
         if not self.assessment_package_expiry:
             return False
