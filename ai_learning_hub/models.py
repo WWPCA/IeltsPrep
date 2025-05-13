@@ -10,10 +10,11 @@ from ai_learning_hub.app import db, login_manager
 @login_manager.user_loader
 def load_user(user_id):
     """Load a user from the database"""
-    return AIHubUser.query.get(int(user_id))
+    return IELTSGenAIUser.query.get(int(user_id))
 
-class AIHubUser(UserMixin, db.Model):
-    """User model for AI Learning Hub"""
+class IELTSGenAIUser(UserMixin, db.Model):
+    """User model for IELTS GenAI Prep"""
+    __tablename__ = 'ielts_genai_user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -60,7 +61,7 @@ class AIHubUser(UserMixin, db.Model):
         return self.assessment_package_status == "active" and self.assessment_package_expiry > datetime.utcnow()
     
     def __repr__(self):
-        return f'<AIHubUser {self.username}>'
+        return f'<IELTSGenAIUser {self.username}>'
 
 class Course(db.Model):
     """Course model for AI Learning Hub"""
@@ -71,7 +72,7 @@ class Course(db.Model):
     thumbnail_url = db.Column(db.String(256), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    author_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'))
     is_published = db.Column(db.Boolean, default=False)
     difficulty_level = db.Column(db.String(20), default="beginner")
     duration_minutes = db.Column(db.Integer, nullable=True)
