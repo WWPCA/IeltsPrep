@@ -1,5 +1,5 @@
 """
-Database models for the AI Learning Hub application
+Database models for the IELTS GenAI Prep application
 """
 from datetime import datetime
 import json

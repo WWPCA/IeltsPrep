@@ -74,7 +74,7 @@ def login():
         password = request.form.get('password')
         remember = 'remember' in request.form
         
-        user = AIHubUser.query.filter_by(email=email).first()
+        user = IELTSGenAIUser.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
             login_user(user, remember=remember)
@@ -108,13 +108,13 @@ def register():
             error = 'Passwords do not match'
         elif len(password) < 8:
             error = 'Password must be at least 8 characters long'
-        elif AIHubUser.query.filter_by(username=username).first():
+        elif IELTSGenAIUser.query.filter_by(username=username).first():
             error = 'Username already taken'
-        elif AIHubUser.query.filter_by(email=email).first():
+        elif IELTSGenAIUser.query.filter_by(email=email).first():
             error = 'Email already registered'
         else:
             # Create new user
-            new_user = AIHubUser(username=username, email=email)
+            new_user = IELTSGenAIUser(username=username, email=email)
             new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
@@ -138,7 +138,7 @@ def logout():
 @login_required
 def dashboard():
     # Get user's enrolled courses
-    enrollments = Enrollment.query.filter_by(aihub_user_id=current_user.id).all()
+    enrollments = Enrollment.query.filter_by(ielts_genai_user_id=current_user.id).all()
     enrolled_courses = []
     
     for enrollment in enrollments:
@@ -695,7 +695,7 @@ def submit_review():
 def view_certificate(certificate_id):
     certificate = Certificate.query.filter_by(certificate_id=certificate_id).first_or_404()
     course = Course.query.get_or_404(certificate.course_id)
-    user = AIHubUser.query.get_or_404(certificate.aihub_user_id)
+    user = IELTSGenAIUser.query.get_or_404(certificate.ielts_genai_user_id)
     
     return render_template(
         'certificate.html',
