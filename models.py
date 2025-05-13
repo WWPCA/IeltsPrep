@@ -95,15 +95,6 @@ class User(UserMixin, db.Model):
     @assessment_history.setter
     def assessment_history(self, value):
         self._assessment_history = json.dumps(value)
-        
-    # Legacy property for backwards compatibility - will be removed after full migration
-    @property
-    def test_history(self):
-        return self.assessment_history
-    
-    @test_history.setter
-    def test_history(self, value):
-        self.assessment_history = value
     
     @property
     def speaking_scores(self):
@@ -134,31 +125,31 @@ class User(UserMixin, db.Model):
         for test in self.completed_tests:
             if test['test_id'] == test_id:
                 if test_type is None or test['test_type'] == test_type:
-                    # Check if taken during current subscription period
-                    if self.subscription_expiry:
+                    # Check if taken during current assessment package period
+                    if self.assessment_package_expiry:
                         test_date = datetime.fromisoformat(test['date'])
-                        # Get subscription duration from test_history
-                        subscription_days = 30  # Default to 30 days
+                        # Get assessment package duration from assessment_history
+                        package_days = 30  # Default to 30 days
                         
-                        for history_item in self.test_history:
-                            if "test_purchase" in history_item:
-                                purchase_data = history_item["test_purchase"]
+                        for history_item in self.assessment_history:
+                            if "assessment_purchase" in history_item:
+                                purchase_data = history_item["assessment_purchase"]
                                 if "expiry_date" in purchase_data:
                                     # Calculate days between purchase and expiry
                                     purchase_date = datetime.fromisoformat(purchase_data["purchase_date"])
                                     expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
-                                    subscription_days = (expiry_date - purchase_date).days
+                                    package_days = (expiry_date - purchase_date).days
                                     break
-                            elif "subscription_data" in history_item:
-                                sub_data = history_item["subscription_data"]
-                                if "plan" in sub_data:
+                            elif "assessment_package_data" in history_item:
+                                package_data = history_item["assessment_package_data"]
+                                if "plan" in package_data:
                                     # Value pack (4 tests) = 30 days, others = 15 days
-                                    subscription_days = 30 if "pro" in sub_data["plan"] else 15
+                                    package_days = 30 if "pro" in package_data["plan"] else 15
                                     break
                         
-                        # If test was taken before current subscription started, allow retaking
-                        subscription_start = self.subscription_expiry - timedelta(days=subscription_days)
-                        if test_date < subscription_start:
+                        # If test was taken before current assessment package started, allow retaking
+                        package_start = self.assessment_package_expiry - timedelta(days=package_days)
+                        if test_date < package_start:
                             return False
                     return True
         return False
@@ -249,14 +240,6 @@ class User(UserMixin, db.Model):
         for history_item in self.assessment_history:
             if "assessment_purchase" in history_item:
                 purchase_data = history_item["assessment_purchase"]
-                if "expiry_date" in purchase_data:
-                    # Check if purchase is still valid
-                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
-                    if expiry_date > datetime.utcnow():
-                        return True
-            # Support legacy format
-            elif "test_purchase" in history_item:
-                purchase_data = history_item["test_purchase"]
                 if "expiry_date" in purchase_data:
                     # Check if purchase is still valid
                     expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
@@ -382,7 +365,7 @@ class User(UserMixin, db.Model):
             return False
             
         # Find the most recent speaking purchase and increment used count
-        history = self.test_history
+        history = self.assessment_history
         for i in range(len(history) - 1, -1, -1):  # Reverse traversal
             if "speaking_purchase" in history[i]:
                 purchase_data = history[i]["speaking_purchase"]
@@ -391,12 +374,12 @@ class User(UserMixin, db.Model):
                     if purchase_data["used_assessments"] < purchase_data["total_assessments"]:
                         purchase_data["used_assessments"] += 1
                         history[i]["speaking_purchase"] = purchase_data
-                        self.test_history = history
+                        self.assessment_history = history
                         return True
                     return False
                     
-        # If no existing purchase data found, create a new entry based on subscription type
-        if self.subscription_status == "Speaking Only Basic":
+        # If no existing purchase data found, create a new entry based on assessment package type
+        if self.assessment_package_status == "Speaking Only Basic":
             # Create new purchase data for basic (4 assessments)
             new_purchase = {
                 "speaking_purchase": {
@@ -409,9 +392,9 @@ class User(UserMixin, db.Model):
                 }
             }
             history.append(new_purchase)
-            self.test_history = history
+            self.assessment_history = history
             return True
-        elif self.subscription_status == "Speaking Only Pro":
+        elif self.assessment_package_status == "Speaking Only Pro":
             # Create new purchase data for pro (10 assessments)
             new_purchase = {
                 "speaking_purchase": {
@@ -424,7 +407,7 @@ class User(UserMixin, db.Model):
                 }
             }
             history.append(new_purchase)
-            self.test_history = history
+            self.assessment_history = history
             return True
             
         return False
