@@ -295,7 +295,7 @@ def learn(course_slug):
     
     # Check if user is enrolled
     enrollment = Enrollment.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course.id
     ).first_or_404()
     
@@ -304,7 +304,7 @@ def learn(course_slug):
     
     # Get user progress
     progress = ProgressRecord.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course.id
     ).first()
     
@@ -343,7 +343,7 @@ def lesson(lesson_id):
     
     # Check if user is enrolled
     enrollment = Enrollment.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course.id
     ).first_or_404()
     
@@ -469,7 +469,7 @@ def complete_lesson():
         
         # Update progress record
         progress = ProgressRecord.query.filter_by(
-            aihub_user_id=current_user.id,
+            ielts_genai_user_id=current_user.id,
             course_id=course_id
         ).first()
         
@@ -478,7 +478,7 @@ def complete_lesson():
             progress.updated_at = datetime.utcnow()
         else:
             progress = ProgressRecord(
-                aihub_user_id=current_user.id,
+                ielts_genai_user_id=current_user.id,
                 course_id=course_id,
                 progress_percentage=completion_percentage
             )
@@ -488,7 +488,7 @@ def complete_lesson():
         is_completed = completion_percentage >= 100
         if is_completed:
             enrollment = Enrollment.query.filter_by(
-                aihub_user_id=current_user.id,
+                ielts_genai_user_id=current_user.id,
                 course_id=course_id
             ).first()
             
@@ -498,7 +498,7 @@ def complete_lesson():
                 
                 # Generate certificate
                 certificate = Certificate.query.filter_by(
-                    aihub_user_id=current_user.id,
+                    ielts_genai_user_id=current_user.id,
                     course_id=course_id
                 ).first()
                 
@@ -506,7 +506,7 @@ def complete_lesson():
                     import uuid
                     certificate_id = f"{course.slug[:8]}-{uuid.uuid4().hex[:8]}"
                     certificate = Certificate(
-                        aihub_user_id=current_user.id,
+                        ielts_genai_user_id=current_user.id,
                         course_id=course_id,
                         certificate_id=certificate_id
                     )
@@ -522,7 +522,7 @@ def complete_lesson():
     
     # Already completed, just return current progress
     progress = ProgressRecord.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course_id
     ).first()
     
@@ -647,7 +647,7 @@ def submit_review():
     
     # Check if user is enrolled
     enrollment = Enrollment.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course_id
     ).first()
     
@@ -657,7 +657,7 @@ def submit_review():
     
     # Check if user already reviewed
     existing_review = Review.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course_id
     ).first()
     
@@ -669,7 +669,7 @@ def submit_review():
     else:
         # Create new review
         review = Review(
-            aihub_user_id=current_user.id,
+            ielts_genai_user_id=current_user.id,
             course_id=course_id,
             rating=rating,
             review_text=review_text
