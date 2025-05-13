@@ -263,54 +263,24 @@ class User(UserMixin, db.Model):
         
     def is_speaking_only_user(self):
         """
-        DEPRECATED: This method is no longer actively used as we've moved away from speaking-only packages.
-        Kept for backward compatibility with existing users.
-        
-        Check if user has speaking-only access
+        Check if user has a speaking-only assessment package.
         """
-        # Speaking-only users have permanent account access (no expiry)
-        # Check for speaking-only assessment package status
-        speaking_only_packages = ["Academic Speaking", "General Speaking", "Speaking Only Basic", "Speaking Only Pro"]
-        
         # Check if current assessment package is a speaking-only type
-        if self.assessment_package_status in speaking_only_packages:
-            return True
-                
-        # Check for speaking-only assessment purchases in assessment_history
-        for history_item in self.assessment_history:
-            if "speaking_purchase" in history_item:
-                # If there's a speaking purchase in history, user has speaking-only access
-                # (speaking packages have permanent access)
-                return True
-                        
-        return False
+        speaking_packages = ["Academic Speaking", "General Speaking"]
+        
+        return self.assessment_package_status in speaking_packages
         
     def get_remaining_speaking_assessments(self):
         """
-        DEPRECATED: This method is no longer actively used as we've moved away from speaking-only packages.
-        Kept for backward compatibility with existing users.
-        
-        Get the number of speaking assessments remaining for speaking-only users
+        Get the number of speaking assessments remaining for users with speaking packages.
         """
         # Default to 0 if not a speaking-only user
         if not self.is_speaking_only_user():
             return 0
             
-        # Check for speaking assessments count in assessment_history
-        for history_item in reversed(self.assessment_history):  # Check most recent first
-            if "speaking_purchase" in history_item:
-                purchase_data = history_item["speaking_purchase"]
-                if "total_assessments" in purchase_data and "used_assessments" in purchase_data:
-                    remaining = purchase_data["total_assessments"] - purchase_data["used_assessments"]
-                    return max(0, remaining)  # Ensure never negative
-        
-        # If assessment package is a Speaking package but no purchase data found
-        if self.assessment_package_status == "Academic Speaking" or self.assessment_package_status == "General Speaking":
-            return 4  # Default for standard speaking package
-        elif self.assessment_package_status == "Speaking Only Basic":
-            return 4  # Default for basic speaking package
-        elif self.assessment_package_status == "Speaking Only Pro":
-            return 10  # Default for pro speaking package
+        # All speaking assessment packages include 4 assessments
+        if self.assessment_package_status in ["Academic Speaking", "General Speaking"]:
+            return 4
             
         return 0
         
@@ -346,61 +316,26 @@ class User(UserMixin, db.Model):
     
     def use_speaking_assessment(self):
         """
-        DEPRECATED: This method is no longer actively used as we've moved away from speaking-only packages.
-        Kept for backward compatibility with existing users.
-        
-        Mark that a speaking assessment has been used
+        Mark that a speaking assessment has been used for speaking assessment packages.
         """
         if not self.is_speaking_only_user():
             return False
             
-        # Find the most recent speaking purchase and increment used count
+        # All speaking packages now use a fixed number of assessments (4)
+        # Simply record usage in assessment history
         history = self.assessment_history
-        for i in range(len(history) - 1, -1, -1):  # Reverse traversal
-            if "speaking_purchase" in history[i]:
-                purchase_data = history[i]["speaking_purchase"]
-                if "total_assessments" in purchase_data and "used_assessments" in purchase_data:
-                    # Only increment if assessments remain
-                    if purchase_data["used_assessments"] < purchase_data["total_assessments"]:
-                        purchase_data["used_assessments"] += 1
-                        history[i]["speaking_purchase"] = purchase_data
-                        self.assessment_history = history
-                        return True
-                    return False
-                    
-        # If no existing purchase data found, create a new entry based on assessment package type
-        if self.assessment_package_status == "Speaking Only Basic":
-            # Create new purchase data for basic (4 assessments)
-            new_purchase = {
-                "speaking_purchase": {
-                    "purchase_date": datetime.utcnow().isoformat(),
-                    "expiry_date": None,  # No expiry
-                    "total_assessments": 4,
-                    "used_assessments": 1,
-                    "amount": 15.0,
-                    "package": "Speaking Only Basic"
-                }
+        
+        # Create new speaking usage record
+        usage_record = {
+            "speaking_usage": {
+                "date": datetime.utcnow().isoformat(),
+                "package": self.assessment_package_status
             }
-            history.append(new_purchase)
-            self.assessment_history = history
-            return True
-        elif self.assessment_package_status == "Speaking Only Pro":
-            # Create new purchase data for pro (10 assessments)
-            new_purchase = {
-                "speaking_purchase": {
-                    "purchase_date": datetime.utcnow().isoformat(),
-                    "expiry_date": None,  # No expiry
-                    "total_assessments": 10,
-                    "used_assessments": 1,
-                    "amount": 20.0,
-                    "package": "Speaking Only Pro"
-                }
-            }
-            history.append(new_purchase)
-            self.assessment_history = history
-            return True
-            
-        return False
+        }
+        
+        history.append(usage_record)
+        self.assessment_history = history
+        return True
     
     def __repr__(self):
         return f'<User {self.username}>'
