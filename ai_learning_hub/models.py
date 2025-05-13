@@ -51,10 +51,10 @@ class AIHubUser(UserMixin, db.Model):
         self._preferences = json.dumps(value)
     
     def is_subscribed(self):
-        """Check if the user has an active subscription"""
-        if not self.subscription_expiry:
+        """Check if the user has an active assessment package"""
+        if not self.assessment_package_expiry:
             return False
-        return self.subscription_status == "active" and self.subscription_expiry > datetime.utcnow()
+        return self.assessment_package_status == "active" and self.assessment_package_expiry > datetime.utcnow()
     
     def __repr__(self):
         return f'<AIHubUser {self.username}>'
