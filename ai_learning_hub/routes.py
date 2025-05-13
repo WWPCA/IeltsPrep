@@ -12,7 +12,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from ai_learning_hub.app import app, db
 from ai_learning_hub.models import (
-    AIHubUser, Certificate, CompletedLesson, Course, Enrollment, Lesson, Module,
+    IELTSGenAIUser, Certificate, CompletedLesson, Course, Enrollment, Lesson, Module,
     ProgressRecord, QuizQuestion, Review
 )
 
@@ -24,7 +24,7 @@ login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return AIHubUser.query.get(int(user_id))
+    return IELTSGenAIUser.query.get(int(user_id))
 
 
 # Custom decorators
