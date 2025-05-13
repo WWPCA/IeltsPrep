@@ -1802,7 +1802,7 @@ def create_checkout_session():
     
     # Check if user already has a Value Pack (cannot purchase additional packages)
     if current_user.is_authenticated and current_user.assessment_package_status == 'Value Pack' and current_user.has_active_assessment_package():
-        error_message = 'You already have an active Value Pack subscription. You cannot purchase additional test packages while your Value Pack is active.'
+        error_message = 'You already have an active Value Pack assessment package. You cannot purchase additional test packages while your Value Pack is active.'
         if request.is_json:
             return jsonify({'error': error_message}), 400
         else:

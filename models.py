@@ -872,7 +872,7 @@ class CountryPricing(db.Model):
     country_code = db.Column(db.String(2), nullable=False, unique=True)
     country_name = db.Column(db.String(100), nullable=False)
     
-    # Pricing for different subscription levels (in USD)
+    # Pricing for different assessment package levels (in USD)
     monthly_price = db.Column(db.Float, nullable=False)
     quarterly_price = db.Column(db.Float, nullable=False)
     yearly_price = db.Column(db.Float, nullable=False)
