@@ -470,22 +470,26 @@ class AssessmentSpeakingResponse(db.Model):
 
 
 class UserTestAssignment(db.Model):
-    """Track which tests are assigned to each user to ensure no repeats"""
+    """Track which assessments are assigned to each user to ensure no repeats
+    
+    Note: This model was previously named for test assignments but now manages assessment assignments
+    as part of the transition to the assessment-only model.
+    """
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     test_type = db.Column(db.String(20), nullable=False)  # academic or general
-    assigned_test_numbers = db.Column(db.Text, nullable=False)  # JSON array of assigned test numbers
+    assigned_test_numbers = db.Column(db.Text, nullable=False)  # JSON array of assigned assessment numbers
     purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
     expiry_date = db.Column(db.DateTime, nullable=True)
     
     @property
     def test_numbers(self):
-        """Get the list of assigned test numbers"""
+        """Get the list of assigned assessment numbers"""
         return json.loads(self.assigned_test_numbers)
     
     @test_numbers.setter
     def test_numbers(self, value):
-        """Set the list of assigned test numbers"""
+        """Set the list of assigned assessment numbers"""
         self.assigned_test_numbers = json.dumps(value)
         
     def __repr__(self):

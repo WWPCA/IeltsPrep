@@ -1,7 +1,10 @@
 """
-Test Assignment Service
-This module manages the assignment of tests to users, ensuring they don't receive
-the same test twice when purchasing new packages.
+Assessment Assignment Service
+This module manages the assignment of assessments to users, ensuring they don't receive
+the same assessment twice when purchasing new packages.
+
+Note: This file was previously named for test assignments but now manages assessment assignments
+as part of the transition to the assessment-only model.
 """
 import json
 import random
@@ -10,20 +13,23 @@ from sqlalchemy import func, or_, and_
 
 from models import db, UserTestAssignment, User, Assessment
 
-# Total number of unique tests for each test type
+# Total number of unique assessments for each assessment type
+# Variable names retained for backward compatibility
 TOTAL_ACADEMIC_TESTS = 16
 TOTAL_GENERAL_TESTS = 16
 
 def get_available_test_numbers(user_id, test_type):
     """
-    Get a list of test numbers that haven't been assigned to this user.
+    Get a list of assessment numbers that haven't been assigned to this user.
     
     Args:
         user_id (int): The user's ID
         test_type (str): Either 'academic' or 'general'
         
     Returns:
-        list: Available test numbers (1-16) not previously assigned to this user
+        list: Available assessment numbers (1-16) not previously assigned to this user
+        
+    Note: Function name retains "test_numbers" for backward compatibility
     """
     # Get all test numbers previously assigned to this user
     previous_assignments = UserTestAssignment.query.filter_by(
@@ -46,24 +52,26 @@ def get_available_test_numbers(user_id, test_type):
 
 def assign_tests_to_user(user_id, test_type, num_tests, access_days=15):
     """
-    Assign a specific number of tests to a user, ensuring they don't receive 
-    tests they've already seen.
+    Assign a specific number of assessments to a user, ensuring they don't receive 
+    assessments they've already seen.
     
     Args:
         user_id (int): The user's ID
         test_type (str): Either 'academic' or 'general'
-        num_tests (int): Number of tests to assign (1, 2 or 4)
+        num_tests (int): Number of assessments to assign (1, 2 or 4)
         access_days (int): Number of days the assessment package is valid (15 or 30)
         
     Returns:
-        list: The assigned test numbers
-        bool: True if successful, False if not enough unique tests available
+        list: The assigned assessment numbers
+        bool: True if successful, False if not enough unique assessments available
+        
+    Note: Function name retains "tests" terminology for backward compatibility
     """
     # Validate parameters
     if num_tests not in [1, 2, 4]:
-        raise ValueError("Number of tests must be 1, 2, or 4")
+        raise ValueError("Number of assessments must be 1, 2, or 4")
     if test_type not in ['academic', 'general']:
-        raise ValueError("Test type must be 'academic' or 'general'")
+        raise ValueError("Assessment type must be 'academic' or 'general'")
     
     # Get available test numbers
     available_numbers = get_available_test_numbers(user_id, test_type)
