@@ -23,7 +23,7 @@ class User(UserMixin, db.Model):
     preferred_language = db.Column(db.String(10), default="en")
     test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
     # Account activation flag - only true after successful payment
-    is_active = db.Column(db.Boolean, default=False)
+    account_activated = db.Column(db.Boolean, default=False)  # Renamed from is_active to avoid UserMixin conflict
     # Email verification fields
     email_verified = db.Column(db.Boolean, default=False)
     email_verification_token = db.Column(db.String(100), nullable=True)
@@ -48,6 +48,14 @@ class User(UserMixin, db.Model):
     
     # Store password history as JSON string (stores hashed passwords only)
     _password_history = db.Column(db.Text, default='[]')
+    
+    @property
+    def is_active(self):
+        """
+        Override UserMixin's is_active property to use our account_activated field.
+        This ensures backward compatibility with code that expects is_active to work.
+        """
+        return self.account_activated
     
     def set_password(self, password):
         # Save current password to history if it exists
@@ -224,10 +232,12 @@ class User(UserMixin, db.Model):
         DEPRECATED TERMINOLOGY: This method is named "is_subscribed" for backward compatibility,
         but it actually checks for active assessment packages, not subscriptions, as we've moved 
         from a subscription model to individual package purchases.
+        
+        Should use has_active_assessment_package() instead.
         """
-        # Check if subscription has expired first
+        # Check if assessment package has expired first
         if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
-            # Subscription has expired - update status
+            # Assessment package has expired - update status
             self.subscription_status = "expired"
             db.session.commit()
             return False
@@ -251,6 +261,44 @@ class User(UserMixin, db.Model):
             
         # Verify that subscription status is not "none" or "expired" and hasn't expired
         if (self.subscription_status in valid_subscriptions and 
+                self.subscription_status != "none" and
+                self.subscription_status != "expired" and
+                (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
+            return True
+                
+        return False
+        
+    def has_active_assessment_package(self):
+        """
+        Check if user has access to purchased assessment packages.
+        This is the preferred method to use instead of is_subscribed().
+        """
+        # Check if assessment package has expired first
+        if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
+            # Assessment package has expired - update status
+            self.subscription_status = "expired"
+            db.session.commit()
+            return False
+            
+        # Check for test purchases in test_history
+        for history_item in self.test_history:
+            if "test_purchase" in history_item:
+                purchase_data = history_item["test_purchase"]
+                if "expiry_date" in purchase_data:
+                    # Check if purchase is still valid
+                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
+                    if expiry_date > datetime.utcnow():
+                        return True
+            
+        # Check for the new assessment package status values
+        valid_packages = [
+            "Value Pack", "Single Test", "Double Package",  # New naming convention
+            "Speaking Only Basic", "Speaking Only Pro",     # Speaking-only packages (deprecated)
+            "premium", "base", "intermediate", "pro"        # Legacy naming convention
+        ]
+            
+        # Verify that assessment package status is not "none" or "expired" and hasn't expired
+        if (self.subscription_status in valid_packages and 
                 self.subscription_status != "none" and
                 self.subscription_status != "expired" and
                 (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
