@@ -219,7 +219,7 @@ def course_detail(slug):
     
     if current_user.is_authenticated:
         enrollment = Enrollment.query.filter_by(
-            aihub_user_id=current_user.id,
+            ielts_genai_user_id=current_user.id,
             course_id=course.id
         ).first()
         
@@ -227,7 +227,7 @@ def course_detail(slug):
         
         if is_enrolled:
             progress = ProgressRecord.query.filter_by(
-                aihub_user_id=current_user.id,
+                ielts_genai_user_id=current_user.id,
                 course_id=course.id
             ).first()
             
@@ -572,7 +572,7 @@ def submit_quiz():
         
         if not existing:
             completed = CompletedLesson(
-                aihub_user_id=current_user.id,
+                ielts_genai_user_id=current_user.id,
                 lesson_id=lesson_id,
                 quiz_score=percentage
             )
