@@ -613,10 +613,10 @@ def practice_index():
                     )
                 ).order_by(CompletePracticeTest.test_number).all()
                 
-                # Limit the number of tests based on subscription
+                # Limit the number of tests based on assessment package
                 complete_tests = all_tests[:num_tests_to_show]
         else:
-            # For non-subscribers, only show free tests (also avoid duplicates)
+            # For users without an assessment package, only show free tests (also avoid duplicates)
             subquery = db.session.query(
                 CompletePracticeTest.test_number,
                 func.max(CompletePracticeTest.id).label('max_id')
@@ -731,7 +731,7 @@ def practice_test_list(test_type):
         # Limit tests based on assessment package level
         tests = tests[:num_tests_to_show] if tests else []
     else:
-        # For non-subscribers, only show the first test
+        # For users without an assessment package, only show the first test
         tests = tests[:1] if tests else []
     
     # Get a list of test IDs the user has already completed
