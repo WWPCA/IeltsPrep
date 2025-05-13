@@ -976,11 +976,11 @@ def continue_complete_test(test_id):
         # Verify the user has the appropriate package for this test
         from sqlalchemy import func
         
-        # Determine number of tests allowed based on user's subscription
+        # Determine number of tests allowed based on user's assessment package
         num_tests_allowed = 1  # Default for single test package
-        if current_user.subscription_status == 'Value Pack':
+        if current_user.assessment_package_status == 'Value Pack':
             num_tests_allowed = 4
-        elif current_user.subscription_status == 'Double Package':
+        elif current_user.assessment_package_status == 'Double Package':
             num_tests_allowed = 2
         
         # Get the latest version of each test number
@@ -1047,7 +1047,7 @@ def take_complete_test_section(test_id, section):
         # Verify the user has the appropriate package for this test
         from sqlalchemy import func
         
-        # Determine number of tests allowed based on user's subscription
+        # Determine number of tests allowed based on user's assessment package
         num_tests_allowed = 1  # Default for single test package
         if current_user.subscription_status == 'Value Pack':
             num_tests_allowed = 4
@@ -1133,7 +1133,7 @@ def complete_test_results(test_id):
         # Verify the user has the appropriate package for this test
         from sqlalchemy import func
         
-        # Determine number of tests allowed based on user's subscription
+        # Determine number of tests allowed based on user's assessment package
         num_tests_allowed = 1  # Default for single test package
         if current_user.subscription_status == 'Value Pack':
             num_tests_allowed = 4
