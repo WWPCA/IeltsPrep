@@ -19,8 +19,8 @@ def admin_required(f):
     """Decorator to check if the current user is an administrator."""
     def decorated_function(*args, **kwargs):
         # is_admin field removed as it doesn't exist in database
-        # Using Value Pack subscription as a temporary way to identify admins
-        if not current_user.is_authenticated or current_user.subscription_status != "Value Pack":
+        # Using admin_role flag to identify administrators
+        if not current_user.is_authenticated or not current_user.admin_role:
             flash("You don't have permission to access this page.", "danger")
             return redirect(url_for('index'))
         return f(*args, **kwargs)

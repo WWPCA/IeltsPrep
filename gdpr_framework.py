@@ -180,8 +180,8 @@ def generate_user_data_report(user_id, report_format='json'):
                     'region': user.region,
                     'join_date': user.join_date.isoformat() if user.join_date else None,
                     'last_login': None,  # Add if tracked
-                    'subscription_status': user.subscription_status,
-                    'subscription_expiry': user.subscription_expiry.isoformat() if user.subscription_expiry else None,
+                    'assessment_package_status': user.assessment_package_status,
+                    'assessment_package_expiry': user.assessment_package_expiry.isoformat() if user.assessment_package_expiry else None,
                     'preferred_language': user.preferred_language,
                     'test_preference': user.test_preference
                 },
