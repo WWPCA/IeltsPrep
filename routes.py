@@ -36,14 +36,14 @@ except ImportError:
         
         test = PracticeTest.query.get_or_404(test_id)
         
-        # All tests require an assessment package
+        # All tests require subscription
         if not current_user.has_active_assessment_package():
-            flash('This test requires an assessment package. Please purchase an assessment package to access all practice tests.', 'warning')
+            flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
             return redirect(url_for('assessment_products_page'))
         
-        # Check if user has already taken this test with their current assessment package
+        # Check if user has already taken this test during current subscription period
         if current_user.has_taken_test(test_id, test_type):
-            flash('You have already taken this test with your current assessment package. Each test can only be taken once per assessment package.', 'warning')
+            flash('You have already taken this test during your current subscription period. Each test can only be taken once per subscription.', 'warning')
             return redirect(url_for('practice_test_list', test_type=test_type))
         
         return render_template('practice/test_details.html', 
