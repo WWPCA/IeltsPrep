@@ -1,388 +1,234 @@
 """
-IELTS Writing Assessment Routes
-This module provides routes for assessing IELTS writing responses using OpenAI GPT-4o.
+Writing Assessment Routes Module
+
+This module provides routes specifically for IELTS writing assessments:
+- Academic Task 1 (graph/chart description)
+- Academic Task 2 (essay)
+- General Training Task 1 (letter)
+- General Training Task 2 (essay)
+
+All writing responses are GenAI-assessed using TrueScore® technology for accurate band scoring.
 """
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
+from datetime import datetime
+from flask import render_template, redirect, url_for, request, flash, session, abort, jsonify
 from flask_login import login_required, current_user
-from models import db, Assessment, User, AssessmentSession
-from nova_writing_assessment import analyze_writing_response
 import json
-import os
-from datetime import datetime, timedelta
 
-writing_assessment = Blueprint('writing_assessment', __name__)
+from main import app
+from models import db, Assessment, UserAssessmentAttempt, WritingResponse
+from account_activation import authenticated_user_required
 
-@writing_assessment.route('/writing/recovery_check/<int:test_id>', methods=['GET'])
+# Taking a writing assessment
+@app.route('/assessments/writing/<int:assessment_id>/attempt/<int:attempt_id>')
 @login_required
-def check_for_unfinished_session(test_id):
-    """
-    Check if a user has an unfinished writing assessment session
-    """
-    test = PracticeTest.query.get_or_404(test_id)
+@authenticated_user_required
+def take_writing_assessment(assessment_id, attempt_id):
+    """Take a writing assessment"""
+    # Get the assessment
+    assessment = Assessment.query.get_or_404(assessment_id)
     
-    # Determine the product ID based on the test type
-    product_id = None
-    if test.test_type == "writing":
-        if test.ielts_test_type == "academic":
-            product_id = "academic_writing"
-        else:
-            product_id = "general_writing"
+    # Get the assessment attempt
+    attempt = UserAssessmentAttempt.query.get_or_404(attempt_id)
     
-    if not product_id:
-        return jsonify({"has_unfinished_session": False})
-    
-    # Check for unfinished session
-    unfinished_session = AssessmentSession.get_active_session(current_user.id, product_id)
-    
-    if unfinished_session:
-        # Check if the session is less than 24 hours old - only allow recovery for recent sessions
-        session_age = datetime.utcnow() - unfinished_session.started_at
-        if session_age < timedelta(hours=24):
-            return jsonify({
-                "has_unfinished_session": True,
-                "session_id": unfinished_session.id,
-                "started_at": unfinished_session.started_at.isoformat()
-            })
-    
-    return jsonify({"has_unfinished_session": False})
-
-@writing_assessment.route('/writing/submit_task/<int:test_id>', methods=['POST'])
-@login_required
-def submit_writing_task(test_id):
-    """
-    Submit a writing task for assessment
-    """
-    try:
-        # Get the test
-        test = Assessment.query.get_or_404(test_id)
-        
-        # Verify user has access to this test
-        if not test.is_free and not current_user.has_active_assessment_package():
-            flash("You must be subscribed to submit this test.", "danger")
-            return redirect(url_for('practice.test_details', test_type='writing', test_id=test_id))
-        
-        # Check if user has already taken this test without having an unfinished session
-        if current_user.has_taken_test(test_id, 'writing'):
-            # Determine the product ID based on the test type
-            product_id = None
-            if test.ielts_test_type == "academic":
-                product_id = "academic_writing"
-            else:
-                product_id = "general_writing"
-            
-            # Check if there's an unfinished session that would allow retaking
-            unfinished_session = None
-            if product_id:
-                unfinished_session = AssessmentSession.get_active_session(current_user.id, product_id)
-            
-            # If there's no unfinished session, don't allow retaking
-            if not unfinished_session:
-                flash("You have already taken this test. Each assessment can only be taken once to keep costs manageable.", "warning")
-                
-                # Find their previous attempt to display results
-                previous_attempt = UserTestAttempt.query.filter_by(
-                    user_id=current_user.id,
-                    test_id=test_id
-                ).order_by(UserTestAttempt.attempt_date.desc()).first()
-                
-                if previous_attempt:
-                    return redirect(url_for('writing_assessment.writing_assessment_results', attempt_id=previous_attempt.id))
-                else:
-                    return redirect(url_for('practice.test_details', test_type='writing', test_id=test_id))
-            else:
-                # If there's an unfinished session, mark it as complete before continuing
-                unfinished_session.mark_complete()
-        
-        # Determine the product ID based on the test type for creating a new session
-        product_id = None
-        if test.ielts_test_type == "academic":
-            product_id = "academic_writing"
-        else:
-            product_id = "general_writing"
-        
-        # Create a new session
-        if product_id:
-            # Create or update the session
-            session_record = AssessmentSession.create_session(current_user.id, product_id, test_id)
-        
-        # Get the essay text from the form
-        essay_text = request.form.get('essay_text', '')
-        
-        if not essay_text or len(essay_text.strip()) < 50:
-            flash("Your essay is too short. Please write a more substantial response.", "warning")
-            return redirect(url_for('practice.take_test', test_type='writing', test_id=test_id))
-        
-        # Get the test data
-        test_questions = test.questions
-        
-        # Determine if this is Task 1 or Task 2 based on the test section
-        task_number = 1 if test.section == 1 else 2
-        
-        # Get the task prompt
-        if isinstance(test_questions, list) and test_questions:
-            # New format with description and instructions
-            if isinstance(test_questions[0], dict) and 'description' in test_questions[0]:
-                task_description = test_questions[0].get('description', '')
-                task_instructions = test_questions[0].get('instructions', '')
-                task_prompt = f"{task_description}\n\n{task_instructions}"
-            else:
-                # Legacy format
-                task_prompt = test_questions[0].get('question', '')
-        else:
-            task_prompt = ''
-        
-        # Process the writing task with our enhanced assessment
-        task_type = "task1" if task_number == 1 else "task2"
-        assessment = analyze_writing_response(
-            essay_text, 
-            task_prompt, 
-            task_type=task_type, 
-            test_type=test.ielts_test_type
-        )
-        
-        # Get the overall band score from the assessment
-        overall_task_score = assessment.get("overall_score", 0)
-        
-        # If there's no overall score but there are criteria scores, calculate it
-        if overall_task_score == 0 and "criteria_scores" in assessment:
-            criteria_scores = assessment["criteria_scores"]
-            task_score_key = "Task Achievement" if task_number == 1 else "Task Response"
-            overall_task_score = (
-                criteria_scores.get(task_score_key, 0) + 
-                criteria_scores.get("Coherence and Cohesion", 0) + 
-                criteria_scores.get("Lexical Resource", 0) + 
-                criteria_scores.get("Grammatical Range and Accuracy", 0)
-            ) / 4
-            # Round to nearest 0.5
-            overall_task_score = round(overall_task_score * 2) / 2
-        
-        # Create a new attempt record
-        attempt = UserTestAttempt(
-            user_id=current_user.id,
-            test_id=test_id,
-            user_answers=json.dumps({'essay_text': essay_text}),
-            score=overall_task_score,
-            assessment=json.dumps(assessment)
-        )
-        
-        # If this is part of a complete test, link it to the test progress
-        complete_test_progress_id = session.get('complete_test_progress_id')
-        if complete_test_progress_id:
-            attempt.complete_test_progress_id = complete_test_progress_id
-            test_progress = CompleteTestProgress.query.get(complete_test_progress_id)
-            if test_progress:
-                # Mark this section as completed
-                test_progress.mark_section_completed('writing', overall_task_score)
-                
-                # Update progress current section
-                if test_progress.is_test_completed():
-                    test_progress.current_section = None
-                else:
-                    test_progress.current_section = test_progress.get_next_section()
-                    
-                db.session.add(test_progress)
-        
-        db.session.add(attempt)
-        
-        # Mark test as completed for this user
-        current_user.mark_test_completed(test_id, 'writing')
-        
-        # Update the user's streak
-        current_user.update_streak()
-        
-        # Mark any active session as completed successfully
-        if product_id:
-            session_record = AssessmentSession.get_active_session(current_user.id, product_id)
-            if session_record:
-                session_record.mark_complete()
-                session_record.mark_submitted()
-        
-        db.session.commit()
-        
-        # Redirect to the results page
-        return redirect(url_for('writing_assessment.writing_assessment_results', attempt_id=attempt.id))
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error processing writing submission: {str(e)}")
-        
-        # Mark any active session as failed
-        if 'product_id' in locals() and product_id:
-            session_record = AssessmentSession.get_active_session(current_user.id, product_id)
-            if session_record:
-                session_record.mark_failed(reason=str(e)[:255])  # Limit reason length
-        
-        flash(f"An error occurred while processing your submission. Please try again.", "danger")
-        return redirect(url_for('practice.take_test', test_type='writing', test_id=test_id))
-
-@writing_assessment.route('/writing/results/<int:attempt_id>')
-@login_required
-def writing_assessment_results(attempt_id):
-    """
-    Display the results of a writing assessment
-    """
-    # Get the attempt
-    attempt = UserTestAttempt.query.get_or_404(attempt_id)
-    
-    # Verify this attempt belongs to the current user
+    # Ensure this attempt belongs to the current user
     if attempt.user_id != current_user.id:
-        flash("You are not authorized to view these results.", "danger")
-        return redirect(url_for('practice.index'))
+        flash('You do not have permission to access this assessment attempt.', 'danger')
+        return redirect(url_for('assessment_index'))
     
-    # Get the test
-    test = PracticeTest.query.get_or_404(attempt.test_id)
+    # Check if the assessment type matches
+    if 'writing' not in assessment.assessment_type:
+        flash('Invalid assessment type for this route.', 'danger')
+        return redirect(url_for('assessment_index'))
     
-    # Get the assessment data
-    assessment = json.loads(attempt.assessment) if attempt.assessment else {}
+    # Get existing responses
+    task1_response = WritingResponse.query.filter_by(
+        attempt_id=attempt_id,
+        task_number=1
+    ).first()
     
-    # Determine if this is part of a complete test
-    is_part_of_complete_test = attempt.complete_test_progress_id is not None
+    task2_response = WritingResponse.query.filter_by(
+        attempt_id=attempt_id,
+        task_number=2
+    ).first()
     
-    # Prepare data for the template
-    data = {
-        'attempt': attempt,
-        'test': test,
-        'assessment': assessment,
-        'user_essay': json.loads(attempt.user_answers).get('essay_text', ''),
-        'band_score': round(float(attempt.score or 0), 1),
-        'task_number': 1 if test.section == 1 else 2,
-        'is_part_of_complete_test': is_part_of_complete_test
-    }
+    # Check if assessment is already completed
+    if attempt.status == 'completed':
+        return redirect(url_for('assessment_results', assessment_type='writing', attempt_id=attempt_id))
     
-    # Render the results template
-    return render_template('practice/writing_results.html', **data)
+    # Determine if this is an Academic or General Training assessment
+    is_academic = 'academic' in assessment.assessment_type
+    
+    # Render the writing assessment template
+    return render_template('assessments/writing.html',
+                          title='IELTS Writing Assessment',
+                          assessment=assessment,
+                          attempt=attempt,
+                          is_academic=is_academic,
+                          task1_response=task1_response,
+                          task2_response=task2_response)
 
-@writing_assessment.route('/api/writing/assess-task', methods=['POST'])
+# Submit writing response for Task 1
+@app.route('/assessments/writing/<int:assessment_id>/attempt/<int:attempt_id>/task1', methods=['POST'])
 @login_required
-def api_assess_writing_task():
-    """
-    API endpoint to assess a writing task
-    """
-    try:
-        data = request.json
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-            
-        essay_text = data.get('essay_text')
-        task_prompt = data.get('task_prompt')
-        task_number = int(data.get('task_number', 1))
-        ielts_test_type = data.get('ielts_test_type', 'academic')
-        
-        if not essay_text or not task_prompt:
-            return jsonify({'error': 'Missing required parameters'}), 400
-            
-        # Process the writing task with our enhanced assessment
-        task_type = "task1" if task_number == 1 else "task2"
-        assessment = analyze_writing_response(
-            essay_text, 
-            task_prompt, 
-            task_type=task_type, 
-            test_type=ielts_test_type
-        )
-            
-        return jsonify(assessment)
-        
-    except Exception as e:
-        print(f"Error assessing writing task: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+@authenticated_user_required
+def submit_writing_task1(assessment_id, attempt_id):
+    """Submit a response for writing Task 1"""
+    # Get the assessment
+    assessment = Assessment.query.get_or_404(assessment_id)
+    
+    # Get the assessment attempt
+    attempt = UserAssessmentAttempt.query.get_or_404(attempt_id)
+    
+    # Ensure this attempt belongs to the current user
+    if attempt.user_id != current_user.id:
+        flash('You do not have permission to access this assessment attempt.', 'danger')
+        return redirect(url_for('assessment_index'))
+    
+    # Check if the assessment is already completed
+    if attempt.status == 'completed':
+        flash('This assessment has already been completed.', 'warning')
+        return redirect(url_for('assessment_results', assessment_type='writing', attempt_id=attempt_id))
+    
+    # Get the response text
+    response_text = request.form.get('task1_response', '').strip()
+    
+    # Check for empty response
+    if not response_text:
+        flash('Please provide a response for Task 1.', 'danger')
+        return redirect(url_for('take_writing_assessment', assessment_id=assessment_id, attempt_id=attempt_id))
+    
+    # Check for existing response
+    existing_response = WritingResponse.query.filter_by(
+        attempt_id=attempt_id,
+        task_number=1
+    ).first()
+    
+    if existing_response:
+        # Update existing response
+        existing_response.response_text = response_text
+        existing_response.submission_time = datetime.utcnow()
+    else:
+        # Create new response
+        new_response = WritingResponse()
+        new_response.attempt_id = attempt_id
+        new_response.task_number = 1
+        new_response.response_text = response_text
+        new_response.submission_time = datetime.utcnow()
+        db.session.add(new_response)
+    
+    db.session.commit()
+    
+    flash('Task 1 response saved successfully!', 'success')
+    return redirect(url_for('take_writing_assessment', assessment_id=assessment_id, attempt_id=attempt_id))
 
-@writing_assessment.route('/api/writing/assess-complete-test', methods=['POST'])
+# Submit writing response for Task 2
+@app.route('/assessments/writing/<int:assessment_id>/attempt/<int:attempt_id>/task2', methods=['POST'])
 @login_required
-def api_assess_complete_writing_test():
-    """
-    API endpoint to assess a complete writing test (Task 1 and Task 2)
-    """
-    try:
-        data = request.json
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-            
-        task1_essay = data.get('task1_essay')
-        task1_prompt = data.get('task1_prompt')
-        task2_essay = data.get('task2_essay')
-        task2_prompt = data.get('task2_prompt')
-        ielts_test_type = data.get('ielts_test_type', 'academic')
-        
-        if not task1_essay or not task1_prompt or not task2_essay or not task2_prompt:
-            return jsonify({'error': 'Missing required parameters'}), 400
-            
-        # Assess Task 1 and Task 2 separately
-        task1_assessment = analyze_writing_response(
-            task1_essay, 
-            task1_prompt, 
-            task_type="task1", 
-            test_type=ielts_test_type
-        )
-        
-        task2_assessment = analyze_writing_response(
-            task2_essay, 
-            task2_prompt, 
-            task_type="task2", 
-            test_type=ielts_test_type
-        )
-        
-        # Combine the assessments
-        task1_score = task1_assessment.get("overall_score", 0)
-        task2_score = task2_assessment.get("overall_score", 0)
-        
-        # Task 2 is weighted more heavily in overall band calculation (2:1)
-        combined_score = (task1_score + (task2_score * 2)) / 3
-        
-        # Round to nearest 0.5
-        overall_score = round(combined_score * 2) / 2
-        
-        assessment = {
-            "task1_assessment": task1_assessment,
-            "task2_assessment": task2_assessment,
-            "overall_score": overall_score,
-            "summary_feedback": f"Task 1 Score: {task1_score}, Task 2 Score: {task2_score}, Overall Score: {overall_score}",
-            "improvement_tips": [
-                *task1_assessment.get("improvement_tips", [])[:2],
-                *task2_assessment.get("improvement_tips", [])[:2]
-            ]
-        }
-            
-        return jsonify(assessment)
-        
-    except Exception as e:
-        print(f"Error assessing complete writing test: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+@authenticated_user_required
+def submit_writing_task2(assessment_id, attempt_id):
+    """Submit a response for writing Task 2"""
+    # Get the assessment
+    assessment = Assessment.query.get_or_404(assessment_id)
+    
+    # Get the assessment attempt
+    attempt = UserAssessmentAttempt.query.get_or_404(attempt_id)
+    
+    # Ensure this attempt belongs to the current user
+    if attempt.user_id != current_user.id:
+        flash('You do not have permission to access this assessment attempt.', 'danger')
+        return redirect(url_for('assessment_index'))
+    
+    # Check if the assessment is already completed
+    if attempt.status == 'completed':
+        flash('This assessment has already been completed.', 'warning')
+        return redirect(url_for('assessment_results', assessment_type='writing', attempt_id=attempt_id))
+    
+    # Get the response text
+    response_text = request.form.get('task2_response', '').strip()
+    
+    # Check for empty response
+    if not response_text:
+        flash('Please provide a response for Task 2.', 'danger')
+        return redirect(url_for('take_writing_assessment', assessment_id=assessment_id, attempt_id=attempt_id))
+    
+    # Check for existing response
+    existing_response = WritingResponse.query.filter_by(
+        attempt_id=attempt_id,
+        task_number=2
+    ).first()
+    
+    if existing_response:
+        # Update existing response
+        existing_response.response_text = response_text
+        existing_response.submission_time = datetime.utcnow()
+    else:
+        # Create new response
+        new_response = WritingResponse()
+        new_response.attempt_id = attempt_id
+        new_response.task_number = 2
+        new_response.response_text = response_text
+        new_response.submission_time = datetime.utcnow()
+        db.session.add(new_response)
+    
+    db.session.commit()
+    
+    flash('Task 2 response saved successfully!', 'success')
+    return redirect(url_for('take_writing_assessment', assessment_id=assessment_id, attempt_id=attempt_id))
 
-@writing_assessment.route('/writing/tests')
-def writing_tests():
-    """
-    Display available writing tests
-    """
-    # Get all writing tests
-    tests = PracticeTest.query.filter_by(test_type='writing').all()
+# Submit entire writing assessment (both tasks)
+@app.route('/assessments/writing/<int:assessment_id>/attempt/<int:attempt_id>/complete', methods=['POST'])
+@login_required
+@authenticated_user_required
+def complete_writing_assessment(assessment_id, attempt_id):
+    """Complete a writing assessment and submit for GenAI scoring"""
+    # Get the assessment
+    assessment = Assessment.query.get_or_404(assessment_id)
     
-    # If user is logged in, mark tests they've already taken
-    user_test_ids = []
-    if current_user.is_authenticated:
-        user_test_ids = [
-            attempt.test_id for attempt in 
-            UserTestAttempt.query.filter_by(user_id=current_user.id, test_id=PracticeTest.id)
-            .join(PracticeTest)
-            .filter(PracticeTest.test_type == 'writing')
-            .all()
-        ]
+    # Get the assessment attempt
+    attempt = UserAssessmentAttempt.query.get_or_404(attempt_id)
     
-    # Format test data for the template
-    test_data = []
-    for test in tests:
-        # Check if the user has taken this test
-        taken = test.id in user_test_ids
-        
-        # Add to the list
-        test_data.append({
-            'id': test.id,
-            'title': test.title,
-            'description': test.description,
-            'ielts_test_type': test.ielts_test_type,
-            'is_free': test.is_free,
-            'taken': taken
-        })
+    # Ensure this attempt belongs to the current user
+    if attempt.user_id != current_user.id:
+        flash('You do not have permission to access this assessment attempt.', 'danger')
+        return redirect(url_for('assessment_index'))
     
-    # Render the template
-    return render_template('practice/writing_tests.html', tests=test_data)
+    # Check if the assessment is already completed
+    if attempt.status == 'completed':
+        flash('This assessment has already been completed.', 'warning')
+        return redirect(url_for('assessment_results', assessment_type='writing', attempt_id=attempt_id))
+    
+    # Check if both tasks have responses
+    task1_response = WritingResponse.query.filter_by(
+        attempt_id=attempt_id,
+        task_number=1
+    ).first()
+    
+    task2_response = WritingResponse.query.filter_by(
+        attempt_id=attempt_id,
+        task_number=2
+    ).first()
+    
+    if not task1_response or not task2_response:
+        flash('You must complete both Task 1 and Task 2 before submitting.', 'danger')
+        return redirect(url_for('take_writing_assessment', assessment_id=assessment_id, attempt_id=attempt_id))
+    
+    # Mark the attempt as completed
+    attempt.status = 'completed'
+    attempt.end_time = datetime.utcnow()
+    
+    # Mark assessment as taken by this user during current package period
+    current_user.mark_assessment_completed(assessment_id, 'writing')
+    
+    # Update streak info
+    current_user.update_streak()
+    
+    db.session.commit()
+    
+    # Queue the assessment for GenAI scoring (background process)
+    # This would be implemented with a task queue in a production environment
+    
+    flash('Your writing assessment has been submitted for GenAI evaluation with TrueScore® technology. Results will be available shortly.', 'success')
+    return redirect(url_for('assessment_results', assessment_type='writing', attempt_id=attempt_id))
+
+print("Writing assessment routes added successfully.")

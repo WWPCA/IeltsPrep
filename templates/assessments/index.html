@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">IELTS GenAI Assessment</h1>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-info-circle me-2"></i> About IELTS GenAI Assessments</h4>
+                        <p>Our cutting-edge GenAI assessments provide accurate evaluations of your IELTS abilities and personalized feedback to help you improve. All assessments are AI-powered using TrueScore® and Elaris® technologies - the ONLY GenAI assessor tools for IELTS in the world.</p>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        {% if has_package %}
+                            <div class="col-md-3 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-headphones fa-3x text-primary"></i>
+                                        </div>
+                                        <h3 class="h5">Listening</h3>
+                                        <p class="text-muted small">Assess your listening skills with authentic IELTS-style audio and questions.</p>
+                                    </div>
+                                    <div class="card-footer bg-white border-top-0">
+                                        <a href="{{ url_for('assessment_list', assessment_type='listening') }}" class="btn btn-outline-primary btn-sm d-block">View Assessments</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-book-open fa-3x text-primary"></i>
+                                        </div>
+                                        <h3 class="h5">Reading</h3>
+                                        <p class="text-muted small">Test your reading comprehension with authentic IELTS-style passages and questions.</p>
+                                    </div>
+                                    <div class="card-footer bg-white border-top-0">
+                                        <a href="{{ url_for('assessment_list', assessment_type='reading') }}" class="btn btn-outline-primary btn-sm d-block">View Assessments</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-pencil-alt fa-3x text-primary"></i>
+                                        </div>
+                                        <h3 class="h5">Writing</h3>
+                                        <p class="text-muted small">Get detailed feedback on your writing with TrueScore® technology.</p>
+                                    </div>
+                                    <div class="card-footer bg-white border-top-0">
+                                        <a href="{{ url_for('assessment_list', assessment_type='writing') }}" class="btn btn-outline-primary btn-sm d-block">View Assessments</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-microphone fa-3x text-primary"></i>
+                                        </div>
+                                        <h3 class="h5">Speaking</h3>
+                                        <p class="text-muted small">Evaluate your speaking skills with Elaris® AI assessment technology.</p>
+                                    </div>
+                                    <div class="card-footer bg-white border-top-0">
+                                        <a href="{{ url_for('assessment_list', assessment_type='speaking') }}" class="btn btn-outline-primary btn-sm d-block">View Assessments</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    <h4><i class="fas fa-exclamation-triangle me-2"></i> Assessment Package Required</h4>
+                                    <p>You need an assessment package to access IELTS GenAI Assessments. Purchase a package to begin your assessment journey.</p>
+                                    
+                                    <div class="text-center mt-3">
+                                        <a href="{{ url_for('assessment_products_page') }}" class="btn btn-primary btn-lg">View Assessment Packages</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h3 class="h5 mb-0">Your Assessment Preference</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p>You are currently preparing for the <strong>{{ assessment_type.capitalize() }}</strong> IELTS test. This affects the content of your assessments.</p>
+                                    
+                                    <form action="{{ url_for('update_assessment_preference') }}" method="post">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="assessment_preference" id="academic" value="academic" {% if assessment_type == 'academic' %}checked{% endif %}>
+                                            <label class="form-check-label" for="academic">Academic</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="assessment_preference" id="general" value="general" {% if assessment_type == 'general' %}checked{% endif %}>
+                                            <label class="form-check-label" for="general">General Training</label>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-sm btn-primary ms-2">Update</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if has_package %}
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h3 class="h5 mb-0">Assessment History</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>View your past assessments and track your progress over time.</p>
+                        <a href="{{ url_for('assessment_history') }}" class="btn btn-outline-primary">View Assessment History</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

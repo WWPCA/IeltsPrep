@@ -1,0 +1,225 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('assessment_index') }}">Assessments</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('assessment_list', assessment_type=assessment_type) }}">{{ assessment_type.capitalize() }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ assessment.title }}</li>
+                </ol>
+            </nav>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">{{ assessment.title }}</h1>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <h2 class="h4 mb-3">Assessment Description</h2>
+                            <p>{{ assessment.description }}</p>
+                            
+                            {% if assessment_type == 'writing' %}
+                                <div class="alert alert-info mt-4">
+                                    <h3 class="h5"><i class="fas fa-pencil-alt me-2"></i> Writing Assessment</h3>
+                                    <p>This assessment includes two writing tasks:</p>
+                                    <ul>
+                                        {% if 'academic' in assessment.assessment_type %}
+                                            <li><strong>Task 1:</strong> Describe a chart, graph, table, or diagram (20 minutes)</li>
+                                        {% else %}
+                                            <li><strong>Task 1:</strong> Write a letter for a specific purpose (20 minutes)</li>
+                                        {% endif %}
+                                        <li><strong>Task 2:</strong> Write an essay on a given topic (40 minutes)</li>
+                                    </ul>
+                                    <p>You will have a total of 60 minutes to complete both tasks.</p>
+                                </div>
+                            {% elif assessment_type == 'speaking' %}
+                                <div class="alert alert-info mt-4">
+                                    <h3 class="h5"><i class="fas fa-microphone me-2"></i> Speaking Assessment</h3>
+                                    <p>This assessment consists of three parts:</p>
+                                    <ul>
+                                        <li><strong>Part 1:</strong> Introduction and interview (4-5 minutes)</li>
+                                        <li><strong>Part 2:</strong> Individual long turn (3-4 minutes)</li>
+                                        <li><strong>Part 3:</strong> Two-way discussion (4-5 minutes)</li>
+                                    </ul>
+                                    <p>You will need a microphone to record your responses.</p>
+                                </div>
+                            {% endif %}
+                            
+                            <h2 class="h4 mt-4 mb-3">GenAI Assessment</h2>
+                            <p>After completing this assessment, your responses will be evaluated using our advanced GenAI technology:</p>
+                            
+                            {% if assessment_type == 'writing' %}
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-certificate text-primary fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="h5 mb-1">TrueScore® Technology</h4>
+                                        <p class="mb-0">Your writing will be assessed using TrueScore® - the ONLY GenAI assessor tool for IELTS writing in the world.</p>
+                                    </div>
+                                </div>
+                            {% elif assessment_type == 'speaking' %}
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-certificate text-primary fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="h5 mb-1">Elaris® Technology</h4>
+                                        <p class="mb-0">Your speaking will be assessed using Elaris® - the ONLY GenAI assessor tool for IELTS speaking in the world.</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <p>You'll receive a detailed assessment with band scores for each criterion and personalized feedback to help you improve.</p>
+                        </div>
+                        
+                        <div class="col-md-5">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h3 class="h5 mb-0">Start Assessment</h3>
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    {% if already_completed %}
+                                        <div class="alert alert-success mb-4">
+                                            <i class="fas fa-check-circle me-2"></i> You have already completed this assessment.
+                                        </div>
+                                        
+                                        <p>You can view your results or take the assessment again.</p>
+                                        
+                                        <div class="mt-auto">
+                                            <a href="{{ url_for('assessment_list', assessment_type=assessment_type) }}" class="btn btn-outline-primary mb-2 w-100">View All Assessments</a>
+                                            
+                                            <form action="{{ url_for('start_assessment', assessment_type=assessment_type, assessment_id=assessment.id) }}" method="post">
+                                                <button type="submit" class="btn btn-primary w-100">Take Assessment Again</button>
+                                            </form>
+                                        </div>
+                                    {% elif is_speaking_only and assessment_type == 'speaking' and remaining_speaking <= 0 %}
+                                        <div class="alert alert-warning mb-4">
+                                            <i class="fas fa-exclamation-circle me-2"></i> You have used all your speaking assessments.
+                                        </div>
+                                        
+                                        <p>Your speaking assessment package allows a limited number of assessments. Please purchase a new package to continue.</p>
+                                        
+                                        <div class="mt-auto">
+                                            <a href="{{ url_for('assessment_products_page') }}" class="btn btn-primary w-100">Purchase New Package</a>
+                                        </div>
+                                    {% else %}
+                                        <div class="mb-4">
+                                            <h4 class="h6">Assessment Details:</h4>
+                                            <ul class="list-unstyled">
+                                                <li><i class="fas fa-clock me-2"></i> 
+                                                    {% if assessment_type == 'writing' %}60 minutes
+                                                    {% elif assessment_type == 'speaking' %}15 minutes
+                                                    {% endif %}
+                                                </li>
+                                                <li><i class="fas fa-tasks me-2"></i> 
+                                                    {% if assessment_type == 'writing' %}2 tasks
+                                                    {% elif assessment_type == 'speaking' %}3 parts
+                                                    {% endif %}
+                                                </li>
+                                                {% if is_speaking_only and assessment_type == 'speaking' %}
+                                                    <li><i class="fas fa-calculator me-2"></i> {{ remaining_speaking }} assessment(s) remaining</li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                        
+                                        <div class="alert alert-info mb-4">
+                                            <h4 class="h6 mb-1"><i class="fas fa-info-circle me-2"></i> Before You Begin</h4>
+                                            <p class="mb-0 small">Make sure you have enough time to complete the assessment. Once started, you can save your progress but should aim to complete it in one session.</p>
+                                        </div>
+                                        
+                                        <div class="mt-auto">
+                                            <form action="{{ url_for('start_assessment', assessment_type=assessment_type, assessment_id=assessment.id) }}" method="post">
+                                                <button type="submit" class="btn btn-lg btn-primary w-100">Start Assessment</button>
+                                            </form>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">Assessment Structure</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if assessment_type == 'writing' %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h4 class="h6 mb-0">Task 1</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small text-muted mb-2">20 minutes | 150+ words</p>
+                                        {% if 'academic' in assessment.assessment_type %}
+                                            <p>You will be presented with a graph, table, chart, or diagram and asked to describe, summarize, or explain the information in your own words.</p>
+                                        {% else %}
+                                            <p>You will be presented with a situation and asked to write a letter requesting information or explaining a situation.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h4 class="h6 mb-0">Task 2</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small text-muted mb-2">40 minutes | 250+ words</p>
+                                        <p>You will be asked to write an essay in response to a point of view, argument, or problem. The essay should be formal in style.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif assessment_type == 'speaking' %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h4 class="h6 mb-0">Part 1</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small text-muted mb-2">4-5 minutes</p>
+                                        <p>Introduction and interview. The assessor asks general questions about familiar topics such as home, family, work, studies, and interests.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h4 class="h6 mb-0">Part 2</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small text-muted mb-2">3-4 minutes</p>
+                                        <p>Individual long turn. You will be given a task card with a topic and several points to include in your talk. You will have 1 minute to prepare and then speak for 1-2 minutes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h4 class="h6 mb-0">Part 3</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small text-muted mb-2">4-5 minutes</p>
+                                        <p>Two-way discussion. The assessor will ask further questions connected to the topic in Part 2, allowing you to discuss more abstract issues and concepts.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

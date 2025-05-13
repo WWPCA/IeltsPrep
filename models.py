@@ -359,6 +359,7 @@ class Assessment(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), nullable=False, default="active")  # active, inactive
     _criteria = db.Column(db.Text, nullable=True)  # JSON string with assessment criteria
+    _questions = db.Column(db.Text, nullable=True)  # JSON string with assessment questions/content
     
     @property
     def criteria(self):
@@ -367,10 +368,102 @@ class Assessment(db.Model):
     @criteria.setter
     def criteria(self, value):
         self._criteria = json.dumps(value)
+        
+    @property
+    def questions(self):
+        return json.loads(self._questions) if self._questions else []
+    
+    @questions.setter
+    def questions(self, value):
+        self._questions = json.dumps(value)
     
     def __repr__(self):
         return f'<Assessment {self.assessment_type}: {self.title}>'
 
+class UserAssessmentAttempt(db.Model):
+    """Model for user assessment attempts"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    assessment_id = db.Column(db.Integer, db.ForeignKey('assessment.id'), nullable=False)
+    assessment_type = db.Column(db.String(50), nullable=False)  # listening, reading, writing, speaking
+    status = db.Column(db.String(20), nullable=False, default="in_progress")  # in_progress, completed, cancelled
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    end_time = db.Column(db.DateTime, nullable=True)
+    
+    # Store results as JSON string
+    _results = db.Column(db.Text, nullable=True)  # JSON string with assessment results
+    
+    # Store GenAI assessment data (band scores, feedback, etc.)
+    _genai_assessment = db.Column(db.Text, nullable=True)  # JSON string with GenAI assessment data
+    
+    # Cloud storage references
+    gcp_audio_url = db.Column(db.String(256), nullable=True)  # Speaking recording GCP URL
+    gcp_transcript_url = db.Column(db.String(256), nullable=True)  # Speaking transcript GCP URL
+    gcp_assessment_url = db.Column(db.String(256), nullable=True)  # Full assessment data GCP URL
+    
+    @property
+    def results(self):
+        return json.loads(self._results) if self._results else {}
+    
+    @results.setter
+    def results(self, value):
+        self._results = json.dumps(value)
+        
+    @property
+    def genai_assessment(self):
+        return json.loads(self._genai_assessment) if self._genai_assessment else {}
+    
+    @genai_assessment.setter
+    def genai_assessment(self, value):
+        self._genai_assessment = json.dumps(value)
+    
+    def __repr__(self):
+        return f'<UserAssessmentAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
+
+class WritingResponse(db.Model):
+    """Model for IELTS writing responses"""
+    id = db.Column(db.Integer, primary_key=True)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('user_assessment_attempt.id'), nullable=False)
+    task_number = db.Column(db.Integer, nullable=False)  # 1 or 2
+    response_text = db.Column(db.Text, nullable=False)
+    submission_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Store GenAI assessment data for this specific writing task
+    _assessment_data = db.Column(db.Text, nullable=True)  # JSON string with detailed GenAI assessment
+    
+    @property
+    def assessment_data(self):
+        return json.loads(self._assessment_data) if self._assessment_data else {}
+    
+    @assessment_data.setter
+    def assessment_data(self, value):
+        self._assessment_data = json.dumps(value)
+    
+    def __repr__(self):
+        return f'<WritingResponse {self.id}: Task {self.task_number} for Attempt {self.attempt_id}>'
+
+class AssessmentSpeakingResponse(db.Model):
+    """Model for IELTS speaking assessment responses"""
+    id = db.Column(db.Integer, primary_key=True)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('user_assessment_attempt.id'), nullable=False)
+    part_number = db.Column(db.Integer, nullable=False)  # 1, 2, or 3
+    audio_filename = db.Column(db.String(256), nullable=True)  # Local audio filename
+    transcript_text = db.Column(db.Text, nullable=True)  # Transcription of audio
+    submission_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Store GenAI assessment data for this specific speaking part
+    _assessment_data = db.Column(db.Text, nullable=True)  # JSON string with detailed GenAI assessment
+    
+    @property
+    def assessment_data(self):
+        return json.loads(self._assessment_data) if self._assessment_data else {}
+    
+    @assessment_data.setter
+    def assessment_data(self, value):
+        self._assessment_data = json.dumps(value)
+    
+    def __repr__(self):
+        return f'<AssessmentSpeakingResponse {self.id}: Part {self.part_number} for Attempt {self.attempt_id}>'
 
 
 class UserTestAssignment(db.Model):

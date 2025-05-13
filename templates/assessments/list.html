@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('assessment_index') }}">Assessments</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ assessment_type.capitalize() }} Assessments</li>
+                </ol>
+            </nav>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0">{{ assessment_type.capitalize() }} Assessments</h1>
+                    
+                    {% if assessment_type == 'listening' %}
+                        <span class="badge bg-light text-primary">30 Minutes</span>
+                    {% elif assessment_type == 'reading' %}
+                        <span class="badge bg-light text-primary">60 Minutes</span>
+                    {% elif assessment_type == 'writing' %}
+                        <span class="badge bg-light text-primary">60 Minutes</span>
+                    {% elif assessment_type == 'speaking' %}
+                        <span class="badge bg-light text-primary">15 Minutes</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                {% if assessment_type == 'listening' %}
+                                    <i class="fas fa-headphones fa-2x"></i>
+                                {% elif assessment_type == 'reading' %}
+                                    <i class="fas fa-book-open fa-2x"></i>
+                                {% elif assessment_type == 'writing' %}
+                                    <i class="fas fa-pencil-alt fa-2x"></i>
+                                {% elif assessment_type == 'speaking' %}
+                                    <i class="fas fa-microphone fa-2x"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4>About {{ assessment_type.capitalize() }} Assessments</h4>
+                                {% if assessment_type == 'listening' %}
+                                    <p>Assess your listening comprehension with authentic IELTS-style audio recordings and questions. Your responses will be evaluated with TrueScore® technology for accurate band scoring.</p>
+                                {% elif assessment_type == 'reading' %}
+                                    <p>Test your reading skills with authentic IELTS-style passages and a variety of question types. Your responses will be evaluated with TrueScore® technology for accurate band scoring.</p>
+                                {% elif assessment_type == 'writing' %}
+                                    <p>Complete writing tasks that mirror the real IELTS exam. Your writing will be assessed with TrueScore® technology to provide accurate band scores and detailed feedback.</p>
+                                {% elif assessment_type == 'speaking' %}
+                                    <p>Record your responses to speaking prompts that simulate a real IELTS interview. Your speaking will be assessed with Elaris® technology for accurate band scoring and detailed feedback.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if assessments %}
+                        <div class="row mt-4">
+                            {% for assessment in assessments %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100 border {% if assessment.id in completed_assessments %}border-success{% endif %}">
+                                        <div class="card-header {% if assessment.id in completed_assessments %}bg-success text-white{% else %}bg-light{% endif %}">
+                                            <h3 class="h5 mb-0">{{ assessment.title }}</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-3">{{ assessment.description | truncate(100) }}</p>
+                                            
+                                            {% if assessment.id in completed_assessments %}
+                                                <div class="alert alert-success small mb-3">
+                                                    <i class="fas fa-check-circle me-1"></i> Completed
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <div class="d-grid gap-2">
+                                                <a href="{{ url_for('assessment_details_new', assessment_type=assessment_type, assessment_id=assessment.id) }}" class="btn btn-primary">
+                                                    {% if assessment.id in completed_assessments %}
+                                                        View Results
+                                                    {% else %}
+                                                        View Details
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mt-4">
+                            <p class="mb-0">No {{ assessment_type }} assessments are available at this time. Please check back later.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if has_package %}
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h3 class="h5 mb-0">Assessment Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="h6 mb-3"><i class="fas fa-check-circle text-success me-2"></i> GenAI Assessment</h4>
+                                <p class="text-muted small">All assessments are evaluated using advanced GenAI technology for accurate band scoring and detailed feedback.</p>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h4 class="h6 mb-3"><i class="fas fa-certificate text-primary me-2"></i> Authentic Format</h4>
+                                <p class="text-muted small">Our assessments follow the official IELTS format to give you the most realistic practice experience.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

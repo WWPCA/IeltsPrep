@@ -13,9 +13,9 @@ from admin_routes import admin_required
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import and register assessment blueprints
-from writing_assessment_routes import writing_assessment
-from speaking_assessment_routes import speaking_assessment
+# Import assessment routes
+import assessment_routes  # noqa: F401
+import writing_assessment_routes  # noqa: F401
 from cart_routes import cart_bp
 from admin_routes import admin_bp
 from stripe_webhook import stripe_webhook_bp
@@ -27,8 +27,6 @@ from gdpr_routes import gdpr_bp
 from country_access_control import setup_country_restriction_routes
 
 # Register blueprints
-app.register_blueprint(writing_assessment)
-app.register_blueprint(speaking_assessment)
 app.register_blueprint(cart_bp, url_prefix='/cart')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(setup_intent_bp)

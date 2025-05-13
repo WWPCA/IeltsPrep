@@ -1,0 +1,537 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .task-description {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .time-remaining {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    
+    .timer-warning {
+        color: #dc3545;
+    }
+    
+    .recording-controls {
+        text-align: center;
+        margin: 1.5rem 0;
+    }
+    
+    .record-button {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin: 0 1rem;
+    }
+    
+    .record-button i {
+        font-size: 1.75rem;
+    }
+    
+    .audio-wave {
+        height: 100px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+    
+    .audio-wave canvas {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .recording-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 12px;
+        height: 12px;
+        background-color: #dc3545;
+        border-radius: 50%;
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.3; }
+        100% { opacity: 1; }
+    }
+    
+    .task-tabs .nav-link {
+        color: #495057;
+    }
+    
+    .task-tabs .nav-link.active {
+        color: #007bff;
+        font-weight: bold;
+    }
+    
+    .preparation-timer {
+        font-size: 3rem;
+        font-weight: bold;
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .preparation-notes {
+        min-height: 150px;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('assessment_index') }}">Assessments</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('assessment_list', assessment_type='speaking') }}">Speaking</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ assessment.title }}</li>
+                </ol>
+            </nav>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0">IELTS Speaking Assessment</h1>
+                    <span class="ms-2 badge bg-light text-primary">{{ 'Academic' if is_academic else 'General Training' }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <h4><i class="fas fa-info-circle me-2"></i> Instructions</h4>
+                        <p>This speaking assessment consists of three parts. For each part, you'll record your response to the given topic. Make sure your microphone is working properly before you begin.</p>
+                    </div>
+                    
+                    <ul class="nav nav-tabs task-tabs mb-4" id="speakingTasks" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="part1-tab" data-bs-toggle="tab" data-bs-target="#part1" type="button" role="tab" aria-controls="part1" aria-selected="true">Part 1</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="part2-tab" data-bs-toggle="tab" data-bs-target="#part2" type="button" role="tab" aria-controls="part2" aria-selected="false">Part 2</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="part3-tab" data-bs-toggle="tab" data-bs-target="#part3" type="button" role="tab" aria-controls="part3" aria-selected="false">Part 3</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="speakingTasksContent">
+                        <!-- Part 1 -->
+                        <div class="tab-pane fade show active" id="part1" role="tabpanel" aria-labelledby="part1-tab">
+                            <div class="task-description">
+                                <h3 class="h5">Part 1: Introduction and Interview (4-5 minutes)</h3>
+                                <p>The examiner will introduce themselves and ask you to introduce yourself and confirm your identity. The examiner will then ask you general questions on familiar topics such as home, family, work, studies, and interests.</p>
+                                
+                                <div class="mt-3">
+                                    <h4 class="h6">Topics:</h4>
+                                    <p>{{ assessment.questions[0].prompt if assessment.questions and assessment.questions[0] else "Let's talk about your hometown. Where is your hometown? What is it like? What do you like most about living there?" }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h4 class="h5">Record Your Answer</h4>
+                                
+                                {% if part1_response %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i> You've already recorded your Part 1 response.
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="part1_playback" class="form-label">Listen to your recording:</label>
+                                        <audio id="part1_playback" controls class="w-100">
+                                            <source src="{{ url_for('static', filename='uploads/speaking/' + part1_response.audio_filename) }}" type="audio/webm">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    </div>
+                                    
+                                    <p>If you're not satisfied with your recording, you can re-record your response.</p>
+                                {% endif %}
+                                
+                                <div class="audio-wave" id="part1WaveContainer">
+                                    <canvas id="part1Wave"></canvas>
+                                    <div class="recording-indicator" id="part1RecordingIndicator" style="display: none;"></div>
+                                </div>
+                                
+                                <div class="recording-controls">
+                                    <button class="btn btn-outline-primary" id="part1PrepareButton">
+                                        <i class="fas fa-hourglass-start"></i> Prepare
+                                    </button>
+                                    
+                                    <button class="btn btn-danger record-button" id="part1RecordButton" disabled>
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                    
+                                    <button class="btn btn-outline-secondary" id="part1StopButton" disabled>
+                                        <i class="fas fa-stop"></i> Stop
+                                    </button>
+                                </div>
+                                
+                                <form id="part1Form" action="{{ url_for('submit_speaking_part1', assessment_id=assessment.id, attempt_id=attempt.id) }}" method="post" enctype="multipart/form-data">
+                                    <input type="file" id="part1_audio_file" name="audio_file" style="display: none;">
+                                    
+                                    <div class="d-grid mt-3">
+                                        <button type="submit" class="btn btn-primary" id="part1SubmitButton" disabled>
+                                            Submit Part 1 Response
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Part 2 -->
+                        <div class="tab-pane fade" id="part2" role="tabpanel" aria-labelledby="part2-tab">
+                            <div class="task-description">
+                                <h3 class="h5">Part 2: Individual Long Turn (3-4 minutes)</h3>
+                                <p>The examiner will give you a task card which asks you to talk about a particular topic, including points to include in your talk. You will have 1 minute to prepare and make notes, and then you will talk for 1-2 minutes on the topic.</p>
+                                
+                                <div class="mt-3 border p-3">
+                                    <h4 class="h6">Task Card:</h4>
+                                    <p>{{ assessment.questions[1].prompt if assessment.questions and len(assessment.questions) > 1 else "Describe a time when you helped someone. You should say: who you helped, what you did, why the person needed help, and how you felt about helping." }}</p>
+                                </div>
+                            </div>
+                            
+                            <div id="part2Preparation" class="mt-4">
+                                <h4 class="h5">Preparation Time (1 minute)</h4>
+                                <div class="preparation-timer" id="part2PrepTimer">01:00</div>
+                                
+                                <div class="form-group">
+                                    <label for="part2Notes">Notes (optional):</label>
+                                    <textarea class="form-control preparation-notes" id="part2Notes" rows="5" placeholder="Make notes here to help you organize your thoughts..."></textarea>
+                                </div>
+                                
+                                <button class="btn btn-primary mt-3" id="part2StartPrepButton">Start Preparation Timer</button>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h4 class="h5">Record Your Answer</h4>
+                                
+                                {% if part2_response %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i> You've already recorded your Part 2 response.
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="part2_playback" class="form-label">Listen to your recording:</label>
+                                        <audio id="part2_playback" controls class="w-100">
+                                            <source src="{{ url_for('static', filename='uploads/speaking/' + part2_response.audio_filename) }}" type="audio/webm">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    </div>
+                                    
+                                    <p>If you're not satisfied with your recording, you can re-record your response.</p>
+                                {% endif %}
+                                
+                                <div class="audio-wave" id="part2WaveContainer">
+                                    <canvas id="part2Wave"></canvas>
+                                    <div class="recording-indicator" id="part2RecordingIndicator" style="display: none;"></div>
+                                </div>
+                                
+                                <div class="recording-controls">
+                                    <button class="btn btn-danger record-button" id="part2RecordButton" disabled>
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                    
+                                    <button class="btn btn-outline-secondary" id="part2StopButton" disabled>
+                                        <i class="fas fa-stop"></i> Stop
+                                    </button>
+                                </div>
+                                
+                                <form id="part2Form" action="{{ url_for('submit_speaking_part2', assessment_id=assessment.id, attempt_id=attempt.id) }}" method="post" enctype="multipart/form-data">
+                                    <input type="file" id="part2_audio_file" name="audio_file" style="display: none;">
+                                    
+                                    <div class="d-grid mt-3">
+                                        <button type="submit" class="btn btn-primary" id="part2SubmitButton" disabled>
+                                            Submit Part 2 Response
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Part 3 -->
+                        <div class="tab-pane fade" id="part3" role="tabpanel" aria-labelledby="part3-tab">
+                            <div class="task-description">
+                                <h3 class="h5">Part 3: Two-Way Discussion (4-5 minutes)</h3>
+                                <p>The examiner will ask you further questions connected to the topic in Part 2. This will involve discussing more abstract issues and concepts.</p>
+                                
+                                <div class="mt-3">
+                                    <h4 class="h6">Questions:</h4>
+                                    <p>{{ assessment.questions[2].prompt if assessment.questions and len(assessment.questions) > 2 else "Let's consider the concept of helping others in society. Why do you think some people are more willing to help others than some other people? Do you think the government should provide more support for volunteer organizations? In what ways might technology change how people help each other in the future?" }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h4 class="h5">Record Your Answer</h4>
+                                
+                                {% if part3_response %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i> You've already recorded your Part 3 response.
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="part3_playback" class="form-label">Listen to your recording:</label>
+                                        <audio id="part3_playback" controls class="w-100">
+                                            <source src="{{ url_for('static', filename='uploads/speaking/' + part3_response.audio_filename) }}" type="audio/webm">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    </div>
+                                    
+                                    <p>If you're not satisfied with your recording, you can re-record your response.</p>
+                                {% endif %}
+                                
+                                <div class="audio-wave" id="part3WaveContainer">
+                                    <canvas id="part3Wave"></canvas>
+                                    <div class="recording-indicator" id="part3RecordingIndicator" style="display: none;"></div>
+                                </div>
+                                
+                                <div class="recording-controls">
+                                    <button class="btn btn-danger record-button" id="part3RecordButton">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                    
+                                    <button class="btn btn-outline-secondary" id="part3StopButton" disabled>
+                                        <i class="fas fa-stop"></i> Stop
+                                    </button>
+                                </div>
+                                
+                                <form id="part3Form" action="{{ url_for('submit_speaking_part3', assessment_id=assessment.id, attempt_id=attempt.id) }}" method="post" enctype="multipart/form-data">
+                                    <input type="file" id="part3_audio_file" name="audio_file" style="display: none;">
+                                    
+                                    <div class="d-grid mt-3">
+                                        <button type="submit" class="btn btn-primary" id="part3SubmitButton" disabled>
+                                            Submit Part 3 Response
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="d-grid gap-2">
+                            <form id="completeForm" action="{{ url_for('complete_speaking_assessment', assessment_id=assessment.id, attempt_id=attempt.id) }}" method="post">
+                                <button type="submit" class="btn btn-lg btn-success btn-block" id="submitButton">Submit Assessment for GenAI Evaluation</button>
+                            </form>
+                        </div>
+                        <p class="text-muted small text-center mt-2">Once submitted, your speaking will be evaluated by Elaris® technology.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check browser support for audio recording
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Your browser does not support audio recording. Please use a modern browser like Chrome, Firefox, or Edge.');
+            disableRecordingControls();
+            return;
+        }
+        
+        // Setup for each part
+        setupRecording('part1');
+        setupRecording('part2');
+        setupRecording('part3');
+        
+        // Part 2 preparation timer
+        let prepTimeLeft = 60; // 1 minute in seconds
+        let prepTimerInterval;
+        let prepTimerRunning = false;
+        
+        document.getElementById('part2StartPrepButton').addEventListener('click', function() {
+            if (!prepTimerRunning) {
+                this.disabled = true;
+                prepTimerRunning = true;
+                prepTimerInterval = setInterval(updatePrepTimer, 1000);
+                document.getElementById('part2RecordButton').disabled = true;
+            }
+        });
+        
+        function updatePrepTimer() {
+            const prepTimerElement = document.getElementById('part2PrepTimer');
+            
+            if (prepTimeLeft <= 0) {
+                clearInterval(prepTimerInterval);
+                prepTimerElement.textContent = "Time's up!";
+                document.getElementById('part2RecordButton').disabled = false;
+                return;
+            }
+            
+            const minutes = Math.floor(prepTimeLeft / 60);
+            const seconds = prepTimeLeft % 60;
+            
+            prepTimerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (prepTimeLeft <= 10) {
+                prepTimerElement.classList.add('text-danger');
+            }
+            
+            prepTimeLeft--;
+        }
+        
+        // Form validation
+        function validateSubmission() {
+            const part1Response = document.getElementById('part1_audio_file').value;
+            const part2Response = document.getElementById('part2_audio_file').value;
+            const part3Response = document.getElementById('part3_audio_file').value;
+            
+            if (!part1Response && !document.getElementById('part1_playback')) {
+                alert('Please complete Part 1 before submitting.');
+                return false;
+            }
+            
+            if (!part2Response && !document.getElementById('part2_playback')) {
+                alert('Please complete Part 2 before submitting.');
+                return false;
+            }
+            
+            if (!part3Response && !document.getElementById('part3_playback')) {
+                alert('Please complete Part 3 before submitting.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        document.getElementById('completeForm').addEventListener('submit', function(e) {
+            if (!validateSubmission()) {
+                e.preventDefault();
+            }
+        });
+        
+        // Recording functionality
+        function setupRecording(partId) {
+            const recordButton = document.getElementById(`${partId}RecordButton`);
+            const stopButton = document.getElementById(`${partId}StopButton`);
+            const submitButton = document.getElementById(`${partId}SubmitButton`);
+            const audioFileInput = document.getElementById(`${partId}_audio_file`);
+            const recordingIndicator = document.getElementById(`${partId}RecordingIndicator`);
+            
+            let mediaRecorder;
+            let audioChunks = [];
+            
+            if (partId === 'part1') {
+                const prepareButton = document.getElementById('part1PrepareButton');
+                prepareButton.addEventListener('click', function() {
+                    this.disabled = true;
+                    recordButton.disabled = false;
+                });
+            }
+            
+            recordButton.addEventListener('click', function() {
+                // Request access to the microphone
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        // Create MediaRecorder instance
+                        mediaRecorder = new MediaRecorder(stream);
+                        
+                        // Start recording
+                        mediaRecorder.start();
+                        
+                        // Show recording in progress
+                        recordButton.classList.add('btn-danger');
+                        recordButton.classList.remove('btn-outline-danger');
+                        recordingIndicator.style.display = 'block';
+                        recordButton.disabled = true;
+                        stopButton.disabled = false;
+                        
+                        // Collect audio chunks
+                        audioChunks = [];
+                        mediaRecorder.addEventListener('dataavailable', event => {
+                            audioChunks.push(event.data);
+                        });
+                        
+                        // When recording stops
+                        mediaRecorder.addEventListener('stop', () => {
+                            // Create audio blob and URL for playing back
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            const audioUrl = URL.createObjectURL(audioBlob);
+                            
+                            // Create a File object from the Blob
+                            const audioFile = new File([audioBlob], `${partId}_recording.webm`, { type: 'audio/webm' });
+                            
+                            // Create a DataTransfer object and add the file
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(audioFile);
+                            
+                            // Set the files property of the file input
+                            audioFileInput.files = dataTransfer.files;
+                            
+                            // Create audio element for playback
+                            const audioElement = document.createElement('audio');
+                            audioElement.controls = true;
+                            audioElement.className = 'w-100 mb-3';
+                            audioElement.src = audioUrl;
+                            
+                            // If there's already an audio element, replace it
+                            const existingAudio = document.querySelector(`#${partId}WaveContainer + div audio`);
+                            if (existingAudio) {
+                                existingAudio.parentNode.replaceChild(audioElement, existingAudio);
+                            } else {
+                                // Create a container for the audio element
+                                const audioContainer = document.createElement('div');
+                                audioContainer.className = 'mb-3 mt-3';
+                                audioContainer.appendChild(audioElement);
+                                
+                                // Insert after the wave container
+                                const waveContainer = document.getElementById(`${partId}WaveContainer`);
+                                waveContainer.parentNode.insertBefore(audioContainer, waveContainer.nextSibling);
+                            }
+                            
+                            // Enable the submit button
+                            submitButton.disabled = false;
+                            
+                            // Stop all tracks in the stream
+                            stream.getTracks().forEach(track => track.stop());
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error accessing microphone:', error);
+                        alert('Unable to access your microphone. Please check your browser permissions and try again.');
+                    });
+            });
+            
+            stopButton.addEventListener('click', function() {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    
+                    // Reset UI
+                    recordButton.classList.remove('btn-danger');
+                    recordButton.classList.add('btn-outline-danger');
+                    recordingIndicator.style.display = 'none';
+                    recordButton.disabled = false;
+                    stopButton.disabled = true;
+                }
+            });
+        }
+        
+        function disableRecordingControls() {
+            document.querySelectorAll('[id$="RecordButton"]').forEach(button => {
+                button.disabled = true;
+            });
+            
+            document.querySelectorAll('[id$="StopButton"]').forEach(button => {
+                button.disabled = true;
+            });
+            
+            document.querySelectorAll('[id$="SubmitButton"]').forEach(button => {
+                button.disabled = true;
+            });
+        }
+    });
+</script>
+{% endblock %}

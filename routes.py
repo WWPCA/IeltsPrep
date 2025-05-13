@@ -24,37 +24,37 @@ from aws_services import analyze_speaking_response, analyze_pronunciation, trans
 from geoip_services import get_country_from_ip, get_pricing_for_country
 from country_restrictions import country_access_required, is_country_restricted, RESTRICTION_MESSAGE
 
-# Import the test details route
+# Import the assessment details route
 try:
-    from add_test_details_route import test_details_route
+    from add_assessment_details_route import assessment_details_route
 except ImportError:
     # Define it directly if the import fails
-    def test_details_route(test_type, test_id):
-        """Show details about a test before starting it"""
-        if test_type not in ['listening', 'reading', 'writing', 'speaking']:
+    def assessment_details_route(assessment_type, assessment_id):
+        """Show details about an assessment before starting it"""
+        if assessment_type not in ['listening', 'reading', 'writing', 'speaking']:
             abort(404)
         
-        test = PracticeTest.query.get_or_404(test_id)
+        assessment = Assessment.query.get_or_404(assessment_id)
         
-        # All tests require an assessment package
+        # All assessments require an assessment package
         if not current_user.has_active_assessment_package():
-            flash('This test requires an assessment package. Please purchase an assessment package to access all practice tests.', 'warning')
+            flash('This assessment requires an assessment package. Please purchase an assessment package to access GenAI-powered skill evaluations.', 'warning')
             return redirect(url_for('assessment_products_page'))
         
-        # Check if user has already taken this test during current assessment package period
-        if current_user.has_taken_test(test_id, test_type):
-            flash('You have already taken this test during your current assessment package period. Each test can only be taken once per assessment package.', 'warning')
-            return redirect(url_for('practice_test_list', test_type=test_type))
+        # Check if user has already used this assessment during current assessment package period
+        if current_user.has_taken_assessment(assessment_id, assessment_type):
+            flash('You have already used this assessment during your current assessment package period. Each assessment can only be used once per assessment package.', 'warning')
+            return redirect(url_for('assessment_products_page'))
         
-        return render_template('practice/test_details.html', 
-                              title=f'IELTS {test_type.capitalize()} Practice',
-                              test=test,
-                              test_type=test_type)
+        return render_template('assessment_details.html', 
+                              title=f'IELTS {assessment_type.capitalize()} Assessment',
+                              assessment=assessment,
+                              assessment_type=assessment_type)
 
-# Add the test details route
-app.add_url_rule('/practice/<test_type>/<int:test_id>/details', 
-                 'test_details', 
-                 test_details_route, 
+# Add the assessment details route
+app.add_url_rule('/assessment/<assessment_type>/<int:assessment_id>/details', 
+                 'assessment_details', 
+                 assessment_details_route, 
                  methods=['GET'])
 
 # Custom cache buster to force browsers to reload CSS, JS on new deployments
