@@ -127,11 +127,15 @@ def submit_speaking_part1(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = AssessmentSpeakingResponse()
-        new_response.attempt_id = attempt_id
-        new_response.part_number = 1
-        new_response.audio_filename = filename
-        new_response.submission_time = datetime.utcnow()
+        # Create dictionary of values first to avoid LSP errors
+        response_data = {
+            'attempt_id': attempt_id,
+            'part_number': 1,
+            'audio_filename': filename,
+            'submission_time': datetime.utcnow()
+        }
+        # Create the new response object
+        new_response = AssessmentSpeakingResponse(**response_data)
         db.session.add(new_response)
     
     db.session.commit()
@@ -192,11 +196,15 @@ def submit_speaking_part2(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = AssessmentSpeakingResponse()
-        new_response.attempt_id = attempt_id
-        new_response.part_number = 2
-        new_response.audio_filename = filename
-        new_response.submission_time = datetime.utcnow()
+        # Create dictionary of values first to avoid LSP errors
+        response_data = {
+            'attempt_id': attempt_id,
+            'part_number': 2,
+            'audio_filename': filename,
+            'submission_time': datetime.utcnow()
+        }
+        # Create the new response object
+        new_response = AssessmentSpeakingResponse(**response_data)
         db.session.add(new_response)
     
     db.session.commit()
@@ -257,11 +265,15 @@ def submit_speaking_part3(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = AssessmentSpeakingResponse()
-        new_response.attempt_id = attempt_id
-        new_response.part_number = 3
-        new_response.audio_filename = filename
-        new_response.submission_time = datetime.utcnow()
+        # Create dictionary of values first to avoid LSP errors
+        response_data = {
+            'attempt_id': attempt_id,
+            'part_number': 3,
+            'audio_filename': filename,
+            'submission_time': datetime.utcnow()
+        }
+        # Create the new response object
+        new_response = AssessmentSpeakingResponse(**response_data)
         db.session.add(new_response)
     
     db.session.commit()
