@@ -1,5 +1,5 @@
 """
-Integrate assessment products with the existing subscription system.
+Integrate assessment products with the assessment package system.
 This script makes the necessary changes to routes.py to support the new product types.
 """
 
@@ -13,7 +13,7 @@ import re
 def integrate_assessment_products():
     """Make necessary changes to integrate assessment products."""
     
-    print("Integrating assessment products with the subscription system...")
+    print("Integrating assessment products with the assessment package system...")
     
     # First, check if we have all the required files
     routes_path = 'routes.py'

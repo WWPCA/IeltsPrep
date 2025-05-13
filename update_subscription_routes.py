@@ -4,6 +4,9 @@ DEPRECATED: Update subscription routes to handle our new product types.
 This file should no longer be actively used as we've moved to cart-based checkout.
 The implementation was functional but has been superceded by cart_routes.py.
 Kept for historical reference.
+
+NOTE: This file has been replaced by update_assessment_package_routes.py for terminology consistency.
+DO NOT USE THIS FILE FOR NEW DEVELOPMENT.
 """
 
 from main import app

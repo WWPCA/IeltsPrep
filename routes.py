@@ -83,7 +83,7 @@ def assessment_package_required(f):
 
 # Remove this after all routes are updated
 # Legacy name mapping for backward compatibility with any old code
-subscription_required = assessment_package_required
+# Removed legacy backward compatibility line
 
 # Streak tracking removed as requested
 
