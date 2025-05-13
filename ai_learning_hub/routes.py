@@ -273,7 +273,7 @@ def enroll(course_id):
     
     # Create progress record
     progress = ProgressRecord(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course.id,
         progress_percentage=0
     )
@@ -354,7 +354,7 @@ def lesson(lesson_id):
     
     # Update user's last accessed lesson
     progress = ProgressRecord.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course.id
     ).first()
     
@@ -457,7 +457,7 @@ def complete_lesson():
         
         # Count completed lessons
         completed_count = CompletedLesson.query.filter(
-            CompletedLesson.aihub_user_id == current_user.id,
+            CompletedLesson.ielts_genai_user_id == current_user.id,
             CompletedLesson.lesson_id.in_([
                 l.id for m in Module.query.filter_by(course_id=course_id).all()
                 for l in Lesson.query.filter_by(module_id=m.id).all()
