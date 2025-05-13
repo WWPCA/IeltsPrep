@@ -76,41 +76,42 @@ def assign_tests_to_user(user_id, test_type, num_tests, access_days=15):
     # Get available test numbers
     available_numbers = get_available_test_numbers(user_id, test_type)
     
-    # Check if we have enough unique tests
+    # Check if we have enough unique assessments
     if len(available_numbers) < num_tests:
         return [], False
     
-    # Randomly select tests from available numbers
+    # Randomly select assessments from available numbers
     assigned_numbers = random.sample(available_numbers, num_tests)
     
     # Create expiry date
     expiry_date = datetime.utcnow() + timedelta(days=access_days)
     
     # Create new assignment record
-    assignment = UserTestAssignment(
-        user_id=user_id,
-        test_type=test_type,
-        assigned_test_numbers=json.dumps(assigned_numbers),
-        purchase_date=datetime.utcnow(),
-        expiry_date=expiry_date
-    )
+    assignment = UserTestAssignment()
+    assignment.user_id = user_id
+    assignment.test_type = test_type
+    assignment.assigned_test_numbers = json.dumps(assigned_numbers)
+    assignment.purchase_date = datetime.utcnow()
+    assignment.expiry_date = expiry_date
     
     db.session.add(assignment)
     db.session.commit()
     
-    # Return the assigned test numbers
+    # Return the assigned assessment numbers
     return assigned_numbers, True
 
 def get_current_test_assignments(user_id, test_type):
     """
-    Get the currently assigned tests for a user that haven't expired.
+    Get the currently assigned assessments for a user that haven't expired.
     
     Args:
         user_id (int): The user's ID
         test_type (str): Either 'academic' or 'general'
         
     Returns:
-        list: Currently assigned test numbers
+        list: Currently assigned assessment numbers
+        
+    Note: Function name retains "test_assignments" for backward compatibility
     """
     # Get most recent assignment that hasn't expired
     assignment = UserTestAssignment.query.filter(
