@@ -534,43 +534,57 @@ def handle_speaking_payment(user, metadata):
         log_api_error('stripe', 'handle_speaking_payment', e)
     
     
-def handle_subscription_payment(user, metadata):
+def handle_assessment_package_payment(user, metadata):
     """
-    Handle subscription payment activation.
+    Handle assessment package payment activation.
     
     Args:
         user (User): The user object
-        metadata (dict): Stripe session metadata
+        metadata (dict): Stripe session metadata with assessment package details
     """
-    logger.info(f"Processing subscription payment for user {user.id}")
+    logger.info(f"Processing assessment package payment for user {user.id}")
     
-    plan_code = metadata.get('plan')
-    if not plan_code:
-        logger.error(f"No plan code found in metadata for user {user.id}")
+    package_code = metadata.get('plan')
+    if not package_code:
+        logger.error(f"No package code found in metadata for user {user.id}")
         return
         
     try:
-        # Add subscription to user's record
-        if not user.subscriptions:
-            user.subscriptions = []
-            
-        # Create a new subscription record
-        new_subscription = {
-            'plan': plan_code,
-            'start_date': datetime.utcnow().isoformat(),
-            'days': int(metadata.get('days', 30)),
-            'active': True
+        # Update assessment package status
+        user.assessment_package_status = package_code
+        
+        # Set expiry date (default 365 days for assessment packages)
+        days_valid = int(metadata.get('days', 365))
+        user.assessment_package_expiry = datetime.utcnow() + timedelta(days=days_valid)
+        
+        # Add to assessment history
+        history_item = {
+            'assessment_purchase': {
+                'package': package_code,
+                'purchase_date': datetime.utcnow().isoformat(),
+                'expiry_date': user.assessment_package_expiry.isoformat(),
+                'days_valid': days_valid
+            }
         }
         
-        user.subscriptions.append(new_subscription)
+        history = user.assessment_history
+        history.append(history_item)
+        user.assessment_history = history
+        
         db.session.commit()
         
-        logger.info(f"Added subscription {plan_code} for user {user.id}")
+        logger.info(f"Added assessment package {package_code} for user {user.id}")
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error handling subscription payment: {str(e)}")
-        log_api_error('stripe', 'handle_subscription_payment', e)
+        logger.error(f"Error handling assessment package payment: {str(e)}")
+        log_api_error('stripe', 'handle_assessment_package_payment', e)
+        
+# Deprecated function - renamed to handle_assessment_package_payment
+def handle_subscription_payment(user, metadata):
+    """DEPRECATED: Use handle_assessment_package_payment instead."""
+    logger.warning("Deprecated function handle_subscription_payment called - use handle_assessment_package_payment instead")
+    return handle_assessment_package_payment(user, metadata)
 
 
 def handle_test_purchase(user, metadata):
