@@ -358,7 +358,6 @@ class CompletePracticeTest(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     is_free = db.Column(db.Boolean, default=False)  # Free sample test
-    assessment_package_level = db.Column(db.String(20), nullable=False, default="basic")  # basic, intermediate, premium
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
     product_type = db.Column(db.String(50), nullable=True)  # academic_writing, academic_speaking, general_writing, general_speaking
     status = db.Column(db.String(20), nullable=False, default="active")  # active, inactive
