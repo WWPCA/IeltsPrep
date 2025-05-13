@@ -82,6 +82,7 @@ def assessment_package_required(f):
     return decorated_function
 
 # Remove this after all routes are updated
+# Legacy name mapping for backward compatibility with any old code
 subscription_required = assessment_package_required
 
 # Streak tracking removed as requested
@@ -1643,9 +1644,9 @@ def submit_speaking():
 #                           prompt=prompt,
 #                           previous_responses=previous_responses)
 
-@app.route('/subscribe')
-def subscribe():
-    """Redirect to assessment products page since we now use one-time purchases instead of subscriptions"""
+@app.route('/purchase-assessment')
+def purchase_assessment_package():
+    """Redirect to assessment products page for purchasing assessment packages"""
     return redirect(url_for('assessment_products_page'))
 
 @app.route('/checkout-review', methods=['POST'])
@@ -1664,7 +1665,7 @@ def checkout_review():
         
         # Check if we're using new plan format
         if plan == 'purchase' and test_type and test_package:
-            # For new subscription format
+            # For assessment package format
             package = test_package
         else:
             # For old format
@@ -1777,7 +1778,7 @@ def create_checkout_session():
     
     # Check if we're using new plan format
     if plan == 'purchase' and test_type and test_package:
-        # For new subscription format
+        # For assessment package format
         package = test_package
         test_preference = test_type
     else:
