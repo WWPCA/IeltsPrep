@@ -44,7 +44,7 @@ def get_available_test_numbers(user_id, test_type):
     
     return available_numbers
 
-def assign_tests_to_user(user_id, test_type, num_tests, subscription_days=15):
+def assign_tests_to_user(user_id, test_type, num_tests, access_days=15):
     """
     Assign a specific number of tests to a user, ensuring they don't receive 
     tests they've already seen.
@@ -53,7 +53,7 @@ def assign_tests_to_user(user_id, test_type, num_tests, subscription_days=15):
         user_id (int): The user's ID
         test_type (str): Either 'academic' or 'general'
         num_tests (int): Number of tests to assign (1, 2 or 4)
-        subscription_days (int): Number of days the subscription is valid (15 or 30)
+        access_days (int): Number of days the assessment package is valid (15 or 30)
         
     Returns:
         list: The assigned test numbers
@@ -76,7 +76,7 @@ def assign_tests_to_user(user_id, test_type, num_tests, subscription_days=15):
     assigned_numbers = random.sample(available_numbers, num_tests)
     
     # Create expiry date
-    expiry_date = datetime.utcnow() + timedelta(days=subscription_days)
+    expiry_date = datetime.utcnow() + timedelta(days=access_days)
     
     # Create new assignment record
     assignment = UserTestAssignment(
