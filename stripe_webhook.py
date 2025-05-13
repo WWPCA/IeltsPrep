@@ -144,7 +144,7 @@ def handle_stripe_webhook():
         elif event_type == 'charge.succeeded':
             handle_charge_succeeded(event_object)
         elif event_type == 'invoice.payment_succeeded':
-            # Handle subscription renewal payments
+            # Handle assessment package renewal payments
             handle_invoice_payment_succeeded(event_object)
         else:
             logger.info(f"Unhandled event type: {event_type}")
@@ -387,7 +387,7 @@ def handle_charge_succeeded(charge):
         
 def handle_invoice_payment_succeeded(invoice):
     """
-    Handle a successful invoice payment (for subscription renewals).
+    Handle a successful invoice payment (for assessment package renewals).
     
     Args:
         invoice (dict): The Stripe invoice object
@@ -416,19 +416,19 @@ def handle_invoice_payment_succeeded(invoice):
             logger.warning(f"No user found for email {customer_email} from invoice {invoice.id}")
             return
             
-        # Get subscription info from invoice
+        # Get assessment package info from invoice
         subscription_id = getattr(invoice, 'subscription', None)
         if subscription_id:
             try:
                 subscription = stripe.Subscription.retrieve(subscription_id)
-                # Check if this is a recurring payment for an existing subscription
+                # Check if this is a recurring payment for an existing assessment package
                 if hasattr(subscription, 'metadata') and subscription.metadata:
                     metadata = subscription.metadata
-                    # Process the subscription renewal using the same logic as initial subscriptions
-                    handle_subscription_payment(user, metadata)
-                    logger.info(f"Processed subscription renewal for user {user.id}")
+                    # Process the assessment package renewal using the same logic as initial purchases
+                    handle_assessment_package_payment(user, metadata)
+                    logger.info(f"Processed assessment package renewal for user {user.id}")
             except Exception as e:
-                logger.error(f"Error retrieving subscription for invoice {invoice.id}: {str(e)}")
+                logger.error(f"Error retrieving subscription details for invoice {invoice.id}: {str(e)}")
                 
         # Ensure account is active
         activate_user_account(user)
