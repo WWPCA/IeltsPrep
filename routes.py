@@ -768,9 +768,9 @@ def take_practice_test(test_type, test_id):
         flash('This test requires an assessment package. Please purchase an assessment package to access all practice tests.', 'warning')
         return redirect(url_for('assessment_products_page'))
     
-    # Check if user has already taken this test during current subscription period
+    # Check if user has already taken this test during current assessment package period
     if current_user.has_taken_test(test_id, test_type):
-        flash('You have already taken this test during your current subscription period. Each test can only be taken once per subscription.', 'warning')
+        flash('You have already taken this test during your current assessment package period. Each test can only be taken once per assessment package.', 'warning')
         return redirect(url_for('practice_test_list', test_type=test_type))
     
     # For all tests, use the empty templates instead of actual content to prevent popup errors
@@ -837,9 +837,9 @@ def start_practice_test(test_type, test_id):
         flash('This test requires an assessment package. Please purchase an assessment package to access all practice tests.', 'warning')
         return redirect(url_for('assessment_products_page'))
     
-    # Check if user has already taken this test during current subscription period
+    # Check if user has already taken this test during current assessment package period
     if current_user.has_taken_test(test_id, test_type):
-        flash('You have already taken this test during your current subscription period. Each test can only be taken once per subscription.', 'warning')
+        flash('You have already taken this test during your current assessment package period. Each test can only be taken once per assessment package.', 'warning')
         return redirect(url_for('practice_test_list', test_type=test_type))
     
     # Initialize test record for tracking user's progress
@@ -889,7 +889,7 @@ def start_complete_test(test_id):
     
     # Check if user has access to this test
     if not current_user.is_subscribed():
-        flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
+        flash('This test requires an assessment package. Please purchase an assessment package to access all practice tests.', 'warning')
         return redirect(url_for('assessment_products_page'))
     
     # Verify that this test should be accessible based on the user's package
@@ -1269,7 +1269,7 @@ def submit_test():
     
     # For individual section practice (not part of complete test)
     if not complete_test_id:
-        # Mark this test as completed so it can't be retaken during current subscription period
+        # Mark this test as completed so it can't be retaken during current assessment package period
         current_user.mark_test_completed(test_id, test.test_type)
     
     db.session.commit()
@@ -1391,7 +1391,7 @@ def submit_writing():
     
     # For individual section practice (not part of complete test)
     if not complete_test_id:
-        # Mark this test as completed so it can't be retaken during current subscription period
+        # Mark this test as completed so it can't be retaken during current assessment package period
         current_user.mark_test_completed(test_id, test.test_type)
     
     db.session.commit()
@@ -1529,7 +1529,7 @@ def submit_speaking_response(test_id=None):
     
     # For individual section practice (not part of complete test)
     if not complete_test_id:
-        # Mark this test as completed so it can't be retaken during current subscription period
+        # Mark this test as completed so it can't be retaken during current assessment package period
         current_user.mark_test_completed(test_id, 'speaking')
     
     db.session.commit()
