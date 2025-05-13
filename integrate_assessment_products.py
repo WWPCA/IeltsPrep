@@ -210,10 +210,10 @@ def assign_assessment_sets(user, product_id):
 {indentation}        current_user.test_history = test_history
 {indentation}        
 {indentation}        # Set the user's new product type
-{indentation}        current_user.subscription_status = 'active'
+{indentation}        current_user.assessment_package_status = 'active'
 {indentation}        
 {indentation}        # No expiry date for permanent access
-{indentation}        # current_user.subscription_expiry = None
+{indentation}        # current_user.assessment_package_expiry = None
 {indentation}        
 {indentation}        # Commit changes
 {indentation}        db.session.commit()
@@ -245,7 +245,7 @@ def assign_assessment_sets(user, product_id):
     with open(routes_path, 'w') as f:
         f.write(updated_content)
     
-    print("Assessment products integrated with the subscription system.")
+    print("Assessment products integrated with the assessment package system.")
     
     # Create template for assessment products page
     create_assessment_products_template()
