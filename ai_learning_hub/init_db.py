@@ -1,36 +1,36 @@
 """
-Initialize database with sample content for AI Learning Hub
+Initialize database with sample content for IELTS GenAI Prep
 """
 from datetime import datetime, timedelta
 from ai_learning_hub.app import db
 from ai_learning_hub.models import (
-    AIHubUser, Course, Module, Lesson, UserCourse, LessonCompletion, UserNote
+    IELTSGenAIUser, Course, Module, Lesson, UserCourse, LessonCompletion, UserNote
 )
 
 def init_db():
-    """Create initial data for the AI Learning Hub"""
+    """Create initial data for the IELTS GenAI Prep"""
     # Check if we already have data
-    if AIHubUser.query.count() > 0:
+    if IELTSGenAIUser.query.count() > 0:
         print("Database already contains data. Skipping initialization.")
         return
 
-    print("Initializing AI Learning Hub database with sample data...")
+    print("Initializing IELTS GenAI Prep database with sample data...")
 
     # Create admin user
-    admin = AIHubUser(
+    admin = IELTSGenAIUser(
         username="admin",
-        email="admin@ailearninghub.example.com",
+        email="admin@ieltsgenaiprep.example.com",
         full_name="Admin User",
-        subscription_status="active",
-        subscription_expiry=datetime.utcnow() + timedelta(days=365)
+        assessment_package_status="active",
+        assessment_package_expiry=datetime.utcnow() + timedelta(days=365)
     )
     admin.set_password("admin123")
     db.session.add(admin)
 
     # Create a test user
-    test_user = AIHubUser(
+    test_user = IELTSGenAIUser(
         username="testuser",
-        email="test@example.com",
+        email="test@ieltsgenaiprep.example.com",
         full_name="Test User",
         join_date=datetime.utcnow() - timedelta(days=30)
     )
