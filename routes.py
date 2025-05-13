@@ -64,13 +64,9 @@ def inject_cache_buster():
     cache_buster = int(time.time())
     return dict(cache_buster=cache_buster)
 
-def subscription_required(f):
+def assessment_package_required(f):
     """
-    DEPRECATED: Use assessment_package_required instead.
-    
     Decorator to check if user has active assessment packages
-    This decorator is named "subscription_required" for backward compatibility,
-    but it actually checks for active assessment packages, not subscriptions.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -85,23 +81,8 @@ def subscription_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def assessment_package_required(f):
-    """
-    Decorator to check if user has active assessment packages.
-    This is the preferred decorator to use instead of subscription_required.
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            flash('Please log in to access this feature.', 'warning')
-            return redirect(url_for('login'))
-            
-        if not current_user.has_active_assessment_package():
-            flash('This feature requires an active assessment package. Please purchase a package to access this feature.', 'warning')
-            return redirect(url_for('assessment_products_page'))
-            
-        return f(*args, **kwargs)
-    return decorated_function
+# Remove this after all routes are updated
+subscription_required = assessment_package_required
 
 # Streak tracking removed as requested
 

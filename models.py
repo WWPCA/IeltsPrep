@@ -16,8 +16,8 @@ class User(UserMixin, db.Model):
     # Phone field removed as it doesn't exist in database
     region = db.Column(db.String(50), nullable=True)
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
-    subscription_status = db.Column(db.String(20), default="none")
-    subscription_expiry = db.Column(db.DateTime, nullable=True)
+    assessment_package_status = db.Column(db.String(20), default="none")
+    assessment_package_expiry = db.Column(db.DateTime, nullable=True)
     # App only available in English - preferred_language column retained for database compatibility
     # but not used in UI
     preferred_language = db.Column(db.String(10), default="en")
@@ -39,8 +39,8 @@ class User(UserMixin, db.Model):
     # Store study activity history as JSON string
     _activity_history = db.Column(db.Text, default='[]')
     
-    # Store test history as JSON string
-    _test_history = db.Column(db.Text, default='[]')
+    # Store assessment history as JSON string
+    _assessment_history = db.Column(db.Text, default='[]')
     # Store speaking scores as JSON string
     _speaking_scores = db.Column(db.Text, default='[]')
     # Store completed tests as JSON string
@@ -89,12 +89,21 @@ class User(UserMixin, db.Model):
         return False
     
     @property
+    def assessment_history(self):
+        return json.loads(self._assessment_history)
+    
+    @assessment_history.setter
+    def assessment_history(self, value):
+        self._assessment_history = json.dumps(value)
+        
+    # Legacy property for backwards compatibility - will be removed after full migration
+    @property
     def test_history(self):
-        return json.loads(self._test_history)
+        return self.assessment_history
     
     @test_history.setter
     def test_history(self, value):
-        self._test_history = json.dumps(value)
+        self.assessment_history = value
     
     @property
     def speaking_scores(self):
@@ -228,18 +237,25 @@ class User(UserMixin, db.Model):
     def has_active_assessment_package(self):
         """
         Check if user has access to purchased assessment packages.
-        This is the preferred method to use for checking access.
         """
         # Check if assessment package has expired first
-        if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
+        if self.assessment_package_expiry and self.assessment_package_expiry <= datetime.utcnow():
             # Assessment package has expired - update status
-            self.subscription_status = "expired"
+            self.assessment_package_status = "expired"
             db.session.commit()
             return False
             
-        # Check for test purchases in test_history
-        for history_item in self.test_history:
-            if "test_purchase" in history_item:
+        # Check for assessment purchases in assessment_history
+        for history_item in self.assessment_history:
+            if "assessment_purchase" in history_item:
+                purchase_data = history_item["assessment_purchase"]
+                if "expiry_date" in purchase_data:
+                    # Check if purchase is still valid
+                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
+                    if expiry_date > datetime.utcnow():
+                        return True
+            # Support legacy format
+            elif "test_purchase" in history_item:
                 purchase_data = history_item["test_purchase"]
                 if "expiry_date" in purchase_data:
                     # Check if purchase is still valid
@@ -247,18 +263,17 @@ class User(UserMixin, db.Model):
                     if expiry_date > datetime.utcnow():
                         return True
             
-        # Check for the new assessment package status values
+        # Check for assessment package status values
         valid_packages = [
-            "Value Pack", "Single Test", "Double Package",  # New naming convention
-            "Speaking Only Basic", "Speaking Only Pro",     # Speaking-only packages (deprecated)
-            "premium", "base", "intermediate", "pro"        # Legacy naming convention
+            "Value Pack", "Single Test", "Double Package",  # Standard assessment packages
+            "Academic Writing", "Academic Speaking", "General Writing", "General Speaking"  # Specific assessment types
         ]
             
-        # Verify that assessment package status is not "none" or "expired" and hasn't expired
-        if (self.subscription_status in valid_packages and 
-                self.subscription_status != "none" and
-                self.subscription_status != "expired" and
-                (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
+        # Verify that assessment package status is valid and hasn't expired
+        if (self.assessment_package_status in valid_packages and 
+                self.assessment_package_status != "none" and
+                self.assessment_package_status != "expired" and
+                (not self.assessment_package_expiry or self.assessment_package_expiry > datetime.utcnow())):
             return True
                 
         return False
@@ -281,15 +296,15 @@ class User(UserMixin, db.Model):
         Check if user has speaking-only access
         """
         # Speaking-only users have permanent account access (no expiry)
-        # Check for speaking-only subscription status
-        speaking_only_subscriptions = ["Speaking Only Basic", "Speaking Only Pro"]
+        # Check for speaking-only assessment package status
+        speaking_only_packages = ["Academic Speaking", "General Speaking", "Speaking Only Basic", "Speaking Only Pro"]
         
-        # Check if current subscription is a speaking-only type
-        if self.subscription_status in speaking_only_subscriptions:
+        # Check if current assessment package is a speaking-only type
+        if self.assessment_package_status in speaking_only_packages:
             return True
                 
-        # Check for speaking-only test purchases in test_history
-        for history_item in self.test_history:
+        # Check for speaking-only assessment purchases in assessment_history
+        for history_item in self.assessment_history:
             if "speaking_purchase" in history_item:
                 # If there's a speaking purchase in history, user has speaking-only access
                 # (speaking packages have permanent access)
@@ -308,18 +323,20 @@ class User(UserMixin, db.Model):
         if not self.is_speaking_only_user():
             return 0
             
-        # Check for speaking assessments count in test_history
-        for history_item in reversed(self.test_history):  # Check most recent first
+        # Check for speaking assessments count in assessment_history
+        for history_item in reversed(self.assessment_history):  # Check most recent first
             if "speaking_purchase" in history_item:
                 purchase_data = history_item["speaking_purchase"]
                 if "total_assessments" in purchase_data and "used_assessments" in purchase_data:
                     remaining = purchase_data["total_assessments"] - purchase_data["used_assessments"]
                     return max(0, remaining)  # Ensure never negative
         
-        # If subscription is Speaking Only but no purchase data found
-        if self.subscription_status == "Speaking Only Basic":
+        # If assessment package is a Speaking package but no purchase data found
+        if self.assessment_package_status == "Academic Speaking" or self.assessment_package_status == "General Speaking":
+            return 4  # Default for standard speaking package
+        elif self.assessment_package_status == "Speaking Only Basic":
             return 4  # Default for basic speaking package
-        elif self.subscription_status == "Speaking Only Pro":
+        elif self.assessment_package_status == "Speaking Only Pro":
             return 10  # Default for pro speaking package
             
         return 0
