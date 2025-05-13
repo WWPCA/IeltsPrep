@@ -144,7 +144,7 @@ def dashboard():
     for enrollment in enrollments:
         course = Course.query.get(enrollment.course_id)
         progress = ProgressRecord.query.filter_by(
-            aihub_user_id=current_user.id,
+            ielts_genai_user_id=current_user.id,
             course_id=course.id
         ).first()
         
@@ -169,7 +169,7 @@ def dashboard():
         ).order_by(Course.rating.desc()).limit(4).all()
     
     # Get user's completed certificates
-    certificates = Certificate.query.filter_by(aihub_user_id=current_user.id).all()
+    certificates = Certificate.query.filter_by(ielts_genai_user_id=current_user.id).all()
     
     return render_template(
         'dashboard.html',
@@ -254,7 +254,7 @@ def enroll(course_id):
     
     # Check if already enrolled
     existing_enrollment = Enrollment.query.filter_by(
-        aihub_user_id=current_user.id,
+        ielts_genai_user_id=current_user.id,
         course_id=course.id
     ).first()
     
@@ -268,7 +268,7 @@ def enroll(course_id):
         return redirect(url_for('pricing'))
     
     # Create enrollment
-    enrollment = Enrollment(aihub_user_id=current_user.id, course_id=course.id)
+    enrollment = Enrollment(ielts_genai_user_id=current_user.id, course_id=course.id)
     db.session.add(enrollment)
     
     # Create progress record
