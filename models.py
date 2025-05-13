@@ -340,6 +340,9 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
+# Legacy model for test structure information pages
+# This model is still used for the test structure information pages but should be replaced
+# with Assessment-based information in a future update
 class TestStructure(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     test_type = db.Column(db.String(50), nullable=False)
