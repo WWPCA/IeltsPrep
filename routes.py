@@ -763,9 +763,9 @@ def take_practice_test(test_type, test_id):
         if remaining_attempts <= 0:
             flash('You have used all your speaking assessments. Please purchase more to continue.', 'warning')
             return redirect(url_for('speaking_only'))
-    elif not current_user.is_subscribed():
-        # Regular subscription check for other test types
-        flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
+    elif not current_user.has_active_assessment_package():
+        # Check for assessment package access for other test types
+        flash('This test requires an assessment package. Please purchase an assessment package to access all practice tests.', 'warning')
         return redirect(url_for('assessment_products_page'))
     
     # Check if user has already taken this test during current subscription period
@@ -832,9 +832,9 @@ def start_practice_test(test_type, test_id):
         # Update remaining count for display
         remaining_attempts -= 1
         
-    elif not current_user.is_subscribed():
-        # Regular subscription check for other test types
-        flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
+    elif not current_user.has_active_assessment_package():
+        # Check for assessment package access for other test types
+        flash('This test requires an assessment package. Please purchase an assessment package to access all practice tests.', 'warning')
         return redirect(url_for('assessment_products_page'))
     
     # Check if user has already taken this test during current subscription period
@@ -1800,7 +1800,7 @@ def create_checkout_session():
             return redirect(url_for('practice_index'))
     
     # Check if user already has a Value Pack (cannot purchase additional packages)
-    if current_user.is_authenticated and current_user.subscription_status == 'Value Pack' and current_user.is_subscribed():
+    if current_user.is_authenticated and current_user.assessment_package_status == 'Value Pack' and current_user.has_active_assessment_package():
         error_message = 'You already have an active Value Pack subscription. You cannot purchase additional test packages while your Value Pack is active.'
         if request.is_json:
             return jsonify({'error': error_message}), 400
