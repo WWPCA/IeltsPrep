@@ -24,8 +24,8 @@ def create_test_user():
         username='testuser',
         email='testuser@example.com',
         region='global',
-        assessment_package_status='active',  # Active account for full feature access
-        assessment_package_expiry=datetime.datetime.now() + datetime.timedelta(days=30),
+        subscription_status='premium',  # Premium account for full feature access
+        subscription_expiry=datetime.datetime.now() + datetime.timedelta(days=30),
         preferred_language='en'
     )
     test_user.set_password('testpassword')
@@ -51,7 +51,7 @@ def create_test_user():
     logger.info("Successfully created test user!")
     logger.info("Username: testuser")
     logger.info("Password: testpassword")
-    logger.info("This user has active assessment package status for full feature testing.")
+    logger.info("This user has premium subscription status for full feature testing.")
 
 if __name__ == "__main__":
     with app.app_context():
