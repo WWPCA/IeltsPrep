@@ -318,12 +318,12 @@ def handle_checkout_session_completed(session):
         if plan_type == 'speaking_only':
             # Handle speaking assessment purchases
             handle_speaking_payment(user, metadata)
-        elif plan_type == 'subscription':
-            # Handle subscription purchases
-            handle_subscription_payment(user, metadata)
+        elif plan_type == 'assessment_package':
+            # Handle assessment package purchases
+            handle_assessment_package_payment(user, metadata)
         else:
-            # Handle individual test purchases
-            handle_test_purchase(user, metadata)
+            # Handle individual assessment purchases
+            handle_assessment_purchase(user, metadata)
         
         logger.info(f"Successfully processed payment for user {user.id} with session {session_id}")
         
@@ -587,15 +587,15 @@ def handle_subscription_payment(user, metadata):
     return handle_assessment_package_payment(user, metadata)
 
 
-def handle_test_purchase(user, metadata):
+def handle_assessment_purchase(user, metadata):
     """
-    Handle individual test purchase activation.
+    Handle individual assessment purchase activation.
     
     Args:
         user (User): The user object
         metadata (dict): Stripe session metadata
     """
-    logger.info(f"Processing test purchase for user {user.id}")
+    logger.info(f"Processing assessment purchase for user {user.id}")
     
     # Get product details from metadata
     product_type = metadata.get('type')
@@ -603,8 +603,8 @@ def handle_test_purchase(user, metadata):
     
     # Determine the product ID based on metadata
     if product_type in ['academic', 'general']:
-        test_package = metadata.get('package')
-        if test_package:
+        assessment_package = metadata.get('package')
+        if assessment_package:
             # For academic/general writing and speaking products
             product_id = f"{product_type}_{metadata.get('package', '')}"
     else:
@@ -625,10 +625,16 @@ def handle_test_purchase(user, metadata):
         if success:
             # Assign assessment sets
             assign_assessment_sets(user, product_id)
-            logger.info(f"Successfully processed test purchase for user {user.id}, product {product_id}")
+            logger.info(f"Successfully processed assessment purchase for user {user.id}, product {product_id}")
         else:
-            logger.error(f"Failed to process test purchase for user {user.id}, product {product_id}")
+            logger.error(f"Failed to process assessment purchase for user {user.id}, product {product_id}")
             
     except Exception as e:
-        logger.error(f"Error handling test purchase: {str(e)}")
-        log_api_error('stripe', 'handle_test_purchase', e)
+        logger.error(f"Error handling assessment purchase: {str(e)}")
+        log_api_error('stripe', 'handle_assessment_purchase', e)
+        
+# Deprecated function - renamed to handle_assessment_purchase
+def handle_test_purchase(user, metadata):
+    """DEPRECATED: Use handle_assessment_purchase instead."""
+    logger.warning("Deprecated function handle_test_purchase called - use handle_assessment_purchase instead")
+    return handle_assessment_purchase(user, metadata)
