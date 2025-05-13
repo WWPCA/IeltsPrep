@@ -63,7 +63,7 @@ def submit_speaking_response(test_id):
         test = PracticeTest.query.get_or_404(test_id)
         
         # Verify user has access to this test
-        if not test.is_free and not current_user.is_subscribed():
+        if not test.is_free and not current_user.has_active_assessment_package():
             flash("You must be subscribed to submit this test.", "danger")
             return redirect(url_for('practice.test_details', test_type='speaking', test_id=test_id))
         

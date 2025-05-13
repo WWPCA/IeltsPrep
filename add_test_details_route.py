@@ -10,7 +10,7 @@ def test_details_route(test_type, test_id):
     test = PracticeTest.query.get_or_404(test_id)
     
     # All tests require subscription
-    if not current_user.is_subscribed():
+    if not current_user.has_active_assessment_package():
         flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
         return redirect(url_for('subscribe'))
     

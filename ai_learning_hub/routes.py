@@ -31,7 +31,7 @@ def load_user(user_id):
 def premium_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_subscribed():
+        if not current_user.is_authenticated or not current_user.has_active_assessment_package():
             flash('This content requires a premium subscription.', 'warning')
             return redirect(url_for('pricing'))
         return f(*args, **kwargs)
@@ -263,7 +263,7 @@ def enroll(course_id):
         return redirect(url_for('course_detail', slug=course.slug))
     
     # Check if course is premium and user has subscription
-    if course.is_premium and not current_user.is_subscribed():
+    if course.is_premium and not current_user.has_active_assessment_package():
         flash('This is a premium course. Please upgrade your subscription.', 'warning')
         return redirect(url_for('pricing'))
     
@@ -348,7 +348,7 @@ def lesson(lesson_id):
     ).first_or_404()
     
     # Check if lesson is premium and user has subscription
-    if not lesson.is_free and course.is_premium and not current_user.is_subscribed():
+    if not lesson.is_free and course.is_premium and not current_user.has_active_assessment_package():
         flash('This lesson requires a premium subscription.', 'warning')
         return redirect(url_for('pricing'))
     

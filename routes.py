@@ -37,7 +37,7 @@ except ImportError:
         test = PracticeTest.query.get_or_404(test_id)
         
         # All tests require subscription
-        if not current_user.is_subscribed():
+        if not current_user.has_active_assessment_package():
             flash('This test requires a subscription. Please subscribe to access all practice tests.', 'warning')
             return redirect(url_for('assessment_products_page'))
         
@@ -573,7 +573,7 @@ def practice_index():
         user_test_preference = current_user.test_preference
         
         # Use the test assignment service to get the tests the user has access to
-        if current_user.is_subscribed():
+        if current_user.has_active_assessment_package():
             # First check if user has any assigned tests
             assigned_tests = test_assignment_service.get_user_accessible_tests(
                 user_id=current_user.id,
@@ -719,7 +719,7 @@ def practice_test_list(test_type):
     tests = PracticeTest.query.filter_by(test_type=test_type).all()
     
     # Determine how many tests to show based on subscription
-    if current_user.is_subscribed():
+    if current_user.has_active_assessment_package():
         # Determine number of tests to show based on user's subscription
         num_tests_to_show = 1  # Default for single test package
             
