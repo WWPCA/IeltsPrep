@@ -257,12 +257,11 @@ def submit_speaking_part3(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = AssessmentSpeakingResponse(
-            attempt_id=attempt_id,
-            part_number=3,
-            audio_filename=filename,
-            submission_time=datetime.utcnow()
-        )
+        new_response = AssessmentSpeakingResponse()
+        new_response.attempt_id = attempt_id
+        new_response.part_number = 3
+        new_response.audio_filename = filename
+        new_response.submission_time = datetime.utcnow()
         db.session.add(new_response)
     
     db.session.commit()
