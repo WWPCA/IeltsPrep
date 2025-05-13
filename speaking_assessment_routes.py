@@ -16,7 +16,7 @@ import os
 import json
 
 from main import app
-from models import db, Assessment, UserAssessmentAttempt, SpeakingResponse
+from models import db, Assessment, UserAssessmentAttempt, AssessmentSpeakingResponse
 from account_activation import authenticated_user_required
 
 # Taking a speaking assessment
@@ -42,17 +42,17 @@ def take_speaking_assessment(assessment_id, attempt_id):
         return redirect(url_for('assessment_index'))
     
     # Get existing responses
-    part1_response = SpeakingResponse.query.filter_by(
+    part1_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=1
     ).first()
     
-    part2_response = SpeakingResponse.query.filter_by(
+    part2_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=2
     ).first()
     
-    part3_response = SpeakingResponse.query.filter_by(
+    part3_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=3
     ).first()
@@ -116,7 +116,7 @@ def submit_speaking_part1(assessment_id, attempt_id):
     audio_file.save(filepath)
     
     # Check for existing response
-    existing_response = SpeakingResponse.query.filter_by(
+    existing_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=1
     ).first()
