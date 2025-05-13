@@ -426,7 +426,7 @@ class CompletePracticeTest(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     is_free = db.Column(db.Boolean, default=False)  # Free sample test
-    subscription_level = db.Column(db.String(20), nullable=False, default="basic")  # basic, intermediate, premium
+    assessment_package_level = db.Column(db.String(20), nullable=False, default="basic")  # basic, intermediate, premium
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
     product_type = db.Column(db.String(50), nullable=True)  # academic_writing, academic_speaking, general_writing, general_speaking
     status = db.Column(db.String(20), nullable=False, default="active")  # active, inactive
@@ -865,7 +865,7 @@ class Translation(db.Model):
 class CountryPricing(db.Model):
     """
     DEPRECATED: This model is no longer actively used as we've moved to fixed pricing.
-    Table for storing country-specific pricing information that was used in the subscription model.
+    Table for storing country-specific pricing information that was used in the assessment package model.
     Kept for historical reference and backward compatibility with existing users.
     """
     id = db.Column(db.Integer, primary_key=True)
