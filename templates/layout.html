@@ -200,7 +200,7 @@
                 <ul>
                     <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
                     <li><a href="{{ url_for('test_structure') }}">Test Structure</a></li>
-                    {% if current_user.is_authenticated and current_user.subscription_status == 'Value Pack' %}
+                    {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
                     {% endif %}
                     <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
