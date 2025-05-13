@@ -1554,84 +1554,17 @@ def submit_speaking_response(test_id=None):
     
     return jsonify(response_data)
 
+# This route has been replaced by assessment-specific routes in speaking_assessment_routes.py
+# Keeping as a commented reference for backward compatibility
+"""
 @app.route('/api/submit-speaking', methods=['POST'])
 @login_required
 def submit_speaking():
-    prompt_id = request.form.get('prompt_id')
-    audio_file = request.files.get('audio')
-    
-    if not prompt_id or not audio_file:
-        return jsonify({'error': 'Missing required data'}), 400
-    
-    # Process the audio file
-    filename = f"user_{current_user.id}_prompt_{prompt_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp3"
-    audio_path = os.path.join('static', 'uploads', 'audio', filename)
-    os.makedirs(os.path.dirname(audio_path), exist_ok=True)
-    
-    # Save and compress the audio
-    audio_file.save(audio_path)
-    compressed_path = compress_audio(audio_path)
-    
-    # Transcribe using AWS Transcribe
-    try:
-        transcription = transcribe_audio(compressed_path)
-        
-        # Get the prompt
-        prompt = SpeakingPrompt.query.get_or_404(prompt_id)
-        
-        # Analyze the transcription against IELTS speaking criteria
-        scores, feedback = analyze_speaking_response(transcription)
-        
-        # Create a new speaking response
-        response = SpeakingResponse(
-            user_id=current_user.id,
-            prompt_id=prompt_id,
-            audio_url=url_for('static', filename=f'uploads/audio/{filename}'),
-            transcription=transcription,
-            scores=scores  # Stored as JSON
-        )
-        
-        db.session.add(response)
-        
-        # Update the user's speaking scores
-        speaking_scores = current_user.speaking_scores
-        speaking_scores.append({
-            'date': datetime.utcnow().isoformat(),
-            'prompt_id': prompt_id,
-            'band_score': scores.get('overall_band', 0),
-            'fluency': scores.get('fluency', 0),
-            'pronunciation': scores.get('pronunciation', 0),
-            'grammar': scores.get('grammar', 0),
-            'vocabulary': scores.get('vocabulary', 0)
-        })
-        current_user.speaking_scores = speaking_scores
-        
-        # Generate audio feedback using Polly
-        try:
-            feedback_filename = f"feedback_user_{current_user.id}_prompt_{prompt_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp3"
-            feedback_path = os.path.join('static', 'uploads', 'audio', feedback_filename)
-            generate_polly_speech(feedback, feedback_path)
-            response.feedback_audio_url = url_for('static', filename=f'uploads/audio/{feedback_filename}')
-        except Exception as e:
-            app.logger.error(f"Error generating feedback audio: {str(e)}")
-            
-        db.session.commit()
-        
-        # Return the assessment results
-        result = {
-            'success': True,
-            'transcription': transcription,
-            'scores': scores,
-            'audio_url': response.audio_url,
-            'feedback_audio_url': response.feedback_audio_url if hasattr(response, 'feedback_audio_url') else None,
-            'feedback': feedback
-        }
-        
-        return jsonify(result)
-    
-    except Exception as e:
-        app.logger.error(f"Error in speaking submission: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    # This route has been deprecated as part of the move to assessment-based system
+    # All speaking functionality is now handled through the AssessmentSpeakingResponse model
+    # and related routes in speaking_assessment_routes.py
+    return jsonify({'error': 'This API endpoint has been deprecated'}), 410
+"""
 
 # @login_required
 # def speaking_assessment(prompt_id):

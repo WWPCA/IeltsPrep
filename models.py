@@ -678,6 +678,9 @@ class SpeakingPrompt(db.Model):
     def __repr__(self):
         return f'<SpeakingPrompt Part:{self.part}>'
 
+# SpeakingResponse model has been replaced by AssessmentSpeakingResponse
+# Keeping as a commented reference for backward compatibility
+"""
 class SpeakingResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -698,6 +701,7 @@ class SpeakingResponse(db.Model):
     
     def __repr__(self):
         return f'<SpeakingResponse User:{self.user_id} Prompt:{self.prompt_id}>'
+"""
 
 class PaymentMethod(db.Model):
     id = db.Column(db.Integer, primary_key=True)
