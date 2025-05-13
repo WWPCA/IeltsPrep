@@ -247,55 +247,6 @@ class User(UserMixin, db.Model):
                     if expiry_date > datetime.utcnow():
                         return True
             
-        # Check for the new subscription status values (legacy support)
-        valid_subscriptions = [
-            "Value Pack", "Single Test", "Double Package",  # New naming convention
-            "Speaking Only Basic", "Speaking Only Pro",     # Speaking-only packages
-            "premium", "base", "intermediate", "pro"        # Legacy naming convention
-        ]
-            
-        # Verify that subscription status is not "none" or "expired" and hasn't expired
-        return self.subscription_status in valid_subscriptions
-            
-    def is_subscribed(self):
-        """
-        DEPRECATED: Use has_active_assessment_package() instead.
-        
-        Check if user has access to purchased assessment packages
-        This method is named "is_subscribed" for backward compatibility,
-        but it actually checks for active assessment packages, not subscriptions.
-        """
-        return self.has_active_assessment_package()
-        if (self.subscription_status in valid_subscriptions and 
-                self.subscription_status != "none" and
-                self.subscription_status != "expired" and
-                (not self.subscription_expiry or self.subscription_expiry > datetime.utcnow())):
-            return True
-                
-        return False
-        
-    def has_active_assessment_package(self):
-        """
-        Check if user has access to purchased assessment packages.
-        This is the preferred method to use instead of is_subscribed().
-        """
-        # Check if assessment package has expired first
-        if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
-            # Assessment package has expired - update status
-            self.subscription_status = "expired"
-            db.session.commit()
-            return False
-            
-        # Check for test purchases in test_history
-        for history_item in self.test_history:
-            if "test_purchase" in history_item:
-                purchase_data = history_item["test_purchase"]
-                if "expiry_date" in purchase_data:
-                    # Check if purchase is still valid
-                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
-                    if expiry_date > datetime.utcnow():
-                        return True
-            
         # Check for the new assessment package status values
         valid_packages = [
             "Value Pack", "Single Test", "Double Package",  # New naming convention
@@ -311,6 +262,16 @@ class User(UserMixin, db.Model):
             return True
                 
         return False
+            
+    def is_subscribed(self):
+        """
+        DEPRECATED: Use has_active_assessment_package() instead.
+        
+        Check if user has access to purchased assessment packages
+        This method is named "is_subscribed" for backward compatibility,
+        but it actually checks for active assessment packages, not subscriptions.
+        """
+        return self.has_active_assessment_package()
         
     def is_speaking_only_user(self):
         """
