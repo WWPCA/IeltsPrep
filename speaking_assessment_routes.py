@@ -127,7 +127,7 @@ def submit_speaking_part1(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = SpeakingResponse()
+        new_response = AssessmentSpeakingResponse()
         new_response.attempt_id = attempt_id
         new_response.part_number = 1
         new_response.audio_filename = filename
@@ -181,7 +181,7 @@ def submit_speaking_part2(assessment_id, attempt_id):
     audio_file.save(filepath)
     
     # Check for existing response
-    existing_response = SpeakingResponse.query.filter_by(
+    existing_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=2
     ).first()
@@ -192,7 +192,7 @@ def submit_speaking_part2(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = SpeakingResponse()
+        new_response = AssessmentSpeakingResponse()
         new_response.attempt_id = attempt_id
         new_response.part_number = 2
         new_response.audio_filename = filename
@@ -246,7 +246,7 @@ def submit_speaking_part3(assessment_id, attempt_id):
     audio_file.save(filepath)
     
     # Check for existing response
-    existing_response = SpeakingResponse.query.filter_by(
+    existing_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=3
     ).first()
@@ -257,7 +257,7 @@ def submit_speaking_part3(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = SpeakingResponse(
+        new_response = AssessmentSpeakingResponse(
             attempt_id=attempt_id,
             part_number=3,
             audio_filename=filename,
@@ -293,17 +293,17 @@ def complete_speaking_assessment(assessment_id, attempt_id):
         return redirect(url_for('assessment_results', assessment_type='speaking', attempt_id=attempt_id))
     
     # Check if all parts have responses
-    part1_response = SpeakingResponse.query.filter_by(
+    part1_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=1
     ).first()
     
-    part2_response = SpeakingResponse.query.filter_by(
+    part2_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=2
     ).first()
     
-    part3_response = SpeakingResponse.query.filter_by(
+    part3_response = AssessmentSpeakingResponse.query.filter_by(
         attempt_id=attempt_id,
         part_number=3
     ).first()
