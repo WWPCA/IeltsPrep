@@ -21,7 +21,7 @@ class User(UserMixin, db.Model):
     # App only available in English - preferred_language column retained for database compatibility
     # but not used in UI
     preferred_language = db.Column(db.String(10), default="en")
-    test_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
+    assessment_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
     # Account activation flag - only true after successful payment
     account_activated = db.Column(db.Boolean, default=False)  # Renamed from is_active to avoid UserMixin conflict
     # Email verification fields
@@ -43,8 +43,8 @@ class User(UserMixin, db.Model):
     _assessment_history = db.Column(db.Text, default='[]')
     # Store speaking scores as JSON string
     _speaking_scores = db.Column(db.Text, default='[]')
-    # Store completed tests as JSON string
-    _completed_tests = db.Column(db.Text, default='[]')
+    # Store completed assessments as JSON string
+    _completed_assessments = db.Column(db.Text, default='[]')
     
     # Store password history as JSON string (stores hashed passwords only)
     _password_history = db.Column(db.Text, default='[]')
@@ -113,21 +113,21 @@ class User(UserMixin, db.Model):
         self._activity_history = json.dumps(value)
         
     @property
-    def completed_tests(self):
-        return json.loads(self._completed_tests)
+    def completed_assessments(self):
+        return json.loads(self._completed_assessments)
     
-    @completed_tests.setter
-    def completed_tests(self, value):
-        self._completed_tests = json.dumps(value)
+    @completed_assessments.setter
+    def completed_assessments(self, value):
+        self._completed_assessments = json.dumps(value)
     
-    def has_taken_test(self, test_id, test_type=None):
-        """Check if user has already taken a specific test"""
-        for test in self.completed_tests:
-            if test['test_id'] == test_id:
-                if test_type is None or test['test_type'] == test_type:
+    def has_taken_assessment(self, assessment_id, assessment_type=None):
+        """Check if user has already taken a specific assessment"""
+        for assessment in self.completed_assessments:
+            if assessment['assessment_id'] == assessment_id:
+                if assessment_type is None or assessment['assessment_type'] == assessment_type:
                     # Check if taken during current assessment package period
                     if self.assessment_package_expiry:
-                        test_date = datetime.fromisoformat(test['date'])
+                        assessment_date = datetime.fromisoformat(assessment['date'])
                         # Get assessment package duration from assessment_history
                         package_days = 30  # Default to 30 days
                         
@@ -143,26 +143,26 @@ class User(UserMixin, db.Model):
                             elif "assessment_package_data" in history_item:
                                 package_data = history_item["assessment_package_data"]
                                 if "plan" in package_data:
-                                    # Value pack (4 tests) = 30 days, others = 15 days
+                                    # Value pack (4 assessments) = 30 days, others = 15 days
                                     package_days = 30 if "pro" in package_data["plan"] else 15
                                     break
                         
-                        # If test was taken before current assessment package started, allow retaking
+                        # If assessment was taken before current assessment package started, allow retaking
                         package_start = self.assessment_package_expiry - timedelta(days=package_days)
-                        if test_date < package_start:
+                        if assessment_date < package_start:
                             return False
                     return True
         return False
         
-    def mark_test_completed(self, test_id, test_type):
-        """Mark a test as completed by this user"""
-        completed = self.completed_tests
+    def mark_assessment_completed(self, assessment_id, assessment_type):
+        """Mark an assessment as completed by this user"""
+        completed = self.completed_assessments
         completed.append({
-            'test_id': test_id,
-            'test_type': test_type,
+            'assessment_id': assessment_id,
+            'assessment_type': assessment_type,
             'date': datetime.utcnow().isoformat()
         })
-        self.completed_tests = completed
+        self.completed_assessments = completed
     
     def update_streak(self):
         """Update the user's study streak based on their activity"""
