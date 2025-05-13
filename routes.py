@@ -2075,7 +2075,7 @@ def sync_data():
         'username': current_user.username,
         'email': current_user.email,
         'assessment_package_status': current_user.assessment_package_status,
-        'assessment_package_expiry': current_user.subscription_expiry.isoformat() if current_user.subscription_expiry else None,
+        'assessment_package_expiry': current_user.assessment_package_expiry.isoformat() if current_user.assessment_package_expiry else None,
         'test_preference': current_user.test_preference,
         'test_history': current_user.test_history,
         'speaking_scores': current_user.speaking_scores,
