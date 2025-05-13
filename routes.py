@@ -548,9 +548,9 @@ def test_day():
         flash('Please log in to access the Test Day Guide.', 'warning')
         return redirect(url_for('login'))
     
-    # Check if user has Value Pack subscription
-    if current_user.subscription_status != 'Value Pack':
-        flash('The Test Day Guide is only available with the Value Pack (4 tests) subscription.', 'warning')
+    # Check if user has Value Pack assessment package
+    if current_user.assessment_package_status != 'Value Pack':
+        flash('The Test Day Guide is only available with the Value Pack (4 tests) assessment package.', 'warning')
         return redirect(url_for('assessment_products_page'))
     
     return render_template('test_day.html', title='IELTS Test Day Preparation')
@@ -584,13 +584,13 @@ def practice_index():
                 # User has assigned tests from the new system
                 complete_tests = assigned_tests
             else:
-                # Fallback to the old system for users with legacy subscriptions
-                # Determine number of tests to show based on user's subscription
+                # Fallback to the old system for users with legacy assessment packages
+                # Determine number of tests to show based on user's assessment package
                 num_tests_to_show = 1  # Default for single test package
                 
-                if current_user.subscription_status == 'Value Pack':
+                if current_user.assessment_package_status == 'Value Pack':
                     num_tests_to_show = 4
-                elif current_user.subscription_status == 'Double Package':
+                elif current_user.assessment_package_status == 'Double Package':
                     num_tests_to_show = 2
                 
                 # Use sqlalchemy to get tests
@@ -718,17 +718,17 @@ def practice_test_list(test_type):
     # Get all tests of this type, but filter to just show ones with complete questions and answers
     tests = PracticeTest.query.filter_by(test_type=test_type).all()
     
-    # Determine how many tests to show based on subscription
+    # Determine how many tests to show based on assessment package
     if current_user.has_active_assessment_package():
-        # Determine number of tests to show based on user's subscription
+        # Determine number of tests to show based on user's assessment package
         num_tests_to_show = 1  # Default for single test package
             
-        if current_user.subscription_status == 'Value Pack':
+        if current_user.assessment_package_status == 'Value Pack':
             num_tests_to_show = 4
-        elif current_user.subscription_status == 'Double Package':
+        elif current_user.assessment_package_status == 'Double Package':
             num_tests_to_show = 2
             
-        # Limit tests based on subscription level
+        # Limit tests based on assessment package level
         tests = tests[:num_tests_to_show] if tests else []
     else:
         # For non-subscribers, only show the first test
@@ -896,11 +896,11 @@ def start_complete_test(test_id):
     # Get all tests for this user's preference
     from sqlalchemy import func
     
-    # Determine number of tests to show based on user's subscription
+    # Determine number of tests to show based on user's assessment package
     num_tests_to_show = 1  # Default for single test package
-    if current_user.subscription_status == 'Value Pack':
+    if current_user.assessment_package_status == 'Value Pack':
         num_tests_to_show = 4
-    elif current_user.subscription_status == 'Double Package':
+    elif current_user.assessment_package_status == 'Double Package':
         num_tests_to_show = 2
     
     # Get the latest version of each test number
