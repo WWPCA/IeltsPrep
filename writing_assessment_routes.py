@@ -110,11 +110,15 @@ def submit_writing_task1(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = WritingResponse()
-        new_response.attempt_id = attempt_id
-        new_response.task_number = 1
-        new_response.response_text = response_text
-        new_response.submission_time = datetime.utcnow()
+        # Create dictionary of values first to avoid LSP errors
+        response_data = {
+            'attempt_id': attempt_id,
+            'task_number': 1,
+            'response_text': response_text,
+            'submission_time': datetime.utcnow()
+        }
+        # Create the new response object
+        new_response = WritingResponse(**response_data)
         db.session.add(new_response)
     
     db.session.commit()
@@ -164,11 +168,15 @@ def submit_writing_task2(assessment_id, attempt_id):
         existing_response.submission_time = datetime.utcnow()
     else:
         # Create new response
-        new_response = WritingResponse()
-        new_response.attempt_id = attempt_id
-        new_response.task_number = 2
-        new_response.response_text = response_text
-        new_response.submission_time = datetime.utcnow()
+        # Create dictionary of values first to avoid LSP errors
+        response_data = {
+            'attempt_id': attempt_id,
+            'task_number': 2,
+            'response_text': response_text,
+            'submission_time': datetime.utcnow()
+        }
+        # Create the new response object
+        new_response = WritingResponse(**response_data)
         db.session.add(new_response)
     
     db.session.commit()
