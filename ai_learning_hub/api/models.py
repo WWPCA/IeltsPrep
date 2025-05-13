@@ -9,7 +9,7 @@ import json
 class MobileDevice(db.Model):
     """Model for tracking mobile devices"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'), nullable=False)
     platform = db.Column(db.String(20), nullable=False)  # 'ios' or 'android'
     device_uuid = db.Column(db.String(64), nullable=False, unique=True)
     device_name = db.Column(db.String(128), nullable=True)
@@ -36,7 +36,7 @@ class MobileDevice(db.Model):
 class LocalSync(db.Model):
     """Model for tracking local data synchronization with the server"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'), nullable=False)
     device_id = db.Column(db.Integer, db.ForeignKey('mobile_device.id'), nullable=False)
     sync_type = db.Column(db.String(20), nullable=False)  # 'full', 'partial', 'content'
     content_type = db.Column(db.String(20), nullable=True)  # 'course', 'lesson', 'note'
@@ -62,7 +62,7 @@ class LocalSync(db.Model):
 class ApiAccessToken(db.Model):
     """Model for API access tokens"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'), nullable=False)
     device_id = db.Column(db.Integer, db.ForeignKey('mobile_device.id'), nullable=False)
     token = db.Column(db.String(256), nullable=False, unique=True)
     is_active = db.Column(db.Boolean, default=True)
@@ -80,7 +80,7 @@ class ApiAccessToken(db.Model):
 class PushNotification(db.Model):
     """Model for push notifications"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'), nullable=False)
     title = db.Column(db.String(128), nullable=False)
     message = db.Column(db.Text, nullable=False)
     _data = db.Column(db.Text, nullable=True)  # JSON data for deep linking

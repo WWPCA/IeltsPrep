@@ -119,7 +119,7 @@ class Lesson(db.Model):
 class UserCourse(db.Model):
     """Model for user course enrollments"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     enrolled_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_accessed = db.Column(db.DateTime, nullable=True)
@@ -132,7 +132,7 @@ class UserCourse(db.Model):
 class LessonCompletion(db.Model):
     """Model for tracking completed lessons"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'), nullable=False)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
     completed_date = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -142,7 +142,7 @@ class LessonCompletion(db.Model):
 class UserNote(db.Model):
     """Model for user notes on lessons"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('aihub_user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('ielts_genai_user.id'), nullable=False)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
