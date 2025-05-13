@@ -5,8 +5,8 @@ This script adds routes for the new assessment products.
 from main import app
 from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import current_user
-from models import db, User, CompletePracticeTest
-from datetime import datetime
+from models import db, User
+from datetime import datetime, timedelta
 import json
 import os
 from geoip_services import get_country_from_ip
@@ -131,26 +131,14 @@ def add_assessment_routes():
     print("Assessment routes added successfully.")
 
 def assign_assessment_sets(user, product_id):
-    """Assign assessment sets to the user for the given product."""
-    # Get all available sets for this product type
-    sets = CompletePracticeTest.query.filter_by(
-        product_type=product_id,
-        status='active'
-    ).all()
-    
-    if not sets or len(sets) == 0:
-        print(f"No assessment sets found for product {product_id}")
-        return
-    
-    print(f"Found {len(sets)} assessment sets for product {product_id}")
-    
+    """Assign assessment package to the user for the given product."""
     # Get user's test history
-    test_history = user.test_history if user.test_history else []
+    test_history = user.test_history if hasattr(user, 'test_history') and user.test_history else []
     
     # Find the most recent purchase
     purchase = None
     for item in reversed(test_history):
-        if item.get('product_id') == product_id and not item.get('sets_assigned', False):
+        if item.get('product_id') == product_id and not item.get('assigned', False):
             purchase = item
             break
     
@@ -158,15 +146,22 @@ def assign_assessment_sets(user, product_id):
         print(f"No unassigned purchase found for product {product_id}")
         return
     
-    # Assign up to 4 sets
-    set_ids = []
-    for i, test_set in enumerate(sets[:4]):
-        set_ids.append(test_set.id)
+    # Mark the assessment as assigned
+    purchase['assigned'] = True
     
-    # Update purchase with assigned sets
-    purchase['assigned_sets'] = set_ids
-    purchase['sets_assigned'] = True
+    # Set the assessment package status based on product_id
+    assessment_type_mapping = {
+        'academic_writing': 'Academic Writing',
+        'academic_speaking': 'Academic Speaking', 
+        'general_writing': 'General Writing',
+        'general_speaking': 'General Speaking'
+    }
     
+    if product_id in assessment_type_mapping:
+        user.assessment_package_status = assessment_type_mapping[product_id]
+        # Set expiry date to 30 days from now
+        user.assessment_package_expiry = datetime.utcnow() + timedelta(days=30)
+        
     # Update user's test history
     for i, item in enumerate(test_history):
         if item.get('date') == purchase.get('date') and item.get('product_id') == product_id:
@@ -178,7 +173,7 @@ def assign_assessment_sets(user, product_id):
     # Commit changes
     db.session.commit()
     
-    print(f"Assigned {len(set_ids)} assessment sets to user {user.id} for product {product_id}")
+    print(f"Assigned assessment package {product_id} to user {user.id}")
 
 def handle_assessment_product_payment(user, product_id):
     """Handle the payment success for an assessment product."""

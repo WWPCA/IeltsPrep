@@ -5,7 +5,7 @@ This module provides administrator routes for the IELTS preparation platform.
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, ConnectionIssueLog, AssessmentSession, PracticeTest
+from models import db, User, ConnectionIssueLog, AssessmentSession, Assessment
 from api_issues import APIIssueLog, get_api_issue_statistics
 from auth_issues import AuthIssueLog, get_auth_issue_statistics
 from sqlalchemy import func, distinct, and_

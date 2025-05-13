@@ -24,7 +24,7 @@ from io import StringIO
 from datetime import datetime, timedelta
 from flask import current_app, session, request, jsonify, render_template, redirect, url_for
 from app import app, db
-from models import User, UserTestAttempt
+from models import User, AssessmentSession
 import gcp_storage
 
 # Configure logging
@@ -195,21 +195,21 @@ def generate_user_data_report(user_id, report_format='json'):
                 'test_attempts': []
             }
             
-            # Add test attempts
-            attempts = UserTestAttempt.query.filter_by(user_id=user_id).all()
-            for attempt in attempts:
+            # Add assessment sessions
+            sessions = AssessmentSession.query.filter_by(user_id=user_id).all()
+            for session in sessions:
                 attempt_data = {
-                    'id': attempt.id,
-                    'test_id': attempt.test_id,
-                    'attempt_date': attempt.attempt_date.isoformat() if attempt.attempt_date else None,
-                    'score': attempt.score,
-                    'user_answers': None  # Don't include actual answers for privacy/size reasons
+                    'id': session.id,
+                    'product_id': session.product_id,
+                    'started_at': session.started_at.isoformat() if session.started_at else None,
+                    'completed_at': session.completed_at.isoformat() if session.completed_at else None,
+                    'status': session.status
                 }
                 
                 # Only include assessment summary, not full details
-                if attempt.assessment:
+                if session.assessment_data:
                     try:
-                        assessment = json.loads(attempt.assessment)
+                        assessment = json.loads(session.assessment_data)
                         if isinstance(assessment, dict):
                             summary = {
                                 'overall_band': assessment.get('overall_band', 0),

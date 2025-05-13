@@ -8,7 +8,7 @@ import random
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_, and_
 
-from models import db, UserTestAssignment, CompletePracticeTest, User
+from models import db, UserTestAssignment, User, Assessment
 
 # Total number of unique tests for each test type
 TOTAL_ACADEMIC_TESTS = 16
@@ -116,35 +116,37 @@ def get_current_test_assignments(user_id, test_type):
     
     return []
 
-def get_user_accessible_tests(user_id, test_type):
+def get_user_accessible_assessments(user_id, assessment_type):
     """
-    Get CompletePracticeTest objects that the user currently has access to.
+    Get Assessment objects that the user currently has access to.
     
     Args:
         user_id (int): The user's ID
-        test_type (str): Either 'academic' or 'general'
+        assessment_type (str): Assessment type like 'academic_writing' or 'general_speaking'
         
     Returns:
-        list: CompletePracticeTest objects the user can access
+        list: Assessment objects the user can access
     """
-    # Get the user's current assigned test numbers
-    assigned_numbers = get_current_test_assignments(user_id, test_type)
-    
-    if not assigned_numbers:
-        # No tests assigned or all assignments expired
+    # Get the user
+    user = User.query.get(user_id)
+    if not user or not user.has_active_assessment_package():
         return []
     
-    # Get one test object for each assigned test number (latest version)
-    test_objects = []
+    # Check if user has the right assessment package type
+    assessment_mapping = {
+        'academic_writing': 'Academic Writing',
+        'academic_speaking': 'Academic Speaking',
+        'general_writing': 'General Writing',
+        'general_speaking': 'General Speaking'
+    }
     
-    for test_number in assigned_numbers:
-        # Get the latest version of this test number
-        latest_test = CompletePracticeTest.query.filter_by(
-            ielts_test_type=test_type,
-            test_number=test_number
-        ).order_by(CompletePracticeTest.creation_date.desc()).first()
-        
-        if latest_test:
-            test_objects.append(latest_test)
+    if user.assessment_package_status != assessment_mapping.get(assessment_type):
+        return []
     
-    return test_objects
+    # Get assessment objects for this type
+    assessments = Assessment.query.filter_by(
+        assessment_type=assessment_type,
+        status='active'
+    ).order_by(Assessment.creation_date.desc()).limit(4).all()
+    
+    return assessments

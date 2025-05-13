@@ -13,7 +13,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from app import app, db, recaptcha_v3
-from models import User, TestStructure, PracticeTest, UserTestAttempt, SpeakingPrompt, SpeakingResponse, CompletePracticeTest, CompleteTestProgress, UserTestAssignment, PaymentRecord
+from models import User, TestStructure, SpeakingPrompt, SpeakingResponse, Assessment, UserTestAssignment, PaymentRecord
 from utils import get_user_region, get_translation, compress_audio
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import test_assignment_service
@@ -571,14 +571,19 @@ def practice_index():
     
     if current_user.is_authenticated:
         # Filter tests by user's test preference
-        user_test_preference = current_user.test_preference
+        # Map user preference to assessment type
+        preference_to_assessment = {
+            'academic': 'academic_writing',
+            'general': 'general_writing' 
+        }
+        user_assessment_type = preference_to_assessment.get(current_user.test_preference, 'academic_writing')
         
         # Use the test assignment service to get the tests the user has access to
         if current_user.has_active_assessment_package():
             # First check if user has any assigned tests
-            assigned_tests = test_assignment_service.get_user_accessible_tests(
+            assigned_tests = test_assignment_service.get_user_accessible_assessments(
                 user_id=current_user.id,
-                test_type=user_test_preference
+                assessment_type=user_test_preference
             )
             
             if assigned_tests:

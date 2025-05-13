@@ -5,7 +5,7 @@ This module provides routes for assessing IELTS speaking responses using Assembl
 
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
-from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress, SpeakingPrompt, SpeakingResponse, AssessmentSession
+from models import db, Assessment, User, SpeakingPrompt, SpeakingResponse, AssessmentSession
 from assemblyai_services import process_speaking_response, assess_existing_transcription
 import json
 import os
@@ -24,7 +24,7 @@ def check_for_unfinished_session(test_id):
     """
     Check if a user has an unfinished speaking assessment session
     """
-    test = PracticeTest.query.get_or_404(test_id)
+    test = Assessment.query.get_or_404(test_id)
     
     # Determine the product ID based on the test type
     product_id = None
@@ -60,7 +60,7 @@ def submit_speaking_response(test_id):
     """
     try:
         # Get the test
-        test = PracticeTest.query.get_or_404(test_id)
+        test = Assessment.query.get_or_404(test_id)
         
         # Verify user has access to this test
         if not test.is_free and not current_user.has_active_assessment_package():
@@ -333,7 +333,7 @@ def submit_speaking_response(test_id):
         
         # Mark any active session as failed
         product_id = None
-        test = PracticeTest.query.get(test_id)
+        test = Assessment.query.get(test_id)
         if test and test.assessment_product_id:
             product_id = test.assessment_product_id
             

@@ -6,7 +6,7 @@ This script directly adds assessment routes to the Flask app.
 from main import app
 from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import current_user
-from models import db, User, CompletePracticeTest
+from models import db, User, Assessment
 from datetime import datetime
 import json
 from payment_services import create_stripe_checkout_session
@@ -134,8 +134,8 @@ def inject_assessment_link():
 def assign_assessment_sets(user, product_id):
     """Assign assessment sets to the user for the given product."""
     # Get all available sets for this product type
-    sets = CompletePracticeTest.query.filter_by(
-        product_type=product_id,
+    sets = Assessment.query.filter_by(
+        assessment_product_id=product_id,
         status='active'
     ).all()
     

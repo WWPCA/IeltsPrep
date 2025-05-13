@@ -5,7 +5,7 @@ This module provides routes for assessing IELTS writing responses using OpenAI G
 
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import login_required, current_user
-from models import db, PracticeTest, UserTestAttempt, User, CompleteTestProgress, AssessmentSession
+from models import db, Assessment, User, AssessmentSession
 from nova_writing_assessment import analyze_writing_response
 import json
 import os
@@ -55,7 +55,7 @@ def submit_writing_task(test_id):
     """
     try:
         # Get the test
-        test = PracticeTest.query.get_or_404(test_id)
+        test = Assessment.query.get_or_404(test_id)
         
         # Verify user has access to this test
         if not test.is_free and not current_user.has_active_assessment_package():

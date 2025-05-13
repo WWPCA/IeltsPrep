@@ -3,7 +3,7 @@ import routes  # noqa: F401
 import routes_general_reading  # noqa: F401
 from flask import jsonify, request, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
-from models import PracticeTest, AssessmentSession, ConnectionIssueLog, db
+from models import Assessment, AssessmentSession, ConnectionIssueLog, db
 import os
 import logging
 import markdown
@@ -100,13 +100,13 @@ def log_connection_issue():
         product_id = None
         if test_type:
             if test_type == "writing":
-                test = PracticeTest.query.get(test_id)
+                test = Assessment.query.get(test_id)
                 if test:
-                    product_id = "academic_writing" if test.ielts_test_type == "academic" else "general_writing"
+                    product_id = test.assessment_type  # Like "academic_writing" or "general_writing"
             elif test_type == "speaking":
-                test = PracticeTest.query.get(test_id)
+                test = Assessment.query.get(test_id)
                 if test:
-                    product_id = "academic_speaking" if test.ielts_test_type == "academic" else "general_speaking"
+                    product_id = test.assessment_type  # Like "academic_speaking" or "general_speaking"
         
         # Check if there's an active session for this test
         session_id = None

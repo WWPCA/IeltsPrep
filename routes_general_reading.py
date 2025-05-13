@@ -1,140 +1,16 @@
 """
 Routes for General Training Reading tests.
+
+NOTICE: This entire file has been disabled as part of the 
+refactoring to focus on assessments only, not practice tests.
+All general reading functionality will be reimplemented using the Assessment model.
 """
-from flask import render_template, redirect, url_for, flash, request, jsonify, session
-from flask_login import login_required, current_user
-from datetime import datetime
-from app import app, db
-from models import PracticeTest, CompletePracticeTest, UserTestAttempt
-import json
+from flask import redirect, url_for, flash
+from app import app
 
-@app.route('/practice/general-reading/<int:test_id>')
-@login_required
-def general_reading_test(test_id):
-    """
-    Display a General Training Reading test.
-    This route will select the appropriate template based on the question type.
-    """
-    # Get the test details
-    test = PracticeTest.query.get_or_404(test_id)
-    
-    # Verify that this is a General Training Reading test
-    if test.test_type != 'reading' or test.ielts_test_type != 'general':
-        flash('Invalid test type', 'danger')
-        return redirect(url_for('practice_tests'))
-    
-    # Determine which template to use based on the section number
-    template_map = {
-        1: 'general_reading_multiple_choice.html',
-        2: 'general_reading_true_false_not_given.html',
-        3: 'general_reading_matching_information.html',
-        4: 'general_reading_matching_features.html',
-        5: 'general_reading_summary_completion.html',
-        6: 'general_reading_note_completion.html',
-        7: 'general_reading_sentence_completion.html'
-    }
-    
-    template = template_map.get(test.section, 'general_reading_multiple_choice.html')
-    
-    # Parse questions and answers
-    questions = test.questions
-    
-    # Record the test attempt
-    attempt = UserTestAttempt(
-        user_id=current_user.id,
-        test_id=test.id,
-        _user_answers=json.dumps({})  # Empty user answers initially
-    )
-    db.session.add(attempt)
-    db.session.commit()
-    
-    # Store the attempt ID in the session
-    session['current_attempt_id'] = attempt.id
-    
-    return render_template(
-        f'practice/{template}', 
-        test=test, 
-        attempt_id=attempt.id,
-        passage=test._content,
-        questions=questions
-    )
-
-@app.route('/practice/general-reading/<int:test_id>/submit', methods=['POST'])
-@login_required
-def submit_general_reading_test(test_id):
-    """Submit a General Training Reading test."""
-    test = PracticeTest.query.get_or_404(test_id)
-    
-    # Get the user's answers from the form
-    answers = {}
-    form_data = request.form.to_dict(flat=False)  # Get all form data including multiple values
-    
-    # Handle different question types - all use standard single selection format
-    for key in request.form:
-        if key.startswith('q'):
-            question_number = key[1:]  # Extract the question number
-            answers[question_number] = request.form[key]
-    
-    # Calculate the score
-    correct_answers = json.loads(test._answers)
-    total_questions = len(correct_answers)
-    correct_count = 0
-    
-    # Check answers - all question types now use the same format
-    for question_number, correct_answer in correct_answers.items():
-        if question_number in answers and answers[question_number] == correct_answer:
-            correct_count += 1
-    
-    score = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
-    
-    # Update the attempt as complete
-    attempt_id = session.get('current_attempt_id')
-    if attempt_id:
-        attempt = UserTestAttempt.query.get(attempt_id)
-        if attempt and attempt.user_id == current_user.id:
-            attempt.score = score
-            attempt._user_answers = json.dumps(answers)
-            db.session.commit()
-    
-    # Mark the test as completed for this user
-    current_user.mark_test_completed(test_id, 'reading')
-    db.session.commit()
-    
-    # Redirect to results page
-    return redirect(url_for('reading_test_results', test_id=test_id, attempt_id=attempt_id))
-
-@app.route('/practice/general-reading/<int:test_id>/results/<int:attempt_id>')
-@login_required
-def reading_test_results(test_id, attempt_id):
-    """Display results for a General Training Reading test."""
-    test = PracticeTest.query.get_or_404(test_id)
-    attempt = UserTestAttempt.query.get_or_404(attempt_id)
-    
-    # Verify that this attempt belongs to the current user
-    if attempt.user_id != current_user.id:
-        flash('You are not authorized to view these results', 'danger')
-        return redirect(url_for('practice_tests'))
-    
-    # Get the user's answers and the correct answers
-    user_answers = json.loads(attempt._user_answers) if attempt._user_answers else {}
-    correct_answers = json.loads(test._answers) if test._answers else {}
-    
-    # Calculate score details
-    total_questions = len(correct_answers)
-    correct_count = 0
-    
-    # Check answers - standardized approach for all question types
-    for question_number, correct_answer in correct_answers.items():
-        if question_number in user_answers and user_answers[question_number] == correct_answer:
-            correct_count += 1
-    
-    score = int((correct_count / total_questions) * 100) if total_questions > 0 else 0
-    
-    return render_template('practice/reading_test_results.html', 
-                          test=test, 
-                          attempt=attempt,
-                          user_answers=user_answers,
-                          correct_answers=correct_answers,
-                          score=score,
-                          correct_count=correct_count,
-                          total_questions=total_questions)
+# Create a placeholder route to avoid errors when importing this file
+@app.route('/practice/general-reading/disabled')
+def general_reading_disabled():
+    """Placeholder route that redirects to home."""
+    flash('General reading tests have been replaced with assessments', 'info')
+    return redirect(url_for('index'))

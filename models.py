@@ -350,83 +350,28 @@ class TestStructure(db.Model):
     def __repr__(self):
         return f'<TestStructure {self.test_type}>'
 
-class CompletePracticeTest(db.Model):
-    """Model for a complete IELTS practice test with all sections"""
+class Assessment(db.Model):
+    """Model for IELTS assessments"""
     id = db.Column(db.Integer, primary_key=True)
-    ielts_test_type = db.Column(db.String(20), nullable=False, default="academic")  # academic, general
-    test_number = db.Column(db.Integer, nullable=True)  # Test 1, Test 2, etc.
+    assessment_type = db.Column(db.String(50), nullable=False)  # academic_writing, academic_speaking, general_writing, general_speaking
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    is_free = db.Column(db.Boolean, default=False)  # Free sample test
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
-    product_type = db.Column(db.String(50), nullable=True)  # academic_writing, academic_speaking, general_writing, general_speaking
     status = db.Column(db.String(20), nullable=False, default="active")  # active, inactive
-    _tests = db.Column(db.Text, nullable=True)  # JSON string with test IDs or prompt IDs
+    _criteria = db.Column(db.Text, nullable=True)  # JSON string with assessment criteria
     
     @property
-    def tests(self):
-        return json.loads(self._tests) if self._tests else []
+    def criteria(self):
+        return json.loads(self._criteria) if self._criteria else []
     
-    @tests.setter
-    def tests(self, value):
-        self._tests = json.dumps(value)
+    @criteria.setter
+    def criteria(self, value):
+        self._criteria = json.dumps(value)
     
     def __repr__(self):
-        if self.test_number:
-            return f'<CompletePracticeTest {self.ielts_test_type} Test {self.test_number}: {self.title}>'
-        else:
-            return f'<CompletePracticeTest {self.title}>'
+        return f'<Assessment {self.assessment_type}: {self.title}>'
 
-class PracticeTest(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    complete_test_id = db.Column(db.Integer, db.ForeignKey('complete_practice_test.id'), nullable=True)  # Link to complete test
-    test_type = db.Column(db.String(20), nullable=False)  # listening, reading, writing, speaking
-    ielts_test_type = db.Column(db.String(20), nullable=False, default="academic")  # academic, general
-    section = db.Column(db.Integer, nullable=False)
-    title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    _content = db.Column(db.Text, nullable=True)  # Text content or passage
-    _questions = db.Column(db.Text, nullable=False)  # JSON string
-    _answers = db.Column(db.Text, nullable=False)  # JSON string
-    _features = db.Column(db.Text, nullable=True)  # JSON string for matching features
-    audio_url = db.Column(db.String(256), nullable=True)  # For listening tests
-    is_free = db.Column(db.Boolean, default=False)  # Free sample test
-    time_limit = db.Column(db.Integer, nullable=True)  # Time limit in minutes
-    
-    @property
-    def content(self):
-        return self._content
-    
-    @content.setter
-    def content(self, value):
-        self._content = value
-    
-    @property
-    def questions(self):
-        return json.loads(self._questions)
-    
-    @questions.setter
-    def questions(self, value):
-        self._questions = json.dumps(value)
-    
-    @property
-    def answers(self):
-        return json.loads(self._answers)
-    
-    @answers.setter
-    def answers(self, value):
-        self._answers = json.dumps(value)
-    
-    @property
-    def features(self):
-        return json.loads(self._features) if self._features else []
-    
-    @features.setter
-    def features(self, value):
-        self._features = json.dumps(value)
-        
-    def __repr__(self):
-        return f'<PracticeTest {self.test_type} {self.section}: {self.title}>'
+
 
 class UserTestAssignment(db.Model):
     """Track which tests are assigned to each user to ensure no repeats"""
@@ -601,90 +546,8 @@ class AssessmentSession(db.Model):
         return session
 
 
-class CompleteTestProgress(db.Model):
-    """Track user progress through a complete test with multiple sections"""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    complete_test_id = db.Column(db.Integer, db.ForeignKey('complete_practice_test.id'), nullable=False)
-    start_date = db.Column(db.DateTime, default=datetime.utcnow)
-    completed_date = db.Column(db.DateTime, nullable=True)
-    _section_progress = db.Column(db.Text, default='{}')  # JSON tracking completed sections
-    current_section = db.Column(db.String(20), nullable=True)  # Current section (listening, reading, etc.)
-    
-    @property
-    def section_progress(self):
-        return json.loads(self._section_progress)
-    
-    @section_progress.setter
-    def section_progress(self, value):
-        self._section_progress = json.dumps(value)
-        
-    def is_section_completed(self, section_type):
-        """Check if a specific section has been completed"""
-        progress = self.section_progress
-        return section_type in progress and progress[section_type].get('completed', False)
-        
-    def mark_section_completed(self, section_type, score):
-        """Mark a section as completed with its score"""
-        progress = self.section_progress
-        progress[section_type] = {
-            'completed': True,
-            'score': score,
-            'date': datetime.utcnow().isoformat()
-        }
-        self.section_progress = progress
-        
-    def is_test_completed(self):
-        """Check if all test sections are completed"""
-        # Define required sections for different test types
-        test = CompletePracticeTest.query.get(self.complete_test_id)
-        if not test:
-            return False
-            
-        required_sections = ['listening', 'reading', 'writing', 'speaking']
-            
-        progress = self.section_progress
-        for section in required_sections:
-            if section not in progress or not progress[section].get('completed', False):
-                return False
-                
-        # If we got here, all required sections are complete
-        if not self.completed_date:
-            self.completed_date = datetime.utcnow()
-            
-        return True
-        
-    def get_overall_score(self):
-        """Calculate overall band score across all completed sections"""
-        if not self.section_progress:
-            return 0
-            
-        progress = self.section_progress
-        total_score = 0
-        count = 0
-        
-        for section, data in progress.items():
-            if data.get('completed', False) and 'score' in data:
-                total_score += float(data['score'])
-                count += 1
-                
-        return round(total_score / max(1, count), 1)  # Avoid division by zero
-    
-    def get_next_section(self):
-        """Get the next incomplete section for this test"""
-        # Standard section order in IELTS
-        section_order = ['listening', 'reading', 'writing', 'speaking']
-            
-        progress = self.section_progress
-        
-        for section in section_order:
-            if section not in progress or not progress[section].get('completed', False):
-                return section
-                
-        return None  # All sections completed
-        
-    def __repr__(self):
-        return f'<CompleteTestProgress User:{self.user_id} Test:{self.complete_test_id}>'
+# CompleteTestProgress model has been removed
+# Assessment results are now stored directly in the User model's assessment_history
 
 class PaymentRecord(db.Model):
     """Tracks payment details and transaction records"""
@@ -711,37 +574,8 @@ class PaymentRecord(db.Model):
     def __repr__(self):
         return f'<PaymentRecord {self.id} User:{self.user_id} Amount:{self.amount}>'
 
-class UserTestAttempt(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    test_id = db.Column(db.Integer, db.ForeignKey('practice_test.id'), nullable=False)
-    complete_test_progress_id = db.Column(db.Integer, db.ForeignKey('complete_test_progress.id'), nullable=True)
-    attempt_date = db.Column(db.DateTime, default=datetime.utcnow)
-    _user_answers = db.Column(db.Text, nullable=False)  # JSON string
-    score = db.Column(db.Float, nullable=True)
-    assessment = db.Column(db.Text, nullable=True)  # JSON string with full assessment details
-    
-    # GCP Storage references
-    gcp_transcript_path = db.Column(db.String(255), nullable=True)  # Path to transcript in GCP
-    gcp_assessment_path = db.Column(db.String(255), nullable=True)  # Path to assessment in GCP
-    transcript_expiry_date = db.Column(db.DateTime, nullable=True)  # When transcript expires (6 months)
-    
-    @property
-    def user_answers(self):
-        return json.loads(self._user_answers)
-    
-    @user_answers.setter
-    def user_answers(self, value):
-        self._user_answers = json.dumps(value)
-    
-    def is_transcript_expired(self):
-        """Check if the transcript has expired (6-month retention policy)"""
-        if not self.transcript_expiry_date:
-            return False
-        return datetime.utcnow() > self.transcript_expiry_date
-    
-    def __repr__(self):
-        return f'<UserTestAttempt User:{self.user_id} Test:{self.test_id}>'
+# UserTestAttempt model has been removed
+# Assessment results are now stored in the User model's assessment_history
 
 class SpeakingPrompt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
