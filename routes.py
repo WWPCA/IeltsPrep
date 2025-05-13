@@ -922,7 +922,7 @@ def start_complete_test(test_id):
     
     # Check if the requested test is in the allowed tests list
     if complete_test not in allowed_tests:
-        flash(f'This test is not available with your current {current_user.subscription_status} package.', 'warning')
+        flash(f'This test is not available with your current {current_user.assessment_package_status} package.', 'warning')
         return redirect(url_for('practice_index'))
     
     # Check if user already has an in-progress attempt
@@ -1002,7 +1002,7 @@ def continue_complete_test(test_id):
         
         # Check if the requested test is in the allowed tests list
         if complete_test not in allowed_tests:
-            flash(f'This test is not available with your current {current_user.subscription_status} package.', 'warning')
+            flash(f'This test is not available with your current {current_user.assessment_package_status} package.', 'warning')
             return redirect(url_for('practice_index'))
     
     # If the test is already completed, show results
@@ -1049,9 +1049,9 @@ def take_complete_test_section(test_id, section):
         
         # Determine number of tests allowed based on user's assessment package
         num_tests_allowed = 1  # Default for single test package
-        if current_user.subscription_status == 'Value Pack':
+        if current_user.assessment_package_status == 'Value Pack':
             num_tests_allowed = 4
-        elif current_user.subscription_status == 'Double Package':
+        elif current_user.assessment_package_status == 'Double Package':
             num_tests_allowed = 2
         
         # Get the latest version of each test number
@@ -1073,7 +1073,7 @@ def take_complete_test_section(test_id, section):
         
         # Check if the requested test is in the allowed tests list
         if complete_test not in allowed_tests:
-            flash(f'This test is not available with your current {current_user.subscription_status} package.', 'warning')
+            flash(f'This test is not available with your current {current_user.assessment_package_status} package.', 'warning')
             return redirect(url_for('practice_index'))
     
     # Ensure the user is on the correct section
@@ -1135,9 +1135,9 @@ def complete_test_results(test_id):
         
         # Determine number of tests allowed based on user's assessment package
         num_tests_allowed = 1  # Default for single test package
-        if current_user.subscription_status == 'Value Pack':
+        if current_user.assessment_package_status == 'Value Pack':
             num_tests_allowed = 4
-        elif current_user.subscription_status == 'Double Package':
+        elif current_user.assessment_package_status == 'Double Package':
             num_tests_allowed = 2
         
         # Get the complete test
@@ -1162,7 +1162,7 @@ def complete_test_results(test_id):
         
         # Check if the requested test is in the allowed tests list
         if complete_test not in allowed_tests:
-            flash(f'This incomplete test is not available with your current {current_user.subscription_status} package.', 'warning')
+            flash(f'This incomplete test is not available with your current {current_user.assessment_package_status} package.', 'warning')
             return redirect(url_for('practice_index'))
             
         # If they have access but haven't completed it, send them to continue
@@ -2074,8 +2074,8 @@ def sync_data():
     user_data = {
         'username': current_user.username,
         'email': current_user.email,
-        'subscription_status': current_user.subscription_status,
-        'subscription_expiry': current_user.subscription_expiry.isoformat() if current_user.subscription_expiry else None,
+        'assessment_package_status': current_user.assessment_package_status,
+        'assessment_package_expiry': current_user.subscription_expiry.isoformat() if current_user.subscription_expiry else None,
         'test_preference': current_user.test_preference,
         'test_history': current_user.test_history,
         'speaking_scores': current_user.speaking_scores,
