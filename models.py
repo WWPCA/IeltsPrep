@@ -246,10 +246,10 @@ class User(UserMixin, db.Model):
                     if expiry_date > datetime.utcnow():
                         return True
             
-        # Check for assessment package status values
+        # Simple list of all possible assessment package types
         valid_packages = [
-            "Value Pack", "Single Test", "Double Package",  # Standard assessment packages
-            "Academic Writing", "Academic Speaking", "General Writing", "General Speaking"  # Specific assessment types
+            "Academic Writing", "Academic Speaking", 
+            "General Writing", "General Speaking"
         ]
             
         # Verify that assessment package status is valid and hasn't expired
@@ -260,9 +260,6 @@ class User(UserMixin, db.Model):
             return True
                 
         return False
-            
-    # is_subscribed method has been completely removed
-    # All code should use has_active_assessment_package() directly
         
     def is_speaking_only_user(self):
         """
@@ -862,23 +859,4 @@ class Translation(db.Model):
         return f'<Translation {self.language}:{self.page}.{self.element}>'
 
 
-class CountryPricing(db.Model):
-    """
-    DEPRECATED: This model is no longer actively used as we've moved to fixed pricing.
-    Table for storing country-specific pricing information that was used in the assessment package model.
-    Kept for historical reference and backward compatibility with existing users.
-    """
-    id = db.Column(db.Integer, primary_key=True)
-    country_code = db.Column(db.String(2), nullable=False, unique=True)
-    country_name = db.Column(db.String(100), nullable=False)
-    
-    # Pricing for different assessment package levels (in USD)
-    monthly_price = db.Column(db.Float, nullable=False)
-    quarterly_price = db.Column(db.Float, nullable=False)
-    yearly_price = db.Column(db.Float, nullable=False)
-    
-    # Default country flag (for showing as default option)
-    is_default = db.Column(db.Boolean, default=False)
-    
-    def __repr__(self):
-        return f"<CountryPricing {self.country_name} - ${self.monthly_price}/month>"
+# CountryPricing model removed - we no longer use country-specific pricing tiers
