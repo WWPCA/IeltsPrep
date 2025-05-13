@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 def active_account_required(f):
     """
     Decorator to ensure the user has an activated account (payment processed).
+    
+    Note: This uses User.is_active property which checks account_activated field
+    to maintain compatibility with flask_login.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):

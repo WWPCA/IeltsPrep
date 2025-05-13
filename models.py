@@ -225,15 +225,10 @@ class User(UserMixin, db.Model):
             'last_30_days': last_30_days
         }
     
-    def is_subscribed(self):
+    def has_active_assessment_package(self):
         """
-        Check if user has access to purchased assessment packages
-        
-        DEPRECATED TERMINOLOGY: This method is named "is_subscribed" for backward compatibility,
-        but it actually checks for active assessment packages, not subscriptions, as we've moved 
-        from a subscription model to individual package purchases.
-        
-        Should use has_active_assessment_package() instead.
+        Check if user has access to purchased assessment packages.
+        This is the preferred method to use for checking access.
         """
         # Check if assessment package has expired first
         if self.subscription_expiry and self.subscription_expiry <= datetime.utcnow():
@@ -252,7 +247,7 @@ class User(UserMixin, db.Model):
                     if expiry_date > datetime.utcnow():
                         return True
             
-        # Check for the new subscription status values
+        # Check for the new subscription status values (legacy support)
         valid_subscriptions = [
             "Value Pack", "Single Test", "Double Package",  # New naming convention
             "Speaking Only Basic", "Speaking Only Pro",     # Speaking-only packages
@@ -260,6 +255,17 @@ class User(UserMixin, db.Model):
         ]
             
         # Verify that subscription status is not "none" or "expired" and hasn't expired
+        return self.subscription_status in valid_subscriptions
+            
+    def is_subscribed(self):
+        """
+        DEPRECATED: Use has_active_assessment_package() instead.
+        
+        Check if user has access to purchased assessment packages
+        This method is named "is_subscribed" for backward compatibility,
+        but it actually checks for active assessment packages, not subscriptions.
+        """
+        return self.has_active_assessment_package()
         if (self.subscription_status in valid_subscriptions and 
                 self.subscription_status != "none" and
                 self.subscription_status != "expired" and
