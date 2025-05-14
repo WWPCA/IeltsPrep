@@ -6,6 +6,9 @@ from flask_talisman import Talisman
 from add_assessment_routes import add_assessment_routes
 add_assessment_routes()
 
+# Import assessment structure routes
+import assessment_structure_routes  # noqa: F401
+
 # Import and register contact routes
 from contact_routes import add_contact_routes
 add_contact_routes(app)
