@@ -1,11 +1,11 @@
 """
 Terms and Support Routes Module
-This module provides routes for terms of service and assessment day guide.
+This module provides routes for terms of service, assessment day guide, and user profile.
 """
 
 from main import app
 from flask import render_template, redirect, url_for
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 
 @app.route('/terms-and-payment')
@@ -21,6 +21,23 @@ def test_day():
     """Display the guide for the IELTS assessment day."""
     return render_template('test_day.html', 
                           title='IELTS Assessment Day Guide')
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    """Display the user's profile."""
+    return render_template('profile.html', 
+                          title='My Profile')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Log out the user."""
+    from flask_login import logout_user
+    logout_user()
+    return redirect(url_for('index'))
 
 
 # Add these routes to main.py
