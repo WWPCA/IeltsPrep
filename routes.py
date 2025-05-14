@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, session, abort, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.urls import url_parse
 from functools import wraps
 from app import app, db, recaptcha_v3
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
@@ -55,6 +56,57 @@ app.add_url_rule('/assessment/<assessment_type>/<int:assessment_id>/details',
                  'assessment_details', 
                  assessment_details_route, 
                  methods=['GET'])
+
+# Main index route
+@app.route('/')
+def index():
+    """Home page with information about the platform"""
+    return render_template('index.html', title='IELTS GenAI Prep - Home')
+
+# User authentication routes
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page with form validation"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        remember_me = 'remember_me' in request.form
+        
+        user = User.query.filter((User.username == username) | (User.email == username)).first()
+        
+        if user and user.check_password(password):
+            if not user.account_activated:
+                flash('Your account has not been activated yet. Please check your email for the activation link.', 'warning')
+                return redirect(url_for('login'))
+            
+            login_user(user, remember=remember_me)
+            user.update_streak()  # Update streak on login
+            db.session.commit()
+            
+            next_page = request.args.get('next')
+            if not next_page or url_parse(next_page).netloc != '':
+                next_page = url_for('index')
+            
+            return redirect(next_page)
+        else:
+            flash('Invalid username or password', 'danger')
+    
+    return render_template('login.html', title='Login')
+
+@app.route('/logout')
+def logout():
+    """Log user out and redirect to home page"""
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Registration page with form validation"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
 
 # Custom cache buster to force browsers to reload CSS, JS on new deployments
 @app.context_processor
