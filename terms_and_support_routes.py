@@ -34,5 +34,26 @@ def profile():
 # Note: Login and logout routes are defined in routes.py
 
 
+@app.route('/device-specs')
+def device_specs():
+    """Display the device requirements for the platform."""
+    return render_template('device_specs.html', 
+                          title='Device Requirements')
+
+
+@app.route('/privacy-policy')
+def privacy_policy():
+    """Display the privacy policy."""
+    return render_template('gdpr/privacy_policy.html', 
+                          title='Privacy Policy')
+
+
+@app.route('/address-usage-policy')
+def address_usage_policy():
+    """Display the address usage policy."""
+    return render_template('gdpr/address_usage_policy.html', 
+                          title='Address Usage Policy')
+
+
 # Add these routes to main.py
 print("Terms and support routes added successfully.")
