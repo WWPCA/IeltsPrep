@@ -150,8 +150,8 @@
                         <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="test_type" value="academic">
-                            <input type="hidden" name="test_package" value="double">
+                            <input type="hidden" name="assessment_type" value="academic">
+                            <input type="hidden" name="assessment_package" value="double">
                             <input type="hidden" name="payment_method" value="stripe">
                             <button type="submit" class="btn btn-primary w-100">Select Package</button>
                         </form>
@@ -185,8 +185,8 @@
                         <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="test_type" value="academic">
-                            <input type="hidden" name="test_package" value="pack">
+                            <input type="hidden" name="assessment_type" value="academic">
+                            <input type="hidden" name="assessment_package" value="pack">
                             <input type="hidden" name="payment_method" value="stripe">
                             <button type="submit" class="btn btn-primary w-100">Select Package</button>
                         </form>
@@ -236,8 +236,8 @@
                         <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="test_type" value="general">
-                            <input type="hidden" name="test_package" value="single">
+                            <input type="hidden" name="assessment_type" value="general">
+                            <input type="hidden" name="assessment_package" value="single">
                             <input type="hidden" name="payment_method" value="stripe">
                             <button type="submit" class="btn btn-success w-100">Select Package</button>
                         </form>
@@ -268,8 +268,8 @@
                         <form method="POST" action="{{ url_for('checkout_review') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="test_type" value="general">
-                            <input type="hidden" name="test_package" value="double">
+                            <input type="hidden" name="assessment_type" value="general">
+                            <input type="hidden" name="assessment_package" value="double">
                             <input type="hidden" name="payment_method" value="stripe">
                             <button type="submit" class="btn btn-success w-100">Select Package</button>
                         </form>
