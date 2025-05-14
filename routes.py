@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, session, abort, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.urls import url_parse
+from urllib.parse import urlparse
 from functools import wraps
 from app import app, db, recaptcha_v3
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
@@ -87,7 +87,7 @@ def login():
             db.session.commit()
             
             next_page = request.args.get('next')
-            if not next_page or url_parse(next_page).netloc != '':
+            if not next_page or urlparse(next_page).netloc != '':
                 next_page = url_for('index')
             
             return redirect(next_page)
@@ -107,6 +107,50 @@ def register():
     """Registration page with form validation"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        # Check if username exists
+        user = User.query.filter_by(username=username).first()
+        if user:
+            flash('Username already exists. Please choose a different one.', 'danger')
+            return redirect(url_for('register'))
+        
+        # Check if email exists
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Email already registered. Please use a different email.', 'danger')
+            return redirect(url_for('register'))
+        
+        # Create new user
+        new_user = User(
+            username=username,
+            email=email,
+            assessment_preference='academic'  # Default value
+        )
+        new_user.set_password(password)
+        
+        # Store region information
+        region = get_user_region(request)
+        if region:
+            new_user.region = region
+        
+        # Set account as activated (auto-activation for now)
+        new_user.account_activated = True
+        new_user.email_verified = True  # Auto-verify for simplicity
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Registration successful! You can now log in.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', title='Register')
+
+# Note: Assessment products route is defined in add_assessment_routes.py
 
 # Custom cache buster to force browsers to reload CSS, JS on new deployments
 @app.context_processor
