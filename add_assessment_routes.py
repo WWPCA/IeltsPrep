@@ -157,6 +157,30 @@ def assign_assessment_sets(user, product_id):
         'general_speaking': 'General Speaking'
     }
     
+    # Determine base assessment type (academic or general)
+    base_assessment_type = 'academic' if product_id.startswith('academic_') else 'general'
+    
+    # Number of assessments to assign (using standard package size of 4)
+    num_assessments = 4
+    
+    # Use the new assessment_assignment_service to assign assessments
+    try:
+        import assessment_assignment_service
+        assigned_ids, success = assessment_assignment_service.assign_assessments_to_user(
+            user_id=user.id,
+            assessment_type=base_assessment_type,
+            num_assessments=num_assessments,
+            access_days=30
+        )
+        
+        if success:
+            print(f"Successfully assigned {len(assigned_ids)} assessments to user {user.id}")
+            purchase['assigned_assessment_ids'] = assigned_ids
+        else:
+            print(f"Failed to assign assessments to user {user.id}: not enough unique assessments available")
+    except Exception as e:
+        print(f"Error assigning assessments to user {user.id}: {str(e)}")
+    
     if product_id in assessment_type_mapping:
         user.assessment_package_status = assessment_type_mapping[product_id]
         # Set expiry date to 30 days from now
