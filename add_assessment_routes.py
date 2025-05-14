@@ -78,10 +78,10 @@ def add_assessment_routes():
             'price': 25  # Fixed price of $25 for all assessment products
         }
         
-        # Get user's test preference for product selection
-        test_preference = "academic"  # Default
+        # Get user's assessment preference for product selection
+        assessment_preference = "academic"  # Default
         if current_user.is_authenticated:
-            test_preference = current_user.test_preference
+            assessment_preference = current_user.assessment_preference
         
         # Get Stripe Buy Button IDs for each product
         academic_writing_button_id = get_button_id('academic', 'writing')
@@ -95,7 +95,7 @@ def add_assessment_routes():
         return render_template('assessment_products.html', 
                               title='IELTS Assessment Products', 
                               pricing=pricing,
-                              test_preference=test_preference,
+                              assessment_preference=assessment_preference,
                               country_code=country_code,
                               academic_writing_button_id=academic_writing_button_id,
                               academic_speaking_button_id=academic_speaking_button_id,
@@ -156,12 +156,12 @@ def add_assessment_routes():
 
 def assign_assessment_sets(user, product_id):
     """Assign assessment package to the user for the given product."""
-    # Get user's test history
-    test_history = user.test_history if hasattr(user, 'test_history') and user.test_history else []
+    # Get user's assessment history
+    assessment_history = user.assessment_history if hasattr(user, 'assessment_history') else []
     
     # Find the most recent purchase
     purchase = None
-    for item in reversed(test_history):
+    for item in reversed(assessment_history):
         if item.get('product_id') == product_id and not item.get('assigned', False):
             purchase = item
             break
@@ -210,13 +210,13 @@ def assign_assessment_sets(user, product_id):
         # Set expiry date to 30 days from now
         user.assessment_package_expiry = datetime.utcnow() + timedelta(days=30)
         
-    # Update user's test history
-    for i, item in enumerate(test_history):
+    # Update user's assessment history
+    for i, item in enumerate(assessment_history):
         if item.get('date') == purchase.get('date') and item.get('product_id') == product_id:
-            test_history[i] = purchase
+            assessment_history[i] = purchase
             break
     
-    user.test_history = test_history
+    user.assessment_history = assessment_history
     
     # Commit changes
     db.session.commit()
@@ -232,10 +232,10 @@ def handle_assessment_product_payment(user, product_id):
     
     product = assessment_products[product_id]
     
-    # Add the product to user's test history
-    test_history = user.test_history if user.test_history else []
+    # Add the product to user's assessment history
+    assessment_history = user.assessment_history if hasattr(user, 'assessment_history') else []
     
-    # Add the product to user's test history
+    # Add the product to user's assessment history
     purchase = {
         'date': datetime.utcnow().isoformat(),
         'product_id': product_id,
@@ -244,8 +244,8 @@ def handle_assessment_product_payment(user, product_id):
         'sets_assigned': False
     }
     
-    test_history.append(purchase)
-    user.test_history = test_history
+    assessment_history.append(purchase)
+    user.assessment_history = assessment_history
     
     # Commit changes
     db.session.commit()
