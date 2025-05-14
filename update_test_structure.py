@@ -1,9 +1,9 @@
 """
-Update test structure data in the database to match official IELTS test types.
+Update assessment structure data in the database to match official IELTS test types.
 """
 import json
 from app import app, db
-from models import TestStructure
+from models import AssessmentStructure
 
 # Test structure data based on https://ielts.org/take-a-test/test-types
 test_structures = [
@@ -62,18 +62,18 @@ test_structures = [
 ]
 
 with app.app_context():
-    # Clear existing test structures
-    TestStructure.query.delete()
+    # Clear existing assessment structures
+    AssessmentStructure.query.delete()
     
-    # Add new test structures
+    # Add new assessment structures
     for structure_data in test_structures:
-        test_structure = TestStructure(
+        assessment_structure = AssessmentStructure(
             test_type=structure_data["test_type"],
             description=structure_data["description"],
             format_details=json.dumps(structure_data["format_details"]),
             sample_image_url=structure_data["sample_image_url"]
         )
-        db.session.add(test_structure)
+        db.session.add(assessment_structure)
     
     db.session.commit()
-    print("Updated test structure data with official IELTS test types")
+    print("Updated assessment structure data with official IELTS assessment types")

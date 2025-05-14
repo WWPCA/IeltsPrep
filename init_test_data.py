@@ -1,13 +1,13 @@
 from app import app, db
-from models import TestStructure
+from models import AssessmentStructure
 
-def init_test_structure():
-    """Initialize the test structure data in the database."""
+def init_assessment_structure():
+    """Initialize the assessment structure data in the database."""
     with app.app_context():
-        # Clear existing test structure data
-        TestStructure.query.delete()
+        # Clear existing assessment structure data
+        AssessmentStructure.query.delete()
         
-        # Test structure data for different IELTS test types
+        # Assessment structure data for different IELTS assessment types
         test_data = [
             {
                 "test_type": "academic",
