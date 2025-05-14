@@ -491,27 +491,7 @@ class UserAssessmentAssignment(db.Model):
     def __repr__(self):
         return f'<UserAssessmentAssignment User:{self.user_id} Type:{self.assessment_type} Assessments:{self.assigned_assessment_ids}>'
 
-# Keep for backward compatibility during transition
-class UserTestAssignment(UserAssessmentAssignment):
-    """Legacy model maintained for backward compatibility
-    
-    This model has been replaced by UserAssessmentAssignment
-    but is maintained for backward compatibility during the transition.
-    """
-    __tablename__ = 'user_test_assignment'
-    
-    test_type = db.synonym('assessment_type')
-    assigned_test_numbers = db.synonym('assigned_assessment_ids')
-    
-    @property
-    def test_numbers(self):
-        """Legacy accessor for assessment_ids"""
-        return self.assessment_ids
-    
-    @test_numbers.setter
-    def test_numbers(self, value):
-        """Legacy setter for assessment_ids"""
-        self.assessment_ids = value
+# UserTestAssignment class has been removed - no backward compatibility needed
 
 class ConnectionIssueLog(db.Model):
     """Track connection issues for monitoring and support purposes"""
