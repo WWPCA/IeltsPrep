@@ -417,18 +417,18 @@ def handle_invoice_payment_succeeded(invoice):
             return
             
         # Get assessment package info from invoice
-        subscription_id = getattr(invoice, 'subscription', None)
-        if subscription_id:
+        assessment_package_id = getattr(invoice, 'subscription', None)
+        if assessment_package_id:
             try:
-                subscription = stripe.Subscription.retrieve(subscription_id)
+                package_details = stripe.Subscription.retrieve(assessment_package_id)
                 # Check if this is a recurring payment for an existing assessment package
-                if hasattr(subscription, 'metadata') and subscription.metadata:
-                    metadata = subscription.metadata
+                if hasattr(package_details, 'metadata') and package_details.metadata:
+                    metadata = package_details.metadata
                     # Process the assessment package renewal using the same logic as initial purchases
                     handle_assessment_package_payment(user, metadata)
                     logger.info(f"Processed assessment package renewal for user {user.id}")
             except Exception as e:
-                logger.error(f"Error retrieving subscription details for invoice {invoice.id}: {str(e)}")
+                logger.error(f"Error retrieving assessment package details for invoice {invoice.id}: {str(e)}")
                 
         # Ensure account is active
         activate_user_account(user)
@@ -579,12 +579,6 @@ def handle_assessment_package_payment(user, metadata):
         db.session.rollback()
         logger.error(f"Error handling assessment package payment: {str(e)}")
         log_api_error('stripe', 'handle_assessment_package_payment', e)
-        
-# Deprecated function - renamed to handle_assessment_package_payment
-def handle_subscription_payment(user, metadata):
-    """DEPRECATED: Use handle_assessment_package_payment instead."""
-    logger.warning("Deprecated function handle_subscription_payment called - use handle_assessment_package_payment instead")
-    return handle_assessment_package_payment(user, metadata)
 
 
 def handle_assessment_purchase(user, metadata):
