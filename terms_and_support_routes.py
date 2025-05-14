@@ -31,13 +31,7 @@ def profile():
                           title='My Profile')
 
 
-@app.route('/logout')
-@login_required
-def logout():
-    """Log out the user."""
-    from flask_login import logout_user
-    logout_user()
-    return redirect(url_for('index'))
+# Note: Login and logout routes are defined in routes.py
 
 
 # Add these routes to main.py
