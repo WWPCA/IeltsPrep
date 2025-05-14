@@ -4,7 +4,7 @@
 <div class="container py-5">
     <div class="row">
         <div class="col-md-12">
-            <h1 class="mb-4">IELTS Test Structure</h1>
+            <h1 class="mb-4">IELTS Assessment Structure</h1>
             
             <div class="alert alert-info mb-4">
                 <div class="d-flex">
@@ -12,17 +12,17 @@
                         <i class="fas fa-info-circle fa-2x"></i>
                     </div>
                     <div>
-                        <h4>About the IELTS Test</h4>
+                        <h4>About the IELTS Assessment</h4>
                         <p class="mb-0">{{ ielts_info }}</p>
                     </div>
                 </div>
             </div>
             
-            <p class="lead">IELTS is available in different formats to suit your specific needs and goals. Below you can explore the various test types and their unique features.</p>
+            <p class="lead">IELTS is available in different formats to suit your specific needs and goals. Below you can explore the various assessment types and their unique features.</p>
         </div>
     </div>
     
-    <div class="test-structure-nav">
+    <div class="assessment-structure-nav">
         <a href="{{ url_for('test_structure_detail', test_type='academic') }}">Academic</a>
         <a href="{{ url_for('test_structure_detail', test_type='general_training') }}">General Training</a>
     </div>
