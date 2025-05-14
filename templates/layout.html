@@ -36,7 +36,7 @@
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="IELTS GenAI Prep - Your comprehensive IELTS test preparation platform">
+    <meta name="description" content="IELTS GenAI Prep - Your comprehensive IELTS assessment preparation platform">
     
     <title>{% if title %}{{ title }} | IELTS GenAI Prep{% else %}IELTS GenAI Prep{% endif %}</title>
     
@@ -333,7 +333,7 @@
         <script src="{{ url_for('static', filename='js/practice.js') }}"></script>
     {% elif request.path.startswith('/speaking') %}
         <script src="{{ url_for('static', filename='js/speaking.js') }}"></script>
-    {% elif request.path.startswith('/test-structure') %}
+    {% elif request.path.startswith('/assessment-structure') %}
         <script src="{{ url_for('static', filename='js/assessment-structure.js') }}?v={{ cache_buster }}"></script>
     {% endif %}
     
