@@ -16,7 +16,7 @@ from app import app, db, recaptcha_v3
 from models import User, TestStructure, SpeakingPrompt, Assessment, UserTestAssignment, PaymentRecord
 from utils import get_user_region, get_translation, compress_audio
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
-import assessment_assignment_service
+import test_assignment_service
 from openai_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation, transcribe_audio, generate_polly_speech
 # Note: get_pricing_for_country is deprecated as we've moved to fixed pricing 
