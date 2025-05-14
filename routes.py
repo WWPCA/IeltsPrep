@@ -578,12 +578,12 @@ def practice_index():
         }
         user_assessment_type = preference_to_assessment.get(current_user.test_preference, 'academic_writing')
         
-        # Use the test assignment service to get the tests the user has access to
+        # Use the assessment assignment service to get the assessments the user has access to
         if current_user.has_active_assessment_package():
-            # First check if user has any assigned tests
-            assigned_tests = test_assignment_service.get_user_accessible_assessments(
+            # First check if user has any assigned assessments
+            assigned_tests = assessment_assignment_service.get_user_accessible_assessments(
                 user_id=current_user.id,
-                assessment_type=user_test_preference
+                assessment_type=user_assessment_type
             )
             
             if assigned_tests:
