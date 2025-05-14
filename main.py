@@ -1,13 +1,19 @@
 from app import app  # noqa: F401
 import routes  # noqa: F401
-from flask import Flask
 from flask_talisman import Talisman
 
-# Import and register writing assessment blueprint
-from writing_assessment_routes import writing_assessment_bp
-app.register_blueprint(writing_assessment_bp)
+# Import and register assessment routes
+from add_assessment_routes import add_assessment_routes
+add_assessment_routes()
 
-app = Flask(__name__)
+# Import and register contact routes
+from contact_routes import add_contact_routes
+add_contact_routes(app)
+
+# Import and register cart blueprint
+from cart_routes import cart_bp
+app.register_blueprint(cart_bp, url_prefix='/cart')
+
 # Configure Talisman but allow iframe embedding from same origin
 Talisman(app, frame_options='SAMEORIGIN', frame_options_allow_from='*')
 

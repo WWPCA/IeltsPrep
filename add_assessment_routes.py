@@ -10,8 +10,17 @@ from datetime import datetime, timedelta
 import json
 import os
 from geoip_services import get_country_from_ip
-from routes import get_pricing_for_country
 from stripe_buy_buttons import get_button_id
+
+# Simple country code to name mapping for supported countries
+country_name_map = {
+    'US': 'United States',
+    'CA': 'Canada',
+    'IN': 'India',
+    'NP': 'Nepal',
+    'KW': 'Kuwait',
+    'QA': 'Qatar'
+}
 
 # Define the assessment products with pricing (speaking-only packages removed)
 assessment_products = {
@@ -43,16 +52,31 @@ def add_assessment_routes():
     @app.route('/assessment-products')
     def assessment_products_page():
         """Display available assessment products."""
-        # Detect country for pricing
+        # Detect country for region display only
+        country_code = None
+        country_name = None
+        
         if current_user.is_authenticated and current_user.region:
             country_code = current_user.region[:2].upper()  # Use the first two characters of region
+            # Get country name from code
+            country_name = country_name_map.get(country_code, "United States")
         else:
             # Get country from IP address
             client_ip = request.remote_addr
             country_code, country_name = get_country_from_ip(client_ip)
         
-        # Get pricing based on country
-        pricing = get_pricing_for_country(country_code)
+        # Default values if detection fails
+        if not country_code:
+            country_code = 'US'
+        if not country_name:
+            country_name = 'United States'
+        
+        # Fixed pricing for all regions
+        pricing = {
+            'country_code': country_code,
+            'country_name': country_name,
+            'price': 25  # Fixed price of $25 for all assessment products
+        }
         
         # Get user's test preference for product selection
         test_preference = "academic"  # Default

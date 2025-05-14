@@ -15,7 +15,7 @@ from flask_login import login_required, current_user
 import os
 import json
 
-from main import app
+from app import app
 from models import db, Assessment, UserAssessmentAttempt, AssessmentSpeakingResponse
 from account_activation import authenticated_user_required
 

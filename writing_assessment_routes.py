@@ -15,7 +15,7 @@ from flask import render_template, redirect, url_for, request, flash, session, a
 from flask_login import login_required, current_user
 import json
 
-from main import app
+from app import app
 from models import db, Assessment, UserAssessmentAttempt, WritingResponse
 from account_activation import authenticated_user_required
 
