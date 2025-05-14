@@ -345,7 +345,7 @@ class User(UserMixin, db.Model):
 # with Assessment-based information in a future update
 class TestStructure(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    test_type = db.Column(db.String(50), nullable=False)
+    test_type = db.Column(db.String(50), nullable=False)  # Keeping "test_type" column name for database compatibility
     description = db.Column(db.Text, nullable=False)
     format_details = db.Column(db.Text, nullable=False)
     sample_image_url = db.Column(db.String(256), nullable=True)

@@ -523,9 +523,16 @@ def forgot_username():
         
     return render_template('forgot_username.html', title='Forgot Username')
 
-# Test Structure Routes
+# Assessment Structure Routes
 @app.route('/test-structure')
 def test_structure():
+    # Reset any failed database transactions
+    try:
+        db.session.rollback()
+        db.engine.dispose()
+    except Exception as e:
+        print(f"Error resetting database connection: {e}")
+    
     ielts_info = "The International English Language Testing System (IELTS) assesses the English language proficiency of people who want to study or work in environments where English is used as the language of communication."
     return render_template('test_structure/index.html', 
                           title='IELTS Assessment Structure',
@@ -533,6 +540,13 @@ def test_structure():
 
 @app.route('/test-structure/<test_type>')
 def test_structure_detail(test_type):
+    # Reset any failed database transactions
+    try:
+        db.session.rollback()
+        db.engine.dispose()
+    except Exception as e:
+        print(f"Error resetting database connection: {e}")
+    
     ielts_info = "The International English Language Testing System (IELTS) assesses the English language proficiency of people who want to study or work in environments where English is used as the language of communication."
     test_info = TestStructure.query.filter_by(test_type=test_type).first_or_404()
     return render_template(f'test_structure/{test_type}.html', 
