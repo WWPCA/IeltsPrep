@@ -528,7 +528,7 @@ def forgot_username():
 def test_structure():
     ielts_info = "The International English Language Testing System (IELTS) assesses the English language proficiency of people who want to study or work in environments where English is used as the language of communication."
     return render_template('test_structure/index.html', 
-                          title='IELTS Test Structure',
+                          title='IELTS Assessment Structure',
                           ielts_info=ielts_info)
 
 @app.route('/test-structure/<test_type>')
@@ -536,7 +536,7 @@ def test_structure_detail(test_type):
     ielts_info = "The International English Language Testing System (IELTS) assesses the English language proficiency of people who want to study or work in environments where English is used as the language of communication."
     test_info = TestStructure.query.filter_by(test_type=test_type).first_or_404()
     return render_template(f'test_structure/{test_type}.html', 
-                          title=f'IELTS {test_type.replace("_", " ").title()}',
+                          title=f'IELTS {test_type.replace("_", " ").title()} Assessment',
                           test_info=test_info,
                           ielts_info=ielts_info)
 
