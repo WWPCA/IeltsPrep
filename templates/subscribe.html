@@ -83,14 +83,14 @@
     <div class="assessment-section academic mb-5">
         <div class="section-title-container">
             <i class="fas fa-university section-icon"></i>
-            <h2 class="section-title mb-4">IELTS Academic Test Packages</h2>
+            <h2 class="section-title mb-4">IELTS Academic Assessment Packages</h2>
         </div>
         
         <div class="alert alert-primary mb-4">
             <div class="d-flex align-items-center">
                 <i class="fas fa-info-circle me-3 fa-2x"></i>
                 <div>
-                    <strong>Academic Tests</strong> are designed for students seeking admission to universities or professional registration. These tests focus on academic language and contexts.
+                    <strong>Academic Assessments</strong> are designed for students seeking admission to universities or professional registration. These assessments focus on academic language and contexts.
                 </div>
             </div>
         </div>
@@ -118,8 +118,8 @@
                         <form method="POST" action="{{ url_for('checkout_review') }}" enctype="application/x-www-form-urlencoded">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="test_type" value="academic">
-                            <input type="hidden" name="test_package" value="single">
+                            <input type="hidden" name="assessment_type" value="academic">
+                            <input type="hidden" name="assessment_package" value="single">
                             <input type="hidden" name="payment_method" value="stripe">
                             <button type="submit" class="btn btn-primary w-100">Select Package</button>
                         </form>
