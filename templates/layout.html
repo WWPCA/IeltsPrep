@@ -199,9 +199,9 @@
                 </div>
                 <ul>
                     <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
-                    <li><a href="{{ url_for('test_structure') }}">Test Structure</a></li>
+                    <li><a href="{{ url_for('test_structure') }}">Assessment Structure</a></li>
                     {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
+                    <li><a href="{{ url_for('test_day') }}">Assessment Day Guide</a></li>
                     {% endif %}
                     <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
                     <li><a href="{{ url_for('terms_and_payment') }}">Terms of Service</a></li>
@@ -217,7 +217,7 @@
                         <li class="admin-menu">
                             <a href="#" class="dropdown-toggle"><i class="fas fa-shield-alt"></i> Admin <i class="fas fa-caret-down"></i></a>
                             <ul class="dropdown-menu">
-                                <li><a href="{{ url_for('test_country_restriction', country_code='US') }}"><i class="fas fa-globe"></i> Test Country Restrictions</a></li>
+                                <li><a href="{{ url_for('test_country_restriction', country_code='US') }}"><i class="fas fa-globe"></i> Assessment Country Restrictions</a></li>
                                 {% if session.get('simulated_country') %}
                                 <li><a href="{{ url_for('reset_country_simulation') }}" class="text-warning"><i class="fas fa-undo"></i> Reset Country Simulation</a></li>
                                 {% endif %}
@@ -288,15 +288,15 @@
             <div class="footer-grid">
                 <div class="footer-links">
                     <h3>About IELTS GenAI Prep</h3>
-                    <p>IELTS GenAI Prep is the world's ONLY GenAI-powered IELTS preparation platform featuring TrueScore® and Elaris® assessors that standardize IELTS evaluation within the official assessment rubric. Our exclusive technology delivers accurate band scores and personalized feedback across all test sections.</p>
+                    <p>IELTS GenAI Prep is the world's ONLY GenAI-powered IELTS preparation platform featuring TrueScore® and Elaris® assessors that standardize IELTS evaluation within the official assessment rubric. Our exclusive technology delivers accurate band scores and personalized feedback across all assessment sections.</p>
                 </div>
                 
                 <div class="footer-links">
                     <h3>Quick Links</h3>
                     <ul>
-                        <li><a href="{{ url_for('test_structure') }}">Test Structure</a></li>
+                        <li><a href="{{ url_for('test_structure') }}">Assessment Structure</a></li>
                         {% if current_user.is_authenticated and current_user.subscription_status == 'Value Pack' %}
-                        <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
+                        <li><a href="{{ url_for('test_day') }}">Assessment Day Guide</a></li>
                         {% endif %}
                         <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
                     </ul>
@@ -337,7 +337,7 @@
     {% elif request.path.startswith('/speaking') %}
         <script src="{{ url_for('static', filename='js/speaking.js') }}"></script>
     {% elif request.path.startswith('/test-structure') %}
-        <script src="{{ url_for('static', filename='js/test-structure.js') }}?v={{ cache_buster }}"></script>
+        <script src="{{ url_for('static', filename='js/assessment-structure.js') }}?v={{ cache_buster }}"></script>
     {% endif %}
     
     <!-- Additional Scripts -->
