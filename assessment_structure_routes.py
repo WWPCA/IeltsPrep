@@ -28,5 +28,15 @@ def assessment_structure_general_training():
                           title='General Training IELTS Assessment Structure')
 
 
-# Add these routes to main.py
+# Add detail route for individual assessment types
+@app.route('/assessment-structure/<test_type>')
+def assessment_structure_detail(test_type):
+    """Display details for a specific assessment type."""
+    if test_type == 'academic':
+        return assessment_structure_academic()
+    elif test_type == 'general_training':
+        return assessment_structure_general_training()
+    else:
+        return redirect(url_for('assessment_structure'))
+
 print("Assessment structure routes added successfully.")
