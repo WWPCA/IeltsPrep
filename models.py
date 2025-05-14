@@ -469,31 +469,49 @@ class AssessmentSpeakingResponse(db.Model):
         return f'<AssessmentSpeakingResponse {self.id}: Part {self.part_number} for Attempt {self.attempt_id}>'
 
 
-class UserTestAssignment(db.Model):
-    """Track which assessments are assigned to each user to ensure no repeats
-    
-    Note: This model was previously named for test assignments but now manages assessment assignments
-    as part of the transition to the assessment-only model.
-    """
+class UserAssessmentAssignment(db.Model):
+    """Track which assessments are assigned to each user to ensure no repeats"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    test_type = db.Column(db.String(20), nullable=False)  # academic or general
-    assigned_test_numbers = db.Column(db.Text, nullable=False)  # JSON array of assigned assessment numbers
+    assessment_type = db.Column(db.String(20), nullable=False)  # academic or general
+    assigned_assessment_ids = db.Column(db.Text, nullable=False)  # JSON array of assigned assessment IDs
     purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
     expiry_date = db.Column(db.DateTime, nullable=True)
     
     @property
+    def assessment_ids(self):
+        """Get the list of assigned assessment IDs"""
+        return json.loads(self.assigned_assessment_ids)
+    
+    @assessment_ids.setter
+    def assessment_ids(self, value):
+        """Set the list of assigned assessment IDs"""
+        self.assigned_assessment_ids = json.dumps(value)
+        
+    def __repr__(self):
+        return f'<UserAssessmentAssignment User:{self.user_id} Type:{self.assessment_type} Assessments:{self.assigned_assessment_ids}>'
+
+# Keep for backward compatibility during transition
+class UserTestAssignment(UserAssessmentAssignment):
+    """Legacy model maintained for backward compatibility
+    
+    This model has been replaced by UserAssessmentAssignment
+    but is maintained for backward compatibility during the transition.
+    """
+    __tablename__ = 'user_test_assignment'
+    
+    test_type = db.synonym('assessment_type')
+    assigned_test_numbers = db.synonym('assigned_assessment_ids')
+    
+    @property
     def test_numbers(self):
-        """Get the list of assigned assessment numbers"""
-        return json.loads(self.assigned_test_numbers)
+        """Legacy accessor for assessment_ids"""
+        return self.assessment_ids
     
     @test_numbers.setter
     def test_numbers(self, value):
-        """Set the list of assigned assessment numbers"""
-        self.assigned_test_numbers = json.dumps(value)
-        
-    def __repr__(self):
-        return f'<UserTestAssignment User:{self.user_id} Type:{self.test_type} Tests:{self.assigned_test_numbers}>'
+        """Legacy setter for assessment_ids"""
+        self.assessment_ids = value
 
 class ConnectionIssueLog(db.Model):
     """Track connection issues for monitoring and support purposes"""

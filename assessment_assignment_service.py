@@ -8,41 +8,52 @@ import random
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_, and_
 
-from models import db, UserTestAssignment, User, Assessment
+from models import db, UserAssessmentAssignment, User, Assessment
 
 # Total number of unique assessments for each assessment type
 TOTAL_ACADEMIC_ASSESSMENTS = 16
 TOTAL_GENERAL_ASSESSMENTS = 16
 
-def get_available_assessment_numbers(user_id, assessment_type):
+def get_available_assessment_ids(user_id, assessment_type):
     """
-    Get a list of assessment numbers that haven't been assigned to this user.
+    Get a list of assessment IDs that haven't been assigned to this user.
     
     Args:
         user_id (int): The user's ID
         assessment_type (str): Either 'academic' or 'general'
         
     Returns:
-        list: Available assessment numbers (1-16) not previously assigned to this user
+        list: Available assessment IDs not previously assigned to this user
     """
-    # Get all assessment numbers previously assigned to this user
-    previous_assignments = UserTestAssignment.query.filter_by(
-        user_id=user_id,
-        test_type=assessment_type
+    # Get the assessment category prefix based on assessment_type
+    assessment_category_map = {
+        'academic': ['academic_writing', 'academic_speaking'],
+        'general': ['general_writing', 'general_speaking']
+    }
+    
+    assessment_categories = assessment_category_map.get(assessment_type, [])
+    
+    # Get all assessments of this type
+    all_assessments = Assessment.query.filter(
+        Assessment.assessment_type.in_(assessment_categories),
+        Assessment.status == 'active'
     ).all()
     
-    # Create a set of all previously assigned assessment numbers
-    assigned_numbers = set()
+    # Get all assessment IDs previously assigned to this user
+    previous_assignments = UserAssessmentAssignment.query.filter_by(
+        user_id=user_id,
+        assessment_type=assessment_type
+    ).all()
+    
+    # Create a set of all previously assigned assessment IDs
+    assigned_ids = set()
     for assignment in previous_assignments:
-        assigned_numbers.update(assignment.test_numbers)
+        assigned_ids.update(assignment.assessment_ids)
     
-    # Determine the total number of assessments for this type
-    total_assessments = TOTAL_ACADEMIC_ASSESSMENTS if assessment_type == 'academic' else TOTAL_GENERAL_ASSESSMENTS
+    # Calculate which assessment IDs are still available
+    available_ids = [assessment.id for assessment in all_assessments if assessment.id not in assigned_ids]
     
-    # Calculate which assessment numbers are still available (1-indexed)
-    available_numbers = [n for n in range(1, total_assessments + 1) if n not in assigned_numbers]
-    
-    return available_numbers
+    return available_ids
 
 def assign_assessments_to_user(user_id, assessment_type, num_assessments, access_days=15):
     """
@@ -56,7 +67,7 @@ def assign_assessments_to_user(user_id, assessment_type, num_assessments, access
         access_days (int): Number of days the assessment package is valid (15 or 30)
         
     Returns:
-        list: The assigned assessment numbers
+        list: The assigned assessment IDs
         bool: True if successful, False if not enough unique assessments available
     """
     # Validate parameters
@@ -65,32 +76,32 @@ def assign_assessments_to_user(user_id, assessment_type, num_assessments, access
     if assessment_type not in ['academic', 'general']:
         raise ValueError("Assessment type must be 'academic' or 'general'")
     
-    # Get available assessment numbers
-    available_numbers = get_available_assessment_numbers(user_id, assessment_type)
+    # Get available assessment IDs
+    available_ids = get_available_assessment_ids(user_id, assessment_type)
     
     # Check if we have enough unique assessments
-    if len(available_numbers) < num_assessments:
+    if len(available_ids) < num_assessments:
         return [], False
     
-    # Randomly select assessments from available numbers
-    assigned_numbers = random.sample(available_numbers, num_assessments)
+    # Randomly select assessments from available IDs
+    assigned_ids = random.sample(available_ids, num_assessments)
     
     # Create expiry date
     expiry_date = datetime.utcnow() + timedelta(days=access_days)
     
     # Create new assignment record
-    assignment = UserTestAssignment()
+    assignment = UserAssessmentAssignment()
     assignment.user_id = user_id
-    assignment.test_type = assessment_type
-    assignment.assigned_test_numbers = json.dumps(assigned_numbers)
+    assignment.assessment_type = assessment_type
+    assignment.assigned_assessment_ids = json.dumps(assigned_ids)
     assignment.purchase_date = datetime.utcnow()
     assignment.expiry_date = expiry_date
     
     db.session.add(assignment)
     db.session.commit()
     
-    # Return the assigned assessment numbers
-    return assigned_numbers, True
+    # Return the assigned assessment IDs
+    return assigned_ids, True
 
 def get_current_assessment_assignments(user_id, assessment_type):
     """
@@ -101,17 +112,17 @@ def get_current_assessment_assignments(user_id, assessment_type):
         assessment_type (str): Either 'academic' or 'general'
         
     Returns:
-        list: Currently assigned assessment numbers
+        list: Currently assigned assessment IDs
     """
     # Get most recent assignment that hasn't expired
-    assignment = UserTestAssignment.query.filter(
-        UserTestAssignment.user_id == user_id,
-        UserTestAssignment.test_type == assessment_type,
-        UserTestAssignment.expiry_date > datetime.utcnow()
-    ).order_by(UserTestAssignment.purchase_date.desc()).first()
+    assignment = UserAssessmentAssignment.query.filter(
+        UserAssessmentAssignment.user_id == user_id,
+        UserAssessmentAssignment.assessment_type == assessment_type,
+        UserAssessmentAssignment.expiry_date > datetime.utcnow()
+    ).order_by(UserAssessmentAssignment.purchase_date.desc()).first()
     
     if assignment:
-        return assignment.test_numbers
+        return assignment.assessment_ids
     
     return []
 
@@ -142,10 +153,20 @@ def get_user_accessible_assessments(user_id, assessment_type):
     if user.assessment_package_status != assessment_mapping.get(assessment_type):
         return []
     
-    # Get assessment objects for this type
-    assessments = Assessment.query.filter_by(
-        assessment_type=assessment_type,
-        status='active'
-    ).order_by(Assessment.creation_date.desc()).limit(4).all()
+    # Get the base assessment type (academic or general)
+    base_type = 'academic' if assessment_type.startswith('academic') else 'general'
+    
+    # Get the user's assigned assessment IDs
+    assigned_ids = get_current_assessment_assignments(user_id, base_type)
+    
+    if not assigned_ids:
+        return []
+    
+    # Get assessment objects for this type and assigned IDs
+    assessments = Assessment.query.filter(
+        Assessment.id.in_(assigned_ids),
+        Assessment.assessment_type == assessment_type,
+        Assessment.status == 'active'
+    ).all()
     
     return assessments
