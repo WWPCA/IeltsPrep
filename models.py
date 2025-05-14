@@ -340,10 +340,10 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
-# Legacy model for test structure information pages
-# This model is still used for the test structure information pages but should be replaced
-# with Assessment-based information in a future update
-class TestStructure(db.Model):
+# Model for assessment structure information pages
+class AssessmentStructure(db.Model):
+    __tablename__ = 'test_structure'  # Keep the table name for database compatibility
+    
     id = db.Column(db.Integer, primary_key=True)
     test_type = db.Column(db.String(50), nullable=False)  # Keeping "test_type" column name for database compatibility
     description = db.Column(db.Text, nullable=False)
@@ -351,7 +351,7 @@ class TestStructure(db.Model):
     sample_image_url = db.Column(db.String(256), nullable=True)
     
     def __repr__(self):
-        return f'<TestStructure {self.test_type}>'
+        return f'<AssessmentStructure {self.test_type}>'
 
 class Assessment(db.Model):
     """Model for IELTS assessments"""

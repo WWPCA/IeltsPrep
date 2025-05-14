@@ -13,7 +13,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from app import app, db, recaptcha_v3
-from models import User, TestStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
+from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
 from utils import get_user_region, get_translation, compress_audio
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import assessment_assignment_service
