@@ -8,7 +8,7 @@ def init_assessment_structure():
         AssessmentStructure.query.delete()
         
         # Assessment structure data for different IELTS assessment types
-        test_data = [
+        assessment_data = [
             {
                 "test_type": "academic",
                 "description": "For study at undergraduate or postgraduate levels, and for professional registration.",
@@ -57,13 +57,13 @@ def init_assessment_structure():
         ]
         
         # Add all assessment structure data
-        for data in test_data:
+        for data in assessment_data:
             assessment_structure = AssessmentStructure(**data)
             db.session.add(assessment_structure)
         
         # Commit changes
         db.session.commit()
-        print(f"Added {len(test_data)} assessment structure entries")
+        print(f"Added {len(assessment_data)} assessment structure entries")
 
 if __name__ == "__main__":
     init_assessment_structure()
