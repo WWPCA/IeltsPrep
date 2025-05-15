@@ -1,7 +1,3 @@
-"""
-Add assessment product routes to the application.
-This script adds routes for the new assessment products.
-"""
 from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import current_user
 from models import db, User
@@ -10,6 +6,12 @@ import json
 import os
 from geoip_services import get_country_from_ip
 from stripe_buy_buttons import get_button_id
+from flask import Flask, render_template, request, redirect, url_for, flash, session, current_app, jsonify
+
+"""
+Add assessment product routes to the application.
+This script adds routes for the new assessment products.
+"""
 
 # Simple country code to name mapping for supported countries
 country_name_map = {
