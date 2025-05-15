@@ -42,8 +42,8 @@ app.config["RECAPTCHA_TYPE"] = "image"
 app.config["RECAPTCHA_SIZE"] = "invisible"
 app.config["RECAPTCHA_RTABINDEX"] = 10
 
-# Configure URL scheme - use HTTP for Replit environment
-app.config["PREFERRED_URL_SCHEME"] = "http"
+# Configure URL scheme - use HTTPS for URL generation
+app.config["PREFERRED_URL_SCHEME"] = "https"  # Generate HTTPS URLs for all links
 
 # Initialize extensions with the app
 db.init_app(app)
@@ -53,14 +53,17 @@ recaptcha_v3.init_app(app)
 login_manager.login_view = "login"
 login_manager.login_message_category = "info"
 
-# Force HTTPS redirect
-# Completely disable HTTPS redirection in Replit environment
-# @app.before_request
-# def force_https():
-#     """Redirect all HTTP requests to HTTPS."""
-#     if not request.is_secure and not app.debug and not app.testing:
-#         url = request.url.replace('http://', 'https://', 1)
-#         return Response('', 301, {'Location': url})
+# Let Replit handle HTTPS - this is for when the app runs outside of Replit
+@app.before_request
+def check_proxy_headers():
+    """Ensure proper security headers are set with Replit's proxy."""
+    # Check if running behind Replit proxy
+    is_replit = 'REPLIT_DOMAINS' in os.environ
+    
+    # If not running behind a proxy, and not debug/testing, enforce HTTPS
+    if not is_replit and not request.is_secure and not app.debug and not app.testing:
+        url = request.url.replace('http://', 'https://', 1)
+        return Response('', 301, {'Location': url})
 
 # Add Content Security Policy and HTTPS-related headers
 @app.after_request

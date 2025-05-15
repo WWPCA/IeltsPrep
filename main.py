@@ -1,3 +1,4 @@
+import os
 from app import app  # noqa: F401
 import routes  # noqa: F401
 from flask_talisman import Talisman
@@ -20,9 +21,18 @@ add_contact_routes(app)
 from cart_routes import cart_bp
 app.register_blueprint(cart_bp, url_prefix='/cart')
 
-# Configure Talisman but allow iframe embedding from same origin and disable HTTPS forcing
+# Configure Talisman with security headers but let Replit handle HTTPS
 Talisman(app, 
-         force_https=False,
+         force_https=False,  # Let Replit handle HTTPS
+         content_security_policy={
+             'default-src': ['\'self\'', '*.stripe.com', 'https://cdn.jsdelivr.net'],
+             'script-src': ['\'self\'', '\'unsafe-inline\'', '*.stripe.com', 'https://cdn.jsdelivr.net'],
+             'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://cdn.jsdelivr.net'],
+             'img-src': ['\'self\'', 'data:', 'https:'],
+             'connect-src': ['\'self\'', 'https:'],
+             'frame-src': ['\'self\'', '*.stripe.com'],
+             'font-src': ['\'self\'', 'https://cdn.jsdelivr.net'],
+         },
          frame_options='SAMEORIGIN', 
          frame_options_allow_from='*')
 
