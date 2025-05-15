@@ -2,7 +2,6 @@
 Add assessment product routes to the application.
 This script adds routes for the new assessment products.
 """
-from main import app
 from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import current_user
 from models import db, User
@@ -46,8 +45,12 @@ assessment_products = {
     }
 }
 
-def add_assessment_routes():
+def add_assessment_routes(app=None):
     """Add routes for assessment products."""
+    if app is None:
+        # For backward compatibility when called directly
+        from flask import current_app
+        app = current_app
     
     @app.route('/assessment-products')
     def assessment_products_page():

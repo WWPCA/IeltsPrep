@@ -351,7 +351,7 @@ class AssessmentStructure(db.Model):
     sample_image_url = db.Column(db.String(256), nullable=True)
     
     def __repr__(self):
-        return f'<AssessmentStructure {self.test_type}>'
+        return f'<AssessmentStructure {self.test_type}>'  # test_type is the database column name
 
 class Assessment(db.Model):
     """Model for IELTS assessments"""
@@ -497,7 +497,7 @@ class ConnectionIssueLog(db.Model):
     """Track connection issues for monitoring and support purposes"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    test_id = db.Column(db.Integer, nullable=True)  # ID of the test being taken
+    assessment_id = db.Column(db.Integer, nullable=True)  # ID of the assessment being taken
     product_id = db.Column(db.String(50), nullable=True)  # academic_writing, academic_speaking, etc.
     session_id = db.Column(db.Integer, db.ForeignKey('assessment_session.id'), nullable=True)
     occurred_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -522,7 +522,7 @@ class ConnectionIssueLog(db.Model):
         log_entry = cls(
             user_id=user_id,
             issue_type=issue_type,
-            test_id=kwargs.get('test_id'),
+            assessment_id=kwargs.get('assessment_id'),
             product_id=kwargs.get('product_id'),
             session_id=kwargs.get('session_id'),
             user_local_time=kwargs.get('user_local_time')
@@ -575,7 +575,7 @@ class AssessmentSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.String(50), nullable=False)  # academic_writing, academic_speaking, etc.
-    test_id = db.Column(db.Integer, nullable=True)  # ID of the test currently being taken
+    assessment_id = db.Column(db.Integer, nullable=True)  # ID of the assessment currently being taken
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_activity = db.Column(db.DateTime, default=datetime.utcnow)
     completed = db.Column(db.Boolean, default=False)
@@ -632,12 +632,12 @@ class AssessmentSession(db.Model):
         ).count() > 0
     
     @classmethod
-    def create_session(cls, user_id, product_id, test_id=None):
+    def create_session(cls, user_id, product_id, assessment_id=None):
         """Create a new session for a user and product"""
         session = cls(
             user_id=user_id,
             product_id=product_id,
-            test_id=test_id
+            assessment_id=assessment_id
         )
         db.session.add(session)
         db.session.commit()
