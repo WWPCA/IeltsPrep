@@ -25,45 +25,15 @@ from geoip_services import get_country_from_ip
 from country_restrictions import country_access_required, is_country_restricted, RESTRICTION_MESSAGE
 
 # Import the assessment details route
-try:
-    from add_assessment_details_route import assessment_details_route
-except ImportError:
-    # Define it directly if the import fails
-    def assessment_details_route(assessment_type, assessment_id):
-        """Show details about an assessment before starting it"""
-        if assessment_type not in ['listening', 'reading', 'writing', 'speaking']:
-            abort(404)
-        
-        assessment = Assessment.query.get_or_404(assessment_id)
-        
-        # All assessments require an assessment package
-        if not current_user.has_active_assessment_package():
-            flash('This assessment requires an assessment package. Please purchase an assessment package to access GenAI-powered skill evaluations.', 'warning')
-            return redirect(url_for('assessment_products_page'))
-        
-        # Check if user has already used this assessment during current assessment package period
-        if current_user.has_taken_assessment(assessment_id, assessment_type):
-            flash('You have already used this assessment during your current assessment package period. Each assessment can only be used once per assessment package.', 'warning')
-            return redirect(url_for('assessment_products_page'))
-        
-        return render_template('assessment_details.html', 
-                              title=f'IELTS {assessment_type.capitalize()} Assessment',
-                              assessment=assessment,
-                              assessment_type=assessment_type)
-
-# Add the assessment details route
-app.add_url_rule('/assessment/<assessment_type>/<int:assessment_id>/details', 
-                 'assessment_details', 
-                 assessment_details_route, 
-                 methods=['GET'])
+from add_assessment_details_route import assessment_details_route
 
 # Main index route
 @app.route('/')
 def index():
-    """Home page with information about the platform"""
-    return render_template('index.html', title='IELTS GenAI Prep - Home')
+    """Home page with overview of IELTS GenAI Prep platform"""
+    return render_template('index.html', title='IELTS GenAI Prep - TrueScore® and Elaris® Assessments')
 
-# User authentication routes
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Login page with form validation"""
@@ -73,24 +43,17 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        remember_me = 'remember_me' in request.form
         
-        user = User.query.filter((User.username == username) | (User.email == username)).first()
+        user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
-            if not user.account_activated:
-                flash('Your account has not been activated yet. Please check your email for the activation link.', 'warning')
-                return redirect(url_for('login'))
-            
-            login_user(user, remember=remember_me)
-            user.update_streak()  # Update streak on login
-            db.session.commit()
+            login_user(user)
             
             next_page = request.args.get('next')
-            if not next_page or urlparse(next_page).netloc != '':
-                next_page = url_for('index')
+            if next_page and urlparse(next_page).netloc == '':
+                return redirect(next_page)
             
-            return redirect(next_page)
+            return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'danger')
     
