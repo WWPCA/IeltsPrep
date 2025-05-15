@@ -89,11 +89,10 @@ def register():
             return redirect(url_for('register'))
         
         # Create new user
-        new_user = User(
-            username=username,
-            email=email,
-            assessment_preference='academic'  # Default value
-        )
+        new_user = User()
+        new_user.username = username
+        new_user.email = email
+        new_user.assessment_preference = 'academic'  # Default value
         new_user.set_password(password)
         
         # Store region information
