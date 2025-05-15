@@ -69,26 +69,9 @@ def check_proxy_headers():
 @app.after_request
 def add_security_headers(response):
     """Add security headers to enhance HTTPS protection."""
-    # Content Security Policy
-    csp = (
-        "default-src 'self'; "
-        "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com 'unsafe-inline'; "
-        "style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com 'unsafe-inline'; "
-        "img-src 'self' data: https:; "
-        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-        "connect-src 'self'; "
-        "media-src 'self'; "
-        "object-src 'none'; "
-        "frame-src https://www.google.com;"
-    )
-    
-    # Set security headers
-    response.headers["Content-Security-Policy"] = csp
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # Temporarily simplify headers for debugging
+    # Only include minimal security headers
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     
     return response
 
