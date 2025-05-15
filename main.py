@@ -24,7 +24,16 @@ app.register_blueprint(cart_bp, url_prefix='/cart')
 # Configure Talisman with security headers but let Replit handle HTTPS
 Talisman(app, 
          force_https=False,  # Let Replit handle HTTPS
-         content_security_policy=None,  # Temporarily disable CSP for testing
+         content_security_policy={
+             'default-src': ['\'self\'', '*.replit.dev', '*.replit.com', '*.stripe.com', 'https://cdn.jsdelivr.net'],
+             'script-src': ['\'self\'', '\'unsafe-inline\'', '*.replit.dev', '*.replit.com', '*.stripe.com', 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com', 'https://www.google.com', 'https://www.gstatic.com'],
+             'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com', 'https://fonts.googleapis.com'],
+             'img-src': ['\'self\'', 'data:', 'https:', 'blob:'],
+             'connect-src': ['\'self\'', 'https:', 'wss:', 'ws:'],  # Allow WebSocket connections
+             'frame-src': ['\'self\'', '*.stripe.com', '*.replit.dev', '*.replit.com', 'https://www.google.com'],
+             'font-src': ['\'self\'', 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'],
+             'media-src': ['\'self\'', 'https:', 'blob:'],
+         },
          frame_options='SAMEORIGIN', 
          frame_options_allow_from='*')
 

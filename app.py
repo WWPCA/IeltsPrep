@@ -69,9 +69,14 @@ def check_proxy_headers():
 @app.after_request
 def add_security_headers(response):
     """Add security headers to enhance HTTPS protection."""
-    # Temporarily simplify headers for debugging
-    # Only include minimal security headers
+    # Add security headers compatible with Replit's environment
     response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # Strict-Transport-Security is managed by Replit's proxy
+    # Don't set Content-Security-Policy here as it's handled by Talisman
     
     return response
 
