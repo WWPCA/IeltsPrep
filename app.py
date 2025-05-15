@@ -57,7 +57,8 @@ login_manager.login_message_category = "info"
 @app.before_request
 def force_https():
     """Redirect all HTTP requests to HTTPS."""
-    if not request.is_secure and not app.debug and not app.testing:
+    # Disable HTTPS redirection in Replit environment
+    if os.environ.get('REPLIT_DEPLOYMENT') and not request.is_secure and not app.debug and not app.testing:
         url = request.url.replace('http://', 'https://', 1)
         return Response('', 301, {'Location': url})
 
