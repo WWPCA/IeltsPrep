@@ -30,7 +30,10 @@ class User(UserMixin, db.Model):
     email_verification_sent_at = db.Column(db.DateTime, nullable=True)
     # target_score field removed as it doesn't exist in database
     # Admin check based on email address
-    is_admin = db.Column(db.Boolean, default=False)
+    @property
+    def is_admin(self):
+        """Check if user is admin based on email address."""
+        return self.email == "admin@ieltsaiprep.com"
     
     # Study streak tracking
     current_streak = db.Column(db.Integer, default=0)
