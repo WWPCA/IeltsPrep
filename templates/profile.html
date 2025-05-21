@@ -56,6 +56,105 @@
         </div>
         
         <div class="col-md-8">
+            <!-- Available Assessments -->
+            {% if current_user.has_active_assessment_package() %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">My Available Assessments</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if "Academic Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Academic Writing</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>TrueScore® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Task 1: Graph/chart description</li>
+                                        <li>Task 2: Academic essay writing</li>
+                                        <li>Detailed feedback and scoring</li>
+                                    </ul>
+                                    <a href="{{ url_for('assessment_list', assessment_type='academic_writing') }}" class="btn btn-primary w-100">Start Assessment</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if "Academic Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Academic Speaking</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Elaris® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Part 1: Introduction & interview</li>
+                                        <li>Part 2: Long turn speaking</li>
+                                        <li>Part 3: Two-way discussion</li>
+                                    </ul>
+                                    <a href="{{ url_for('assessment_list', assessment_type='academic_speaking') }}" class="btn btn-primary w-100">Start Assessment</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if "General Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">General Training Writing</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>TrueScore® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Task 1: Formal & informal letters</li>
+                                        <li>Task 2: General essay writing</li>
+                                        <li>Detailed feedback and scoring</li>
+                                    </ul>
+                                    <a href="{{ url_for('assessment_list', assessment_type='general_writing') }}" class="btn btn-success w-100">Start Assessment</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if "General Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">General Training Speaking</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Elaris® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Part 1: Introduction & interview</li>
+                                        <li>Part 2: Long turn speaking</li>
+                                        <li>Part 3: Two-way discussion</li>
+                                    </ul>
+                                    <a href="{{ url_for('assessment_list', assessment_type='general_speaking') }}" class="btn btn-success w-100">Start Assessment</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if not ("Academic Writing" in current_user.assessment_package_status or 
+                                   "Academic Speaking" in current_user.assessment_package_status or 
+                                   "General Writing" in current_user.assessment_package_status or 
+                                   "General Speaking" in current_user.assessment_package_status or
+                                   "All Products" in current_user.assessment_package_status) %}
+                        <div class="col-12 text-center py-4">
+                            <p class="text-muted">You have an active package but no specific assessments have been assigned.</p>
+                            <a href="{{ url_for('assessment_products_page') }}" class="btn btn-primary">Browse Available Assessments</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
             <!-- Test History -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -117,7 +216,6 @@
                 </div>
             </div>
             
-
         </div>
     </div>
 </div>
