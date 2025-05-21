@@ -1,0 +1,225 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">My Profile</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h4>{{ current_user.username }}</h4>
+                        <p class="text-muted">{{ current_user.email }}</p>
+                        <p class="badge bg-{{ 'success' if current_user.has_active_assessment_package() else 'secondary' }}">
+                            {{ current_user.assessment_package_status if current_user.has_active_assessment_package() else 'No Active Package' }}
+                        </p>
+                        <!-- Assessment package status shows what package the user has purchased -->
+                    </div>
+                    
+                    <div class="profile-details">
+                        <div class="row mb-2">
+                            <div class="col-5 text-muted">Joined:</div>
+                            <div class="col-7">{{ current_user.join_date.strftime('%B %d, %Y') }}</div>
+                        </div>
+                        {% if current_user.has_active_assessment_package() %}
+                        <div class="row mb-2">
+                            <div class="col-5 text-muted">Plan:</div>
+                            <div class="col-7">{{ current_user.test_preference|capitalize }} Tests</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5 text-muted">Expires:</div>
+                            <div class="col-7">{{ current_user.assessment_package_expiry.strftime('%B %d, %Y') if current_user.assessment_package_expiry else 'N/A' }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Account settings will be added in future updates -->
+                    <div class="mt-4">
+                        <a href="/profile" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-user me-1"></i> My Profile
+                        </a>
+                    </div>
+                    
+                    {% if not current_user.has_active_assessment_package() %}
+                    <div class="text-center mt-3">
+                        <a href="/assessment-products" class="btn btn-primary">Purchase a Package</a>
+                    </div>
+                    {% elif current_user.assessment_package_status == "Single Test" or current_user.assessment_package_status == "Double Package" %}
+                    <div class="text-center mt-3">
+                        <a href="/assessment-products" class="btn btn-success">Explore More Assessment Products</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Available Assessments -->
+            {% if current_user.has_active_assessment_package() %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">My Available Assessments</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if "Academic Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Academic Writing</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>TrueScore® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Task 1: Graph/chart description</li>
+                                        <li>Task 2: Academic essay writing</li>
+                                        <li>Detailed feedback and scoring</li>
+                                    </ul>
+                                    <a href="/assessments" class="btn btn-primary w-100">Start Academic Writing</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if "Academic Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Academic Speaking</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Elaris® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Part 1: Introduction & interview</li>
+                                        <li>Part 2: Long turn speaking</li>
+                                        <li>Part 3: Two-way discussion</li>
+                                    </ul>
+                                    <a href="/assessments" class="btn btn-primary w-100">Start Academic Speaking</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if "General Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">General Training Writing</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>TrueScore® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Task 1: Formal & informal letters</li>
+                                        <li>Task 2: General essay writing</li>
+                                        <li>Detailed feedback and scoring</li>
+                                    </ul>
+                                    <a href="/assessments" class="btn btn-success w-100">Start General Writing</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if "General Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">General Training Speaking</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Elaris® GenAI</strong> assessment technology</p>
+                                    <ul class="mb-3">
+                                        <li>Part 1: Introduction & interview</li>
+                                        <li>Part 2: Long turn speaking</li>
+                                        <li>Part 3: Two-way discussion</li>
+                                    </ul>
+                                    <a href="/assessments" class="btn btn-success w-100">Start General Speaking</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if not ("Academic Writing" in current_user.assessment_package_status or 
+                                   "Academic Speaking" in current_user.assessment_package_status or 
+                                   "General Writing" in current_user.assessment_package_status or 
+                                   "General Speaking" in current_user.assessment_package_status or
+                                   "All Products" in current_user.assessment_package_status) %}
+                        <div class="col-12 text-center py-4">
+                            <p class="text-muted">You have an active package but no specific assessments have been assigned.</p>
+                            <a href="/assessment-products" class="btn btn-primary">Browse Available Assessments</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Test History -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Test History</h3>
+                    <span class="badge bg-light text-primary">{{ current_user.test_history|length }} Tests</span>
+                </div>
+                <div class="card-body">
+                    {% if current_user.test_history|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Test Type</th>
+                                        <th>Title</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for test in current_user.test_history|sort(attribute='date', reverse=true) %}
+                                    <tr>
+                                        <td>{% if test is mapping %}
+                                            {% if test.get('date', '') %}
+                                                {{ test.get('date', '')|string }}
+                                            {% endif %}
+                                          {% else %}
+                                            {% if test.date %}
+                                                {{ test.date|string }}
+                                            {% endif %}
+                                          {% endif %}
+                                        </td>
+                                        <td>{{ test.get('test_type', '')|capitalize if test is mapping else test.test_type|default('')|capitalize }}</td>
+                                        <td>{{ test.get('title', '') if test is mapping else test.title|default('') }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                {% set score = test.get('score', 0) if test is mapping else test.score|default(0) %}
+                                                <div class="progress-bar bg-{{ 'success' if score >= 70 else 'warning' if score >= 50 else 'danger' }}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ score }}%;" 
+                                                     aria-valuenow="{{ score }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ "%.1f"|format(score) }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <p class="lead">You haven't taken any tests yet.</p>
+                            <a href="/" class="btn btn-primary mt-3">Go to Home</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
