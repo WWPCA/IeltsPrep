@@ -107,5 +107,21 @@ def grant_all_assessment_access(username_or_email=None):
         return user
 
 if __name__ == "__main__":
-    username_or_email = sys.argv[1] if len(sys.argv) > 1 else None
-    grant_all_assessment_access(username_or_email)
+    # Using the admin email directly for testing
+    username_or_email = "admin@ieltsaiprep.com"
+    print(f"Granting access to email: {username_or_email}")
+    user = grant_all_assessment_access(username_or_email)
+    
+    # Force update the user's database record to ensure changes take effect
+    if user:
+        with app.app_context():
+            print("Performing direct database update to ensure changes are applied...")
+            from sqlalchemy import text
+            db.session.execute(text("""
+                UPDATE "user" 
+                SET assessment_package_status = 'Academic Writing',
+                    assessment_package_expiry = NOW() + INTERVAL '365 days'
+                WHERE email = :email
+            """), {"email": username_or_email})
+            db.session.commit()
+            print("Direct database update completed successfully.")
