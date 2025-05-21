@@ -23,14 +23,14 @@
                             <div class="col-5 text-muted">Joined:</div>
                             <div class="col-7">{{ current_user.join_date.strftime('%B %d, %Y') }}</div>
                         </div>
-                        {% if current_user.is_subscribed() %}
+                        {% if current_user.has_active_assessment_package() %}
                         <div class="row mb-2">
                             <div class="col-5 text-muted">Plan:</div>
                             <div class="col-7">{{ current_user.test_preference|capitalize }} Tests</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-5 text-muted">Expires:</div>
-                            <div class="col-7">{{ current_user.subscription_expiry.strftime('%B %d, %Y') if current_user.subscription_expiry else 'N/A' }}</div>
+                            <div class="col-7">{{ current_user.assessment_package_expiry.strftime('%B %d, %Y') if current_user.assessment_package_expiry else 'N/A' }}</div>
                         </div>
                         {% endif %}
                     </div>
@@ -41,13 +41,13 @@
                         </a>
                     </div>
                     
-                    {% if not current_user.is_subscribed() %}
+                    {% if not current_user.has_active_assessment_package() %}
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Purchase a Package</a>
+                        <a href="{{ url_for('assessment_products') }}" class="btn btn-primary">Purchase a Package</a>
                     </div>
-                    {% elif current_user.subscription_status == "Single Test" or current_user.subscription_status == "Double Package" %}
+                    {% elif current_user.assessment_package_status == "Single Test" or current_user.assessment_package_status == "Double Package" %}
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('assessment_products') }}" class="btn btn-success">Explore Assessment Products</a>
+                        <a href="{{ url_for('assessment_products') }}" class="btn btn-success">Explore More Assessment Products</a>
                     </div>
                     {% endif %}
                 </div>
