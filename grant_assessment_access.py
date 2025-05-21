@@ -35,8 +35,10 @@ def grant_all_assessment_access(username_or_email=None):
         
         print(f"Granting assessment access to user: {user.username} (ID: {user.id})")
         
-        # Set the assessment package status to use a standard format that fits in the field
-        user.assessment_package_status = "All Products"
+        # Set the assessment package status to use a valid package type from the defined options
+        # Valid options from the User model: "Academic Writing", "Academic Speaking", "General Writing", "General Speaking"
+        # Use Academic Writing as the base package but make sure everything is assigned
+        user.assessment_package_status = "Academic Writing"
         
         # Set expiry date to 365 days from now for extended testing
         user.assessment_package_expiry = datetime.utcnow() + timedelta(days=365)
