@@ -76,7 +76,16 @@
                                 <tbody>
                                     {% for test in current_user.test_history|sort(attribute='date', reverse=true) %}
                                     <tr>
-                                        <td>{{ test.get('date', '')|string|split('T')[0] if test is mapping else test.date|string|split('T')[0] }}</td>
+                                        <td>{% if test is mapping %}
+                                            {% if test.get('date', '') %}
+                                                {{ test.get('date', '')|string }}
+                                            {% endif %}
+                                          {% else %}
+                                            {% if test.date %}
+                                                {{ test.date|string }}
+                                            {% endif %}
+                                          {% endif %}
+                                        </td>
                                         <td>{{ test.get('test_type', '')|capitalize if test is mapping else test.test_type|default('')|capitalize }}</td>
                                         <td>{{ test.get('title', '') if test is mapping else test.title|default('') }}</td>
                                         <td>
