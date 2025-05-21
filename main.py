@@ -7,6 +7,11 @@ from flask_talisman import Talisman
 from add_assessment_routes import add_assessment_routes
 add_assessment_routes(app)
 
+# Import core assessment routes
+import assessment_routes  # noqa: F401
+import writing_assessment_routes  # noqa: F401
+import speaking_assessment_routes  # noqa: F401
+
 # Import assessment structure routes
 import assessment_structure_routes  # noqa: F401
 
