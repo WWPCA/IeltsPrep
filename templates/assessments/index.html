@@ -16,6 +16,7 @@
                     
                     <div class="row mt-4">
                         {% if has_package %}
+                            {% if show_listening %}
                             <div class="col-md-3 mb-4">
                                 <div class="card h-100">
                                     <div class="card-body text-center">
@@ -30,7 +31,9 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                             
+                            {% if show_reading %}
                             <div class="col-md-3 mb-4">
                                 <div class="card h-100">
                                     <div class="card-body text-center">
@@ -45,7 +48,9 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                             
+                            {% if show_writing %}
                             <div class="col-md-3 mb-4">
                                 <div class="card h-100">
                                     <div class="card-body text-center">
@@ -60,7 +65,9 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                             
+                            {% if show_speaking %}
                             <div class="col-md-3 mb-4">
                                 <div class="card h-100">
                                     <div class="card-body text-center">
@@ -75,6 +82,7 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                         {% else %}
                             <div class="col-12">
                                 <div class="alert alert-warning">

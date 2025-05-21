@@ -26,10 +26,30 @@ def assessment_index():
     # Get user's assessment preference (academic or general)
     assessment_type = current_user.assessment_preference
     
+    # Check which specific products the user has purchased
+    package_status = current_user.assessment_package_status
+    
+    # Determine which assessment components to show
+    show_listening = False
+    show_reading = False
+    show_writing = "Writing" in package_status or "All Products" in package_status
+    show_speaking = "Speaking" in package_status or "All Products" in package_status
+    
+    # Admin users can see all components
+    if current_user.is_admin:
+        show_listening = True
+        show_reading = True
+        show_writing = True
+        show_speaking = True
+    
     return render_template('assessments/index.html',
                           title='IELTS GenAI Assessments',
                           has_package=has_package,
-                          assessment_type=assessment_type)
+                          assessment_type=assessment_type,
+                          show_listening=show_listening,
+                          show_reading=show_reading,
+                          show_writing=show_writing,
+                          show_speaking=show_speaking)
 
 
 @app.route('/assessments/<assessment_type>')
