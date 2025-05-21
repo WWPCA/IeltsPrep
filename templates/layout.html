@@ -230,6 +230,21 @@
         </div>
     </header>
     
+    <!-- Welcome Banner for Users with Active Assessments -->
+    {% if current_user.is_authenticated and current_user.has_active_assessment_package() %}
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-success"><i class="fas fa-check-circle me-2"></i> You have active assessment packages!</span>
+                    <span class="ms-2">Access your purchased GenAI assessments from your <a href="{{ url_for('profile') }}" class="fw-bold text-primary">Profile Page</a>.</span>
+                </div>
+                <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-primary">Go to My Assessments</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <!-- Flash Messages -->
     <div class="container mt-3">
         {% with messages = get_flashed_messages(with_categories=true) %}
