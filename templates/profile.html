@@ -44,11 +44,11 @@
                     
                     {% if not current_user.has_active_assessment_package() %}
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('assessment_products') }}" class="btn btn-primary">Purchase a Package</a>
+                        <a href="{{ url_for('assessment_products_page') }}" class="btn btn-primary">Purchase a Package</a>
                     </div>
                     {% elif current_user.assessment_package_status == "Single Test" or current_user.assessment_package_status == "Double Package" %}
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('assessment_products') }}" class="btn btn-success">Explore More Assessment Products</a>
+                        <a href="{{ url_for('assessment_products_page') }}" class="btn btn-success">Explore More Assessment Products</a>
                     </div>
                     {% endif %}
                 </div>
