@@ -29,7 +29,8 @@ class User(UserMixin, db.Model):
     email_verification_token = db.Column(db.String(100), nullable=True)
     email_verification_sent_at = db.Column(db.DateTime, nullable=True)
     # target_score field removed as it doesn't exist in database
-    # is_admin field removed as it doesn't exist in database
+    # Admin check based on email address
+    is_admin = db.Column(db.Boolean, default=False)
     
     # Study streak tracking
     current_streak = db.Column(db.Integer, default=0)

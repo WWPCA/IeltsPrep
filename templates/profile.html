@@ -64,7 +64,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% if "Academic Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        {% if "Academic Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.email == "admin@ieltsaiprep.com" %}
                         <div class="col-md-6 mb-3">
                             <div class="card h-100">
                                 <div class="card-header bg-primary text-white">
@@ -83,7 +83,7 @@
                         </div>
                         {% endif %}
                         
-                        {% if "Academic Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        {% if "Academic Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.email == "admin@ieltsaiprep.com" %}
                         <div class="col-md-6 mb-3">
                             <div class="card h-100">
                                 <div class="card-header bg-primary text-white">
@@ -102,7 +102,7 @@
                         </div>
                         {% endif %}
                         
-                        {% if "General Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        {% if "General Writing" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.email == "admin@ieltsaiprep.com" %}
                         <div class="col-md-6 mb-3">
                             <div class="card h-100">
                                 <div class="card-header bg-success text-white">
@@ -121,7 +121,7 @@
                         </div>
                         {% endif %}
                         
-                        {% if "General Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.is_admin %}
+                        {% if "General Speaking" in current_user.assessment_package_status or "All Products" in current_user.assessment_package_status or current_user.email == "admin@ieltsaiprep.com" %}
                         <div class="col-md-6 mb-3">
                             <div class="card h-100">
                                 <div class="card-header bg-success text-white">
