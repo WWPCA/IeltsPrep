@@ -27,7 +27,7 @@ def assessment_index():
     assessment_type = current_user.assessment_preference
     
     # Check which specific products the user has purchased
-    package_status = current_user.assessment_package_status
+    package_status = current_user.assessment_package_status or ""
     
     # Determine which assessment components to show based on the exact package
     show_listening = False
@@ -35,18 +35,18 @@ def assessment_index():
     show_writing = False 
     show_speaking = False
     
-    # Check for exact package matches
-    if "Academic Writing" in package_status or "All Products" in package_status:
+    # Check for exact package matches - only show what user actually purchased
+    if "Academic Writing" in package_status:
         show_writing = True
-    if "Academic Speaking" in package_status or "All Products" in package_status:
+    if "Academic Speaking" in package_status:
         show_speaking = True
-    if "General Writing" in package_status or "All Products" in package_status:
+    if "General Training Writing" in package_status or "General Writing" in package_status:
         show_writing = True
-    if "General Speaking" in package_status or "All Products" in package_status:
+    if "General Training Speaking" in package_status or "General Speaking" in package_status:
         show_speaking = True
     
-    # Admin users can see all components
-    if current_user.is_admin:
+    # Admin users can see all components for testing
+    if hasattr(current_user, 'is_admin') and current_user.is_admin:
         show_listening = True
         show_reading = True
         show_writing = True

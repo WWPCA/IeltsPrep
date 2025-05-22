@@ -184,7 +184,7 @@ function checkConnectionSpeed() {
     if ('connection' in navigator && navigator.connection.effectiveType) {
         const connectionType = navigator.connection.effectiveType;
         
-        console.log(`Connection type: ${connectionType}`);
+
         
         // Enable low-bandwidth mode for slow connections
         if (connectionType === '2g' || connectionType === 'slow-2g') {
