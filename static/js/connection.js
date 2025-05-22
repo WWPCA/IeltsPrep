@@ -63,7 +63,7 @@ function showConnectionNotification(message, type = 'info') {
     if (type === 'danger' || type === 'error') {
         // Suppress messages with "Invalid details" or "ERROR" text
         if (message.includes('Invalid details') || message.includes('ERROR')) {
-            console.log('Suppressing unwanted error notification:', message);
+
             return;
         }
         
@@ -77,7 +77,7 @@ function showConnectionNotification(message, type = 'info') {
             currentPath.includes('/checkout') ||
             currentPath.includes('/cart') ||
             queryParams.includes('next=checkout')) {
-            console.log('Suppressing error notification on sensitive page:', message);
+
             return;
         }
     }

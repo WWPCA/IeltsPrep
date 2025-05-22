@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function checkDeviceCapabilities() {
     // Check for audio recording capability (needed for speaking assessment)
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        console.log('Audio recording is supported');
+
     } else {
         console.warn('Audio recording is not supported on this device');
         // Display warning if on speaking assessment page
@@ -109,7 +109,7 @@ function checkDeviceCapabilities() {
     if (audio.canPlayType) {
         const canPlayMP3 = audio.canPlayType('audio/mpeg') !== '';
         if (canPlayMP3) {
-            console.log('Audio playback is supported');
+
         } else {
             console.warn('MP3 audio playback is not supported on this device');
             // Display warning if on listening test page
@@ -121,7 +121,7 @@ function checkDeviceCapabilities() {
     
     // Check available memory (rough estimate)
     if (navigator.deviceMemory) {
-        console.log(`Device memory: ~${navigator.deviceMemory} GB`);
+
         if (navigator.deviceMemory < 2) {
             console.warn('Device has limited memory which may affect performance');
             showDeviceWarning('Your device has limited memory which may affect the performance of some features.');
