@@ -54,7 +54,6 @@ def assessment_index():
 
 @app.route('/assessments/<assessment_type>')
 @login_required
-@authenticated_user_required
 def assessment_list(assessment_type):
     """Display a list of assessments for a specific type that the user has purchased access to."""
     valid_types = ['writing', 'speaking']
