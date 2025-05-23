@@ -71,9 +71,9 @@ def assessment_list(assessment_type):
     if current_user.is_admin:
         has_access = True
     elif assessment_type == 'writing':
-        has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
+        has_access = 'Writing' in package_status or 'All Products' in package_status
     elif assessment_type == 'speaking':
-        has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
+        has_access = 'Speaking' in package_status or 'All Products' in package_status
     
     # If user doesn't have access, redirect to products page
     if not has_access:
@@ -116,9 +116,9 @@ def assessment_details_new(assessment_type, assessment_id):
     if current_user.is_admin:
         has_access = True
     elif assessment_type == 'writing':
-        has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
+        has_access = 'Writing' in package_status or 'All Products' in package_status
     elif assessment_type == 'speaking':
-        has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
+        has_access = 'Speaking' in package_status or 'All Products' in package_status
     
     # If user doesn't have access, redirect to products page
     if not has_access:
@@ -162,9 +162,9 @@ def start_assessment(assessment_type, assessment_id):
     if current_user.is_admin:
         has_access = True
     elif assessment_type == 'writing':
-        has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
+        has_access = 'Writing' in package_status or 'All Products' in package_status
     elif assessment_type == 'speaking':
-        has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
+        has_access = 'Speaking' in package_status or 'All Products' in package_status
     
     # If user doesn't have access, redirect to products page
     if not has_access:
