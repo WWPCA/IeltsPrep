@@ -25,18 +25,17 @@ class AzureSpeechAssessment:
         """Check if Azure Speech Services is properly configured."""
         return bool(self.subscription_key and self.region)
     
-    def assess_pronunciation(self, audio_file_path: str, reference_text: str, 
-                           assessment_type: str = 'comprehensive') -> Dict[str, Any]:
+    def assess_pronunciation_and_transcribe(self, audio_file_path: str, reference_text: str = None) -> Dict[str, Any]:
         """
-        Assess pronunciation using Azure Speech Services with detailed IELTS criteria.
+        Perform integrated speech-to-text transcription AND pronunciation assessment using Azure Speech Services.
+        This replaces the need for separate transcription services - Azure handles both in one call.
         
         Args:
             audio_file_path (str): Path to the audio file
-            reference_text (str): Expected text for pronunciation comparison
-            assessment_type (str): Type of assessment ('comprehensive', 'pronunciation_only')
+            reference_text (str, optional): Expected text for pronunciation comparison (if available)
             
         Returns:
-            Dict containing pronunciation scores and detailed feedback
+            Dict containing transcription, pronunciation scores, and detailed feedback
         """
         
         if not self.is_configured():
@@ -45,7 +44,7 @@ class AzureSpeechAssessment:
         start_time = time.time()
         
         try:
-            # Prepare assessment configuration for IELTS speaking
+            # Prepare integrated assessment configuration for IELTS speaking
             assessment_config = {
                 "pronunciation": {
                     "gradingSystem": "HundredMark",
