@@ -125,15 +125,18 @@ def get_current_assessment_assignments(user_id, assessment_type):
 
 def get_user_accessible_assessments(user_id, assessment_type):
     """
-    Get Assessment objects that the user currently has access to.
+    Get Assessment objects that the user currently has access to take (unused assessments only).
+    Once an assessment is used, it becomes inaccessible but feedback remains available.
     
     Args:
         user_id (int): The user's ID
         assessment_type (str): Assessment type like 'academic_writing' or 'general_speaking'
         
     Returns:
-        list: Assessment objects the user can access
+        list: Assessment objects the user can still take (unused only)
     """
+    from models import UserAssessmentAttempt
+    
     # Get the user
     user = User.query.get(user_id)
     if not user or not user.has_active_assessment_package():
@@ -159,11 +162,47 @@ def get_user_accessible_assessments(user_id, assessment_type):
     if not assigned_ids:
         return []
     
-    # Get assessment objects for this type and assigned IDs
+    # Get IDs of assessments the user has already completed
+    completed_attempts = UserAssessmentAttempt.query.filter(
+        UserAssessmentAttempt.user_id == user_id,
+        UserAssessmentAttempt.assessment_type == assessment_type,
+        UserAssessmentAttempt.status == 'completed'
+    ).all()
+    
+    completed_assessment_ids = {attempt.assessment_id for attempt in completed_attempts}
+    
+    # Only return unused assessments (assigned but not completed)
+    unused_assessment_ids = [aid for aid in assigned_ids if aid not in completed_assessment_ids]
+    
+    # Get assessment objects for unused assessments only
     assessments = Assessment.query.filter(
-        Assessment.id.in_(assigned_ids),
+        Assessment.id.in_(unused_assessment_ids),
         Assessment.assessment_type == assessment_type,
         Assessment.status == 'active'
     ).all()
     
     return assessments
+
+def get_user_completed_assessments_with_feedback(user_id, assessment_type):
+    """
+    Get completed assessments with their GenAI feedback for permanent review.
+    Once an assessment is used, the assessment itself becomes inaccessible but 
+    feedback remains permanently available.
+    
+    Args:
+        user_id (int): The user's ID
+        assessment_type (str): Assessment type like 'academic_writing' or 'general_speaking'
+        
+    Returns:
+        list: UserAssessmentAttempt objects with completed assessments and feedback
+    """
+    from models import UserAssessmentAttempt
+    
+    # Get all completed assessment attempts with feedback
+    completed_attempts = UserAssessmentAttempt.query.filter(
+        UserAssessmentAttempt.user_id == user_id,
+        UserAssessmentAttempt.assessment_type == assessment_type,
+        UserAssessmentAttempt.status == 'completed'
+    ).order_by(UserAssessmentAttempt.end_time.desc()).all()
+    
+    return completed_attempts
