@@ -18,6 +18,9 @@ import assessment_structure_routes  # noqa: F401
 # Import terms and support routes
 import terms_and_support_routes  # noqa: F401
 
+# Import account deletion routes
+import account_deletion_routes  # noqa: F401
+
 # Import and register contact routes
 from contact_routes import add_contact_routes
 add_contact_routes(app)

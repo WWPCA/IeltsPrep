@@ -101,7 +101,7 @@ def assign_assessments_to_user(user_id, assessment_type, num_assessments):
 
 def get_current_assessment_assignments(user_id, assessment_type):
     """
-    Get the currently assigned assessments for a user that haven't expired.
+    Get the currently assigned assessments for a user (never expires unless account deleted).
     
     Args:
         user_id (int): The user's ID
@@ -110,17 +110,18 @@ def get_current_assessment_assignments(user_id, assessment_type):
     Returns:
         list: Currently assigned assessment IDs
     """
-    # Get most recent assignment that hasn't expired
-    assignment = UserAssessmentAssignment.query.filter(
+    # Get all assignments for this user and type (no expiry check)
+    assignments = UserAssessmentAssignment.query.filter(
         UserAssessmentAssignment.user_id == user_id,
-        UserAssessmentAssignment.assessment_type == assessment_type,
-        UserAssessmentAssignment.expiry_date > datetime.utcnow()
-    ).order_by(UserAssessmentAssignment.purchase_date.desc()).first()
+        UserAssessmentAssignment.assessment_type == assessment_type
+    ).order_by(UserAssessmentAssignment.purchase_date.desc()).all()
     
-    if assignment:
-        return assignment.assessment_ids
+    # Combine all assigned IDs from all purchases
+    all_assigned_ids = []
+    for assignment in assignments:
+        all_assigned_ids.extend(assignment.assessment_ids)
     
-    return []
+    return list(set(all_assigned_ids))  # Remove duplicates
 
 def get_user_accessible_assessments(user_id, assessment_type):
     """
