@@ -213,10 +213,6 @@ def start_assessment(assessment_type, assessment_id):
         return redirect(url_for('take_writing_assessment', assessment_id=assessment_id, attempt_id=new_attempt.id))
     elif assessment_type == 'speaking':
         return redirect(url_for('take_speaking_assessment', assessment_id=assessment_id, attempt_id=new_attempt.id))
-    elif assessment_type == 'reading':
-        return redirect(url_for('take_reading_assessment', assessment_id=assessment_id, attempt_id=new_attempt.id))
-    elif assessment_type == 'listening':
-        return redirect(url_for('take_listening_assessment', assessment_id=assessment_id, attempt_id=new_attempt.id))
     else:
         flash('Invalid assessment type', 'danger')
         return redirect(url_for('assessment_index'))
