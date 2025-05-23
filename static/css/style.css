@@ -1142,6 +1142,24 @@ div[style*="position:fixed"][style*="bottom:"][style*="right:"] {
   display: none !important;
 }
 
+/* Hide unwanted developer tools and panels */
+#console-panel,
+#elements-panel,
+#network-panel,
+#resources-panel,
+#settings-panel,
+.devtools-panel,
+.chrome-devtools,
+div[class*="devtools"],
+div[id*="devtools"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
