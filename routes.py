@@ -65,6 +65,15 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Change password page"""
+    if request.method == 'POST':
+        flash('Password change feature coming soon!', 'info')
+        return redirect(url_for('profile'))
+    return render_template('change_password.html', title='Change Password')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """Registration page with form validation"""
