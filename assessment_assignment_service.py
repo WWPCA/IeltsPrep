@@ -55,16 +55,15 @@ def get_available_assessment_ids(user_id, assessment_type):
     
     return available_ids
 
-def assign_assessments_to_user(user_id, assessment_type, num_assessments, access_days=15):
+def assign_assessments_to_user(user_id, assessment_type, num_assessments):
     """
     Assign a specific number of assessments to a user, ensuring they don't receive 
-    assessments they've already seen.
+    assessments they've already seen. Access never expires unless user deletes account.
     
     Args:
         user_id (int): The user's ID
         assessment_type (str): Either 'academic' or 'general'
         num_assessments (int): Number of assessments to assign (1, 2 or 4)
-        access_days (int): Number of days the assessment package is valid (15 or 30)
         
     Returns:
         list: The assigned assessment IDs
@@ -86,16 +85,13 @@ def assign_assessments_to_user(user_id, assessment_type, num_assessments, access
     # Randomly select assessments from available IDs
     assigned_ids = random.sample(available_ids, num_assessments)
     
-    # Create expiry date
-    expiry_date = datetime.utcnow() + timedelta(days=access_days)
-    
     # Create new assignment record
     assignment = UserAssessmentAssignment()
     assignment.user_id = user_id
     assignment.assessment_type = assessment_type
     assignment.assigned_assessment_ids = json.dumps(assigned_ids)
     assignment.purchase_date = datetime.utcnow()
-    assignment.expiry_date = expiry_date
+    assignment.expiry_date = None  # Never expires unless user deletes account
     
     db.session.add(assignment)
     db.session.commit()
