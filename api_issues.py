@@ -11,7 +11,7 @@ class APIIssueLog(db.Model):
     """Track API-related issues for monitoring and support purposes"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Can be null for unauthenticated requests
-    api_name = db.Column(db.String(100), nullable=False)  # aws_bedrock, openai, polly, etc.
+    api_name = db.Column(db.String(100), nullable=False)  # aws_bedrock, openai, assemblyai, azure_speech
     endpoint = db.Column(db.String(255), nullable=False)  # Specific endpoint that failed
     occurred_at = db.Column(db.DateTime, default=datetime.utcnow)
     error_code = db.Column(db.String(100), nullable=True)  # HTTP status code or API-specific error code

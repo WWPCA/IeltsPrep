@@ -117,14 +117,12 @@ def generate_sample_api_issues(user_id):
     APIIssueLog.query.delete()
     db.session.commit()
     
-    # Sample API services
+    # Core API services for TrueScore® and Elaris® technologies
     api_services = [
         {
             'name': 'aws_bedrock',
             'endpoints': [
-                'model/nova-micro/invoke',
-                'model/anthropic.claude-3-sonnet-20240229/invoke',
-                'model/anthropic.claude-instant-v1/invoke'
+                'model/amazon.nova-micro-v1:0/invoke'
             ],
             'errors': [
                 {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
@@ -136,27 +134,13 @@ def generate_sample_api_issues(user_id):
         {
             'name': 'openai',
             'endpoints': [
-                'chat/completions',
-                'embeddings',
-                'audio/transcriptions'
+                'chat/completions'
             ],
             'errors': [
                 {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
                 {'code': '400', 'message': 'Bad Request: Invalid input parameters'},
                 {'code': '401', 'message': 'Unauthorized: Invalid API key'},
                 {'code': 'timeout', 'message': 'Request timed out after 60 seconds'}
-            ]
-        },
-        {
-            'name': 'polly',
-            'endpoints': [
-                'synthesize-speech',
-                'voices'
-            ],
-            'errors': [
-                {'code': '400', 'message': 'Bad Request: Invalid SSML input'},
-                {'code': '429', 'message': 'Too Many Requests: Throttling Exception'},
-                {'code': '500', 'message': 'Internal Server Error: Service unavailable'}
             ]
         },
         {
@@ -168,6 +152,19 @@ def generate_sample_api_issues(user_id):
             'errors': [
                 {'code': '401', 'message': 'Unauthorized: Invalid API key'},
                 {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
+                {'code': 'timeout', 'message': 'Request timed out after 30 seconds'}
+            ]
+        },
+        {
+            'name': 'azure_speech',
+            'endpoints': [
+                'speechtotext/recognition/conversation/cognitiveservices/v1',
+                'pronunciation-assessment'
+            ],
+            'errors': [
+                {'code': '401', 'message': 'Unauthorized: Invalid subscription key'},
+                {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
+                {'code': '500', 'message': 'Internal Server Error: Service unavailable'},
                 {'code': 'timeout', 'message': 'Request timed out after 30 seconds'}
             ]
         }
