@@ -66,12 +66,33 @@ def assessment_index():
 @login_required
 @authenticated_user_required
 def assessment_list(assessment_type):
-    """Display a list of assessments for a specific type."""
+    """Display a list of assessments for a specific type that the user has purchased access to."""
     valid_types = ['listening', 'reading', 'writing', 'speaking']
     
     if assessment_type not in valid_types:
         flash(f'Invalid assessment type: {assessment_type}', 'danger')
         return redirect(url_for('assessment_index'))
+    
+    # Check if user has purchased access to this assessment type
+    has_access = False
+    package_status = current_user.assessment_package_status or []
+    
+    # Check access based on purchased products
+    if current_user.is_admin:
+        has_access = True
+    elif assessment_type == 'writing':
+        has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'speaking':
+        has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'reading':
+        has_access = any('Reading' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'listening':
+        has_access = any('Listening' in status for status in package_status) or 'All Products' in package_status
+    
+    # If user doesn't have access, redirect to products page
+    if not has_access:
+        flash(f'You need to purchase a {assessment_type} assessment package to access these assessments.', 'warning')
+        return redirect(url_for('assessment_products_page'))
     
     # Get user's assessment preference (academic or general)
     user_preference = current_user.assessment_preference
@@ -101,6 +122,27 @@ def assessment_list(assessment_type):
 @authenticated_user_required
 def assessment_details_new(assessment_type, assessment_id):
     """Show details about an assessment before starting it."""
+    # Check if user has purchased access to this assessment type
+    has_access = False
+    package_status = current_user.assessment_package_status or []
+    
+    # Check access based on purchased products
+    if current_user.is_admin:
+        has_access = True
+    elif assessment_type == 'writing':
+        has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'speaking':
+        has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'reading':
+        has_access = any('Reading' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'listening':
+        has_access = any('Listening' in status for status in package_status) or 'All Products' in package_status
+    
+    # If user doesn't have access, redirect to products page
+    if not has_access:
+        flash(f'You need to purchase a {assessment_type} assessment package to access this assessment.', 'warning')
+        return redirect(url_for('assessment_products_page'))
+    
     # Get the assessment
     assessment = Assessment.query.get_or_404(assessment_id)
     
@@ -130,6 +172,27 @@ def assessment_details_new(assessment_type, assessment_id):
 @authenticated_user_required
 def start_assessment(assessment_type, assessment_id):
     """Start a new assessment attempt."""
+    # Check if user has purchased access to this assessment type
+    has_access = False
+    package_status = current_user.assessment_package_status or []
+    
+    # Check access based on purchased products
+    if current_user.is_admin:
+        has_access = True
+    elif assessment_type == 'writing':
+        has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'speaking':
+        has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'reading':
+        has_access = any('Reading' in status for status in package_status) or 'All Products' in package_status
+    elif assessment_type == 'listening':
+        has_access = any('Listening' in status for status in package_status) or 'All Products' in package_status
+    
+    # If user doesn't have access, redirect to products page
+    if not has_access:
+        flash(f'You need to purchase a {assessment_type} assessment package to start this assessment.', 'warning')
+        return redirect(url_for('assessment_products_page'))
+    
     # Get the assessment
     assessment = Assessment.query.get_or_404(assessment_id)
     
