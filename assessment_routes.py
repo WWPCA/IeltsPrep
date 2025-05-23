@@ -29,26 +29,18 @@ def assessment_index():
     # Check which specific products the user has purchased
     package_status = current_user.assessment_package_status or ""
     
-    # Determine which assessment components to show based on the exact package
-    show_listening = False
-    show_reading = False
+    # Determine which assessment components to show based on purchased packages
     show_writing = False 
     show_speaking = False
     
     # Check for exact package matches - only show what user actually purchased
-    if "Academic Writing" in package_status:
+    if "Academic Writing" in package_status or "General Training Writing" in package_status or "General Writing" in package_status:
         show_writing = True
-    if "Academic Speaking" in package_status:
-        show_speaking = True
-    if "General Training Writing" in package_status or "General Writing" in package_status:
-        show_writing = True
-    if "General Training Speaking" in package_status or "General Speaking" in package_status:
+    if "Academic Speaking" in package_status or "General Training Speaking" in package_status or "General Speaking" in package_status:
         show_speaking = True
     
     # Admin users can see all components for testing
     if hasattr(current_user, 'is_admin') and current_user.is_admin:
-        show_listening = True
-        show_reading = True
         show_writing = True
         show_speaking = True
     
@@ -56,8 +48,6 @@ def assessment_index():
                           title='IELTS GenAI Assessments',
                           has_package=has_package,
                           assessment_type=assessment_type,
-                          show_listening=show_listening,
-                          show_reading=show_reading,
                           show_writing=show_writing,
                           show_speaking=show_speaking)
 
@@ -264,12 +254,10 @@ def assessment_history():
         status='completed'
     ).order_by(UserAssessmentAttempt.end_time.desc()).all()
     
-    # Group attempts by assessment type
+    # Group attempts by assessment type (only writing and speaking available)
     grouped_attempts = {
         'writing': [],
-        'speaking': [],
-        'reading': [],
-        'listening': []
+        'speaking': []
     }
     
     for attempt in attempts:
