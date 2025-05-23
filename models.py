@@ -253,7 +253,8 @@ class User(UserMixin, db.Model):
         # Simple list of all possible assessment package types
         valid_packages = [
             "Academic Writing", "Academic Speaking", 
-            "General Writing", "General Speaking"
+            "General Writing", "General Speaking",
+            "All Products", "unlimited_access"  # Added for test accounts
         ]
             
         # Verify that assessment package status is valid and hasn't expired
