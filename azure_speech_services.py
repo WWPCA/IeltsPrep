@@ -294,7 +294,7 @@ def assess_pronunciation_with_azure(audio_file_path: str, reference_text: str) -
         return None
     
     try:
-        return azure_service.assess_pronunciation(audio_file_path, reference_text)
+        return azure_service.assess_pronunciation_and_transcribe(audio_file_path, reference_text)
     except Exception as e:
         print(f"Azure pronunciation assessment failed: {str(e)}")
         return None
