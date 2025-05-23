@@ -12,8 +12,9 @@ from datetime import datetime
 
 from azure_speech_services import assess_pronunciation_with_azure, is_azure_speech_available
 from aws_bedrock_services import assess_speaking_with_nova_micro
-from assemblyai_services import upload_file_to_assemblyai, transcribe_with_assemblyai
 from api_issues import log_api_error
+import boto3
+import json
 
 
 class EnhancedSpeakingAssessment:
@@ -80,21 +81,82 @@ class EnhancedSpeakingAssessment:
             return self._create_fallback_assessment(str(e))
     
     def _get_transcription(self, audio_file_path: str) -> Dict[str, Any]:
-        """Get audio transcription using AssemblyAI."""
+        """Get audio transcription using AWS Transcribe."""
         try:
-            # Upload and transcribe with AssemblyAI
-            audio_url = upload_file_to_assemblyai(audio_file_path)
-            transcription_result = transcribe_with_assemblyai(audio_url, speaker_labels=False)
+            # Use AWS Transcribe for cost-effective transcription
+            transcribe_client = boto3.client(
+                'transcribe',
+                region_name=os.environ.get('AWS_REGION', 'us-east-1')
+            )
             
-            return {
-                'text': transcription_result.get('text', ''),
-                'confidence': transcription_result.get('confidence', 0.0),
-                'duration': transcription_result.get('audio_duration', 0),
-                'word_count': len(transcription_result.get('text', '').split())
-            }
+            # Upload audio to S3 first (required for AWS Transcribe)
+            s3_client = boto3.client('s3', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
+            bucket_name = 'ielts-assessment-audio'  # You'll need to create this bucket
             
+            import uuid
+            import os as path_os
+            
+            # Generate unique key for this audio file
+            file_key = f"speech-assessment/{uuid.uuid4()}.wav"
+            
+            # Upload to S3
+            s3_client.upload_file(audio_file_path, bucket_name, file_key)
+            audio_uri = f"s3://{bucket_name}/{file_key}"
+            
+            # Start transcription job
+            job_name = f"elaris-transcription-{uuid.uuid4()}"
+            
+            transcribe_client.start_transcription_job(
+                TranscriptionJobName=job_name,
+                Media={'MediaFileUri': audio_uri},
+                MediaFormat='wav',
+                LanguageCode='en-US',
+                Settings={
+                    'ShowSpeakerLabels': False,
+                    'MaxSpeakerLabels': 1
+                }
+            )
+            
+            # Wait for transcription to complete
+            import time
+            while True:
+                status = transcribe_client.get_transcription_job(TranscriptionJobName=job_name)
+                if status['TranscriptionJob']['TranscriptionJobStatus'] in ['COMPLETED', 'FAILED']:
+                    break
+                time.sleep(2)
+            
+            if status['TranscriptionJob']['TranscriptionJobStatus'] == 'COMPLETED':
+                # Get transcription result
+                result_uri = status['TranscriptionJob']['Transcript']['TranscriptFileUri']
+                import requests
+                response = requests.get(result_uri)
+                transcript_data = response.json()
+                
+                # Extract text and confidence
+                text = transcript_data['results']['transcripts'][0]['transcript']
+                
+                # Calculate average confidence from alternatives
+                confidence = 0.0
+                if 'items' in transcript_data['results']:
+                    confidences = [float(item.get('alternatives', [{}])[0].get('confidence', 0)) 
+                                 for item in transcript_data['results']['items'] 
+                                 if item.get('alternatives')]
+                    confidence = sum(confidences) / len(confidences) if confidences else 0.0
+                
+                # Clean up S3 file
+                s3_client.delete_object(Bucket=bucket_name, Key=file_key)
+                
+                return {
+                    'text': text,
+                    'confidence': confidence,
+                    'duration': status['TranscriptionJob']['Media'].get('MediaDurationSeconds', 0),
+                    'word_count': len(text.split())
+                }
+            else:
+                raise Exception("Transcription failed")
+                
         except Exception as e:
-            log_api_error('enhanced_speaking_assessment', 'transcription', e)
+            log_api_error('enhanced_speaking_assessment', 'aws_transcribe', e)
             return {
                 'text': '',
                 'confidence': 0.0,

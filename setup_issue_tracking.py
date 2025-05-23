@@ -132,30 +132,6 @@ def generate_sample_api_issues(user_id):
             ]
         },
         {
-            'name': 'openai',
-            'endpoints': [
-                'chat/completions'
-            ],
-            'errors': [
-                {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
-                {'code': '400', 'message': 'Bad Request: Invalid input parameters'},
-                {'code': '401', 'message': 'Unauthorized: Invalid API key'},
-                {'code': 'timeout', 'message': 'Request timed out after 60 seconds'}
-            ]
-        },
-        {
-            'name': 'assemblyai',
-            'endpoints': [
-                'transcribe',
-                'transcript/result'
-            ],
-            'errors': [
-                {'code': '401', 'message': 'Unauthorized: Invalid API key'},
-                {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
-                {'code': 'timeout', 'message': 'Request timed out after 30 seconds'}
-            ]
-        },
-        {
             'name': 'azure_speech',
             'endpoints': [
                 'speechtotext/recognition/conversation/cognitiveservices/v1',
@@ -163,6 +139,19 @@ def generate_sample_api_issues(user_id):
             ],
             'errors': [
                 {'code': '401', 'message': 'Unauthorized: Invalid subscription key'},
+                {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
+                {'code': '500', 'message': 'Internal Server Error: Service unavailable'},
+                {'code': 'timeout', 'message': 'Request timed out after 30 seconds'}
+            ]
+        },
+        {
+            'name': 'aws_transcribe',
+            'endpoints': [
+                'start-transcription-job',
+                'get-transcription-job'
+            ],
+            'errors': [
+                {'code': '400', 'message': 'Bad Request: Invalid parameters'},
                 {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
                 {'code': '500', 'message': 'Internal Server Error: Service unavailable'},
                 {'code': 'timeout', 'message': 'Request timed out after 30 seconds'}
