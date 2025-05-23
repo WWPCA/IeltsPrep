@@ -67,7 +67,7 @@ def assessment_index():
 @authenticated_user_required
 def assessment_list(assessment_type):
     """Display a list of assessments for a specific type that the user has purchased access to."""
-    valid_types = ['listening', 'reading', 'writing', 'speaking']
+    valid_types = ['writing', 'speaking']
     
     if assessment_type not in valid_types:
         flash(f'Invalid assessment type: {assessment_type}', 'danger')
@@ -77,17 +77,13 @@ def assessment_list(assessment_type):
     has_access = False
     package_status = current_user.assessment_package_status or []
     
-    # Check access based on purchased products
+    # Check access based on purchased products (only writing and speaking available)
     if current_user.is_admin:
         has_access = True
     elif assessment_type == 'writing':
         has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
     elif assessment_type == 'speaking':
         has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
-    elif assessment_type == 'reading':
-        has_access = any('Reading' in status for status in package_status) or 'All Products' in package_status
-    elif assessment_type == 'listening':
-        has_access = any('Listening' in status for status in package_status) or 'All Products' in package_status
     
     # If user doesn't have access, redirect to products page
     if not has_access:
@@ -126,17 +122,13 @@ def assessment_details_new(assessment_type, assessment_id):
     has_access = False
     package_status = current_user.assessment_package_status or []
     
-    # Check access based on purchased products
+    # Check access based on purchased products (only writing and speaking available)
     if current_user.is_admin:
         has_access = True
     elif assessment_type == 'writing':
         has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
     elif assessment_type == 'speaking':
         has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
-    elif assessment_type == 'reading':
-        has_access = any('Reading' in status for status in package_status) or 'All Products' in package_status
-    elif assessment_type == 'listening':
-        has_access = any('Listening' in status for status in package_status) or 'All Products' in package_status
     
     # If user doesn't have access, redirect to products page
     if not has_access:
