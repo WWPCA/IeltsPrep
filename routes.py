@@ -41,10 +41,10 @@ def login():
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
             login_user(user)
