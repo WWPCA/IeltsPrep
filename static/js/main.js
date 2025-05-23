@@ -221,7 +221,7 @@ function simpleBandwidthCheck() {
             const fileSizeKB = data.length / 1024;
             const speedKBps = fileSizeKB / (duration / 1000);
             
-            console.log(`Estimated connection speed: ${speedKBps.toFixed(2)} KB/s`);
+
             
             if (speedKBps < 50) { // Very slow connection
                 enableLowBandwidthMode();
