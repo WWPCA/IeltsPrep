@@ -94,7 +94,7 @@ class User(UserMixin, db.Model):
     
     @property
     def assessment_history(self):
-        return json.loads(self._assessment_history)
+        return json.loads(self._assessment_history) if self._assessment_history else []
     
     @assessment_history.setter
     def assessment_history(self, value):
@@ -102,7 +102,7 @@ class User(UserMixin, db.Model):
     
     @property
     def speaking_scores(self):
-        return json.loads(self._speaking_scores)
+        return json.loads(self._speaking_scores) if self._speaking_scores else []
     
     @speaking_scores.setter
     def speaking_scores(self, value):
