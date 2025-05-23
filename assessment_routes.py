@@ -168,17 +168,13 @@ def start_assessment(assessment_type, assessment_id):
     has_access = False
     package_status = current_user.assessment_package_status or []
     
-    # Check access based on purchased products
+    # Check access based on purchased products (only writing and speaking available)
     if current_user.is_admin:
         has_access = True
     elif assessment_type == 'writing':
         has_access = any('Writing' in status for status in package_status) or 'All Products' in package_status
     elif assessment_type == 'speaking':
         has_access = any('Speaking' in status for status in package_status) or 'All Products' in package_status
-    elif assessment_type == 'reading':
-        has_access = any('Reading' in status for status in package_status) or 'All Products' in package_status
-    elif assessment_type == 'listening':
-        has_access = any('Listening' in status for status in package_status) or 'All Products' in package_status
     
     # If user doesn't have access, redirect to products page
     if not has_access:
