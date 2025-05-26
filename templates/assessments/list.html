@@ -48,13 +48,181 @@
                                 {% elif assessment_type == 'writing' %}
                                     <p>Complete writing tasks that mirror the real IELTS exam. Your writing will be assessed with TrueScore® technology to provide accurate band scores and detailed feedback.</p>
                                 {% elif assessment_type == 'speaking' %}
-                                    <p>Record your responses to speaking prompts that simulate a real IELTS interview. Your speaking will be assessed with Elaris® technology for accurate band scoring and detailed feedback.</p>
+                                    <p><strong>Experience the world's first AI-powered conversational IELTS speaking practice.</strong> Choose from innovative assessment formats powered by Elaris® and TrueScore® - the only GenAI assessment tools specifically designed for IELTS preparation.</p>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                     
-                    {% if assessments %}
+                    {% if assessment_type == 'speaking' %}
+                        <!-- Revolutionary Speaking Assessment Options -->
+                        <div class="row mt-4">
+                            <!-- Conversational AI Speaking Assessment -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 shadow-sm border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h3 class="h5 mb-0"><i class="fas fa-comments me-2"></i>AI Conversation Practice</h3>
+                                            <span class="badge bg-warning text-dark">EXCLUSIVE</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <span class="badge bg-info mb-2">15 Minutes</span>
+                                            <span class="badge bg-success mb-2">Real-time Assessment</span>
+                                            <span class="badge bg-warning text-dark mb-2">British Voice</span>
+                                        </div>
+                                        
+                                        <h4 class="h6 text-primary mb-2">🌟 Revolutionary AI-Powered Speaking Practice</h4>
+                                        <p class="mb-3">Have a natural conversation with our British AI examiner powered by Nova Sonic technology. Experience the future of IELTS preparation with real-time assessment and instant feedback.</p>
+                                        
+                                        <div class="mb-3">
+                                            <h5 class="h6 mb-2">✨ What Makes This Unique:</h5>
+                                            <ul class="small text-muted mb-0">
+                                                <li>Natural conversation with British voice AI examiner</li>
+                                                <li>Authentic IELTS questions from official test sets</li>
+                                                <li>Real-time assessment using Elaris® technology</li>
+                                                <li>Written transcript with detailed IELTS rubric feedback</li>
+                                                <li>Instant scoring on all four speaking criteria</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <div class="alert alert-info small mb-3">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            <strong>World's First:</strong> Conversational IELTS speaking practice with AI examiner
+                                        </div>
+                                        
+                                        <div class="d-grid gap-2 mt-auto">
+                                            <a href="/speaking/conversational/1" class="btn btn-primary btn-lg">
+                                                <i class="fas fa-microphone-alt me-2"></i>Start AI Conversation
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Traditional Recording Assessment -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h3 class="h5 mb-0"><i class="fas fa-microphone me-2"></i>Traditional Recording Practice</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <span class="badge bg-info mb-2">15 Minutes</span>
+                                            <span class="badge bg-primary mb-2">Self-Paced</span>
+                                            <span class="badge bg-secondary mb-2">Three Parts</span>
+                                        </div>
+                                        
+                                        <h4 class="h6 text-secondary mb-2">📝 Classic IELTS Speaking Format</h4>
+                                        <p class="mb-3">Record your responses to IELTS speaking prompts in the traditional three-part format. Perfect for focused practice on specific speaking skills and preparation strategies.</p>
+                                        
+                                        <div class="mb-3">
+                                            <h5 class="h6 mb-2">📋 Assessment Structure:</h5>
+                                            <ul class="small text-muted mb-0">
+                                                <li><strong>Part 1:</strong> Introduction & personal questions (4-5 min)</li>
+                                                <li><strong>Part 2:</strong> Individual presentation with cue card (3-4 min)</li>
+                                                <li><strong>Part 3:</strong> Abstract discussion questions (4-5 min)</li>
+                                                <li>Comprehensive feedback on all four IELTS criteria</li>
+                                                <li>TrueScore® assessment technology</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <div class="d-grid gap-2 mt-auto">
+                                            {% if assessments %}
+                                                <a href="{{ url_for('assessment_details_new', assessment_type=assessment_type, assessment_id=assessments[0].id) }}" class="btn btn-outline-secondary btn-lg">
+                                                    <i class="fas fa-record-vinyl me-2"></i>Start Recording Practice
+                                                </a>
+                                            {% else %}
+                                                <button class="btn btn-outline-secondary btn-lg" disabled>
+                                                    <i class="fas fa-record-vinyl me-2"></i>Coming Soon
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Assessment Technology Information -->
+                        <div class="card mt-4 mb-4 border-info">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="h5 mb-0"><i class="fas fa-certificate me-2"></i>Powered by Exclusive GenAI Technology</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-warning mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-star fa-2x text-warning me-3"></i>
+                                        <div>
+                                            <h4 class="h6 mb-1">🌟 World's Only GenAI IELTS Assessment Tools</h4>
+                                            <p class="mb-0 small">Elaris® and TrueScore® are the ONLY GenAI assessment technologies specifically designed for IELTS preparation worldwide</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="me-3">
+                                                <i class="fas fa-robot fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="h6 mb-1">Elaris® Speaking Assessment</h4>
+                                                <p class="small text-muted mb-0">Revolutionary conversational AI technology for authentic IELTS speaking practice</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="me-3">
+                                                <i class="fas fa-brain fa-2x text-success"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="h6 mb-1">TrueScore® Analysis</h4>
+                                                <p class="small text-muted mb-0">Advanced AI assessment following official IELTS marking criteria precisely</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-light border mb-0">
+                                    <h5 class="h6 mb-3 text-center">Official IELTS Speaking Assessment Criteria</h5>
+                                    <div class="row text-center">
+                                        <div class="col-md-3 mb-2">
+                                            <div class="text-primary mb-2">
+                                                <i class="fas fa-comments fa-2x"></i>
+                                            </div>
+                                            <h6 class="small mb-1">Fluency & Coherence</h6>
+                                            <p class="text-muted small mb-0">Speech flow and logical organization</p>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <div class="text-success mb-2">
+                                                <i class="fas fa-book fa-2x"></i>
+                                            </div>
+                                            <h6 class="small mb-1">Lexical Resource</h6>
+                                            <p class="text-muted small mb-0">Vocabulary range and accuracy</p>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <div class="text-info mb-2">
+                                                <i class="fas fa-language fa-2x"></i>
+                                            </div>
+                                            <h6 class="small mb-1">Grammar Range</h6>
+                                            <p class="text-muted small mb-0">Sentence structure and accuracy</p>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <div class="text-warning mb-2">
+                                                <i class="fas fa-volume-up fa-2x"></i>
+                                            </div>
+                                            <h6 class="small mb-1">Pronunciation</h6>
+                                            <p class="text-muted small mb-0">Sound clarity and intelligibility</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    {% elif assessments %}
+                        <!-- Original assessment grid for other assessment types -->
                         <div class="row mt-4">
                             {% for assessment in assessments %}
                                 <div class="col-md-6 mb-4">
