@@ -53,15 +53,18 @@ class NovaSonicService:
             conversation_prompt = self._build_conversation_prompt(user_level, part_number, topic)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',  # Nova Sonic model ID
+                modelId='amazon.nova-micro-v1:0',  # Using Nova Micro for conversational assessment
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
-                    "prompt": conversation_prompt,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": conversation_prompt
+                        }
+                    ],
                     "max_tokens": 2000,
-                    "temperature": 0.7,
-                    "conversation_mode": True,
-                    "speaking_assessment": True
+                    "temperature": 0.7
                 })
             )
             
@@ -70,7 +73,7 @@ class NovaSonicService:
             return {
                 "success": True,
                 "conversation_id": f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                "examiner_response": result.get('completion', ''),
+                "examiner_response": result.get('content', [{}])[0].get('text', ''),
                 "session_active": True,
                 "part_number": part_number,
                 "topic": topic
@@ -100,15 +103,18 @@ class NovaSonicService:
             context = self._build_conversation_context(conversation_history, user_response)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',
+                modelId='amazon.nova-micro-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
-                    "prompt": context,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": context
+                        }
+                    ],
                     "max_tokens": 1500,
-                    "temperature": 0.7,
-                    "conversation_mode": True,
-                    "continue_assessment": True
+                    "temperature": 0.7
                 })
             )
             
@@ -116,7 +122,7 @@ class NovaSonicService:
             
             return {
                 "success": True,
-                "examiner_response": result.get('completion', ''),
+                "examiner_response": result.get('content', [{}])[0].get('text', ''),
                 "assessment_notes": self._extract_assessment_notes(result),
                 "continue_conversation": True
             }
@@ -140,19 +146,23 @@ class NovaSonicService:
             assessment_prompt = self._build_final_assessment_prompt(conversation_history, part_number)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',
+                modelId='amazon.nova-micro-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
-                    "prompt": assessment_prompt,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": assessment_prompt
+                        }
+                    ],
                     "max_tokens": 2500,
-                    "temperature": 0.3,  # Lower temperature for consistent scoring
-                    "assessment_mode": True
+                    "temperature": 0.3  # Lower temperature for consistent scoring
                 })
             )
             
             result = json.loads(response['body'].read())
-            assessment_text = result.get('completion', '')
+            assessment_text = result.get('content', [{}])[0].get('text', '')
             
             # Parse the structured assessment
             scores = self._parse_assessment_scores(assessment_text)
