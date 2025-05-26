@@ -215,9 +215,9 @@ class IntelligentSpeakingAssessment:
                         return {
                             "id": prompt.id,
                             "part": prompt.part,
-                            "prompt": prompt.prompt,
-                            "topic": prompt.topic or "General",
-                            "difficulty": prompt.difficulty or "intermediate"
+                            "prompt": prompt.prompt_text,
+                            "topic": getattr(prompt, 'topic', 'General'),
+                            "difficulty": getattr(prompt, 'difficulty', 'intermediate')
                         }
         return None
     
