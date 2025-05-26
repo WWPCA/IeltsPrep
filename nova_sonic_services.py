@@ -1,7 +1,7 @@
 """
 Nova Sonic Integration for IELTS Conversational Speaking Assessment
 This module provides real-time conversational assessment using Amazon Nova Sonic
-for lifelike IELTS speaking practice sessions.
+for authentic British voice conversation and IELTS assessment with official criteria.
 """
 
 import os
