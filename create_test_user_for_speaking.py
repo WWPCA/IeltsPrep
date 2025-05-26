@@ -20,7 +20,6 @@ def create_test_user():
         
         # Create new test user
         test_user = User(
-            username='speaking_test',
             email='speaking@test.com',
             password_hash=generate_password_hash('testpass123'),
             account_activated=True,
