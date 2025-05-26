@@ -60,11 +60,17 @@ class NovaSonicService:
                     "messages": [
                         {
                             "role": "user",
-                            "content": conversation_prompt
+                            "content": [
+                                {
+                                    "text": conversation_prompt
+                                }
+                            ]
                         }
                     ],
-                    "max_tokens": 2000,
-                    "temperature": 0.7
+                    "inferenceConfig": {
+                        "maxTokens": 2000,
+                        "temperature": 0.7
+                    }
                 })
             )
             
@@ -110,11 +116,17 @@ class NovaSonicService:
                     "messages": [
                         {
                             "role": "user",
-                            "content": context
+                            "content": [
+                                {
+                                    "text": context
+                                }
+                            ]
                         }
                     ],
-                    "max_tokens": 1500,
-                    "temperature": 0.7
+                    "inferenceConfig": {
+                        "maxTokens": 1500,
+                        "temperature": 0.7
+                    }
                 })
             )
             
@@ -153,11 +165,17 @@ class NovaSonicService:
                     "messages": [
                         {
                             "role": "user",
-                            "content": assessment_prompt
+                            "content": [
+                                {
+                                    "text": assessment_prompt
+                                }
+                            ]
                         }
                     ],
-                    "max_tokens": 2500,
-                    "temperature": 0.3  # Lower temperature for consistent scoring
+                    "inferenceConfig": {
+                        "maxTokens": 2500,
+                        "temperature": 0.3
+                    }
                 })
             )
             
