@@ -1,7 +1,7 @@
 """
 AWS Transcribe Integration for IELTS Speaking Assessment
-This module provides speech-to-text transcription for creating written assessment records
-and detailed IELTS rubric-based feedback analysis.
+This module formats Nova Sonic's real-time assessments into written IELTS rubric format.
+Nova Sonic handles the actual assessment; Transcribe creates the written documentation.
 """
 
 import os
