@@ -28,8 +28,8 @@ class AWSEmailService:
                 aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
             )
             
-            # Default sender email - you can customize this
-            self.sender_email = "noreply@ielts-genai.com"
+            # Default sender email - using your verified email
+            self.sender_email = "info@ieltsprep.com"
             
             logger.info(f"AWS SES initialized successfully in region: {self.region}")
             
