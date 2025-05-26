@@ -33,6 +33,10 @@ app.register_blueprint(cart_bp, url_prefix='/cart')
 from gdpr_routes import gdpr_bp
 app.register_blueprint(gdpr_bp)
 
+# Import and register conversational speaking routes
+# from conversational_speaking_routes import register_conversational_routes
+# register_conversational_routes(app)
+
 # Configure Talisman with security headers but let Replit handle HTTPS
 Talisman(app, 
          force_https=False,  # Let Replit handle HTTPS

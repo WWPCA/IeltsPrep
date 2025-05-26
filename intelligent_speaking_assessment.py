@@ -8,7 +8,7 @@ import json
 import logging
 from datetime import datetime
 from nova_sonic_services import nova_sonic_service
-from models import db, SpeakingPrompt, CompletePracticeTest, UserTestAttempt
+from models import db, SpeakingPrompt
 from flask_login import current_user
 
 logger = logging.getLogger(__name__)
