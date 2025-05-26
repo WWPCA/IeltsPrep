@@ -29,7 +29,7 @@ class AWSEmailService:
             )
             
             # Default sender email - using your verified email
-            self.sender_email = "info@ieltsprep.com"
+            self.sender_email = "info@ieltsaiprep.com"
             
             logger.info(f"AWS SES initialized successfully in region: {self.region}")
             
