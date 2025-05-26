@@ -11,7 +11,7 @@ from flask_login import login_required, current_user
 from account_activation import authenticated_user_required
 from models import db, SpeakingPrompt
 from intelligent_speaking_assessment import intelligent_speaking_service
-from azure_speech_services import azure_speech_service
+from aws_transcribe_service import process_speaking_assessment_with_transcript
 
 logger = logging.getLogger(__name__)
 
