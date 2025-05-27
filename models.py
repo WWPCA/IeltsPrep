@@ -498,6 +498,54 @@ class UserAssessmentAssignment(db.Model):
 
 # UserTestAssignment class has been removed - no backward compatibility needed
 
+class UserTestAttempt(db.Model):
+    """Model for tracking assessment attempts with recovery capabilities"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    assessment_id = db.Column(db.String(100), nullable=False)  # Unique assessment identifier
+    assessment_name = db.Column(db.String(100), nullable=True)  # Human-readable name
+    assessment_type = db.Column(db.String(50), nullable=False)  # speaking, writing, etc.
+    status = db.Column(db.String(20), nullable=False, default="in_progress")  # in_progress, completed, cancelled, expired
+    
+    # Timing information
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    end_time = db.Column(db.DateTime, nullable=True)
+    last_activity = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    
+    # Recovery system fields
+    recovery_data = db.Column(db.Text, nullable=True)  # JSON string with recovery information
+    recovery_used = db.Column(db.Boolean, default=False)  # Whether recovery was used
+    resumed_at = db.Column(db.DateTime, nullable=True)  # When assessment was resumed
+    restarted_at = db.Column(db.DateTime, nullable=True)  # When assessment was restarted
+    
+    # GCP storage references for transcripts and assessments
+    gcp_transcript_path = db.Column(db.String(255), nullable=True)
+    gcp_assessment_path = db.Column(db.String(255), nullable=True)
+    transcript_expiry_date = db.Column(db.DateTime, nullable=True)
+    
+    # Results storage
+    _results = db.Column(db.Text, nullable=True)  # JSON string with assessment results
+    _conversation_transcript = db.Column(db.Text, nullable=True)  # JSON string with conversation history
+    
+    @property
+    def results(self):
+        return json.loads(self._results) if self._results else {}
+    
+    @results.setter
+    def results(self, value):
+        self._results = json.dumps(value)
+        
+    @property
+    def conversation_transcript(self):
+        return json.loads(self._conversation_transcript) if self._conversation_transcript else []
+    
+    @conversation_transcript.setter
+    def conversation_transcript(self, value):
+        self._conversation_transcript = json.dumps(value)
+    
+    def __repr__(self):
+        return f'<UserTestAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
+
 class ConnectionIssueLog(db.Model):
     """Track connection issues for monitoring and support purposes"""
     id = db.Column(db.Integer, primary_key=True)
