@@ -1,18 +1,23 @@
 /**
- * Assessment Recovery Module
+ * Comprehensive Assessment Recovery System
  * 
- * This module provides functionality to detect connection issues during assessments
- * and allow users to restart assessments if their internet connection drops.
+ * Protects users from losing their one assessment opportunity due to:
+ * - Network outages/choppy internet
+ * - Accidental browser/tab closure
+ * - System crashes or user errors
  */
 
-// Online/offline status tracking
+// Recovery state tracking
 let wasOffline = false;
 let currentTestId = null;
 let currentTestType = null;
 let recoveryAttempted = false;
 let sessionMonitorInterval = null;
+let progressSaveInterval = null;
+let hasUnsavedProgress = false;
+let lastProgressSave = null;
 
-// Initialize the recovery system
+// Initialize the comprehensive recovery system
 function initAssessmentRecovery(testId, testType) {
     currentTestId = testId;
     currentTestType = testType;
@@ -23,8 +28,115 @@ function initAssessmentRecovery(testId, testType) {
     // Setup connection monitoring
     setupConnectionMonitoring();
     
+    // Protect against accidental browser closure
+    setupBrowserCloseProtection();
+    
+    // Auto-save progress every 30 seconds
+    setupAutoProgressSave();
+    
     // Periodically ping the server to keep the session alive
     startSessionMonitor();
+    
+    // Show recovery notification
+    showRecoveryProtectionNotice();
+}
+
+// Protect against accidental browser/tab closure
+function setupBrowserCloseProtection() {
+    // Warn user before closing browser/tab
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedProgress) {
+            const message = 'You have an assessment in progress. Are you sure you want to leave? Your progress will be saved and you can resume later.';
+            e.preventDefault();
+            e.returnValue = message;
+            return message;
+        }
+    });
+    
+    // Handle page visibility changes (user switches tabs, minimizes browser)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // Save progress when user leaves the page
+            saveCurrentProgress('page_hidden');
+        } else {
+            // Check connection when user returns
+            checkConnectionStatus();
+        }
+    });
+}
+
+// Auto-save progress every 30 seconds
+function setupAutoProgressSave() {
+    progressSaveInterval = setInterval(function() {
+        if (hasUnsavedProgress) {
+            saveCurrentProgress('auto_save');
+        }
+    }, 30000); // Save every 30 seconds
+}
+
+// Save current assessment progress
+function saveCurrentProgress(reason = 'manual') {
+    if (!currentTestId) return;
+    
+    const progressData = {
+        timestamp: new Date().toISOString(),
+        reason: reason,
+        current_part: getCurrentAssessmentPart(),
+        responses: gatherCurrentResponses(),
+        time_spent: getTimeSpent(),
+        browser_info: {
+            userAgent: navigator.userAgent,
+            online: navigator.onLine
+        }
+    };
+    
+    // Save to server
+    fetch(`/assessment/recovery/checkpoint/${currentTestId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(progressData)
+    }).then(response => {
+        if (response.ok) {
+            lastProgressSave = new Date();
+            hasUnsavedProgress = false;
+            updateProgressIndicator('saved');
+        }
+    }).catch(error => {
+        console.error('Failed to save progress:', error);
+        updateProgressIndicator('error');
+    });
+    
+    // Also save to local storage as backup
+    localStorage.setItem(`assessment_backup_${currentTestId}`, JSON.stringify(progressData));
+}
+
+// Show recovery protection notice
+function showRecoveryProtectionNotice() {
+    const notice = document.createElement('div');
+    notice.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    notice.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 350px;';
+    notice.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-shield-alt text-primary me-2"></i>
+            <div>
+                <strong>Assessment Protection Active</strong>
+                <small class="d-block text-muted">Your progress is automatically saved. If interrupted, you can resume where you left off.</small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(notice);
+    
+    // Auto-dismiss after 8 seconds
+    setTimeout(() => {
+        if (notice.parentNode) {
+            notice.remove();
+        }
+    }, 8000);
 }
 
 // Check if there was an unfinished session for this test
