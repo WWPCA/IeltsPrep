@@ -48,6 +48,7 @@ class AssessmentRecoveryManager:
             session[f'recovery_{assessment_id}'] = recovery_data
             
             # Also store in database for persistence
+            from models import UserTestAttempt
             recovery_record = UserTestAttempt.query.filter_by(
                 user_id=user_id,
                 assessment_id=assessment_id,

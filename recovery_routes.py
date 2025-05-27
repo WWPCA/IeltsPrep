@@ -12,7 +12,6 @@ import logging
 
 from assessment_recovery_system import AssessmentRecoveryManager, get_recovery_status
 from account_activation import authenticated_user_required
-from models import UserTestAttempt
 from app import db
 
 logger = logging.getLogger(__name__)

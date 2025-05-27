@@ -1,5 +1,13 @@
 import os
 from app import app  # noqa: F401
+
+# Import and register recovery routes
+try:
+    from recovery_routes import register_recovery_routes
+    register_recovery_routes(app)
+    print("Assessment recovery system integrated successfully.")
+except Exception as e:
+    print(f"Failed to integrate recovery system: {e}")
 import routes  # noqa: F401
 from flask_talisman import Talisman
 
