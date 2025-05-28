@@ -10,7 +10,7 @@ from flask import render_template, request, flash, redirect, url_for, current_ap
 from werkzeug.security import generate_password_hash
 from app import app, db
 from models import User
-from email_service import send_email
+from enhanced_email_service import send_password_reset_email
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -35,32 +35,11 @@ def forgot_password():
             user.password_reset_expires = reset_expires
             db.session.commit()
             
-            # Send reset email
+            # Send reset email using professional template
             reset_url = url_for('reset_password', token=reset_token, _external=True)
             
-            email_subject = "Reset Your IELTS AI Prep Password"
-            email_body = f"""
-            Hello,
-            
-            You requested a password reset for your IELTS AI Prep account.
-            
-            Click the link below to reset your password:
-            {reset_url}
-            
-            This link will expire in 1 hour for security reasons.
-            
-            If you didn't request this reset, please ignore this email.
-            
-            Best regards,
-            IELTS AI Prep Team
-            """
-            
             try:
-                send_result = send_email(
-                    recipient=email,
-                    subject=email_subject,
-                    text_body=email_body
-                )
+                send_result = send_password_reset_email(email, reset_url)
                 
                 if send_result:
                     flash('Password reset instructions have been sent to your email.', 'success')
