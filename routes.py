@@ -50,9 +50,6 @@ def index():
 
 
 @app.route('/login', methods=['GET', 'POST'])
-@rate_limit('login')
-@account_lockout_protection()
-@validate_inputs(email='email', password='text')
 def login():
     """Login page with enhanced security validation"""
     if current_user.is_authenticated:
