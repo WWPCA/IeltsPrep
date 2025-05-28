@@ -271,6 +271,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Store the audio URL globally for playback
                 window.recordedAudioUrl = audioUrl;
+                
+                // Auto-delete recording after 30 seconds for privacy
+                setTimeout(() => {
+                    if (window.recordedAudioUrl) {
+                        URL.revokeObjectURL(window.recordedAudioUrl);
+                        window.recordedAudioUrl = null;
+                        console.log('Recording automatically deleted after 30 seconds');
+                    }
+                }, 30000);
             };
             
             mediaRecorder.start();
@@ -537,6 +546,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const audio = new Audio(window.recordedAudioUrl);
             audio.play().then(() => {
                 console.log('Playing back recorded audio');
+                
+                // Delete recording immediately after playback for privacy
+                audio.addEventListener('ended', () => {
+                    URL.revokeObjectURL(window.recordedAudioUrl);
+                    window.recordedAudioUrl = null;
+                    console.log('Recording deleted after playback');
+                    
+                    // Update the UI to show recording was deleted
+                    const micStatus = document.getElementById('micStatus');
+                    micStatus.innerHTML = 'Microphone test completed! <small class="text-muted">(Recording deleted for privacy)</small>';
+                });
+                
             }).catch((error) => {
                 console.error('Error playing recording:', error);
                 alert('Unable to play back the recording. Your microphone is working, but playback failed.');
