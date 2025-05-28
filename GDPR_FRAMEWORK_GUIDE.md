@@ -49,6 +49,17 @@ The framework includes a comprehensive cookie and consent management system:
 - **Consent Records**: All consent actions are logged for accountability and compliance.
 - **Cookie Banner**: User-friendly cookie banner with options to accept all or customize preferences.
 
+## Audio Recording Privacy Protection
+
+The platform implements strict privacy controls for audio recordings during microphone testing and speaking assessments:
+
+- **Immediate Deletion**: Microphone test recordings are automatically deleted after playback (maximum 30 seconds retention)
+- **No Long-term Storage**: Voice recordings are never stored permanently on servers
+- **Memory-only Processing**: Audio data exists only in browser memory during testing
+- **Clear User Notifications**: Users are informed when recordings are deleted with "(Recording deleted for privacy)" messages
+- **Zero Data Retention**: No voice data is retained after assessment completion
+- **Browser-based Processing**: All audio processing happens locally in the user's browser for maximum privacy
+
 ## Data Storage & Retention
 
 The framework implements privacy-by-design principles for data storage:

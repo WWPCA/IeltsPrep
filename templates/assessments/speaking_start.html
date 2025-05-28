@@ -567,11 +567,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Start assessment
     startAssessmentBtn.addEventListener('click', function() {
-        // Here we would navigate to the actual assessment interface
-        // For now, we'll show an alert
-        alert('Assessment starting! This would connect to Elaris® AI examiner.');
-        // In the actual implementation, this would redirect to the assessment interface
-        // window.location.href = '/assessments/speaking/start/' + {{ assessment_number }};
+        if (micTested && speakerTested) {
+            // Navigate to the actual speaking assessment interface
+            const assessmentUrl = '/speaking/assessment/{{ assessment_type }}/{{ assessment_number }}';
+            window.location.href = assessmentUrl;
+        } else {
+            alert('Please complete both microphone and speaker tests before starting the assessment.');
+        }
     });
 });
 </script>

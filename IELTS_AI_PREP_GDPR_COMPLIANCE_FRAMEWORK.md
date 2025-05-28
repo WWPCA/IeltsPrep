@@ -82,6 +82,8 @@ The IELTS GenAI Prep application processes personal data under the following leg
 - **Retention Policies**: Clear timeframes for all data categories
 - **Automatic Deletion**: Scheduled purging of expired data
 - **Transcript Deletion**: Speaking transcripts deleted after 6 months
+- **Audio Recording Protection**: Microphone test recordings automatically deleted after 30 seconds maximum or immediately after playback
+- **Browser-only Processing**: Voice recordings processed locally in browser memory, never transmitted to servers
 - **Account Deletion**: Complete data removal upon account termination
 
 ### 6. Integrity and Confidentiality

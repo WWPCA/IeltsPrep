@@ -126,6 +126,39 @@ def assessment_start(assessment_type, assessment_number):
                          assessment_type=assessment_type,
                          assessment_number=assessment_number)
 
+@app.route('/speaking/assessment/<assessment_type>/<int:assessment_number>')
+@login_required
+def speaking_assessment_interface(assessment_type, assessment_number):
+    """Main speaking assessment interface with AI examiner"""
+    # Validate assessment type and number
+    valid_types = ['academic_speaking', 'general_speaking']
+    if assessment_type not in valid_types:
+        flash('Invalid assessment type.', 'danger')
+        return redirect(url_for('profile'))
+    
+    if assessment_number not in [1, 2, 3, 4]:
+        flash('Invalid assessment number.', 'danger')
+        return redirect(url_for('profile'))
+    
+    # Check if user has access to this assessment type
+    package_status = current_user.assessment_package_status or ""
+    has_access = False
+    
+    if 'academic_speaking' in assessment_type and ('Academic Speaking' in package_status or 'All Products' in package_status):
+        has_access = True
+    elif 'general_speaking' in assessment_type and ('General Speaking' in package_status or 'All Products' in package_status):
+        has_access = True
+    elif hasattr(current_user, 'is_admin') and current_user.is_admin:
+        has_access = True
+    
+    if not has_access:
+        flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
+        return redirect(url_for('profile'))
+    
+    return render_template('assessments/speaking_assessment.html', 
+                         assessment_type=assessment_type, 
+                         assessment_number=assessment_number)
+
 # Main index route
 @app.route('/')
 def index():
