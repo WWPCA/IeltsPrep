@@ -1,0 +1,324 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .microphone-test {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .test-button {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        font-size: 2rem;
+        margin: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .test-button:hover {
+        transform: scale(1.1);
+    }
+    
+    .audio-level {
+        height: 20px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    
+    .audio-level-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+        width: 0%;
+        transition: width 0.1s ease;
+    }
+    
+    .elaris-header {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .question-preview {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+    }
+    
+    .start-assessment-btn {
+        font-size: 1.2rem;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+    
+    .ready-indicator {
+        display: none;
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .status-icon {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('assessment_index') }}">Assessments</a></li>
+                    <li class="breadcrumb-item">
+                        {% if 'academic' in assessment_type %}
+                            <a href="{{ url_for('academic_speaking_selection') }}">Academic Speaking</a>
+                        {% else %}
+                            <a href="{{ url_for('general_speaking_selection') }}">General Training Speaking</a>
+                        {% endif %}
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Assessment {{ assessment_number }}</li>
+                </ol>
+            </nav>
+            
+            <div class="elaris-header">
+                <h1 class="h2 mb-3">
+                    <i class="fas fa-robot me-2"></i>
+                    {{ title }}
+                </h1>
+                <p class="mb-0">Powered by Elaris® GenAI Technology - The world's only AI IELTS speaking examiner</p>
+            </div>
+            
+            <!-- Microphone and Speaker Test Section -->
+            <div class="microphone-test">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-microphone status-icon"></i>
+                    Test Your Microphone and Speakers
+                </h3>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Please test your microphone and speakers before starting the assessment to ensure proper recording and playback.
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h5>Microphone Test</h5>
+                        <button class="btn btn-primary test-button" id="micTestBtn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <div class="audio-level">
+                            <div class="audio-level-bar" id="audioLevelBar"></div>
+                        </div>
+                        <div id="micStatus" class="mt-2">Click to test microphone</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>Speaker Test</h5>
+                        <button class="btn btn-success test-button" id="speakerTestBtn">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <div id="speakerStatus" class="mt-2">Click to test speakers</div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <div class="ready-indicator" id="readyIndicator">
+                        <i class="fas fa-check-circle status-icon"></i>
+                        Ready to start assessment!
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Assessment Overview -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Assessment Overview</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <div class="h2 text-primary">1</div>
+                                <strong>Introduction & Interview</strong>
+                                <div class="small text-muted">4-5 minutes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <div class="h2 text-primary">2</div>
+                                <strong>Long Turn Speaking</strong>
+                                <div class="small text-muted">3-4 minutes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <div class="h2 text-primary">3</div>
+                                <strong>Two-Way Discussion</strong>
+                                <div class="small text-muted">4-5 minutes</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="question-preview">
+                        <h5><i class="fas fa-eye me-2"></i>First Question Preview</h5>
+                        <p class="mb-0">
+                            {% if 'academic' in assessment_type %}
+                                "Hello, my name is Elaris, and I'll be your AI examiner today. Let's start with some questions about yourself. Can you tell me your name and where you're from?"
+                            {% else %}
+                                "Hello, my name is Elaris, and I'll be your AI examiner today. Let's begin with some general questions. Could you tell me your name and something about your hometown?"
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Assessment Features:</h6>
+                        <ul class="mb-0">
+                            <li>AI examiner speaks with British accent</li>
+                            <li>Real-time conversation with Elaris®</li>
+                            <li>Written transcript provided after completion</li>
+                            <li>Detailed band scoring and feedback</li>
+                            <li>Can restart if connection drops</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary start-assessment-btn" id="startAssessmentBtn" disabled>
+                            <i class="fas fa-play me-2"></i>
+                            Start Speaking Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let micTested = false;
+    let speakerTested = false;
+    let mediaRecorder = null;
+    let audioStream = null;
+    
+    const micTestBtn = document.getElementById('micTestBtn');
+    const speakerTestBtn = document.getElementById('speakerTestBtn');
+    const startAssessmentBtn = document.getElementById('startAssessmentBtn');
+    const readyIndicator = document.getElementById('readyIndicator');
+    const audioLevelBar = document.getElementById('audioLevelBar');
+    const micStatus = document.getElementById('micStatus');
+    const speakerStatus = document.getElementById('speakerStatus');
+    
+    // Microphone test
+    micTestBtn.addEventListener('click', async function() {
+        try {
+            if (audioStream) {
+                // Stop current stream
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
+                micTestBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                micStatus.textContent = 'Click to test microphone';
+                audioLevelBar.style.width = '0%';
+                return;
+            }
+            
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            micTestBtn.innerHTML = '<i class="fas fa-stop"></i>';
+            micStatus.textContent = 'Recording... Speak now to test your microphone';
+            micStatus.style.color = '#dc3545';
+            
+            // Create audio context for level monitoring
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const microphone = audioContext.createMediaStreamSource(audioStream);
+            
+            analyser.smoothingTimeConstant = 0.8;
+            analyser.fftSize = 1024;
+            microphone.connect(analyser);
+            
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            function updateAudioLevel() {
+                if (!audioStream) return;
+                
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    sum += dataArray[i];
+                }
+                const average = sum / dataArray.length;
+                const percentage = (average / 255) * 100;
+                audioLevelBar.style.width = percentage + '%';
+                
+                requestAnimationFrame(updateAudioLevel);
+            }
+            
+            updateAudioLevel();
+            
+            setTimeout(() => {
+                if (audioStream) {
+                    audioStream.getTracks().forEach(track => track.stop());
+                    audioStream = null;
+                    micTestBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    micStatus.textContent = 'Microphone test completed successfully!';
+                    micStatus.style.color = '#28a745';
+                    micTested = true;
+                    checkReady();
+                }
+            }, 5000);
+            
+        } catch (err) {
+            console.error('Microphone access denied:', err);
+            micStatus.textContent = 'Microphone access denied. Please allow microphone access.';
+            micStatus.style.color = '#dc3545';
+        }
+    });
+    
+    // Speaker test
+    speakerTestBtn.addEventListener('click', function() {
+        if (!speakerTested) {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBDWH0+3SgC0FJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBDWH0+3SgC0FJH...'); // Short beep sound
+            audio.play().then(() => {
+                speakerTestBtn.innerHTML = '<i class="fas fa-check"></i>';
+                speakerStatus.textContent = 'Speaker test completed successfully!';
+                speakerStatus.style.color = '#28a745';
+                speakerTested = true;
+                checkReady();
+            }).catch(() => {
+                speakerStatus.textContent = 'Speaker test failed. Please check your audio settings.';
+                speakerStatus.style.color = '#dc3545';
+            });
+        }
+    });
+    
+    function checkReady() {
+        if (micTested && speakerTested) {
+            readyIndicator.style.display = 'block';
+            startAssessmentBtn.disabled = false;
+        }
+    }
+    
+    // Start assessment
+    startAssessmentBtn.addEventListener('click', function() {
+        // Here we would navigate to the actual assessment interface
+        // For now, we'll show an alert
+        alert('Assessment starting! This would connect to Elaris® AI examiner.');
+        // In the actual implementation, this would redirect to the assessment interface
+        // window.location.href = '/assessments/speaking/start/' + {{ assessment_number }};
+    });
+});
+</script>
+{% endblock %}

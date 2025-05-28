@@ -42,6 +42,49 @@ setup_global_security(app)
 # Import the assessment details route
 from add_assessment_details_route import assessment_details_route
 
+# Speaking assessment selection route
+@app.route('/assessments/academic_speaking')
+@login_required
+def academic_speaking_selection():
+    """Display 4 identical Elaris® Academic Speaking assessments"""
+    return render_template('assessments/speaking_selection.html', 
+                         title='Academic Speaking Assessments',
+                         assessment_type='academic_speaking')
+
+@app.route('/assessments/general_speaking')
+@login_required
+def general_speaking_selection():
+    """Display 4 identical Elaris® General Training Speaking assessments"""
+    return render_template('assessments/speaking_selection.html',
+                         title='General Training Speaking Assessments', 
+                         assessment_type='general_speaking')
+
+@app.route('/assessments/<assessment_type>/assessment/<int:assessment_number>')
+@login_required
+def speaking_assessment_start(assessment_type, assessment_number):
+    """Start a specific speaking assessment with microphone test"""
+    if assessment_type not in ['academic_speaking', 'general_speaking']:
+        flash('Invalid assessment type.', 'danger')
+        return redirect(url_for('assessment_index'))
+    
+    if assessment_number not in [1, 2, 3, 4]:
+        flash('Invalid assessment number.', 'danger')
+        return redirect(url_for('assessment_index'))
+    
+    # Check if user has access to this assessment type
+    user_accessible = assessment_assignment_service.get_user_accessible_assessments(
+        current_user.id, assessment_type
+    )
+    
+    if not user_accessible:
+        flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
+        return redirect(url_for('assessment_index'))
+    
+    return render_template('assessments/speaking_start.html',
+                         title=f'Assessment {assessment_number} - {assessment_type.replace("_", " ").title()}',
+                         assessment_type=assessment_type,
+                         assessment_number=assessment_number)
+
 # Main index route
 @app.route('/')
 def index():
