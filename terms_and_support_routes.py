@@ -27,7 +27,7 @@ def test_day():
 @login_required
 def profile():
     """Display the user's profile."""
-    return render_template('profile_new.html', 
+    return render_template('profile.html', 
                           title='My Profile')
 
 
