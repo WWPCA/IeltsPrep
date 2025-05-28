@@ -225,6 +225,15 @@ def complete_writing_assessment(assessment_id, attempt_id):
     attempt.status = 'completed'
     attempt.end_time = datetime.utcnow()
     
+    # Send assessment completion email
+    from enhanced_email_service import send_assessment_completion
+    try:
+        assessment_type = f"{assessment.test_type.title()} Writing Assessment"
+        score_summary = "Assessment completed - detailed feedback available in dashboard"
+        send_assessment_completion(current_user.email, assessment_type, score_summary)
+    except Exception as e:
+        logging.error(f"Failed to send completion email: {e}")
+    
     # Mark assessment as taken by this user during current package period
     current_user.mark_assessment_completed(assessment_id, 'writing')
     

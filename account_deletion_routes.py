@@ -97,77 +97,22 @@ def delete_all_user_data(user_id):
 
 def send_account_deletion_email(email, username):
     """
-    Send account deletion confirmation email.
+    Send account deletion confirmation email using professional template.
     
     Args:
         email (str): User's email address
-        username (str): User's username
+        username (str): User's username (not used anymore, kept for compatibility)
     """
-    subject = "Account Deletion Confirmation - IELTS GenAI Prep"
-    
-    html_content = f"""
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #dc3545;">Account Deletion Confirmation</h2>
-        
-        <p>Dear {username},</p>
-        
-        <p>This email confirms that your IELTS GenAI Prep account has been <strong>permanently deleted</strong> as requested.</p>
-        
-        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
-            <h3 style="color: #dc3545; margin-top: 0;">What This Means:</h3>
-            <ul>
-                <li>Your account and all personal data have been permanently removed</li>
-                <li>You will no longer have access to any purchased assessments</li>
-                <li>All GenAI feedback and assessment history has been deleted</li>
-                <li>This action cannot be undone</li>
-            </ul>
-        </div>
-        
-        <p><strong>Important:</strong> If you wish to use IELTS GenAI Prep services again in the future, you will need to create a new account and repurchase any assessment packages.</p>
-        
-        <p>Payment records have been anonymized and retained only for tax compliance purposes as required by law.</p>
-        
-        <p>Thank you for using IELTS GenAI Prep. We're sorry to see you go!</p>
-        
-        <hr style="margin: 30px 0;">
-        <p style="color: #666; font-size: 12px;">
-            This is an automated confirmation email. Please do not reply to this message.
-            <br>IELTS GenAI Prep - Your Success is Our Priority
-        </p>
-    </div>
-    """
+    from enhanced_email_service import send_account_deletion_confirmation
     
     try:
-        # Create plain text version for email
-        text_content = f"""
-Account Deletion Confirmation - IELTS GenAI Prep
-
-Dear {username},
-
-This email confirms that your IELTS GenAI Prep account has been permanently deleted as requested.
-
-What This Means:
-- Your account and all personal data have been permanently removed
-- You will no longer have access to any purchased assessments
-- All GenAI feedback and assessment history has been deleted
-- This action cannot be undone
-
-Important: If you wish to use IELTS GenAI Prep services again in the future, you will need to create a new account and repurchase any assessment packages.
-
-Payment records have been anonymized and retained only for tax compliance purposes as required by law.
-
-Thank you for using IELTS GenAI Prep. We're sorry to see you go!
-
-This is an automated confirmation email. Please do not reply to this message.
-IELTS GenAI Prep - Your Success is Our Priority
-        """
-        
-        send_email(
-            recipient=email,
-            subject=subject,
-            text_body=text_content,
-            html_body=html_content
-        )
-        logging.info(f"Account deletion email sent to: {email}")
+        result = send_account_deletion_confirmation(email)
+        if result:
+            logging.info(f"Account deletion confirmation email sent to {email}")
+            return True
+        else:
+            logging.error(f"Failed to send account deletion email to {email}")
+            return False
     except Exception as e:
-        logging.error(f"Failed to send deletion email to {email}: {e}")
+        logging.error(f"Error sending account deletion email: {e}")
+        return False

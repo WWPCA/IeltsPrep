@@ -75,7 +75,7 @@ def authenticated_user_required(f):
 
 def send_verification_email_to_user(user_id):
     """
-    Send a verification email to a user.
+    Send a verification email to a user using professional templates.
     
     Args:
         user_id (int): The ID of the user to send the verification email to
@@ -83,6 +83,9 @@ def send_verification_email_to_user(user_id):
     Returns:
         bool: True if the email was sent successfully, False otherwise
     """
+    from enhanced_email_service import send_email_verification
+    from flask import url_for
+    
     user = User.query.get(user_id)
     if not user:
         logger.error(f"User with ID {user_id} not found.")
@@ -94,10 +97,17 @@ def send_verification_email_to_user(user_id):
         logger.info(f"Verification email already sent to user {user_id} within the last 10 minutes.")
         return False
     
-    # Send the verification email
-    result = send_verification_email(user)
+    # Generate verification URL
+    verification_url = url_for('email_verification.verify_email', token=user.email_verification_token, _external=True)
+    
+    # Send the verification email using professional template
+    result = send_email_verification(user.email, verification_url)
+    
     if result:
-        logger.info(f"Verification email sent to user {user_id}.")
+        # Update the sent timestamp
+        user.email_verification_sent_at = datetime.utcnow()
+        db.session.commit()
+        logger.info(f"Professional verification email sent to user {user_id}.")
     else:
         logger.error(f"Failed to send verification email to user {user_id}.")
     
