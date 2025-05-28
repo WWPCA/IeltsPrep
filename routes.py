@@ -32,8 +32,12 @@ from security_manager import (
     validate_inputs, 
     secure_session, 
     api_protection, 
-    account_lockout_protection
+    account_lockout_protection,
+    setup_global_security
 )
+
+# Initialize security system
+setup_global_security(app)
 
 # Import the assessment details route
 from add_assessment_details_route import assessment_details_route

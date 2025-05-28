@@ -18,11 +18,15 @@ import json
 from app import app
 from models import db, Assessment, UserAssessmentAttempt, AssessmentSpeakingResponse
 from account_activation import authenticated_user_required
+from security_manager import rate_limit, api_protection, secure_session
 
 # Taking a speaking assessment
 @app.route('/assessments/speaking/<int:assessment_id>/attempt/<int:attempt_id>')
 @login_required
 @authenticated_user_required
+@rate_limit('assessment')
+@api_protection()
+@secure_session()
 def take_speaking_assessment(assessment_id, attempt_id):
     """Take a speaking assessment"""
     # Get the assessment

@@ -42,8 +42,10 @@ try:
     REDIS_AVAILABLE = True
 except:
     REDIS_AVAILABLE = False
-    # Fallback to in-memory storage
-    memory_store = {}
+    redis_client = None
+
+# Fallback to in-memory storage when Redis unavailable
+memory_store = {}
 
 class SecurityManager:
     """Advanced security management for the IELTS platform"""
@@ -70,7 +72,7 @@ class SecurityManager:
     
     def increment_counter(self, key, window_seconds):
         """Increment rate limiting counter"""
-        if REDIS_AVAILABLE:
+        if REDIS_AVAILABLE and redis_client:
             pipe = redis_client.pipeline()
             pipe.incr(key)
             pipe.expire(key, window_seconds)
@@ -117,7 +119,7 @@ class SecurityManager:
         
         if count >= self.max_login_attempts:
             lockout_key = f"lockout:{identifier}"
-            if REDIS_AVAILABLE:
+            if REDIS_AVAILABLE and redis_client:
                 redis_client.setex(lockout_key, self.lockout_duration, "locked")
             else:
                 memory_store[lockout_key] = {
@@ -135,7 +137,7 @@ class SecurityManager:
         """Check if account is locked due to failed attempts"""
         lockout_key = f"lockout:{identifier}"
         
-        if REDIS_AVAILABLE:
+        if REDIS_AVAILABLE and redis_client:
             return redis_client.exists(lockout_key)
         else:
             if lockout_key in memory_store:
@@ -147,7 +149,7 @@ class SecurityManager:
     
     def clear_failed_attempts(self, identifier):
         """Clear failed login attempts after successful login"""
-        if REDIS_AVAILABLE:
+        if REDIS_AVAILABLE and redis_client:
             redis_client.delete(f"failed_login:{identifier}")
         else:
             key = f"failed_login:{identifier}"
@@ -372,30 +374,32 @@ def account_lockout_protection():
         return decorated_function
     return decorator
 
-# Middleware for global security checks
-@current_app.before_request
-def global_security_check():
-    """Global security middleware"""
-    # Skip security checks for static files
-    if request.endpoint and request.endpoint.startswith('static'):
-        return
+def setup_global_security(app):
+    """Setup global security middleware for the Flask app"""
     
-    # Check for common attack patterns in URL
-    suspicious_url_patterns = [
-        r'\.\./',
-        r'<script',
-        r'javascript:',
-        r'data:text/html',
-    ]
-    
-    for pattern in suspicious_url_patterns:
-        if re.search(pattern, request.url.lower()):
-            security_manager.log_security_event(
-                'suspicious_url',
-                {'url': request.url}
-            )
-            return jsonify({'error': 'Invalid request'}), 400
-    
-    # Monitor session security for authenticated routes
-    if current_user.is_authenticated:
-        security_manager.monitor_session_security()
+    @app.before_request
+    def global_security_check():
+        """Global security middleware"""
+        # Skip security checks for static files
+        if request.endpoint and request.endpoint.startswith('static'):
+            return
+        
+        # Check for common attack patterns in URL
+        suspicious_url_patterns = [
+            r'\.\./',
+            r'<script',
+            r'javascript:',
+            r'data:text/html',
+        ]
+        
+        for pattern in suspicious_url_patterns:
+            if re.search(pattern, request.url.lower()):
+                security_manager.log_security_event(
+                    'suspicious_url',
+                    {'url': request.url}
+                )
+                return jsonify({'error': 'Invalid request'}), 400
+        
+        # Monitor session security for authenticated routes
+        if current_user.is_authenticated:
+            security_manager.monitor_session_security()
