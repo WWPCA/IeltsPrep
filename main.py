@@ -15,8 +15,7 @@ from flask_talisman import Talisman
 from add_assessment_routes import add_assessment_routes
 add_assessment_routes(app)
 
-# Import core assessment routes
-import assessment_routes  # noqa: F401
+# Core assessment routes now integrated in routes.py
 import writing_assessment_routes  # noqa: F401
 # Removed old speaking assessment routes - using new 4 Elaris® assessment structure
 
