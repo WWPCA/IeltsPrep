@@ -48,7 +48,6 @@ from nova_sonic_services import NovaSonicService
 # Speech generation API route for Elaris® British voice
 @app.route('/api/generate_speech', methods=['POST'])
 @login_required
-@api_protection
 def generate_speech():
     """Generate speech audio using Nova Sonic for Elaris® British voice"""
     try:
@@ -78,7 +77,7 @@ def generate_speech():
             return jsonify({'success': False, 'error': result.get('error', 'Speech generation failed')})
             
     except Exception as e:
-        logger.error(f"Speech generation error: {e}")
+        print(f"Speech generation error: {e}")
         return jsonify({'success': False, 'error': 'Speech generation service unavailable'})
 
 # Speaking assessment selection route - catches the old URL
