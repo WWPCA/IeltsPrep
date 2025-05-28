@@ -85,9 +85,10 @@ def general_writing_selection():
 
 @app.route('/assessments/<assessment_type>/assessment/<int:assessment_number>')
 @login_required
-def speaking_assessment_start(assessment_type, assessment_number):
-    """Start a specific speaking assessment with microphone test"""
-    if assessment_type not in ['academic_speaking', 'general_speaking']:
+def assessment_start(assessment_type, assessment_number):
+    """Start a specific assessment (speaking or writing) with proper setup"""
+    valid_types = ['academic_speaking', 'general_speaking', 'academic_writing', 'general_writing']
+    if assessment_type not in valid_types:
         flash('Invalid assessment type.', 'danger')
         return redirect(url_for('assessment_index'))
     
@@ -104,7 +105,13 @@ def speaking_assessment_start(assessment_type, assessment_number):
         flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
         return redirect(url_for('assessment_index'))
     
-    return render_template('assessments/speaking_start.html',
+    # Determine which template to use based on assessment type
+    if 'speaking' in assessment_type:
+        template = 'assessments/speaking_start.html'
+    else:  # writing assessments
+        template = 'assessments/writing_start.html'
+    
+    return render_template(template,
                          title=f'Assessment {assessment_number} - {assessment_type.replace("_", " ").title()}',
                          assessment_type=assessment_type,
                          assessment_number=assessment_number)
