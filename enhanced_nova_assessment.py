@@ -110,21 +110,25 @@ class EnhancedNovaAssessment:
             logger.error(f"Enhanced writing assessment error: {e}")
             return {"success": False, "error": str(e)}
 
-    def assess_speaking_with_rag(self, conversation_history, part_number, user_id=None):
+    def assess_speaking_with_rag(self, conversation_history, part_number, specific_questions=None, user_id=None):
         """
-        Assess speaking using Nova Sonic + Nova Micro enhanced with authentic IELTS rubrics
+        Assess speaking using Nova Sonic + Nova Micro enhanced with authentic IELTS rubrics and question context
         
         Args:
             conversation_history (list): Complete conversation transcript
             part_number (int): IELTS speaking part (1, 2, or 3)
+            specific_questions (list): The specific questions asked during this session
             user_id (int): User ID for tracking
             
         Returns:
-            dict: Enhanced assessment with official criteria compliance
+            dict: Enhanced assessment with official criteria and question context
         """
         try:
             # Get authentic IELTS criteria
             official_criteria = get_speaking_criteria()
+            
+            # Get question-specific context from your database
+            question_context = self._get_speaking_question_context(specific_questions, part_number)
             
             # Retrieve additional context if Knowledge Base is available
             if self.knowledge_base:
@@ -132,9 +136,9 @@ class EnhancedNovaAssessment:
             else:
                 kb_criteria = {'criteria': []}
             
-            # Build RAG-enhanced assessment prompt
+            # Build RAG-enhanced assessment prompt with question context
             assessment_prompt = self._build_rag_speaking_prompt(
-                conversation_history, part_number, official_criteria, kb_criteria
+                conversation_history, part_number, official_criteria, kb_criteria, question_context
             )
             
             # Use Nova Micro for professional assessment documentation
@@ -187,26 +191,30 @@ class EnhancedNovaAssessment:
             logger.error(f"Enhanced speaking assessment error: {e}")
             return {"success": False, "error": str(e)}
 
-    def create_enhanced_speaking_session(self, user_level, part_number, topic, user_id=None):
+    def create_enhanced_speaking_session(self, user_level, part_number, topic, specific_questions=None, user_id=None):
         """
-        Create speaking session using Nova Sonic with RAG-enhanced conversation prompts
+        Create speaking session using Nova Sonic with RAG-enhanced conversation prompts from your question database
         
         Args:
             user_level (str): User's English level
             part_number (int): IELTS speaking part (1, 2, or 3)
             topic (str): Speaking topic
+            specific_questions (list): Specific questions from your database to use
             user_id (int): User ID for tracking
             
         Returns:
-            dict: Enhanced conversation session with authentic IELTS procedures
+            dict: Enhanced conversation session with authentic IELTS procedures and your questions
         """
         try:
             # Get authentic IELTS speaking procedures
             official_criteria = get_speaking_criteria()
             
-            # Build enhanced conversation prompt with authentic procedures
+            # Get question context from your database
+            question_context = self._get_speaking_question_context(specific_questions, part_number)
+            
+            # Build enhanced conversation prompt with authentic procedures and your questions
             conversation_prompt = self._build_enhanced_conversation_prompt(
-                user_level, part_number, topic, official_criteria
+                user_level, part_number, topic, official_criteria, question_context
             )
             
             # Use Nova Sonic for British voice conversation
@@ -269,6 +277,24 @@ class EnhancedNovaAssessment:
         
         return context
 
+    def _get_speaking_question_context(self, specific_questions, part_number):
+        """Get context specific to the speaking questions used in the session"""
+        if not specific_questions:
+            return {"context": "General speaking assessment", "part": part_number}
+        
+        # Create rich context from your actual speaking questions database
+        question_list = specific_questions if isinstance(specific_questions, list) else [specific_questions]
+        
+        context = {
+            "specific_questions": question_list,
+            "part_number": part_number,
+            "question_count": len(question_list),
+            "context": f"Assessment based on {len(question_list)} specific Part {part_number} questions from your database",
+            "questions_text": " | ".join(question_list)
+        }
+        
+        return context
+
     def _build_rag_writing_prompt(self, essay_text, task_type, official_criteria, kb_criteria, question_context=None):
         """Build RAG-enhanced writing assessment prompt with question context"""
         
@@ -318,8 +344,8 @@ class EnhancedNovaAssessment:
         Your assessment must strictly follow official IELTS standards. Be precise and consistent.
         """
 
-    def _build_rag_speaking_prompt(self, conversation_history, part_number, official_criteria, kb_criteria):
-        """Build RAG-enhanced speaking assessment prompt"""
+    def _build_rag_speaking_prompt(self, conversation_history, part_number, official_criteria, kb_criteria, question_context=None):
+        """Build RAG-enhanced speaking assessment prompt with question context"""
         
         transcript = "\n".join([
             f"Examiner: {turn.get('examiner', '')}\nCandidate: {turn.get('candidate', '')}"
@@ -333,6 +359,18 @@ class EnhancedNovaAssessment:
                 for criteria in kb_criteria['criteria'][:2]
             ])
         
+        question_specific_context = ""
+        if question_context and question_context.get('specific_questions'):
+            questions_list = question_context['specific_questions']
+            question_specific_context = f"""
+            SPECIFIC QUESTIONS CONTEXT:
+            The candidate was responding to these exact Part {part_number} questions from your database:
+            {chr(10).join([f"• {q}" for q in questions_list])}
+            
+            Evaluate how well the candidate addressed these specific questions and demonstrated 
+            appropriate language skills for IELTS Part {part_number} requirements.
+            """
+        
         return f"""
         You are an official IELTS examiner assessing Speaking Part {part_number}.
         Use ONLY the official IELTS band descriptors provided below for precise evaluation.
@@ -341,6 +379,8 @@ class EnhancedNovaAssessment:
         {official_criteria}
         
         {additional_context}
+        
+        {question_specific_context}
         
         CONVERSATION TRANSCRIPT TO ASSESS:
         {transcript}
@@ -357,36 +397,56 @@ class EnhancedNovaAssessment:
         [Explain exactly which band descriptors justify each score]
         
         DETAILED_FEEDBACK:
-        [Provide specific feedback referencing the official band descriptors]
+        [Provide specific feedback referencing the official band descriptors and question performance]
         
         Your assessment must strictly follow official IELTS standards. Be precise and consistent.
         """
 
-    def _build_enhanced_conversation_prompt(self, user_level, part_number, topic, official_criteria):
-        """Build enhanced conversation prompt with authentic IELTS procedures"""
+    def _build_enhanced_conversation_prompt(self, user_level, part_number, topic, official_criteria, question_context=None):
+        """Build enhanced conversation prompt with authentic IELTS procedures and your specific questions"""
+        
+        # Get specific questions from your database if available
+        specific_questions_context = ""
+        if question_context and question_context.get('specific_questions'):
+            questions_list = question_context['specific_questions']
+            specific_questions_context = f"""
+            SPECIFIC QUESTIONS TO USE:
+            Use these exact questions from the authentic IELTS question database:
+            {chr(10).join([f"• {q}" for q in questions_list])}
+            
+            These are real IELTS questions - use them naturally in conversation flow.
+            """
         
         part_instructions = {
             1: f"""You are conducting IELTS Speaking Part 1 (Introduction and Interview).
             Follow official IELTS procedures:
             - Introduce yourself as the examiner
             - Ask about the candidate's background and interests  
-            - Ask questions about: {topic}
+            - Use the specific questions provided from the authentic database
             - Keep questions simple and direct
-            - Be friendly but maintain professional examiner demeanor""",
+            - Be friendly but maintain professional examiner demeanor
+            
+            {specific_questions_context}""",
             
             2: f"""You are conducting IELTS Speaking Part 2 (Long Turn).
             Follow official IELTS procedures:
             - Give the candidate a task card about: {topic}
+            - Use the specific questions/prompts provided from the authentic database
             - Allow exactly 1 minute preparation time
             - Ask them to speak for 1-2 minutes
-            - Ask 1-2 brief follow-up questions""",
+            - Ask 1-2 brief follow-up questions
+            
+            {specific_questions_context}""",
             
             3: f"""You are conducting IELTS Speaking Part 3 (Discussion).
             Follow official IELTS procedures:
             - Engage in discussion about: {topic}
+            - Use the specific questions provided from the authentic database
             - Ask analytical and abstract questions
             - Challenge ideas respectfully
-            - Explore complex aspects of the topic"""
+            - Explore complex aspects of the topic
+            
+            {specific_questions_context}"""
         }
         
         return f"""
@@ -394,11 +454,14 @@ class EnhancedNovaAssessment:
         
         Candidate level: {user_level}
         
-        IMPORTANT: Follow authentic IELTS speaking test procedures exactly.
-        Speak as a professional British examiner would in an actual test.
-        Be encouraging but maintain official test standards.
+        IMPORTANT ELARIS® ENHANCEMENT:
+        - Follow authentic IELTS speaking test procedures exactly
+        - Use the specific questions from the authentic database provided above
+        - Speak as a professional British examiner would in an actual test
+        - Be encouraging but maintain official test standards
+        - Integrate the provided questions naturally into the conversation flow
         
-        Begin the session now with appropriate introductions and instructions.
+        Begin the session now with appropriate introductions and use the authentic questions provided.
         """
 
     def _parse_enhanced_writing_scores(self, assessment_text):
