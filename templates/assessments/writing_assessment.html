@@ -260,8 +260,8 @@ document.addEventListener('DOMContentLoaded', function() {
         taskStartTime = totalSeconds;
         
         // Update UI
-        document.getElementById('task1Tab').classList.toggle('active', taskNum === 1);
-        document.getElementById('task2Tab').classList.toggle('active', taskNum === 2);
+        document.getElementById('task1Btn').classList.toggle('active', taskNum === 1);
+        document.getElementById('task2Btn').classList.toggle('active', taskNum === 2);
         document.getElementById('task1Content').style.display = taskNum === 1 ? 'block' : 'none';
         document.getElementById('task2Content').style.display = taskNum === 2 ? 'block' : 'none';
     };
