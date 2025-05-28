@@ -341,6 +341,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Function to play back the recorded audio
+    function playRecording() {
+        if (window.recordedAudioUrl) {
+            const audio = new Audio(window.recordedAudioUrl);
+            audio.play().then(() => {
+                console.log('Recording playback started');
+                // Auto-delete after playback for privacy
+                audio.addEventListener('ended', () => {
+                    setTimeout(() => {
+                        if (window.recordedAudioUrl) {
+                            URL.revokeObjectURL(window.recordedAudioUrl);
+                            window.recordedAudioUrl = null;
+                            console.log('Recording deleted after playback');
+                        }
+                    }, 1000);
+                });
+            }).catch(err => {
+                console.error('Playback failed:', err);
+            });
+        } else {
+            console.log('No recording available to play');
+        }
+    }
+    
     // Speaker test with better browser compatibility
     speakerTestBtn.addEventListener('click', async function() {
         if (!speakerTested) {
