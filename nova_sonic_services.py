@@ -53,7 +53,7 @@ class NovaSonicService:
             conversation_prompt = self._build_conversation_prompt(user_level, part_number, topic)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-micro-v1:0',  # Using Nova Micro for conversational assessment
+                modelId='amazon.nova-sonic-v1:0',  # Using Nova Sonic for conversational speech
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -68,8 +68,13 @@ class NovaSonicService:
                         }
                     ],
                     "inferenceConfig": {
-                        "maxTokens": 2000,
-                        "temperature": 0.7
+                        "max_new_tokens": 2000,
+                        "temperature": 0.7,
+                        "top_p": 0.9
+                    },
+                    "additionalModelRequestFields": {
+                        "voice": "british_female",
+                        "speaking_style": "professional_examiner"
                     }
                 })
             )
@@ -109,7 +114,7 @@ class NovaSonicService:
             context = self._build_conversation_context(conversation_history, user_response)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
+                modelId='amazon.nova-sonic-v1:0',  # Nova Sonic for continued conversation
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -124,8 +129,13 @@ class NovaSonicService:
                         }
                     ],
                     "inferenceConfig": {
-                        "maxTokens": 1500,
-                        "temperature": 0.7
+                        "max_new_tokens": 1500,
+                        "temperature": 0.7,
+                        "top_p": 0.9
+                    },
+                    "additionalModelRequestFields": {
+                        "voice": "british_female",
+                        "speaking_style": "professional_examiner"
                     }
                 })
             )
@@ -146,6 +156,7 @@ class NovaSonicService:
     def finalize_conversation_assessment(self, conversation_history, part_number):
         """
         Generate final assessment for the conversational session
+        Uses Nova Micro for professional assessment documentation
         
         Args:
             conversation_history (list): Complete conversation transcript
@@ -157,6 +168,7 @@ class NovaSonicService:
         try:
             assessment_prompt = self._build_final_assessment_prompt(conversation_history, part_number)
             
+            # Use Nova Micro for professional assessment documentation
             response = self.client.invoke_model(
                 modelId='amazon.nova-micro-v1:0',
                 contentType='application/json',
@@ -173,8 +185,9 @@ class NovaSonicService:
                         }
                     ],
                     "inferenceConfig": {
-                        "maxTokens": 2500,
-                        "temperature": 0.3
+                        "max_new_tokens": 2500,
+                        "temperature": 0.3,
+                        "top_p": 0.9
                     }
                 })
             )
@@ -194,7 +207,7 @@ class NovaSonicService:
                 "pronunciation": scores.get('pronunciation', 0),
                 "detailed_feedback": scores.get('feedback', ''),
                 "conversation_transcript": conversation_history,
-                "assessment_type": "Nova Sonic Conversational"
+                "assessment_type": "Nova Sonic + Nova Micro Professional Assessment"
             }
             
         except Exception as e:
