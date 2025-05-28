@@ -314,11 +314,18 @@ class EnhancedNovaAssessment:
             """
         
         return f"""
-        You are an official IELTS examiner with expertise in {task_type.upper()} assessment.
+        You are an official IELTS examiner conducting TrueScore® assessment with complete band rubric integration.
         Use ONLY the official IELTS band descriptors provided below for precise evaluation.
         
-        OFFICIAL IELTS {task_type.upper()} ASSESSMENT CRITERIA:
+        OFFICIAL IELTS {task_type.upper()} ASSESSMENT CRITERIA WITH COMPLETE BAND DESCRIPTORS:
         {official_criteria}
+        
+        WRITING BAND ASSESSMENT RUBRIC (Bands 9-5):
+        Band 9: Exceptional performance - Fully addresses task, sophisticated language, natural cohesion, wide vocabulary range, error-free grammar
+        Band 8: Very good performance - Well-developed response, flexible language use, clear progression, skilful vocabulary, mostly error-free
+        Band 7: Good performance - Clear position, range of structures, appropriate vocabulary, good control with few errors
+        Band 6: Competent performance - Relevant response, mix of structures, adequate vocabulary, some errors but communication clear
+        Band 5: Modest performance - Partially addresses task, limited structures, basic vocabulary, frequent errors affecting clarity
         
         {additional_context}
         
@@ -327,21 +334,22 @@ class EnhancedNovaAssessment:
         STUDENT ESSAY TO ASSESS:
         {essay_text}
         
-        Provide precise scores (0-9) based strictly on the official criteria above:
+        TrueScore® ASSESSMENT REQUIREMENTS:
+        Provide precise scores (0-9) based strictly on the band descriptors above:
         
         OVERALL_SCORE: [score with one decimal place]
-        TASK_ACHIEVEMENT: [score with one decimal place]
-        COHERENCE_COHESION: [score with one decimal place]  
-        LEXICAL_RESOURCE: [score with one decimal place]
-        GRAMMATICAL_RANGE: [score with one decimal place]
+        TASK_ACHIEVEMENT: [score with one decimal place - reference specific band descriptor]
+        COHERENCE_COHESION: [score with one decimal place - reference specific band descriptor]  
+        LEXICAL_RESOURCE: [score with one decimal place - reference specific band descriptor]
+        GRAMMATICAL_RANGE: [score with one decimal place - reference specific band descriptor]
         
         BAND_JUSTIFICATION:
-        [Explain exactly which band descriptors justify each score]
+        [Explain exactly which band descriptors justify each score with specific evidence]
         
         DETAILED_FEEDBACK:
-        [Provide specific feedback referencing the official band descriptors and question requirements]
+        [Provide TrueScore® feedback referencing official band descriptors and question requirements]
         
-        Your assessment must strictly follow official IELTS standards. Be precise and consistent.
+        Your TrueScore® assessment must strictly follow official IELTS band rubric standards.
         """
 
     def _build_rag_speaking_prompt(self, conversation_history, part_number, official_criteria, kb_criteria, question_context=None):
@@ -372,11 +380,18 @@ class EnhancedNovaAssessment:
             """
         
         return f"""
-        You are an official IELTS examiner assessing Speaking Part {part_number}.
+        You are an official IELTS examiner conducting Elaris® assessment with complete speaking band rubric integration.
         Use ONLY the official IELTS band descriptors provided below for precise evaluation.
         
-        OFFICIAL IELTS SPEAKING ASSESSMENT CRITERIA:
+        OFFICIAL IELTS SPEAKING ASSESSMENT CRITERIA WITH COMPLETE BAND DESCRIPTORS:
         {official_criteria}
+        
+        SPEAKING BAND ASSESSMENT RUBRIC (Bands 9-5):
+        Band 9: Expert user - Fluent with rare hesitation, wide vocabulary range, full grammatical flexibility, effortless pronunciation
+        Band 8: Very good user - Fluent with occasional repetition, flexible vocabulary, wide grammatical range, easy to understand
+        Band 7: Good user - Speaks at length without effort, sufficient vocabulary range, variety of structures, generally clear
+        Band 6: Competent user - Willing to speak at length, adequate vocabulary, mix of structures, generally understood
+        Band 5: Modest user - Maintains flow with repetition, limited vocabulary flexibility, basic structures, requires effort to understand
         
         {additional_context}
         
@@ -385,21 +400,22 @@ class EnhancedNovaAssessment:
         CONVERSATION TRANSCRIPT TO ASSESS:
         {transcript}
         
-        Provide precise scores (0-9) based strictly on the official criteria above:
+        Elaris® ASSESSMENT REQUIREMENTS:
+        Provide precise scores (0-9) based strictly on the speaking band descriptors above:
         
         OVERALL_SCORE: [score with one decimal place]
-        FLUENCY_COHERENCE: [score with one decimal place]
-        LEXICAL_RESOURCE: [score with one decimal place]
-        GRAMMATICAL_RANGE: [score with one decimal place]
-        PRONUNCIATION: [score with one decimal place]
+        FLUENCY_COHERENCE: [score with one decimal place - reference specific band descriptor]
+        LEXICAL_RESOURCE: [score with one decimal place - reference specific band descriptor]
+        GRAMMATICAL_RANGE: [score with one decimal place - reference specific band descriptor]
+        PRONUNCIATION: [score with one decimal place - reference specific band descriptor]
         
         BAND_JUSTIFICATION:
-        [Explain exactly which band descriptors justify each score]
+        [Explain exactly which speaking band descriptors justify each score with conversation evidence]
         
         DETAILED_FEEDBACK:
-        [Provide specific feedback referencing the official band descriptors and question performance]
+        [Provide Elaris® feedback referencing official speaking band descriptors and question performance]
         
-        Your assessment must strictly follow official IELTS standards. Be precise and consistent.
+        Your Elaris® assessment must strictly follow official IELTS speaking band rubric standards.
         """
 
     def _build_enhanced_conversation_prompt(self, user_level, part_number, topic, official_criteria, question_context=None):
@@ -454,12 +470,21 @@ class EnhancedNovaAssessment:
         
         Candidate level: {user_level}
         
+        ELARIS® SPEAKING BAND AWARENESS:
+        While conducting the conversation, be aware of these band expectations:
+        Band 9: Expert user - Expect fluent speech, sophisticated vocabulary, complex grammar, clear pronunciation
+        Band 8: Very good user - Expect mostly fluent speech, flexible vocabulary, varied grammar, easily understood
+        Band 7: Good user - Expect sustained speech, sufficient vocabulary, some complex structures, generally clear
+        Band 6: Competent user - Expect willingness to speak, adequate vocabulary, mixed structures, understandable
+        Band 5: Modest user - Expect some hesitation, limited vocabulary, basic structures, requires effort to understand
+        
         IMPORTANT ELARIS® ENHANCEMENT:
         - Follow authentic IELTS speaking test procedures exactly
         - Use the specific questions from the authentic database provided above
         - Speak as a professional British examiner would in an actual test
         - Be encouraging but maintain official test standards
         - Integrate the provided questions naturally into the conversation flow
+        - Adjust questioning complexity based on candidate's demonstrated level
         
         Begin the session now with appropriate introductions and use the authentic questions provided.
         """
