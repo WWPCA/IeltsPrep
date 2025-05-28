@@ -282,7 +282,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (err) {
             console.error('Microphone access denied:', err);
-            micStatus.textContent = 'Microphone access denied. Please allow microphone access.';
+            showAudioTroubleshootingPopup('microphone');
+            micStatus.textContent = 'Microphone access denied. Click for help.';
             micStatus.style.color = '#dc3545';
         }
     });
@@ -297,8 +298,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 speakerStatus.style.color = '#28a745';
                 speakerTested = true;
                 checkReady();
-            }).catch(() => {
-                speakerStatus.textContent = 'Speaker test failed. Please check your audio settings.';
+            }).catch((error) => {
+                console.error('Speaker test failed:', error);
+                showAudioTroubleshootingPopup('speaker');
+                speakerStatus.textContent = 'Speaker test failed. Click for help.';
                 speakerStatus.style.color = '#dc3545';
             });
         }
@@ -308,6 +311,132 @@ document.addEventListener('DOMContentLoaded', function() {
         if (micTested && speakerTested) {
             readyIndicator.style.display = 'block';
             startAssessmentBtn.disabled = false;
+        }
+    }
+    
+    // Audio troubleshooting popup
+    function showAudioTroubleshootingPopup(deviceType) {
+        const modalHtml = `
+        <div class="modal fade" id="audioTroubleshootingModal" tabindex="-1" aria-labelledby="audioTroubleshootingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="audioTroubleshootingModalLabel">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            ${deviceType === 'microphone' ? 'Microphone' : 'Speaker'} Setup Help
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${deviceType === 'microphone' ? getMicrophoneTroubleshooting() : getSpeakerTroubleshooting()}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="retryAudioTest('${deviceType}')" data-bs-dismiss="modal">
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        
+        // Remove existing modal if present
+        const existingModal = document.getElementById('audioTroubleshootingModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to page
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('audioTroubleshootingModal'));
+        modal.show();
+    }
+    
+    function getMicrophoneTroubleshooting() {
+        return `
+        <div class="alert alert-info">
+            <strong>Common microphone issues and solutions:</strong>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="fas fa-shield-alt text-primary"></i> Browser Permissions</h6>
+                <ul class="small">
+                    <li>Click the microphone icon in your browser's address bar</li>
+                    <li>Select "Allow" for microphone access</li>
+                    <li>Refresh the page if needed</li>
+                </ul>
+                
+                <h6><i class="fas fa-volume-up text-primary"></i> Device Settings</h6>
+                <ul class="small">
+                    <li>Check if your microphone is plugged in properly</li>
+                    <li>Ensure your microphone is not muted</li>
+                    <li>Try adjusting microphone volume in system settings</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="fas fa-cog text-primary"></i> System Settings</h6>
+                <ul class="small">
+                    <li><strong>Windows:</strong> Settings → Privacy → Microphone</li>
+                    <li><strong>Mac:</strong> System Preferences → Security & Privacy → Microphone</li>
+                    <li><strong>Chrome:</strong> Settings → Privacy → Site Settings → Microphone</li>
+                </ul>
+                
+                <h6><i class="fas fa-tools text-primary"></i> Quick Fixes</h6>
+                <ul class="small">
+                    <li>Try using a different browser (Chrome/Firefox)</li>
+                    <li>Restart your browser</li>
+                    <li>Check if other apps are using the microphone</li>
+                </ul>
+            </div>
+        </div>`;
+    }
+    
+    function getSpeakerTroubleshooting() {
+        return `
+        <div class="alert alert-info">
+            <strong>Common speaker issues and solutions:</strong>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="fas fa-volume-up text-primary"></i> Audio Output</h6>
+                <ul class="small">
+                    <li>Check if your speakers/headphones are connected</li>
+                    <li>Ensure volume is not muted or too low</li>
+                    <li>Try different speakers or headphones</li>
+                </ul>
+                
+                <h6><i class="fas fa-shield-alt text-primary"></i> Browser Settings</h6>
+                <ul class="small">
+                    <li>Some browsers block autoplay audio</li>
+                    <li>Click anywhere on the page first, then test</li>
+                    <li>Check browser sound settings</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="fas fa-cog text-primary"></i> System Audio</h6>
+                <ul class="small">
+                    <li><strong>Windows:</strong> Right-click speaker icon → Open Sound settings</li>
+                    <li><strong>Mac:</strong> System Preferences → Sound → Output</li>
+                    <li>Make sure correct audio device is selected</li>
+                </ul>
+                
+                <h6><i class="fas fa-tools text-primary"></i> Quick Fixes</h6>
+                <ul class="small">
+                    <li>Try a different browser</li>
+                    <li>Restart your browser</li>
+                    <li>Test audio in other applications</li>
+                </ul>
+            </div>
+        </div>`;
+    }
+    
+    function retryAudioTest(deviceType) {
+        if (deviceType === 'microphone') {
+            micTestBtn.click();
+        } else {
+            speakerTestBtn.click();
         }
     }
     
