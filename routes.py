@@ -90,7 +90,7 @@ def assessment_start(assessment_type, assessment_number):
     valid_types = ['academic_speaking', 'general_speaking', 'academic_writing', 'general_writing']
     if assessment_type not in valid_types:
         flash('Invalid assessment type.', 'danger')
-        return redirect(url_for('assessment_index'))
+        return redirect(url_for('profile'))
     
     if assessment_number not in [1, 2, 3, 4]:
         flash('Invalid assessment number.', 'danger')
