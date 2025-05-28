@@ -277,10 +277,19 @@ def rate_limit(limit_type, custom_key=None):
                     'rate_limit_exceeded',
                     {'limit_type': limit_type, 'count': count}
                 )
-                return jsonify({
-                    'error': 'Rate limit exceeded. Please try again later.',
-                    'retry_after': security_manager.rate_limits[limit_type]['window']
-                }), 429
+                # Return appropriate response based on request type
+                if request.is_json or 'application/json' in request.headers.get('Accept', ''):
+                    return jsonify({
+                        'error': 'Rate limit exceeded. Please try again later.',
+                        'retry_after': security_manager.rate_limits[limit_type]['window']
+                    }), 429
+                else:
+                    # For web forms, show flash message and render template
+                    from flask import flash, render_template
+                    flash('Too many attempts. Please try again later.', 'danger')
+                    if 'login' in request.endpoint:
+                        return render_template('login.html', title='Login'), 429
+                    return render_template('error.html', message='Rate limit exceeded'), 429
             
             return f(*args, **kwargs)
         return decorated_function
@@ -366,9 +375,18 @@ def account_lockout_protection():
                     'locked_account_attempt',
                     {'identifier': identifier}
                 )
-                return jsonify({
-                    'error': 'Account temporarily locked due to multiple failed attempts. Please try again later.'
-                }), 423
+                # Return appropriate response based on request type
+                if request.is_json or 'application/json' in request.headers.get('Accept', ''):
+                    return jsonify({
+                        'error': 'Account temporarily locked due to multiple failed attempts. Please try again later.'
+                    }), 423
+                else:
+                    # For web forms, show flash message and render template
+                    from flask import flash, render_template
+                    flash('Account temporarily locked due to multiple failed attempts. Please try again later.', 'danger')
+                    if 'login' in request.endpoint:
+                        return render_template('login.html', title='Login'), 423
+                    return render_template('error.html', message='Account locked'), 423
             
             return f(*args, **kwargs)
         return decorated_function
