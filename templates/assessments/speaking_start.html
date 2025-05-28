@@ -222,11 +222,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const micStatus = document.getElementById('micStatus');
     const speakerStatus = document.getElementById('speakerStatus');
     
-    // Microphone test
+    // Microphone test with playback
+    let recordedChunks = [];
+    let recordedBlob = null;
+    
     micTestBtn.addEventListener('click', async function() {
         try {
             if (audioStream) {
-                // Stop current stream
+                // Stop current stream and recorder
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
                 audioStream.getTracks().forEach(track => track.stop());
                 audioStream = null;
                 micTestBtn.innerHTML = '<i class="fas fa-microphone"></i>';
@@ -235,10 +241,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            recordedChunks = [];
             audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             micTestBtn.innerHTML = '<i class="fas fa-stop"></i>';
             micStatus.textContent = 'Recording... Speak now to test your microphone';
             micStatus.style.color = '#dc3545';
+            
+            // Set up MediaRecorder for playback
+            mediaRecorder = new MediaRecorder(audioStream);
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = function() {
+                recordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(recordedBlob);
+                
+                micStatus.innerHTML = `
+                    Microphone test completed! 
+                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="playRecording()">
+                        <i class="fas fa-play"></i> Hear Your Recording
+                    </button>
+                `;
+                micStatus.style.color = '#28a745';
+                micTested = true;
+                checkReady();
+                
+                // Store the audio URL globally for playback
+                window.recordedAudioUrl = audioUrl;
+            };
+            
+            mediaRecorder.start();
             
             // Create audio context for level monitoring
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -269,14 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
             updateAudioLevel();
             
             setTimeout(() => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
                 if (audioStream) {
                     audioStream.getTracks().forEach(track => track.stop());
                     audioStream = null;
                     micTestBtn.innerHTML = '<i class="fas fa-check"></i>';
-                    micStatus.textContent = 'Microphone test completed successfully!';
-                    micStatus.style.color = '#28a745';
-                    micTested = true;
-                    checkReady();
                 }
             }, 5000);
             
@@ -494,6 +528,19 @@ document.addEventListener('DOMContentLoaded', function() {
             micTestBtn.click();
         } else {
             speakerTestBtn.click();
+        }
+    }
+    
+    // Play back the recorded audio
+    function playRecording() {
+        if (window.recordedAudioUrl) {
+            const audio = new Audio(window.recordedAudioUrl);
+            audio.play().then(() => {
+                console.log('Playing back recorded audio');
+            }).catch((error) => {
+                console.error('Error playing recording:', error);
+                alert('Unable to play back the recording. Your microphone is working, but playback failed.');
+            });
         }
     }
     
