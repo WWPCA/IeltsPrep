@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 micStatus.innerHTML = `
                     Microphone test completed! 
-                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="playRecording()">
+                    <button class="btn btn-sm btn-outline-primary ms-2" id="playRecordingBtn">
                         <i class="fas fa-play"></i> Hear Your Recording
                     </button>
                 `;
@@ -271,6 +271,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Store the audio URL globally for playback
                 window.recordedAudioUrl = audioUrl;
+                
+                // Add event listener to the new button
+                setTimeout(() => {
+                    const playBtn = document.getElementById('playRecordingBtn');
+                    if (playBtn) {
+                        playBtn.addEventListener('click', function() {
+                            playRecording();
+                        });
+                    }
+                }, 100);
                 
                 // Auto-delete recording after 30 seconds for privacy
                 setTimeout(() => {
