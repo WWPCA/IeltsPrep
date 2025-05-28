@@ -42,7 +42,15 @@ setup_global_security(app)
 # Import the assessment details route
 from add_assessment_details_route import assessment_details_route
 
-# Speaking assessment selection route
+# Speaking assessment selection route - catches the old URL
+@app.route('/assessments/speaking')
+@login_required
+def speaking_assessment_redirect():
+    """Redirect old speaking route to new 4 Elaris® assessment interface"""
+    return render_template('assessments/speaking_selection.html', 
+                         title='Academic Speaking Assessments',
+                         assessment_type='academic_speaking')
+
 @app.route('/assessments/academic_speaking')
 @login_required
 def academic_speaking_selection():
