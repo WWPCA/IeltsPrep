@@ -94,7 +94,7 @@ def assessment_start(assessment_type, assessment_number):
     
     if assessment_number not in [1, 2, 3, 4]:
         flash('Invalid assessment number.', 'danger')
-        return redirect(url_for('assessment_index'))
+        return redirect(url_for('profile'))
     
     # Check if user has access to this assessment type
     user_accessible = assessment_assignment_service.get_user_accessible_assessments(
@@ -103,7 +103,7 @@ def assessment_start(assessment_type, assessment_number):
     
     if not user_accessible:
         flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
-        return redirect(url_for('assessment_index'))
+        return redirect(url_for('profile'))
     
     # Determine which template to use based on assessment type
     if 'speaking' in assessment_type:
