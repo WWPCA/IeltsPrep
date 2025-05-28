@@ -285,6 +285,11 @@ document.addEventListener('DOMContentLoaded', () => {
     from flask import Response
     return Response(js_code, mimetype='application/javascript')
 
+@recovery_bp.route('/demo')
+def recovery_demo():
+    """Demo page showing how the recovery system works."""
+    return render_template('recovery_demo.html')
+
 def register_recovery_routes(app):
     """Register recovery routes with the Flask app."""
     app.register_blueprint(recovery_bp)
