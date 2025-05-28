@@ -159,7 +159,7 @@
                     {% endif %}
                     
                     <div class="text-center">
-                        <a href="{{ url_for('assessment_start', assessment_type=assessment_type, assessment_number=assessment_number) }}" 
+                        <a href="/writing/assessment/{{ assessment_type }}/{{ assessment_number }}" 
                            class="btn btn-success start-assessment-btn">
                             <i class="fas fa-play me-2"></i>Begin Assessment {{ assessment_number }}
                         </a>
