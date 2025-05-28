@@ -7,6 +7,7 @@ import urllib
 import logging
 import random
 import requests
+import hashlib
 from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, session, abort, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -24,6 +25,16 @@ from aws_services import analyze_speaking_response, analyze_pronunciation, trans
 from geoip_services import get_country_from_ip
 from country_restrictions import country_access_required, is_country_restricted, RESTRICTION_MESSAGE
 
+# Import comprehensive security system
+from security_manager import (
+    security_manager, 
+    rate_limit, 
+    validate_inputs, 
+    secure_session, 
+    api_protection, 
+    account_lockout_protection
+)
+
 # Import the assessment details route
 from add_assessment_details_route import assessment_details_route
 
@@ -35,19 +46,39 @@ def index():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@rate_limit('login')
+@account_lockout_protection()
+@validate_inputs(email='email', password='text')
 def login():
-    """Login page with form validation"""
+    """Login page with enhanced security validation"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        identifier = security_manager.get_client_identifier()
+        
+        # Enhanced validation
+        if not email or not password:
+            flash('Please provide both email and password', 'danger')
+            return render_template('login.html', title='Login')
         
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
+            # Successful login - clear failed attempts
+            security_manager.clear_failed_attempts(identifier)
+            security_manager.log_security_event('successful_login', {'user_id': user.id})
+            
             login_user(user)
+            
+            # Enhanced session security
+            session.permanent = True
+            session['user_agent_hash'] = hashlib.md5(
+                request.headers.get('User-Agent', '').encode()
+            ).hexdigest()
+            session['last_activity'] = datetime.now().isoformat()
             
             next_page = request.args.get('next')
             if next_page and urlparse(next_page).netloc == '':
@@ -55,7 +86,18 @@ def login():
             
             return redirect(url_for('index'))
         else:
-            flash('Invalid username or password', 'danger')
+            # Failed login - record attempt
+            failed_count = security_manager.record_failed_login(identifier)
+            security_manager.log_security_event(
+                'failed_login', 
+                {'email': email, 'attempt_count': failed_count}
+            )
+            
+            if failed_count >= security_manager.max_login_attempts:
+                flash('Account temporarily locked due to multiple failed attempts. Please try again later.', 'danger')
+            else:
+                remaining = security_manager.max_login_attempts - failed_count
+                flash(f'Invalid email or password. {remaining} attempts remaining.', 'danger')
     
     return render_template('login.html', title='Login')
 
@@ -75,21 +117,33 @@ def change_password():
     return render_template('change_password.html', title='Change Password')
 
 @app.route('/register', methods=['GET', 'POST'])
+@rate_limit('login')
+@validate_inputs(email='email', password='password', name='name')
 def register():
-    """Registration page with form validation"""
+    """Registration page with enhanced security validation"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
+        name = request.form.get('name')
+        age_verified = request.form.get('age_verified')
         
-        # Check if username exists
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash('Username already exists. Please choose a different one.', 'danger')
-            return redirect(url_for('register'))
+        # Enhanced validation
+        if not email or not password or not name:
+            flash('Please provide all required fields', 'danger')
+            return render_template('register.html', title='Register')
+        
+        # Age verification check
+        if not age_verified:
+            flash('You must confirm that you are 16 years or older to register', 'danger')
+            return render_template('register.html', title='Register')
+        
+        # Check password complexity
+        if not security_manager.validate_input(password, 'password'):
+            flash('Password must be at least 8 characters with uppercase, lowercase, number, and special character', 'danger')
+            return render_template('register.html', title='Register')
         
         # Check if email exists
         user = User.query.filter_by(email=email).first()
@@ -99,8 +153,8 @@ def register():
         
         # Create new user
         new_user = User()
-        new_user.username = username
         new_user.email = email
+        new_user.name = name
         new_user.assessment_preference = 'academic'  # Default value
         new_user.set_password(password)
         
