@@ -42,6 +42,45 @@ setup_global_security(app)
 # Import the assessment details route
 from add_assessment_details_route import assessment_details_route
 
+# Import Nova Sonic for speech generation
+from nova_sonic_services import NovaSonicService
+
+# Speech generation API route for Elaris® British voice
+@app.route('/api/generate_speech', methods=['POST'])
+@login_required
+@api_protection
+def generate_speech():
+    """Generate speech audio using Nova Sonic for Elaris® British voice"""
+    try:
+        data = request.get_json()
+        question_text = data.get('text', '')
+        
+        if not question_text:
+            return jsonify({'success': False, 'error': 'No text provided'})
+        
+        # Initialize Nova Sonic service
+        nova_sonic = NovaSonicService()
+        
+        # Generate speech with British female voice for Elaris®
+        result = nova_sonic.generate_speech(
+            text=question_text,
+            voice='british_female',
+            style='professional_examiner'
+        )
+        
+        if result.get('success'):
+            return jsonify({
+                'success': True,
+                'audio_url': result.get('audio_url'),
+                'audio_data': result.get('audio_data')
+            })
+        else:
+            return jsonify({'success': False, 'error': result.get('error', 'Speech generation failed')})
+            
+    except Exception as e:
+        logger.error(f"Speech generation error: {e}")
+        return jsonify({'success': False, 'error': 'Speech generation service unavailable'})
+
 # Speaking assessment selection route - catches the old URL
 @app.route('/assessments/speaking')
 @login_required

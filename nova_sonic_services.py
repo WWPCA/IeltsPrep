@@ -322,6 +322,65 @@ class NovaSonicService:
         # This could be enhanced to extract real-time assessment notes
         return "Assessment in progress..."
 
+    def generate_speech(self, text, voice='british_female', style='professional_examiner'):
+        """
+        Generate speech audio using Nova Sonic for Elaris® British voice
+        
+        Args:
+            text (str): Text to convert to speech
+            voice (str): Voice type (british_female for Elaris®)
+            style (str): Speaking style (professional_examiner)
+            
+        Returns:
+            dict: Speech generation result with audio data
+        """
+        try:
+            response = self.client.invoke_model(
+                modelId='amazon.nova-sonic-v1:0',
+                contentType='application/json',
+                accept='application/json',
+                body=json.dumps({
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "text": f"Generate natural speech for: {text}"
+                                }
+                            ]
+                        }
+                    ],
+                    "inferenceConfig": {
+                        "max_new_tokens": 1000,
+                        "temperature": 0.3
+                    },
+                    "additionalModelRequestFields": {
+                        "voice": voice,
+                        "speaking_style": style,
+                        "output_format": "audio/wav"
+                    }
+                })
+            )
+            
+            result = json.loads(response['body'].read())
+            
+            if 'audio_data' in result:
+                return {
+                    "success": True,
+                    "audio_data": result['audio_data'],
+                    "audio_url": f"data:audio/wav;base64,{result['audio_data']}"
+                }
+            else:
+                logger.warning("No audio data in Nova Sonic response")
+                return {"success": False, "error": "No audio generated"}
+                
+        except ClientError as e:
+            logger.error(f"Nova Sonic speech generation error: {e}")
+            return {"success": False, "error": str(e)}
+        except Exception as e:
+            logger.error(f"Unexpected speech generation error: {e}")
+            return {"success": False, "error": str(e)}
+
 # Initialize the service
 try:
     nova_sonic_service = NovaSonicService()
