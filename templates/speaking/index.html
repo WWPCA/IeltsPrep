@@ -1,598 +1,162 @@
 {% extends "layout.html" %}
 
-{% block head_scripts %}
-<!-- Bootstrap JS for Modal functionality -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+{% block styles %}
+{{ super() }}
+<style>
+    .assessment-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        border: 2px solid #e9ecef;
+        height: 100%;
+    }
+    
+    .assessment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+        border-color: #007bff;
+    }
+    
+    .elaris-badge {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: white;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .assessment-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 1rem;
+    }
+    
+    .test-parts {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .part-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .part-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .part-number {
+        background-color: #007bff;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .start-button {
+        width: 100%;
+        padding: 0.8rem;
+        font-weight: bold;
+        border-radius: 8px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row">
-        <div class="col-lg-8 mx-auto">
+        <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('practice_index') }}">Practice Tests</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Speaking Assessment</li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('assessment_index') }}">Assessments</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Speaking Assessments</li>
                 </ol>
             </nav>
             
-            {% if assessment %}
-                <!-- Speaking Assessment Interface -->
-                <div class="speaking-test" data-prompt-id="{{ prompt.id }}">
-                    <h1 class="mb-4">IELTS Speaking Assessment</h1>
-                    
-                    <!-- Regular Info Box without fixed position -->
-                    <div class="mb-4">
-                        <div class="alert alert-info mb-3">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="fas fa-comment fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h4>About IELTS Speaking</h4>
-                                    <p class="mb-0">The IELTS Speaking test is a face-to-face interview with an IELTS examiner lasting 11-14 minutes. It consists of three parts: an introduction, a long turn, and a discussion. Our AI-powered assessment tool helps you prepare by providing instant feedback on your speaking performance.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {% if not current_user.is_subscribed() %}
-                            <div class="alert alert-warning">
-                                <div class="d-flex">
-                                    <div class="me-3">
-                                        <i class="fas fa-crown fa-2x"></i>
-                                    </div>
-                                    <div>
-                                        <h4>Subscribe for Access</h4>
-                                        <p>Subscribe to one of our test packages to unlock all speaking assessments with AI-powered feedback.</p>
-                                        <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">Speaking Assessments</h1>
+                <div class="elaris-badge mx-auto">
+                    <i class="fas fa-robot me-2"></i>Powered by Elaris® GenAI Technology
+                </div>
+                <p class="lead mt-3">Choose from 4 identical speaking assessments. Each assessment follows the same format with different questions.</p>
+            </div>
+            
+            <div class="row g-4">
+                {% for assessment_num in range(1, 5) %}
+                <div class="col-lg-6">
+                    <div class="card assessment-card">
+                        <div class="card-body text-center">
+                            <div class="assessment-number">Assessment {{ assessment_num }}</div>
+                            
+                            <div class="test-parts">
+                                <h5 class="mb-3">Test Structure</h5>
+                                <div class="part-item">
+                                    <div class="part-number">1</div>
+                                    <div class="text-start">
+                                        <strong>Introduction & Interview</strong><br>
+                                        <small class="text-muted">4-5 minutes</small>
                                     </div>
                                 </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Speaking Prompt - Part {{ prompt.part }}</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="prompt-text">
-                                {{ prompt.prompt_text }}
+                                <div class="part-item">
+                                    <div class="part-number">2</div>
+                                    <div class="text-start">
+                                        <strong>Long Turn Speaking</strong><br>
+                                        <small class="text-muted">3-4 minutes</small>
+                                    </div>
+                                </div>
+                                <div class="part-item">
+                                    <div class="part-number">3</div>
+                                    <div class="text-start">
+                                        <strong>Two-Way Discussion</strong><br>
+                                        <small class="text-muted">4-5 minutes</small>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="alert alert-info mt-3">
-                                <div class="d-flex">
-                                    <div class="me-3">
-                                        <i class="fas fa-info-circle fa-2x"></i>
-                                    </div>
-                                    <div>
-                                        <h4>IELTS Speaking Guidelines</h4>
-                                        <p class="mb-0">
-                                            {% if prompt.part == 1 %}
-                                                Part 1 consists of simple questions about familiar topics. Aim to give detailed but concise answers (2-3 sentences).
-                                            {% elif prompt.part == 2 %}
-                                                Part 2 is a "long turn." You should speak for 1-2 minutes on the given topic without interruption.
-                                            {% else %}
-                                                Part 3 consists of more abstract questions related to the Part 2 topic. You should give developed, thoughtful answers.
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">Record Your Response</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-info mb-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <i class="fas fa-headphones-alt fa-2x"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1">Test Your Microphone First</h5>
-                                        <p class="mb-0">We recommend testing your microphone before starting your speaking assessment to ensure your response is recorded properly.</p>
-                                    </div>
-                                    <div class="ms-auto">
-                                        <button id="test-microphone-button" class="btn btn-primary">
-                                            <i class="fas fa-microphone-alt me-2"></i> Test Microphone
-                                        </button>
-                                    </div>
-                                </div>
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Elaris® AI Assessment</strong><br>
+                                Real-time GenAI evaluation with detailed feedback
                             </div>
                             
-                            <div class="recording-controls text-center">
-                                <button id="record-button" class="btn btn-danger btn-lg me-3">
-                                    <i class="fas fa-microphone"></i> Start Recording
-                                </button>
-                                <button id="stop-button" class="btn btn-secondary btn-lg" disabled>
-                                    <i class="fas fa-stop"></i> Stop Recording
-                                </button>
-                                <span id="record-time" class="record-time ms-3" style="display: none;">00:00</span>
-                            </div>
-                            
-                            <div class="alert alert-light border mt-3">
-                                <div class="d-flex">
-                                    <div class="me-3">
-                                        <i class="fas fa-lightbulb text-warning fa-2x"></i>
-                                    </div>
-                                    <div>
-                                        <h4>Speaking Tips</h4>
-                                        <ul class="mb-0">
-                                            <li>Speak naturally and clearly, at a normal pace</li>
-                                            <li>Use a range of vocabulary and grammatical structures</li>
-                                            <li>Organize your ideas with clear structure</li>
-                                            <li>Include examples and personal experiences</li>
-                                            <li>Aim to speak for 1-2 minutes for Part 2 questions</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="audio-playback"></div>
-                    
-                    <div id="feedback-container"></div>
-                    
-                    <!-- How It Works - Kept visible during assessment -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">How It Works</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                    <div class="feature-icon mb-2">
-                                        <i class="fas fa-microphone-alt fa-3x text-primary"></i>
-                                    </div>
-                                    <h3 class="h5">1. Record</h3>
-                                    <p>Record your response to an IELTS-style speaking prompt.</p>
-                                </div>
-                                
-                                <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                    <div class="feature-icon mb-2">
-                                        <i class="fas fa-cloud-upload-alt fa-3x text-primary"></i>
-                                    </div>
-                                    <h3 class="h5">2. Submit</h3>
-                                    <p>Submit your recording for AI analysis powered by AWS.</p>
-                                </div>
-                                
-                                <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                    <div class="feature-icon mb-2">
-                                        <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Assessment" width="60" height="60">
-                                    </div>
-                                    <h3 class="h5">3. Analyze</h3>
-                                    <p>Our AI evaluates your pronunciation, fluency, vocabulary, and grammar.</p>
-                                </div>
-                                
-                                <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                    <div class="feature-icon mb-2">
-                                        <i class="fas fa-chart-line fa-3x text-primary"></i>
-                                    </div>
-                                    <h3 class="h5">4. Improve</h3>
-                                    <p>Receive detailed feedback and track your progress over time.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- IELTS Speaking Parts - Kept visible during assessment -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h2 class="h4 mb-0">IELTS Speaking Parts</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="accordion" id="speakingPartsAccordion">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingOne">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                            Part 1: Introduction and Interview (4-5 minutes)
-                                        </button>
-                                    </h2>
-                                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#speakingPartsAccordion">
-                                        <div class="accordion-body">
-                                            <p>The examiner introduces themselves and asks you to introduce yourself and confirm your identity. They will then ask general questions on familiar topics such as:</p>
-                                            <ul>
-                                                <li>Home</li>
-                                                <li>Family</li>
-                                                <li>Work or studies</li>
-                                                <li>Hobbies and interests</li>
-                                                <li>Daily routines</li>
-                                            </ul>
-                                            <p>This part tests your ability to communicate opinions and information on everyday topics by answering a range of questions.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingTwo">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                            Part 2: Long Turn (3-4 minutes)
-                                        </button>
-                                    </h2>
-                                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#speakingPartsAccordion">
-                                        <div class="accordion-body">
-                                            <p>The examiner gives you a task card with a topic and some points to include in your talk. You have 1 minute to prepare and make notes, then you need to talk about the topic for 1-2 minutes. Topics are usually about:</p>
-                                            <ul>
-                                                <li>Describing a person, place, object, or event</li>
-                                                <li>Talking about an experience or memory</li>
-                                                <li>Explaining a preference or decision</li>
-                                            </ul>
-                                            <p>After your talk, the examiner may ask one or two brief questions on the same topic. This part tests your ability to speak at length with minimal hesitation and to use language accurately and appropriately.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingThree">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                            Part 3: Discussion (4-5 minutes)
-                                        </button>
-                                    </h2>
-                                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#speakingPartsAccordion">
-                                        <div class="accordion-body">
-                                            <p>The examiner asks further questions connected to the topic in Part 2, allowing a deeper discussion of more abstract ideas and issues. Questions typically ask you to:</p>
-                                            <ul>
-                                                <li>Analyze situations or problems</li>
-                                                <li>Discuss hypothetical scenarios</li>
-                                                <li>Evaluate different options or viewpoints</li>
-                                                <li>Make comparisons or speculate about the future</li>
-                                            </ul>
-                                            <p>This part tests your ability to explain and justify opinions and to analyze, discuss and speculate about issues.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Subscribe for more speaking prompts -->
-                    {% if not current_user.is_subscribed() %}
-                    <div class="card mb-4 border-warning">
-                        <div class="card-header bg-warning text-dark">
-                            <h2 class="h4 mb-0"><i class="fas fa-crown me-2"></i>Unlock Premium IELTS Speaking Practice</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-microphone-alt fa-4x text-warning mb-3"></i>
-                                <h3>Access All Speaking Prompts</h3>
-                                <p class="lead">Subscribe to our premium plan to unlock all speaking prompts and receive personalized AI feedback on your responses.</p>
-                            </div>
-                            
-                            <div class="row mb-4">
-                                <div class="col-md-4 mb-3 mb-md-0">
-                                    <div class="feature text-center">
-                                        <i class="fas fa-comments fa-2x text-primary mb-2"></i>
-                                        <h4 class="h5">12+ Speaking Prompts</h4>
-                                        <p>Access our growing library of speaking prompts covering all IELTS parts.</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3 mb-md-0">
-                                    <div class="feature text-center">
-                                        <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Assessment" width="40" height="40" class="mb-2">
-                                        <h4 class="h5">AI Speech Analysis</h4>
-                                        <p>Get detailed feedback on your pronunciation, fluency, and vocabulary.</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="feature text-center">
-                                        <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                                        <h4 class="h5">Track Progress</h4>
-                                        <p>Monitor your speaking improvements over time with detailed analytics.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="text-center">
-                                <a href="{{ url_for('subscribe') }}" class="btn btn-warning btn-lg">
-                                    <i class="fas fa-unlock-alt me-2"></i>Subscribe Now
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-                
-            {% else %}
-                <!-- Speaking Test Overview -->
-                <h1 class="mb-4">IELTS Speaking Assessment</h1>
-                
-                <!-- Info Box -->
-                <div class="mb-4">
-                    <div class="alert alert-info mb-3">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="fas fa-comment fa-2x"></i>
-                            </div>
-                            <div>
-                                <h4>About the IELTS Speaking Test Module</h4>
-                                <p class="mb-0">The IELTS Speaking test is a face-to-face interview with a certified IELTS examiner lasting 11-14 minutes. This module assesses your English speaking abilities through three distinct parts: Part 1 (Introduction and Interview), Part 2 (Long Turn), and Part 3 (Discussion). Our AI-powered IELTS preparation tool provides detailed band score feedback on all four assessment criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.</p>
-                            </div>
-                        </div>
-                    </div>
-                
-                    {% if is_sample %}
-                        <div class="alert alert-warning mb-4">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="fas fa-crown fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h4>This is a Sample View</h4>
-                                    <p>This is a preview of our AI-powered Speaking Assessment tool. To access the full functionality and practice with our advanced AI feedback system, please subscribe to one of our plans.</p>
-                                    <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Sample Video Tutorial Placeholder -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-primary text-white">
-                                <h2 class="h4 mb-0">How It Works - Video Tutorial</h2>
-                            </div>
-                            <div class="card-body">
-                                <div class="ratio ratio-16x9 mb-3">
-                                    <!-- This is a placeholder for the video that will be uploaded later -->
-                                    <div class="d-flex align-items-center justify-content-center bg-light border rounded p-5">
-                                        <div class="text-center">
-                                            <i class="fas fa-video fa-4x text-secondary mb-3"></i>
-                                            <h3 class="h5">Video Tutorial Coming Soon</h3>
-                                            <p class="text-muted mb-0">A detailed tutorial demonstrating how to use the speaking assessment features will be available here.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="text-muted"><small>This tutorial shows how to use our AI-powered speaking assessment tool to improve your IELTS speaking score.</small></p>
-                            </div>
-                        </div>
-                    {% endif %}
-                
-                    {% if not current_user.is_authenticated %}
-                        <div class="alert alert-warning">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="fas fa-user-lock fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h4>Login to Access Speaking Assessment</h4>
-                                    <p>Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to access our Speaking Assessment tool.</p>
-                                    <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
-                                    <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
-                                </div>
-                            </div>
-                        </div>
-                    {% elif not current_user.is_subscribed() %}
-                        <div class="alert alert-warning">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="fas fa-crown fa-2x"></i>
-                                </div>
-                                <div>
-                                    <h4>Subscribe for Access</h4>
-                                    <p>Subscribe to one of our test packages to unlock all speaking assessments with AI-powered feedback.</p>
-                                    <a href="{{ url_for('subscribe') }}" class="btn btn-primary">Subscribe Now</a>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="h4 mb-0">How Our IELTS Speaking Test Preparation System Works</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                <div class="feature-icon mb-2">
-                                    <i class="fas fa-microphone-alt fa-3x text-primary"></i>
-                                </div>
-                                <h3 class="h5">1. Record Your IELTS Response</h3>
-                                <p>Record your spoken response to authentic IELTS-style speaking prompts covering all three parts of the IELTS speaking test.</p>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                <div class="feature-icon mb-2">
-                                    <i class="fas fa-cloud-upload-alt fa-3x text-primary"></i>
-                                </div>
-                                <h3 class="h5">2. Submit for Assessment</h3>
-                                <p>Submit your IELTS speaking recording for in-depth analysis by our advanced AI system using AWS speech recognition technology.</p>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                <div class="feature-icon mb-2">
-                                    <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Assessment" width="60" height="60" class="text-primary">
-                                </div>
-                                <h3 class="h5">3. Receive Band Score Analysis</h3>
-                                <p>Our AI evaluates your speaking against IELTS criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.</p>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3 mb-md-0 text-center">
-                                <div class="feature-icon mb-2">
-                                    <i class="fas fa-chart-line fa-3x text-primary"></i>
-                                </div>
-                                <h3 class="h5">4. Track Band Score Progress</h3>
-                                <p>Review detailed feedback, implement improvement strategies, and monitor your IELTS band score progress over time.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="h4 mb-0">IELTS Speaking Test Format and Structure</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="accordion" id="speakingPartsAccordion">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingOne">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                        IELTS Speaking Part 1: Introduction and Interview (4-5 minutes)
-                                    </button>
-                                </h2>
-                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#speakingPartsAccordion">
-                                    <div class="accordion-body">
-                                        <p>The IELTS examiner introduces themselves and asks you to introduce yourself and confirm your identity. They will then ask a series of questions on familiar topics such as:</p>
-                                        <ul>
-                                            <li>Your home or accommodation</li>
-                                            <li>Your family and friends</li>
-                                            <li>Your work or studies</li>
-                                            <li>Your hobbies and interests</li>
-                                            <li>Your daily routines and activities</li>
-                                            <li>Your hometown or country</li>
-                                        </ul>
-                                        <p>This part of the IELTS Speaking test assesses your ability to communicate opinions and information on everyday topics by answering a range of questions. You will be evaluated on your fluency, pronunciation, vocabulary use, and grammatical accuracy.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingTwo">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                        IELTS Speaking Part 2: Individual Long Turn (3-4 minutes)
-                                    </button>
-                                </h2>
-                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#speakingPartsAccordion">
-                                    <div class="accordion-body">
-                                        <p>In IELTS Speaking Part 2, the examiner gives you a task card with a topic and specific points to include in your talk. You have exactly 1 minute to prepare and make notes, then you must speak about the topic for 1-2 minutes without interruption. Common IELTS Speaking Part 2 topics include:</p>
-                                        <ul>
-                                            <li>Describing a person (friend, family member, teacher, etc.)</li>
-                                            <li>Describing a place (city, building, historical site, etc.)</li>
-                                            <li>Describing an object (something you own, gift, etc.)</li>
-                                            <li>Describing an event (celebration, festival, etc.)</li>
-                                            <li>Talking about a personal experience or memory</li>
-                                            <li>Explaining a preference, choice, or decision</li>
-                                        </ul>
-                                        <p>After your long turn, the examiner may ask one or two brief follow-up questions on the same topic. This part evaluates your ability to speak at length with minimal hesitation and to organize your ideas coherently while using varied vocabulary and grammar structures appropriately.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingThree">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                        IELTS Speaking Part 3: Two-Way Discussion (4-5 minutes)
-                                    </button>
-                                </h2>
-                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#speakingPartsAccordion">
-                                    <div class="accordion-body">
-                                        <p>In IELTS Speaking Part 3, the examiner asks further questions connected to the topic from Part 2, but these questions explore more abstract ideas and issues. This section is designed to test your critical thinking skills and ability to express complex thoughts in English. You may be asked to:</p>
-                                        <ul>
-                                            <li>Analyze social situations or global problems</li>
-                                            <li>Discuss hypothetical scenarios and their implications</li>
-                                            <li>Evaluate different options, perspectives, or viewpoints</li>
-                                            <li>Make comparisons between different time periods or cultures</li>
-                                            <li>Speculate about future trends or developments</li>
-                                            <li>Express and justify your opinions on broader issues</li>
-                                        </ul>
-                                        <p>This most challenging part of the IELTS Speaking test evaluates your ability to develop ideas thoroughly, use a wide range of vocabulary and complex sentence structures, maintain fluency while discussing abstract concepts, and demonstrate critical thinking ability in English. Your band score will reflect your performance across all four assessment criteria.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Subscribe button -->
-                {% if current_user.is_authenticated and not current_user.is_subscribed() %}
-                <div class="card mb-4 border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h2 class="h4 mb-0"><i class="fas fa-crown me-2"></i>Achieve Higher IELTS Speaking Band Scores with Premium Practice</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-4">
-                            <i class="fas fa-microphone-alt fa-4x text-warning mb-3"></i>
-                            <h3>Complete IELTS Speaking Test Preparation</h3>
-                            <p class="lead">Subscribe to our comprehensive IELTS preparation plan to access all exam-format speaking prompts for Parts 1, 2, and 3, plus receive detailed band score feedback across all assessment criteria.</p>
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="feature text-center">
-                                    <i class="fas fa-comments fa-2x text-primary mb-2"></i>
-                                    <h4 class="h5">Authentic IELTS Practice</h4>
-                                    <p>Access our extensive library of speaking prompts covering all three parts of the IELTS Speaking test with topics that mirror those in the real exam.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="feature text-center">
-                                    <img src="{{ url_for('static', filename='images/graduation_cap_icon.svg') }}?v={{ cache_buster }}" alt="AI Assessment" width="40" height="40" class="text-primary mb-2">
-                                    <h4 class="h5">Detailed Band Score Analysis</h4>
-                                    <p>Receive comprehensive feedback on your Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation — the exact criteria used by IELTS examiners.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="feature text-center">
-                                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                                    <h4 class="h5">Track Band Score Progress</h4>
-                                    <p>Monitor your speaking improvements over time with detailed analytics showing progress toward your target band score in each assessment criterion.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center">
-                            <a href="{{ url_for('subscribe') }}" class="btn btn-warning btn-lg">
-                                <i class="fas fa-unlock-alt me-2"></i>Start IELTS Preparation
+                            <a href="{{ url_for('speaking_assessment_start', assessment_type='academic_speaking', assessment_number=assessment_num) }}" 
+                               class="btn btn-primary start-button">
+                                <i class="fas fa-play me-2"></i>Start Assessment {{ assessment_num }}
                             </a>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-                
-                {% if prompts and current_user.is_authenticated %}
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="h4 mb-0">Start a Speaking Assessment</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <p><strong>Free Trial:</strong> Try our speaking assessment with one free speaking prompt. Subscribe to unlock all prompts.</p>
+                {% endfor %}
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Important Notes</h5>
                         </div>
-                        
-                        <div class="row">
-                            {% for prompt in prompts %}
-                                {% if prompt.id == 1 or current_user.is_subscribed() %}
-                                <div class="col-md-4 mb-3">
-                                    <div class="card h-100">
-                                        <div class="card-header bg-primary text-white">
-                                            <h3 class="h5 mb-0">Part {{ prompt.part }} Prompt</h3>
-                                        </div>
-                                        <div class="card-body">
-                                            <p>{{ prompt.prompt_text|truncate(80) }}</p>
-                                            {% if current_user.is_authenticated and prompt.id in completed_prompt_ids %}
-                                                <div class="mt-2 text-success">
-                                                    <i class="fas fa-check-circle"></i> Completed
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="card-footer bg-white text-center">
-                                            {% if current_user.is_authenticated and prompt.id in completed_prompt_ids %}
-                                                <button class="btn btn-secondary" disabled>
-                                                    <i class="fas fa-check-circle me-1"></i> Completed
-                                                </button>
-                                            {% else %}
-                                                <a href="{{ url_for('speaking_assessment', prompt_id=prompt.id) }}" class="btn btn-primary">
-                                                    Start Assessment
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                <li><strong>Test your microphone and speakers</strong> before starting any assessment</li>
+                                <li>Each assessment contains <strong>unique questions</strong> following the same IELTS format</li>
+                                <li>Assessments are <strong>available until used</strong> - no time expiration</li>
+                                <li>Once started, you can <strong>restart if your connection drops</strong></li>
+                                <li>Detailed <strong>Elaris® GenAI feedback</strong> provided after completion</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-{# Speaking.js is already included in layout.html for URLs starting with /speaking #}
 {% endblock %}
