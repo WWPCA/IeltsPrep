@@ -63,9 +63,25 @@ def academic_speaking_selection():
 @login_required
 def general_speaking_selection():
     """Display 4 identical Elaris® General Training Speaking assessments"""
-    return render_template('assessments/speaking_selection.html',
+    return render_template('assessments/general_speaking_selection.html',
                          title='General Training Speaking Assessments', 
                          assessment_type='general_speaking')
+
+@app.route('/assessments/academic_writing')
+@login_required
+def academic_writing_selection():
+    """Display 4 identical TrueScore® Academic Writing assessments"""
+    return render_template('assessments/academic_writing_selection.html',
+                         title='Academic Writing Assessments',
+                         assessment_type='academic_writing')
+
+@app.route('/assessments/general_writing')
+@login_required
+def general_writing_selection():
+    """Display 4 identical TrueScore® General Training Writing assessments"""
+    return render_template('assessments/general_writing_selection.html',
+                         title='General Training Writing Assessments',
+                         assessment_type='general_writing')
 
 @app.route('/assessments/<assessment_type>/assessment/<int:assessment_number>')
 @login_required
