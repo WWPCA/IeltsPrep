@@ -241,3 +241,77 @@ def analyze_writing_response(student_essay, prompt, task_type="task1", test_type
             "summary_feedback": "We are currently experiencing technical difficulties with our assessment service. Please try again later.",
             "improvement_tips": ["Please try submitting your response again later."]
         }
+
+def assess_writing_task1(essay_text, prompt_text, test_type="academic"):
+    """
+    Assess IELTS Writing Task 1 using Nova Micro.
+    
+    Args:
+        essay_text (str): The student's Task 1 response
+        prompt_text (str): The original Task 1 prompt
+        test_type (str): "academic" or "general"
+    
+    Returns:
+        dict: Assessment results
+    """
+    return analyze_writing_response(essay_text, prompt_text, "task1", test_type)
+
+def assess_writing_task2(essay_text, prompt_text, test_type="academic"):
+    """
+    Assess IELTS Writing Task 2 using Nova Micro.
+    
+    Args:
+        essay_text (str): The student's Task 2 response
+        prompt_text (str): The original Task 2 prompt
+        test_type (str): "academic" or "general"
+    
+    Returns:
+        dict: Assessment results
+    """
+    return analyze_writing_response(essay_text, prompt_text, "task2", test_type)
+
+def assess_complete_writing_test(task1_text, task1_prompt, task2_text, task2_prompt, test_type="academic"):
+    """
+    Assess a complete IELTS Writing test (both tasks) using Nova Micro.
+    
+    Args:
+        task1_text (str): The student's Task 1 response
+        task1_prompt (str): The original Task 1 prompt
+        task2_text (str): The student's Task 2 response
+        task2_prompt (str): The original Task 2 prompt
+        test_type (str): "academic" or "general"
+    
+    Returns:
+        dict: Combined assessment results for both tasks
+    """
+    try:
+        # Assess both tasks separately
+        task1_assessment = assess_writing_task1(task1_text, task1_prompt, test_type)
+        task2_assessment = assess_writing_task2(task2_text, task2_prompt, test_type)
+        
+        # Calculate overall score (Task 2 weighted more heavily)
+        task1_score = task1_assessment.get("overall_score", 0)
+        task2_score = task2_assessment.get("overall_score", 0)
+        overall_score = round(((task1_score + task2_score * 2) / 3) * 2) / 2  # Round to nearest 0.5
+        
+        return {
+            "task1_assessment": task1_assessment,
+            "task2_assessment": task2_assessment,
+            "overall_score": overall_score,
+            "summary_feedback": f"Overall performance across both writing tasks shows {overall_score} band level.",
+            "improvement_tips": [
+                "Focus on fully addressing all parts of each task",
+                "Improve coherence and organization across both responses",
+                "Expand vocabulary range and accuracy",
+                "Work on grammatical complexity and accuracy"
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error assessing complete writing test: {str(e)}")
+        return {
+            "task1_assessment": {"overall_score": 0, "error": str(e)},
+            "task2_assessment": {"overall_score": 0, "error": str(e)},
+            "overall_score": 0,
+            "summary_feedback": "Assessment service temporarily unavailable.",
+            "improvement_tips": ["Please try again later."]
+        }
