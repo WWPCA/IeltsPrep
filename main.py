@@ -18,7 +18,7 @@ add_assessment_routes(app)
 # Import core assessment routes
 import assessment_routes  # noqa: F401
 import writing_assessment_routes  # noqa: F401
-import speaking_assessment_routes  # noqa: F401
+# Removed old speaking assessment routes - using new 4 Elaris® assessment structure
 
 # Import assessment structure routes
 import assessment_structure_routes  # noqa: F401
@@ -44,9 +44,7 @@ app.register_blueprint(cart_bp, url_prefix='/cart')
 from gdpr_routes import gdpr_bp
 app.register_blueprint(gdpr_bp)
 
-# Import and register conversational speaking routes
-# from conversational_speaking_routes import register_conversational_routes
-# register_conversational_routes(app)
+# Old conversational routes removed - using new 4 Elaris® assessment structure
 
 # Configure Talisman with security headers but let Replit handle HTTPS
 Talisman(app, 
