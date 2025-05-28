@@ -96,12 +96,22 @@ def assessment_start(assessment_type, assessment_number):
         flash('Invalid assessment number.', 'danger')
         return redirect(url_for('profile'))
     
-    # Check if user has access to this assessment type
-    user_accessible = assessment_assignment_service.get_user_accessible_assessments(
-        current_user.id, assessment_type
-    )
+    # Check if user has active assessment package for this type
+    package_status = current_user.assessment_package_status or ""
+    has_access = False
     
-    if not user_accessible:
+    if 'academic_speaking' in assessment_type and ('Academic Speaking' in package_status or 'All Products' in package_status):
+        has_access = True
+    elif 'general_speaking' in assessment_type and ('General Speaking' in package_status or 'All Products' in package_status):
+        has_access = True
+    elif 'academic_writing' in assessment_type and ('Academic Writing' in package_status or 'All Products' in package_status):
+        has_access = True
+    elif 'general_writing' in assessment_type and ('General Writing' in package_status or 'All Products' in package_status):
+        has_access = True
+    elif hasattr(current_user, 'is_admin') and current_user.is_admin:
+        has_access = True
+    
+    if not has_access:
         flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
         return redirect(url_for('profile'))
     
