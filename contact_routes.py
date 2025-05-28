@@ -28,19 +28,22 @@ def add_contact_routes(app):
             email = form.email.data
             message = form.message.data
             
-            # Send the contact form message to the backend email
-            from email_service import send_email
+            # Send professional branded emails
+            from enhanced_email_service import send_contact_form_notification, send_contact_auto_reply
             
-            # Email subject and content
-            subject = f"Contact Form Submission from {name}"
-            text_body = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
+            # Send notification to admin with professional template
+            admin_email = os.environ.get('ADMIN_EMAIL', 'info@ieltsaiprep.com')
+            try:
+                admin_sent = send_contact_form_notification(admin_email, name, email, message)
+                if admin_sent:
+                    # Send auto-reply to user
+                    send_contact_auto_reply(email, name)
+                    flash(f"Thank you, {name}! Your message has been received. We'll get back to you shortly.", "success")
+                else:
+                    flash("There was an issue sending your message. Please try again.", "error")
+            except Exception as e:
+                flash("There was an issue sending your message. Please try again.", "error")
             
-            # Send the email to the admin
-            admin_email = os.environ.get('ADMIN_EMAIL', 'worldwidepublishingco@gmail.com')
-            send_email(admin_email, subject, text_body)
-            
-            # Display success message without revealing the email address
-            flash(f"Thank you, {name}! Your message has been received. We'll get back to you shortly.", "success")
             return redirect(url_for('contact'))
         
         return render_template('contact.html', form=form)

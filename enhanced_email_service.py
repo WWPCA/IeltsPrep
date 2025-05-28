@@ -12,7 +12,9 @@ from email_templates import (
     get_email_verification_template, 
     get_payment_confirmation_template,
     get_assessment_completion_template,
-    get_account_deletion_template
+    get_account_deletion_template,
+    get_contact_form_notification_template,
+    get_contact_auto_reply_template
 )
 
 # Configure logging
@@ -112,6 +114,20 @@ class ProfessionalEmailService:
         subject = "Account Deletion Confirmation - IELTS AI Prep"
         
         return self._send_email(user_email, subject, html_body, text_body)
+    
+    def send_contact_form_notification(self, admin_email, name, user_email, message):
+        """Send contact form notification to admin with professional template"""
+        html_body, text_body = get_contact_form_notification_template(name, user_email, message)
+        subject = f"New Contact Form Submission from {name}"
+        
+        return self._send_email(admin_email, subject, html_body, text_body)
+    
+    def send_contact_auto_reply(self, user_email, name):
+        """Send auto-reply to user who submitted contact form"""
+        html_body, text_body = get_contact_auto_reply_template(name)
+        subject = "Thank You for Contacting IELTS AI Prep"
+        
+        return self._send_email(user_email, subject, html_body, text_body)
 
 # Create global instance
 professional_email_service = ProfessionalEmailService()
@@ -136,3 +152,11 @@ def send_assessment_completion(user_email, assessment_type, score_details):
 def send_account_deletion_confirmation(user_email):
     """Send account deletion confirmation"""
     return professional_email_service.send_account_deletion_confirmation(user_email)
+
+def send_contact_form_notification(admin_email, name, user_email, message):
+    """Send contact form notification to admin"""
+    return professional_email_service.send_contact_form_notification(admin_email, name, user_email, message)
+
+def send_contact_auto_reply(user_email, name):
+    """Send auto-reply to contact form submitter"""
+    return professional_email_service.send_contact_auto_reply(user_email, name)

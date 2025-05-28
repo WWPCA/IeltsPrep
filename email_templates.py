@@ -358,3 +358,108 @@ The IELTS AI Prep Team
     """
     
     return html_template, text_template
+
+def get_contact_form_notification_template(name, email, message):
+    """Contact form notification email template for admin"""
+    from datetime import datetime
+    
+    content = f"""
+        <h2>New Contact Form Submission</h2>
+        <p>You have received a new message through the IELTS AI Prep contact form.</p>
+        
+        <div style="background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 4px; padding: 20px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #0d47a1;">Contact Details</h3>
+            <p><strong>Name:</strong> {name}</p>
+            <p><strong>Email:</strong> {email}</p>
+            <p><strong>Submitted:</strong> {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
+        </div>
+        
+        <div style="background-color: #f8f9fa; border-radius: 4px; padding: 20px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #495057;">Message</h3>
+            <p style="white-space: pre-wrap; line-height: 1.6;">{message}</p>
+        </div>
+        
+        <p>Please respond to this inquiry at your earliest convenience by replying directly to <strong>{email}</strong>.</p>
+        
+        <p>Best regards,<br>IELTS AI Prep Contact System</p>
+    """
+    
+    html_template = get_email_template_base().format(content=content)
+    
+    text_template = f"""
+IELTS AI Prep - New Contact Form Submission
+
+You have received a new message through the IELTS AI Prep contact form.
+
+CONTACT DETAILS:
+Name: {name}
+Email: {email}
+Submitted: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}
+
+MESSAGE:
+{message}
+
+Please respond to this inquiry at your earliest convenience by replying directly to {email}.
+
+Best regards,
+IELTS AI Prep Contact System
+
+© 2025 IELTS AI Prep. All rights reserved.
+    """
+    
+    return html_template, text_template
+
+def get_contact_auto_reply_template(name):
+    """Auto-reply template for contact form submissions"""
+    content = f"""
+        <h2>Thank You for Contacting Us!</h2>
+        <p>Hello {name},</p>
+        <p>Thank you for reaching out to IELTS AI Prep! We've successfully received your message and appreciate you taking the time to contact us.</p>
+        
+        <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 20px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #155724;">What Happens Next?</h3>
+            <ul style="margin-bottom: 0;">
+                <li>Our support team will review your message within 24 hours</li>
+                <li>You'll receive a personalized response from our experts</li>
+                <li>For urgent matters, we typically respond within 4-6 hours during business hours</li>
+            </ul>
+        </div>
+        
+        <p>While you wait, feel free to explore our platform and experience the world's only TrueScore® and Elaris® GenAI assessment technologies!</p>
+        
+        <p style="text-align: center;">
+            <a href="https://ieltsaiprep.com/dashboard" class="button">Access Your Dashboard</a>
+        </p>
+        
+        <p>If you have any urgent questions, please don't hesitate to send us another message.</p>
+        
+        <p>Best regards,<br>The IELTS AI Prep Support Team</p>
+    """
+    
+    html_template = get_email_template_base().format(content=content)
+    
+    text_template = f"""
+IELTS AI Prep - Thank You for Contacting Us!
+
+Hello {name},
+
+Thank you for reaching out to IELTS AI Prep! We've successfully received your message and appreciate you taking the time to contact us.
+
+WHAT HAPPENS NEXT:
+- Our support team will review your message within 24 hours
+- You'll receive a personalized response from our experts
+- For urgent matters, we typically respond within 4-6 hours during business hours
+
+While you wait, feel free to explore our platform and experience the world's only TrueScore® and Elaris® GenAI assessment technologies!
+
+Visit your dashboard: https://ieltsaiprep.com/dashboard
+
+If you have any urgent questions, please don't hesitate to send us another message.
+
+Best regards,
+The IELTS AI Prep Support Team
+
+© 2025 IELTS AI Prep. All rights reserved.
+    """
+    
+    return html_template, text_template
