@@ -2,9 +2,9 @@
 
 ## Executive Summary
 
-This document outlines the comprehensive GDPR compliance framework implemented in the IELTS AI Prep application. The platform has been designed with privacy and data protection as core principles, ensuring compliance with the General Data Protection Regulation (GDPR) from day one.
+This document outlines the comprehensive GDPR compliance framework implemented in IELTS GenAI Prep, featuring TrueScore® and Elaris® - the world's ONLY GenAI assessor tools for IELTS test preparation. The platform has been designed with privacy and data protection as core principles, ensuring compliance with the General Data Protection Regulation (GDPR) from day one.
 
-While the application is currently restricted from EU/UK markets, this GDPR framework provides a solid foundation for potential future expansion and demonstrates our commitment to best practices in data protection globally.
+This GDPR framework demonstrates our commitment to best practices in data protection globally and provides robust privacy protections for all users regardless of their location.
 
 ## Table of Contents
 
@@ -23,13 +23,14 @@ While the application is currently restricted from EU/UK markets, this GDPR fram
 
 *Compliant with GDPR Articles 6 (Lawfulness of processing), 7 (Conditions for consent), and 9 (Processing of special categories of data)*
 
-The IELTS AI Prep application processes personal data under the following legal bases:
+The IELTS GenAI Prep application processes personal data under the following legal bases:
 
 | Processing Activity | Legal Basis | Implementation |
 |---------------------|-------------|----------------|
 | Account creation | Contract | User accepts Terms of Service during registration |
-| Payment processing | Contract | Required for delivering purchased services |
+| Payment processing | Contract | Required for delivering purchased assessment packages |
 | Assessment delivery | Contract | Core functionality users have paid for |
+| Contact form communications | Consent | User initiates contact through contact form |
 | Marketing communications | Consent | Separate opt-in checkbox during registration |
 | Speaking assessments | Explicit Consent | Special notification before speaking tests |
 | Analytics & improvement | Legitimate Interest | Privacy-focused, minimal data collection |
@@ -209,14 +210,14 @@ The platform maintains a comprehensive ROPA including:
 
 2. **Payment Processing**
    - Personal data: Name, country, payment information
-   - Purpose: Processing purchases
+   - Purpose: Processing assessment package purchases
    - Processors: Stripe (PCI-DSS compliant)
    - Retention: As required by financial regulations
 
 3. **Assessment Delivery**
    - Personal data: Test responses, performance data
-   - Purpose: Providing test practice
-   - Retention: Until account deletion
+   - Purpose: Providing IELTS assessment practice using TrueScore® and Elaris® GenAI technology
+   - Retention: Assessment access until used, results retained permanently for user access
    - Access: User and authorized system processes only
 
 4. **Speaking Assessment Processing**
@@ -227,9 +228,15 @@ The platform maintains a comprehensive ROPA including:
 
 5. **AI-Powered Assessment**
    - Personal data: Test responses, writing samples
-   - Purpose: Automated scoring and feedback
-   - Processing: GenAI models with privacy safeguards
-   - Retention: Until account deletion
+   - Purpose: Automated scoring and feedback using TrueScore® and Elaris® GenAI technology
+   - Processing: Advanced AI models with privacy safeguards
+   - Retention: Results retained permanently for user access
+
+6. **Contact Form Communications**
+   - Personal data: Name, email address, message content
+   - Purpose: Customer support and inquiry response
+   - Processing: Professional email system with auto-reply functionality
+   - Retention: Until inquiry resolution, then deleted
 
 ## Data Retention Policies
 
@@ -241,10 +248,11 @@ The platform implements granular retention policies for different data categorie
 |---------------|------------------|---------------|-----------------|
 | Account information | Until account deletion + 30 days | Service provision | Secure erasure |
 | Payment records | 7 years | Legal obligation (tax) | Archived, limited access |
-| Test responses | Until account deletion | Service provision | Secure erasure |
+| Assessment packages | Until assessments are used | Service provision | Secure erasure after use |
 | Voice recordings | Deleted after processing | Data minimization | Immediate deletion |
 | Transcripts | 6 months | Educational purpose | Automatic deletion |
-| Assessment results | Until account deletion | Service provision | Secure erasure |
+| Assessment results | Permanent (until account deletion) | Ongoing user access | Secure erasure on account deletion |
+| Contact form data | Until inquiry resolution | Customer service | Secure erasure after resolution |
 | Session logs | 90 days | Security | Automatic deletion |
 | Marketing preferences | Until consent withdrawal | Consent-based | Immediate update |
 
@@ -358,7 +366,7 @@ Privacy is embedded into the platform's development process:
 
 *Compliant with GDPR Articles 44-50 (Transfers of personal data to third countries or international organisations)*
 
-While the application is currently restricted to specific countries, the framework includes:
+The platform implements robust data transfer protections:
 
 ### Transfer Mechanisms
 
@@ -372,11 +380,11 @@ While the application is currently restricted to specific countries, the framewo
 - **Transfer Transparency**: Clear documentation of all cross-border transfers
 - **Transfer Impact Assessments**: Conducted for all international data flows
 
-### GCP-Specific Considerations
+### Technical Implementation
 
 - **Regional Storage**: Configured for data residency requirements
 - **Transfer Controls**: Restrictions on cross-region replication
-- **Compliance Documentation**: GCP-specific data protection agreements
+- **Compliance Documentation**: Data protection agreements with all processors
 
 ## Documentation & Accountability
 
@@ -405,9 +413,9 @@ The platform maintains comprehensive documentation:
 - **Staff Training**: Records of all data protection training
 - **Compliance Reviews**: Regular internal audit documentation
 
-## GDPR Implementation on Google Cloud Platform
+## Cloud Infrastructure GDPR Implementation
 
-The GCP deployment maintains GDPR compliance through:
+The cloud deployment maintains GDPR compliance through:
 
 ### Data Residency Controls
 
@@ -418,13 +426,13 @@ The GCP deployment maintains GDPR compliance through:
 ### Security Features
 
 - **Customer-Managed Encryption Keys**: Control over encryption
-- **VPC Service Controls**: Data isolation within Google Cloud
-- **Access Transparency**: Logging of Google staff access
+- **Data Isolation**: Secure data isolation within cloud infrastructure
+- **Access Transparency**: Logging of all administrative access
 
 ### Documentation
 
-- **Data Processing Addendum**: GCP's GDPR-compliant terms
-- **Technical Documentation**: GCP-specific data protection controls
+- **Data Processing Addendum**: GDPR-compliant terms with cloud providers
+- **Technical Documentation**: Data protection controls and procedures
 - **Compliance Certifications**: ISO 27001, 27017, 27018, SOC 2/3
 
 ## Conclusion
