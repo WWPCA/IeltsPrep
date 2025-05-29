@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Conversational Speaking Assessment - Elaris®{% endblock %}
+{% block title %}Conversational Speaking Assessment - ClearScore{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -234,6 +238,48 @@
     background: #fff3e0 !important;
     border-color: #ff9800 !important;
 }
+
+.voice-globe-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+#voiceGlobe {
+    border-radius: 50%;
+    box-shadow: 0 0 50px rgba(100, 200, 255, 0.3);
+    background: radial-gradient(circle, rgba(26, 26, 46, 0.8) 0%, rgba(15, 52, 96, 0.9) 100%);
+}
+
+.globe-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.globe-controls .btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.globe-controls .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.voice-globe-container.hidden {
+    display: none;
+}
 </style>
 
 <script>
@@ -248,6 +294,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let conversationTimer = 0;
     let timerInterval = null;
 
+    // Voice Globe Visualization
+    let scene, camera, renderer, particles;
+    let audioContext, analyser, dataArray, audioSource;
+    let globeSettings = {
+        particleCount: 1000,
+        globeRadius: 100,
+        sensitivity: 1.0,
+        colorScheme: 'default',
+        enabled: true
+    };
+    let isGlobeInitialized = false;
+
     // DOM elements
     const startConversationBtn = document.getElementById('startConversationBtn');
     const speakBtn = document.getElementById('speakBtn');
@@ -257,6 +315,265 @@ document.addEventListener('DOMContentLoaded', function() {
     const conversationHistoryEl = document.getElementById('conversationHistory');
     const timerDisplay = document.getElementById('timerDisplay');
     const audioVisualizer = document.getElementById('audioVisualizer');
+    const voiceGlobeCanvas = document.getElementById('voiceGlobe');
+    const toggleGlobeBtn = document.getElementById('toggleGlobe');
+    const globeSettingsBtn = document.getElementById('globeSettings');
+
+    // Initialize Voice Globe
+    function initVoiceGlobe() {
+        if (isGlobeInitialized) return;
+
+        // Scene setup
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({
+            canvas: voiceGlobeCanvas,
+            alpha: true,
+            antialias: true
+        });
+        
+        renderer.setSize(300, 300);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        camera.position.z = 200;
+
+        // Create particle system
+        createParticleGlobe();
+        
+        // Start render loop
+        animate();
+        
+        isGlobeInitialized = true;
+    }
+
+    function createParticleGlobe() {
+        const geometry = new THREE.BufferGeometry();
+        const positions = [];
+        const colors = [];
+        const originalPositions = [];
+
+        // Generate particles in spherical distribution
+        for (let i = 0; i < globeSettings.particleCount; i++) {
+            // Fibonacci sphere distribution for even particle spacing
+            const theta = Math.acos(1 - 2 * (i + 0.5) / globeSettings.particleCount);
+            const phi = Math.PI * (1 + Math.sqrt(5)) * i;
+            
+            const x = Math.sin(theta) * Math.cos(phi) * globeSettings.globeRadius;
+            const y = Math.sin(theta) * Math.sin(phi) * globeSettings.globeRadius;
+            const z = Math.cos(theta) * globeSettings.globeRadius;
+
+            positions.push(x, y, z);
+            originalPositions.push(x, y, z);
+
+            // Color based on position and scheme
+            const color = getParticleColor(x, y, z);
+            colors.push(color.r, color.g, color.b);
+        }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('originalPosition', new THREE.Float32BufferAttribute(originalPositions, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+    }
+
+    function getParticleColor(x, y, z) {
+        const schemes = {
+            default: { r: 0.4 + Math.abs(x) * 0.006, g: 0.6 + Math.abs(y) * 0.004, b: 0.8 + Math.abs(z) * 0.002 },
+            aurora: { r: 0.2 + Math.abs(y) * 0.008, g: 0.8 + Math.abs(x) * 0.002, b: 0.4 + Math.abs(z) * 0.006 },
+            fire: { r: 1.0, g: 0.4 + Math.abs(y) * 0.006, b: 0.1 + Math.abs(z) * 0.002 },
+            ocean: { r: 0.1, g: 0.4 + Math.abs(x) * 0.004, b: 0.9 + Math.abs(y) * 0.001 }
+        };
+        return schemes[globeSettings.colorScheme] || schemes.default;
+    }
+
+    function animate() {
+        if (!isGlobeInitialized || !globeSettings.enabled) return;
+        
+        requestAnimationFrame(animate);
+
+        // Rotate globe slowly when idle
+        if (particles) {
+            particles.rotation.y += 0.005;
+            
+            // Apply audio reactivity if available
+            if (analyser && dataArray) {
+                analyser.getByteFrequencyData(dataArray);
+                updateParticlesWithAudio();
+            }
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    function updateParticlesWithAudio() {
+        const positions = particles.geometry.attributes.position.array;
+        const originalPositions = particles.geometry.attributes.originalPosition.array;
+        const colors = particles.geometry.attributes.color.array;
+
+        // Calculate audio metrics
+        let sum = 0;
+        let maxFreq = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+            maxFreq = Math.max(maxFreq, dataArray[i]);
+        }
+        
+        const avgVolume = sum / dataArray.length;
+        const normalizedVolume = (avgVolume / 255) * globeSettings.sensitivity;
+        const intensity = (maxFreq / 255) * globeSettings.sensitivity;
+
+        // Update particles based on audio
+        for (let i = 0; i < globeSettings.particleCount; i++) {
+            const i3 = i * 3;
+            
+            // Get frequency for this particle (map particle index to frequency range)
+            const freqIndex = Math.floor((i / globeSettings.particleCount) * dataArray.length);
+            const frequency = dataArray[freqIndex] || 0;
+            const normalizedFreq = frequency / 255;
+
+            // Apply audio-reactive movement
+            const displacement = normalizedFreq * 20 * globeSettings.sensitivity;
+            const originalX = originalPositions[i3];
+            const originalY = originalPositions[i3 + 1];
+            const originalZ = originalPositions[i3 + 2];
+
+            // Expand particles outward based on frequency
+            const distance = Math.sqrt(originalX * originalX + originalY * originalY + originalZ * originalZ);
+            const expansion = 1 + displacement / 100;
+            
+            positions[i3] = originalX * expansion;
+            positions[i3 + 1] = originalY * expansion;
+            positions[i3 + 2] = originalZ * expansion;
+
+            // Update colors based on frequency ranges
+            const bassFreq = dataArray[Math.floor(dataArray.length * 0.1)] / 255;
+            const midFreq = dataArray[Math.floor(dataArray.length * 0.5)] / 255;
+            const trebleFreq = dataArray[Math.floor(dataArray.length * 0.9)] / 255;
+
+            colors[i3] = Math.min(1, colors[i3] + bassFreq * 0.5); // Red
+            colors[i3 + 1] = Math.min(1, colors[i3 + 1] + midFreq * 0.5); // Green
+            colors[i3 + 2] = Math.min(1, colors[i3 + 2] + trebleFreq * 0.5); // Blue
+        }
+
+        particles.geometry.attributes.position.needsUpdate = true;
+        particles.geometry.attributes.color.needsUpdate = true;
+
+        // Update particle size based on overall volume
+        particles.material.size = 2 + normalizedVolume * 3;
+    }
+
+    function setupAudioAnalyzer(audioElement) {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+        }
+
+        if (audioSource) {
+            audioSource.disconnect();
+        }
+
+        audioSource = audioContext.createMediaElementSource(audioElement);
+        audioSource.connect(analyser);
+        analyser.connect(audioContext.destination);
+    }
+
+    // Globe controls
+    toggleGlobeBtn.addEventListener('click', function() {
+        globeSettings.enabled = !globeSettings.enabled;
+        const container = document.getElementById('voiceGlobeContainer');
+        
+        if (globeSettings.enabled) {
+            container.classList.remove('hidden');
+            toggleGlobeBtn.innerHTML = '<i class="fas fa-eye"></i>';
+            if (!isGlobeInitialized) initVoiceGlobe();
+            animate();
+        } else {
+            container.classList.add('hidden');
+            toggleGlobeBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        }
+    });
+
+    globeSettingsBtn.addEventListener('click', function() {
+        showGlobeSettings();
+    });
+
+    function showGlobeSettings() {
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+            <div class="modal fade" id="globeSettingsModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Voice Globe Settings</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Particle Count: <span id="particleCountValue">${globeSettings.particleCount}</span></label>
+                                <input type="range" class="form-range" id="particleCount" min="500" max="2000" step="100" value="${globeSettings.particleCount}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Sensitivity: <span id="sensitivityValue">${globeSettings.sensitivity}</span></label>
+                                <input type="range" class="form-range" id="sensitivity" min="0.5" max="3.0" step="0.1" value="${globeSettings.sensitivity}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Color Scheme</label>
+                                <select class="form-select" id="colorScheme">
+                                    <option value="default" ${globeSettings.colorScheme === 'default' ? 'selected' : ''}>Default</option>
+                                    <option value="aurora" ${globeSettings.colorScheme === 'aurora' ? 'selected' : ''}>Aurora</option>
+                                    <option value="fire" ${globeSettings.colorScheme === 'fire' ? 'selected' : ''}>Fire</option>
+                                    <option value="ocean" ${globeSettings.colorScheme === 'ocean' ? 'selected' : ''}>Ocean</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="applyGlobeSettings()" data-bs-dismiss="modal">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Add event listeners for real-time updates
+        document.getElementById('particleCount').addEventListener('input', function() {
+            document.getElementById('particleCountValue').textContent = this.value;
+        });
+        
+        document.getElementById('sensitivity').addEventListener('input', function() {
+            document.getElementById('sensitivityValue').textContent = this.value;
+        });
+
+        window.applyGlobeSettings = function() {
+            globeSettings.particleCount = parseInt(document.getElementById('particleCount').value);
+            globeSettings.sensitivity = parseFloat(document.getElementById('sensitivity').value);
+            globeSettings.colorScheme = document.getElementById('colorScheme').value;
+            
+            // Recreate particle system with new settings
+            if (particles) {
+                scene.remove(particles);
+                createParticleGlobe();
+            }
+        };
+
+        const modalInstance = new bootstrap.Modal(document.getElementById('globeSettingsModal'));
+        modalInstance.show();
+    }
+
+    // Initialize globe on page load
+    initVoiceGlobe();
 
     // Start conversation
     startConversationBtn.addEventListener('click', async function() {
@@ -388,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const userMessage = transcriptResult.transcript;
                 addMessageToHistory('You', userMessage);
                 
-                // Get Elaris® response
+                // Get Maya response
                 const conversationResponse = await fetch('/api/continue_conversation', {
                     method: 'POST',
                     headers: {
@@ -401,20 +718,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                 });
                 
-                const elarisResult = await conversationResponse.json();
+                const mayaResult = await conversationResponse.json();
                 
-                if (elarisResult.success) {
-                    // Elaris® responds
-                    await playElarisResponse(elarisResult.response);
-                    addMessageToHistory('Elaris®', elarisResult.response);
+                if (mayaResult.success) {
+                    // Maya responds
+                    await playMayaResponse(mayaResult.response);
+                    addMessageToHistory('Maya (ClearScore)', mayaResult.response);
                     
                     // Check if moving to next part
-                    if (elarisResult.next_part && elarisResult.next_part !== currentPart) {
-                        currentPart = elarisResult.next_part;
+                    if (mayaResult.next_part && mayaResult.next_part !== currentPart) {
+                        currentPart = mayaResult.next_part;
                         updatePartProgress();
                     }
                     
-                    conversationStatus.innerHTML = '<div class="h5 text-primary">Elaris® has responded - Click "Speak" to continue</div>';
+                    conversationStatus.innerHTML = '<div class="h5 text-primary">Maya has responded - Click "Speak" to continue</div>';
                 } else {
                     conversationStatus.innerHTML = '<div class="h5 text-danger">Error in conversation - Please try again</div>';
                 }
@@ -426,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function playElarisResponse(text) {
+    async function playMayaResponse(text) {
         try {
             const response = await fetch('/api/generate_speech', {
                 method: 'POST',
@@ -443,7 +760,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.success && result.audio_url) {
                 const audio = new Audio(result.audio_url);
                 
-                conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Elaris® is speaking...</div>';
+                // Setup Nova Sonic audio analysis for voice globe reactivity
+                if (isGlobeInitialized && globeSettings.enabled) {
+                    setupNovaAudioAnalyzer(audio);
+                }
+                
+                conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is speaking...</div>';
                 
                 return new Promise((resolve) => {
                     audio.onended = () => {
@@ -456,7 +778,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         } catch (error) {
-            console.error('Error playing Elaris® response:', error);
+            console.error('Error playing Maya response:', error);
+        }
+    }
+
+    // Enhanced audio analyzer for Nova Sonic integration
+    function setupNovaAudioAnalyzer(audioElement) {
+        try {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 512; // Higher resolution for Nova Sonic's prosody analysis
+                analyser.smoothingTimeConstant = 0.8; // Smoother transitions
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+            }
+
+            // Resume audio context if needed (browser security)
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            if (audioSource) {
+                audioSource.disconnect();
+            }
+
+            // Connect Nova Sonic audio to analyzer
+            audioSource = audioContext.createMediaElementSource(audioElement);
+            audioSource.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            // Enhanced particle reactivity during speech
+            audioElement.addEventListener('play', () => {
+                if (particles) {
+                    particles.material.opacity = 1.0;
+                    particles.material.size = 3;
+                }
+            });
+
+            audioElement.addEventListener('ended', () => {
+                if (particles) {
+                    particles.material.opacity = 0.6;
+                    particles.material.size = 2;
+                }
+            });
+
+        } catch (error) {
+            console.warn('Audio analysis setup failed:', error);
         }
     }
 
