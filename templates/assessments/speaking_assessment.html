@@ -319,12 +319,66 @@ document.addEventListener('DOMContentLoaded', function() {
         playQuestion();
     });
     
-    function playQuestion() {
-        // Simulate text-to-speech
-        timerDisplay.textContent = 'Playing question...';
-        setTimeout(() => {
+    async function playQuestion() {
+        const currentQuestionText = questionDisplay.textContent;
+        
+        if (!currentQuestionText) {
+            console.log('No question to play');
+            return;
+        }
+        
+        try {
+            timerDisplay.textContent = 'Elaris® is speaking...';
+            playQuestionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Playing...';
+            playQuestionBtn.disabled = true;
+            
+            const response = await fetch('/api/generate_speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: currentQuestionText
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.audio_url) {
+                const audio = new Audio(result.audio_url);
+                
+                audio.onloadeddata = () => {
+                    audio.play().then(() => {
+                        console.log('Elaris® speaking question with British accent');
+                    }).catch(err => {
+                        console.error('Audio playback failed:', err);
+                        timerDisplay.textContent = 'Audio playback failed. Click record to begin your answer.';
+                    });
+                };
+                
+                audio.onended = () => {
+                    timerDisplay.textContent = 'Click record to begin your answer.';
+                    playQuestionBtn.innerHTML = '<i class="fas fa-volume-up"></i> Play Question';
+                    playQuestionBtn.disabled = false;
+                };
+                
+                audio.onerror = () => {
+                    console.error('Audio loading failed');
+                    timerDisplay.textContent = 'Click record to begin your answer.';
+                    playQuestionBtn.innerHTML = '<i class="fas fa-volume-up"></i> Play Question';
+                    playQuestionBtn.disabled = false;
+                };
+                
+            } else {
+                throw new Error(result.error || 'Speech generation failed');
+            }
+            
+        } catch (error) {
+            console.error('Speech generation error:', error);
             timerDisplay.textContent = 'Click record to begin your answer.';
-        }, 3000);
+            playQuestionBtn.innerHTML = '<i class="fas fa-volume-up"></i> Play Question';
+            playQuestionBtn.disabled = false;
+        }
     }
     
     function updatePartProgress() {
