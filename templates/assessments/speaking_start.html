@@ -196,6 +196,11 @@
                     </div>
                     
                     <div class="text-center mt-4">
+                        <div class="alert alert-warning mb-3" id="audioTestWarning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Both microphone and speaker tests must be completed before starting the assessment.</strong>
+                            <br><small>This ensures optimal audio quality for your conversation with Elaris®.</small>
+                        </div>
                         <button class="btn btn-primary start-assessment-btn" id="startAssessmentBtn" disabled>
                             <i class="fas fa-play me-2"></i>
                             Start Speaking Assessment
@@ -442,9 +447,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function checkReady() {
+        const audioTestWarning = document.getElementById('audioTestWarning');
         if (micTested && speakerTested) {
             readyIndicator.style.display = 'block';
             startAssessmentBtn.disabled = false;
+            if (audioTestWarning) {
+                audioTestWarning.style.display = 'none';
+            }
+        } else {
+            if (audioTestWarning) {
+                audioTestWarning.style.display = 'block';
+            }
         }
     }
     
