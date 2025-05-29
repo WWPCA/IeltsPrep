@@ -603,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startAssessmentBtn.addEventListener('click', function() {
         if (micTested && speakerTested) {
             // Navigate to the actual speaking assessment interface
-            const assessmentUrl = '/speaking/assessment/{{ assessment_type }}/{{ assessment_number }}';
+            const assessmentUrl = '/assessments/{{ assessment_type }}/{{ assessment_id }}/take';
             window.location.href = assessmentUrl;
         } else {
             alert('Please complete both microphone and speaker tests before starting the assessment.');
