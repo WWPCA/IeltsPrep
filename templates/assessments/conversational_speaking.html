@@ -293,6 +293,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let isListening = false;
     let conversationTimer = 0;
     let timerInterval = null;
+    
+    // Timeout and API management
+    let speakingTimeout = null;
+    let micActivityTimeout = null;
+    let apiCallInProgress = false;
+    const SPEAKING_TIMEOUT = 30000; // 30 seconds max speaking time
+    const MIC_ACTIVITY_TIMEOUT = 5000; // 5 seconds of silence detection
+    const API_TIMEOUT = 15000; // 15 seconds max API response time
 
     // Voice Globe Visualization
     let scene, camera, renderer, particles;
@@ -648,30 +656,72 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function startListening() {
-        if (!audioStream) return;
+        if (!audioStream || apiCallInProgress) return;
         
         isListening = true;
         speakBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Stop Speaking';
         speakBtn.className = 'btn btn-danger';
-        conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 Listening... Speak now</div>';
+        conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 Listening... Speak now (30s max)</div>';
         audioVisualizer.classList.remove('d-none');
+        
+        // Set speaking timeout (30 seconds max)
+        speakingTimeout = setTimeout(() => {
+            if (isListening) {
+                console.log('Speaking timeout reached - stopping recording');
+                stopListening();
+                conversationStatus.innerHTML = '<div class="h5 text-warning">⏰ Speaking time limit reached - Click "Speak" to try again</div>';
+            }
+        }, SPEAKING_TIMEOUT);
         
         // Start recording
         mediaRecorder = new MediaRecorder(audioStream);
         const audioChunks = [];
+        let lastActivityTime = Date.now();
         
         mediaRecorder.ondataavailable = function(event) {
             if (event.data.size > 0) {
                 audioChunks.push(event.data);
+                lastActivityTime = Date.now();
+                
+                // Reset activity timeout when audio data is received
+                clearTimeout(micActivityTimeout);
+                micActivityTimeout = setTimeout(() => {
+                    if (isListening && Date.now() - lastActivityTime > MIC_ACTIVITY_TIMEOUT) {
+                        console.log('Microphone activity timeout - no speech detected');
+                        stopListening();
+                        conversationStatus.innerHTML = '<div class="h5 text-info">🔇 No speech detected - Click "Speak" to try again</div>';
+                    }
+                }, MIC_ACTIVITY_TIMEOUT);
             }
         };
         
         mediaRecorder.onstop = async function() {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            await processUserSpeech(audioBlob);
+            clearTimeout(speakingTimeout);
+            clearTimeout(micActivityTimeout);
+            
+            if (audioChunks.length > 0) {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                
+                // Check if audio blob has sufficient content
+                if (audioBlob.size < 1000) { // Less than 1KB suggests no real audio
+                    conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 No speech detected - Please try speaking again</div>';
+                    return;
+                }
+                
+                await processUserSpeech(audioBlob);
+            } else {
+                conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 No audio recorded - Please check your microphone</div>';
+            }
         };
         
-        mediaRecorder.start();
+        // Check microphone stream health
+        const tracks = audioStream.getAudioTracks();
+        if (tracks.length === 0 || !tracks[0].enabled) {
+            conversationStatus.innerHTML = '<div class="h5 text-danger">❌ Microphone not available - Please check permissions</div>';
+            return;
+        }
+        
+        mediaRecorder.start(1000); // Record in 1-second chunks for activity detection
     }
 
     async function stopListening() {
@@ -683,45 +733,78 @@ document.addEventListener('DOMContentLoaded', function() {
         conversationStatus.innerHTML = '<div class="h5 text-info">Processing your response...</div>';
         audioVisualizer.classList.add('d-none');
         
+        // Clear timeouts
+        clearTimeout(speakingTimeout);
+        clearTimeout(micActivityTimeout);
+        
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
         }
     }
 
     async function processUserSpeech(audioBlob) {
+        if (apiCallInProgress) {
+            console.log('API call already in progress, skipping');
+            return;
+        }
+
+        apiCallInProgress = true;
+        speakBtn.disabled = true;
+
         try {
-            // Convert speech to text
+            // Convert speech to text with timeout
             const formData = new FormData();
             formData.append('audio', audioBlob);
             
-            const transcriptResponse = await fetch('/api/transcribe_speech', {
-                method: 'POST',
-                body: formData
-            });
+            conversationStatus.innerHTML = '<div class="h5 text-info">🎯 Converting speech to text...</div>';
+            
+            const transcriptResponse = await Promise.race([
+                fetch('/api/transcribe_speech', {
+                    method: 'POST',
+                    body: formData
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Transcription timeout')), API_TIMEOUT)
+                )
+            ]);
             
             const transcriptResult = await transcriptResponse.json();
             
-            if (transcriptResult.success) {
-                const userMessage = transcriptResult.transcript;
-                addMessageToHistory('You', userMessage);
+            if (transcriptResult.success && transcriptResult.transcript) {
+                const userMessage = transcriptResult.transcript.trim();
                 
-                // Get Maya response
-                const conversationResponse = await fetch('/api/continue_conversation', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_message: userMessage,
-                        conversation_history: conversationHistory,
-                        current_part: currentPart
-                    })
-                });
+                // Check if transcript is meaningful (not just noise/silence)
+                if (userMessage.length < 3) {
+                    conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 Please speak more clearly - Click "Speak" to try again</div>';
+                    return;
+                }
+                
+                addMessageToHistory('You', userMessage);
+                conversationStatus.innerHTML = '<div class="h5 text-info">🤖 Maya is thinking...</div>';
+                
+                // Get Maya response with timeout
+                const conversationResponse = await Promise.race([
+                    fetch('/api/continue_conversation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_message: userMessage,
+                            conversation_history: conversationHistory,
+                            current_part: currentPart
+                        })
+                    }),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Conversation API timeout')), API_TIMEOUT)
+                    )
+                ]);
                 
                 const mayaResult = await conversationResponse.json();
                 
-                if (mayaResult.success) {
+                if (mayaResult.success && mayaResult.response) {
                     // Maya responds
+                    conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is responding...</div>';
                     await playMayaResponse(mayaResult.response);
                     addMessageToHistory('Maya (ClearScore)', mayaResult.response);
                     
@@ -731,15 +814,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         updatePartProgress();
                     }
                     
-                    conversationStatus.innerHTML = '<div class="h5 text-primary">Maya has responded - Click "Speak" to continue</div>';
+                    conversationStatus.innerHTML = '<div class="h5 text-primary">✅ Maya has responded - Click "Speak" to continue</div>';
                 } else {
-                    conversationStatus.innerHTML = '<div class="h5 text-danger">Error in conversation - Please try again</div>';
+                    conversationStatus.innerHTML = '<div class="h5 text-danger">❌ Maya could not respond - Please try again</div>';
                 }
+            } else {
+                conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 Could not understand speech - Please try speaking again</div>';
             }
             
         } catch (error) {
             console.error('Error processing speech:', error);
-            conversationStatus.innerHTML = '<div class="h5 text-danger">Could not process speech - Please try again</div>';
+            
+            if (error.message.includes('timeout')) {
+                conversationStatus.innerHTML = '<div class="h5 text-warning">⏰ Response took too long - Please try again</div>';
+            } else if (error.message.includes('network')) {
+                conversationStatus.innerHTML = '<div class="h5 text-danger">🌐 Network error - Please check your connection</div>';
+            } else {
+                conversationStatus.innerHTML = '<div class="h5 text-danger">❌ Could not process speech - Please try again</div>';
+            }
+        } finally {
+            apiCallInProgress = false;
+            speakBtn.disabled = false;
         }
     }
 
