@@ -201,9 +201,9 @@
                             <strong>Both microphone and speaker tests must be completed before starting the assessment.</strong>
                             <br><small>This ensures optimal audio quality for your conversation with Elaris®.</small>
                         </div>
-                        <button class="btn btn-primary start-assessment-btn" id="startAssessmentBtn" disabled>
-                            <i class="fas fa-play me-2"></i>
-                            Start Speaking Assessment
+                        <button class="btn btn-success start-assessment-btn" id="startAssessmentBtn" disabled>
+                            <i class="fas fa-comments me-2"></i>
+                            Start Conversation with Elaris®
                         </button>
                     </div>
                 </div>
@@ -615,58 +615,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start assessment
     startAssessmentBtn.addEventListener('click', function() {
         if (micTested && speakerTested) {
-            // Show assessment type selection
-            const modal = document.createElement('div');
-            modal.innerHTML = `
-                <div class="modal fade" id="assessmentTypeModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Choose Assessment Type</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title">Traditional Assessment</h6>
-                                                <p class="card-text small">Listen to questions, record responses</p>
-                                                <button class="btn btn-primary" onclick="startTraditional()">
-                                                    Start Traditional
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card h-100 border-success">
-                                            <div class="card-body text-center">
-                                                <h6 class="card-title text-success">Conversational Assessment</h6>
-                                                <p class="card-text small">Real-time conversation with Elaris®</p>
-                                                <button class="btn btn-success" onclick="startConversational()">
-                                                    Start Conversation
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            window.startTraditional = function() {
-                window.location.href = '/assessments/{{ assessment_type }}/{{ assessment_id }}/take';
-            };
-            
-            window.startConversational = function() {
-                window.location.href = '/assessments/{{ assessment_type }}/{{ assessment_id }}/conversational';
-            };
-            
-            const modalInstance = new bootstrap.Modal(document.getElementById('assessmentTypeModal'));
-            modalInstance.show();
+            // Navigate directly to conversational assessment
+            window.location.href = '/assessments/{{ assessment_type }}/{{ assessment_id }}/conversational';
         } else {
             alert('Please complete both microphone and speaker tests before starting the assessment.');
         }
