@@ -43,7 +43,7 @@ app.register_blueprint(cart_bp, url_prefix='/cart')
 from gdpr_routes import gdpr_bp
 app.register_blueprint(gdpr_bp)
 
-# Old conversational routes removed - using new ClearScore conversational assessment structure
+# Browser-based speech recognition integrated into existing routes
 
 # Configure Talisman with security headers but let Replit handle HTTPS
 Talisman(app, 
