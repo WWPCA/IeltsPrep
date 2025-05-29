@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+
+{% block title %}Conversational Speaking Assessment - Elaris®{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Left Sidebar - Assessment Info -->
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>Live Conversation
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Part Progress -->
+                    <div class="mb-3">
+                        <h6>Assessment Parts</h6>
+                        <div class="d-flex flex-column gap-2">
+                            <div id="part1" class="d-flex justify-content-between align-items-center">
+                                <span class="small">Part 1: Introduction</span>
+                                <span class="badge bg-primary">Current</span>
+                            </div>
+                            <div id="part2" class="d-flex justify-content-between align-items-center">
+                                <span class="small">Part 2: Long Turn</span>
+                                <span class="badge bg-secondary">Upcoming</span>
+                            </div>
+                            <div id="part3" class="d-flex justify-content-between align-items-center">
+                                <span class="small">Part 3: Discussion</span>
+                                <span class="badge bg-secondary">Upcoming</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timer -->
+                    <div class="mb-3">
+                        <h6>Assessment Time</h6>
+                        <div class="text-center">
+                            <div class="h4 text-primary" id="timerDisplay">00:00</div>
+                        </div>
+                    </div>
+
+                    <!-- Connection Status -->
+                    <div class="mb-3">
+                        <h6>Connection Status</h6>
+                        <div id="connectionStatus" class="text-success">
+                            <i class="fas fa-circle me-1"></i>Connected
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Conversation Area -->
+        <div class="col-md-9">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-tie me-2"></i>Conversation with Elaris®
+                        </h5>
+                        <div class="text-end">
+                            <small>Powered by Nova Sonic Technology - The world's only AI IELTS speaking examiner</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body d-flex flex-column">
+                    <!-- Conversation History -->
+                    <div class="conversation-area flex-grow-1 mb-3" id="conversationArea">
+                        <div class="conversation-history" id="conversationHistory">
+                            <div class="message examiner-message">
+                                <div class="message-header">
+                                    <strong>Elaris® (IELTS Examiner)</strong>
+                                    <small class="text-muted">Just now</small>
+                                </div>
+                                <div class="message-content">
+                                    Good morning! My name is Elaris, and I'll be your AI examiner today. I'm ready to begin your IELTS speaking assessment. When you're ready, click "Start Conversation" and we can begin with some questions about yourself.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversation Controls -->
+                    <div class="conversation-controls">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="text-center mb-3" id="conversationStatus">
+                                    <div class="h5 text-muted">Ready to begin conversation</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-success btn-lg" id="startConversationBtn">
+                                        <i class="fas fa-play me-2"></i>Start Conversation
+                                    </button>
+                                    <button class="btn btn-primary" id="speakBtn" style="display: none;">
+                                        <i class="fas fa-microphone me-2"></i>Speak to Elaris®
+                                    </button>
+                                    <button class="btn btn-warning" id="pauseBtn" style="display: none;">
+                                        <i class="fas fa-pause me-2"></i>Pause
+                                    </button>
+                                    <button class="btn btn-danger" id="endBtn" style="display: none;">
+                                        <i class="fas fa-stop me-2"></i>End Assessment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio Visualization -->
+<div class="audio-visualizer d-none" id="audioVisualizer">
+    <div class="wave-container">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+    </div>
+</div>
+
+<style>
+.conversation-area {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+}
+
+.message {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.examiner-message {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    margin-right: auto;
+    border-left: 4px solid #2196f3;
+}
+
+.user-message {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    margin-left: auto;
+    border-right: 4px solid #9c27b0;
+}
+
+.message-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.message-content {
+    font-size: 1.1em;
+    line-height: 1.4;
+}
+
+.audio-visualizer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.wave-container {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.wave-bar {
+    width: 4px;
+    height: 20px;
+    background: #4caf50;
+    border-radius: 2px;
+    animation: wave 1.2s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.3); }
+}
+
+.conversation-controls {
+    background: #fff;
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+}
+
+#conversationStatus {
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.listening-mode {
+    background: #e8f5e8 !important;
+    border-color: #4caf50 !important;
+}
+
+.speaking-mode {
+    background: #fff3e0 !important;
+    border-color: #ff9800 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Conversation state
+    let conversationActive = false;
+    let currentPart = 1;
+    let conversationHistory = [];
+    let mediaRecorder = null;
+    let audioStream = null;
+    let isListening = false;
+    let conversationTimer = 0;
+    let timerInterval = null;
+
+    // DOM elements
+    const startConversationBtn = document.getElementById('startConversationBtn');
+    const speakBtn = document.getElementById('speakBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const endBtn = document.getElementById('endBtn');
+    const conversationStatus = document.getElementById('conversationStatus');
+    const conversationHistoryEl = document.getElementById('conversationHistory');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const audioVisualizer = document.getElementById('audioVisualizer');
+
+    // Start conversation
+    startConversationBtn.addEventListener('click', async function() {
+        try {
+            // Initialize audio stream
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            conversationActive = true;
+            startConversationBtn.style.display = 'none';
+            speakBtn.style.display = 'block';
+            pauseBtn.style.display = 'block';
+            endBtn.style.display = 'block';
+            
+            conversationStatus.innerHTML = '<div class="h5 text-success">Conversation Active - Click "Speak" when ready</div>';
+            
+            // Start timer
+            startTimer();
+            
+            // Begin conversation with Elaris®
+            await startConversationWithElaris();
+            
+        } catch (error) {
+            console.error('Failed to start conversation:', error);
+            alert('Could not access microphone. Please check permissions.');
+        }
+    });
+
+    // Speak to Elaris®
+    speakBtn.addEventListener('click', function() {
+        if (!isListening) {
+            startListening();
+        } else {
+            stopListening();
+        }
+    });
+
+    // Pause conversation
+    pauseBtn.addEventListener('click', function() {
+        pauseConversation();
+    });
+
+    // End assessment
+    endBtn.addEventListener('click', function() {
+        endConversation();
+    });
+
+    async function startConversationWithElaris() {
+        try {
+            const response = await fetch('/api/start_conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    assessment_type: '{{ assessment_type }}',
+                    part: currentPart
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Elaris® speaks her opening
+                await playElarisResponse(result.opening_message);
+                addMessageToHistory('Elaris®', result.opening_message);
+                
+                conversationStatus.innerHTML = '<div class="h5 text-primary">Elaris® has spoken - Click "Speak" to respond</div>';
+            }
+        } catch (error) {
+            console.error('Failed to start conversation with Elaris®:', error);
+        }
+    }
+
+    async function startListening() {
+        if (!audioStream) return;
+        
+        isListening = true;
+        speakBtn.innerHTML = '<i class="fas fa-stop me-2"></i>Stop Speaking';
+        speakBtn.className = 'btn btn-danger';
+        conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 Listening... Speak now</div>';
+        audioVisualizer.classList.remove('d-none');
+        
+        // Start recording
+        mediaRecorder = new MediaRecorder(audioStream);
+        const audioChunks = [];
+        
+        mediaRecorder.ondataavailable = function(event) {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
+        
+        mediaRecorder.onstop = async function() {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            await processUserSpeech(audioBlob);
+        };
+        
+        mediaRecorder.start();
+    }
+
+    async function stopListening() {
+        if (!isListening) return;
+        
+        isListening = false;
+        speakBtn.innerHTML = '<i class="fas fa-microphone me-2"></i>Speak to Elaris®';
+        speakBtn.className = 'btn btn-primary';
+        conversationStatus.innerHTML = '<div class="h5 text-info">Processing your response...</div>';
+        audioVisualizer.classList.add('d-none');
+        
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+        }
+    }
+
+    async function processUserSpeech(audioBlob) {
+        try {
+            // Convert speech to text
+            const formData = new FormData();
+            formData.append('audio', audioBlob);
+            
+            const transcriptResponse = await fetch('/api/transcribe_speech', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const transcriptResult = await transcriptResponse.json();
+            
+            if (transcriptResult.success) {
+                const userMessage = transcriptResult.transcript;
+                addMessageToHistory('You', userMessage);
+                
+                // Get Elaris® response
+                const conversationResponse = await fetch('/api/continue_conversation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_message: userMessage,
+                        conversation_history: conversationHistory,
+                        current_part: currentPart
+                    })
+                });
+                
+                const elarisResult = await conversationResponse.json();
+                
+                if (elarisResult.success) {
+                    // Elaris® responds
+                    await playElarisResponse(elarisResult.response);
+                    addMessageToHistory('Elaris®', elarisResult.response);
+                    
+                    // Check if moving to next part
+                    if (elarisResult.next_part && elarisResult.next_part !== currentPart) {
+                        currentPart = elarisResult.next_part;
+                        updatePartProgress();
+                    }
+                    
+                    conversationStatus.innerHTML = '<div class="h5 text-primary">Elaris® has responded - Click "Speak" to continue</div>';
+                } else {
+                    conversationStatus.innerHTML = '<div class="h5 text-danger">Error in conversation - Please try again</div>';
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error processing speech:', error);
+            conversationStatus.innerHTML = '<div class="h5 text-danger">Could not process speech - Please try again</div>';
+        }
+    }
+
+    async function playElarisResponse(text) {
+        try {
+            const response = await fetch('/api/generate_speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.audio_url) {
+                const audio = new Audio(result.audio_url);
+                
+                conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Elaris® is speaking...</div>';
+                
+                return new Promise((resolve) => {
+                    audio.onended = () => {
+                        resolve();
+                    };
+                    audio.onerror = () => {
+                        resolve();
+                    };
+                    audio.play();
+                });
+            }
+        } catch (error) {
+            console.error('Error playing Elaris® response:', error);
+        }
+    }
+
+    function addMessageToHistory(speaker, message) {
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${speaker === 'Elaris®' ? 'examiner-message' : 'user-message'}`;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        
+        messageEl.innerHTML = `
+            <div class="message-header">
+                <strong>${speaker}</strong>
+                <small class="text-muted">${timestamp}</small>
+            </div>
+            <div class="message-content">${message}</div>
+        `;
+        
+        conversationHistoryEl.appendChild(messageEl);
+        conversationHistoryEl.scrollTop = conversationHistoryEl.scrollHeight;
+        
+        // Store in conversation history
+        conversationHistory.push({
+            speaker: speaker,
+            message: message,
+            timestamp: timestamp
+        });
+    }
+
+    function updatePartProgress() {
+        for (let i = 1; i <= 3; i++) {
+            const partEl = document.getElementById(`part${i}`);
+            const badge = partEl.querySelector('.badge');
+            
+            if (i < currentPart) {
+                badge.className = 'badge bg-success';
+                badge.textContent = 'Completed';
+            } else if (i === currentPart) {
+                badge.className = 'badge bg-primary';
+                badge.textContent = 'Current';
+            } else {
+                badge.className = 'badge bg-secondary';
+                badge.textContent = 'Upcoming';
+            }
+        }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            conversationTimer++;
+            const minutes = Math.floor(conversationTimer / 60);
+            const seconds = conversationTimer % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    function pauseConversation() {
+        // Implementation for pause functionality
+        alert('Conversation paused. Click resume to continue.');
+    }
+
+    async function endConversation() {
+        if (confirm('Are you sure you want to end the assessment? Your conversation will be assessed immediately.')) {
+            conversationActive = false;
+            
+            // Stop all audio
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Process final assessment
+            conversationStatus.innerHTML = '<div class="h5 text-warning">Processing your assessment...</div>';
+            
+            try {
+                const assessmentResponse = await fetch('/api/assess_conversation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        conversation_history: conversationHistory,
+                        total_time: conversationTimer
+                    })
+                });
+                
+                const result = await assessmentResponse.json();
+                
+                if (result.success) {
+                    // Redirect to results
+                    window.location.href = `/assessments/{{ assessment_type }}/{{ assessment_id }}/results`;
+                } else {
+                    alert('Assessment processing failed. Please contact support.');
+                }
+                
+            } catch (error) {
+                console.error('Assessment error:', error);
+                alert('Assessment processing failed. Please contact support.');
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

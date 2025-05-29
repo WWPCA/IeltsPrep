@@ -80,6 +80,195 @@ def generate_speech():
         print(f"Speech generation error: {e}")
         return jsonify({'success': False, 'error': 'Speech generation service unavailable'})
 
+# Real-time conversation API endpoints
+@app.route('/api/start_conversation', methods=['POST'])
+@login_required
+def start_conversation():
+    """Start a real-time conversation with Elaris®"""
+    try:
+        data = request.get_json()
+        assessment_type = data.get('assessment_type', 'academic_speaking')
+        part = data.get('part', 1)
+        
+        nova_sonic = NovaSonicService()
+        
+        # Create conversation session
+        result = nova_sonic.create_speaking_conversation(
+            user_level='intermediate',  # Could be determined from user profile
+            part_number=part,
+            topic='general_introduction'
+        )
+        
+        if result.get('success'):
+            return jsonify({
+                'success': True,
+                'opening_message': result.get('examiner_response', 'Hello! I\'m ready to begin your assessment.'),
+                'conversation_id': result.get('conversation_id')
+            })
+        else:
+            return jsonify({'success': False, 'error': result.get('error', 'Conversation start failed')})
+            
+    except Exception as e:
+        print(f"Conversation start error: {e}")
+        return jsonify({'success': False, 'error': 'Conversation service unavailable'})
+
+@app.route('/api/continue_conversation', methods=['POST'])
+@login_required  
+def continue_conversation():
+    """Continue the conversation with user input"""
+    try:
+        data = request.get_json()
+        user_message = data.get('user_message', '')
+        conversation_history = data.get('conversation_history', [])
+        current_part = data.get('current_part', 1)
+        
+        if not user_message:
+            return jsonify({'success': False, 'error': 'No user message provided'})
+        
+        nova_sonic = NovaSonicService()
+        
+        # Continue conversation
+        result = nova_sonic.continue_conversation(
+            conversation_id=f"conv_{current_user.id}_{current_part}",
+            user_response=user_message,
+            conversation_history=conversation_history
+        )
+        
+        if result.get('success'):
+            # Determine if we should move to next part based on conversation length
+            next_part = current_part
+            if len(conversation_history) > 8 and current_part == 1:
+                next_part = 2
+            elif len(conversation_history) > 15 and current_part == 2:
+                next_part = 3
+                
+            return jsonify({
+                'success': True,
+                'response': result.get('examiner_response', 'Please continue.'),
+                'next_part': next_part,
+                'assessment_notes': result.get('assessment_notes', '')
+            })
+        else:
+            return jsonify({'success': False, 'error': result.get('error', 'Conversation continuation failed')})
+            
+    except Exception as e:
+        print(f"Conversation continuation error: {e}")
+        return jsonify({'success': False, 'error': 'Conversation service unavailable'})
+
+@app.route('/api/transcribe_speech', methods=['POST'])
+@login_required
+def transcribe_speech():
+    """Transcribe user speech to text"""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'success': False, 'error': 'No audio file provided'})
+        
+        audio_file = request.files['audio']
+        
+        # Save temporary audio file
+        import tempfile
+        import os
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_file:
+            audio_file.save(temp_file.name)
+            
+            # Use AWS Transcribe for speech recognition
+            from aws_services import transcribe_audio
+            transcript = transcribe_audio(temp_file.name)
+            
+            # Clean up temporary file
+            os.unlink(temp_file.name)
+            
+            if transcript:
+                return jsonify({
+                    'success': True,
+                    'transcript': transcript
+                })
+            else:
+                return jsonify({'success': False, 'error': 'Transcription failed'})
+                
+    except Exception as e:
+        print(f"Speech transcription error: {e}")
+        return jsonify({'success': False, 'error': 'Transcription service unavailable'})
+
+@app.route('/api/assess_conversation', methods=['POST'])
+@login_required
+def assess_conversation():
+    """Assess the completed conversation"""
+    try:
+        data = request.get_json()
+        conversation_history = data.get('conversation_history', [])
+        total_time = data.get('total_time', 0)
+        
+        if not conversation_history:
+            return jsonify({'success': False, 'error': 'No conversation data provided'})
+        
+        nova_sonic = NovaSonicService()
+        
+        # Generate final assessment
+        result = nova_sonic.assess_full_conversation(
+            conversation_history=conversation_history,
+            total_duration=total_time
+        )
+        
+        if result.get('success'):
+            # Store assessment result in database
+            from models import UserAssessmentAttempt
+            
+            attempt = UserAssessmentAttempt()
+            attempt.user_id = current_user.id
+            attempt.assessment_id = 1  # This would be dynamic
+            attempt.status = 'completed'
+            attempt.overall_score = result.get('overall_score', 0)
+            attempt.fluency_score = result.get('fluency_coherence', 0)
+            attempt.vocabulary_score = result.get('lexical_resource', 0)
+            attempt.grammar_score = result.get('grammatical_range', 0)
+            attempt.pronunciation_score = result.get('pronunciation', 0)
+            attempt.feedback = result.get('detailed_feedback', '')
+            attempt.transcript = str(conversation_history)
+            
+            db.session.add(attempt)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'assessment_id': attempt.id,
+                'scores': {
+                    'overall': result.get('overall_score', 0),
+                    'fluency': result.get('fluency_coherence', 0),
+                    'vocabulary': result.get('lexical_resource', 0),
+                    'grammar': result.get('grammatical_range', 0),
+                    'pronunciation': result.get('pronunciation', 0)
+                }
+            })
+        else:
+            return jsonify({'success': False, 'error': result.get('error', 'Assessment failed')})
+            
+    except Exception as e:
+        print(f"Conversation assessment error: {e}")
+        return jsonify({'success': False, 'error': 'Assessment service unavailable'})
+
+# Conversational speaking assessment route
+@app.route('/assessments/<assessment_type>/<int:assessment_id>/conversational')
+@login_required
+@country_access_required
+def conversational_speaking_assessment(assessment_type, assessment_id):
+    """Access the new conversational speaking assessment interface"""
+    # Check if user has access to this assessment
+    accessible_assessments = assessment_assignment_service.get_user_accessible_assessments(
+        current_user.id, assessment_type
+    )
+    
+    assessment = next((a for a in accessible_assessments if a.id == assessment_id), None)
+    if not assessment:
+        flash('Assessment not found or already completed.')
+        return redirect(url_for('assessment_products_page'))
+    
+    return render_template('assessments/conversational_speaking.html',
+                         assessment_type=assessment_type,
+                         assessment_id=assessment_id,
+                         assessment=assessment)
+
 # Speaking assessment selection route - catches the old URL
 @app.route('/assessments/speaking')
 @login_required
