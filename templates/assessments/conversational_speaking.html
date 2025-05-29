@@ -592,8 +592,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Start timer
             startTimer();
             
-            // Begin conversation with Elaris®
-            await startConversationWithElaris();
+            // Begin conversation with Maya
+            await startConversationWithMaya();
             
         } catch (error) {
             console.error('Failed to start conversation:', error);
@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
         endConversation();
     });
 
-    async function startConversationWithElaris() {
+    async function startConversationWithMaya() {
         try {
             const response = await fetch('/api/start_conversation', {
                 method: 'POST',
@@ -636,14 +636,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             
             if (result.success) {
-                // Elaris® speaks her opening
-                await playElarisResponse(result.opening_message);
-                addMessageToHistory('Elaris®', result.opening_message);
+                // Maya speaks her opening
+                await playMayaResponse(result.opening_message);
+                addMessageToHistory('Maya (ClearScore IELTS Examiner)', result.opening_message);
                 
-                conversationStatus.innerHTML = '<div class="h5 text-primary">Elaris® has spoken - Click "Speak" to respond</div>';
+                conversationStatus.innerHTML = '<div class="h5 text-primary">Maya has spoken - Click "Speak" to respond</div>';
             }
         } catch (error) {
-            console.error('Failed to start conversation with Elaris®:', error);
+            console.error('Failed to start conversation with Maya:', error);
         }
     }
 
@@ -678,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isListening) return;
         
         isListening = false;
-        speakBtn.innerHTML = '<i class="fas fa-microphone me-2"></i>Speak to Elaris®';
+        speakBtn.innerHTML = '<i class="fas fa-microphone me-2"></i>Speak to Maya';
         speakBtn.className = 'btn btn-primary';
         conversationStatus.innerHTML = '<div class="h5 text-info">Processing your response...</div>';
         audioVisualizer.classList.add('d-none');
@@ -829,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addMessageToHistory(speaker, message) {
         const messageEl = document.createElement('div');
-        messageEl.className = `message ${speaker === 'Elaris®' ? 'examiner-message' : 'user-message'}`;
+        messageEl.className = `message ${speaker.includes('Maya') ? 'examiner-message' : 'user-message'}`;
         
         const timestamp = new Date().toLocaleTimeString();
         
