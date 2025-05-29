@@ -58,10 +58,10 @@
                 <div class="card-header bg-success text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
-                            <i class="fas fa-user-tie me-2"></i>Conversation with Elaris®
+                            <i class="fas fa-user-tie me-2"></i>Conversation with Maya (ClearScore)
                         </h5>
                         <div class="text-end">
-                            <small>Powered by Nova Sonic Technology - The world's only AI IELTS speaking examiner</small>
+                            <small>Powered by ClearScore Technology - The world's only AI IELTS speaking examiner</small>
                         </div>
                     </div>
                 </div>
@@ -72,13 +72,26 @@
                         <div class="conversation-history" id="conversationHistory">
                             <div class="message examiner-message">
                                 <div class="message-header">
-                                    <strong>Elaris® (IELTS Examiner)</strong>
+                                    <strong>Maya (ClearScore IELTS Examiner)</strong>
                                     <small class="text-muted">Just now</small>
                                 </div>
                                 <div class="message-content">
-                                    Good morning! My name is Elaris, and I'll be your AI examiner today. I'm ready to begin your IELTS speaking assessment. When you're ready, click "Start Conversation" and we can begin with some questions about yourself.
+                                    Good morning! My name is Maya, and I'll be your ClearScore AI examiner today. I'm ready to begin your IELTS speaking assessment. When you're ready, click "Start Conversation" and we can begin with some questions about yourself.
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Visualization Globe -->
+                    <div class="voice-globe-container mb-3" id="voiceGlobeContainer">
+                        <canvas id="voiceGlobe" width="300" height="300"></canvas>
+                        <div class="globe-controls">
+                            <button class="btn btn-sm btn-outline-secondary" id="toggleGlobe" title="Toggle Visualization">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="globeSettings" title="Visualization Settings">
+                                <i class="fas fa-cog"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -96,7 +109,7 @@
                                         <i class="fas fa-play me-2"></i>Start Conversation
                                     </button>
                                     <button class="btn btn-primary" id="speakBtn" style="display: none;">
-                                        <i class="fas fa-microphone me-2"></i>Speak to Elaris®
+                                        <i class="fas fa-microphone me-2"></i>Speak to Maya
                                     </button>
                                     <button class="btn btn-warning" id="pauseBtn" style="display: none;">
                                         <i class="fas fa-pause me-2"></i>Pause
