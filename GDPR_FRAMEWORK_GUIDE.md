@@ -49,16 +49,23 @@ The framework includes a comprehensive cookie and consent management system:
 - **Consent Records**: All consent actions are logged for accountability and compliance.
 - **Cookie Banner**: User-friendly cookie banner with options to accept all or customize preferences.
 
-## Audio Recording Privacy Protection
+## Enhanced Audio Privacy Protection (Browser-Based Speech Recognition)
 
-The platform implements strict privacy controls for audio recordings during microphone testing and speaking assessments:
+The platform implements industry-leading privacy controls using local browser speech recognition:
 
-- **Immediate Deletion**: Microphone test recordings are automatically deleted after playback (maximum 30 seconds retention)
-- **No Long-term Storage**: Voice recordings are never stored permanently on servers
-- **Memory-only Processing**: Audio data exists only in browser memory during testing
-- **Clear User Notifications**: Users are informed when recordings are deleted with "(Recording deleted for privacy)" messages
-- **Zero Data Retention**: No voice data is retained after assessment completion
-- **Browser-based Processing**: All audio processing happens locally in the user's browser for maximum privacy
+**Complete Local Processing:**
+- **No Audio Transmission**: Voice audio never leaves the user's device
+- **Browser-Only Speech Recognition**: Uses native Web Speech API for transcription
+- **Zero Server-Side Audio Processing**: No audio files are created, stored, or transmitted
+- **Real-time Local Transcription**: Speech-to-text conversion happens entirely in the browser
+- **Memory-only Processing**: Audio exists only in browser memory during active speech recognition
+
+**GDPR Compliance Benefits:**
+- **Data Minimization**: Only text transcripts are processed, never raw audio
+- **Purpose Limitation**: Audio processing serves only immediate transcription needs
+- **Storage Limitation**: No audio data storage or retention
+- **Privacy by Design**: Technical implementation prevents audio data collection
+- **User Control**: Speech recognition can be stopped instantly by the user
 
 ## Data Storage & Retention
 
@@ -66,7 +73,7 @@ The framework implements privacy-by-design principles for data storage:
 
 - **Transcript Retention**: Speaking test transcripts are stored for 6 months and then automatically deleted.
 - **Assessment Data**: Test results and assessments are kept until the user requests deletion.
-- **Audio Processing**: Audio recordings are only used for immediate assessment and not permanently stored.
+- **Audio Processing**: No audio recordings are created or stored - speech recognition occurs entirely in the user's browser using Web Speech API.
 - **Customer Address Data**: Billing and shipping addresses are collected during payment processing for tax compliance purposes and stored securely with payment records.
 - **Automatic Cleanup**: `cleanup_expired_transcripts.py` ensures proper implementation of retention policies.
 

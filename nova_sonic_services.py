@@ -36,6 +36,78 @@ class NovaSonicService:
             logger.error(f"Failed to initialize Nova Sonic: {e}")
             raise
 
+    def assess_browser_transcript(self, transcript, conversation_history, part_number):
+        """
+        Assess user speech from browser-generated transcript using Nova Sonic
+        
+        Args:
+            transcript (str): User's speech converted to text by browser
+            conversation_history (list): Previous conversation messages
+            part_number (int): IELTS speaking part (1, 2, or 3)
+            
+        Returns:
+            dict: Assessment and next examiner response
+        """
+        try:
+            # Create context-aware assessment prompt
+            conversation_context = "\n".join([
+                f"{msg['speaker']}: {msg['message']}" 
+                for msg in conversation_history[-5:]  # Last 5 exchanges for context
+            ])
+            
+            response = self.client.invoke_model(
+                modelId='amazon.nova-sonic-v1:0',
+                contentType='application/json',
+                accept='application/json',
+                body=json.dumps({
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": f"""You are Maya, a professional IELTS examiner using ClearScore technology. 
+
+CONTEXT: This is Part {part_number} of the IELTS Speaking test.
+RECENT CONVERSATION:
+{conversation_context}
+
+USER'S LATEST RESPONSE: "{transcript}"
+
+Provide:
+1. A natural examiner response to continue the conversation
+2. Real-time assessment notes on: fluency, vocabulary, grammar, pronunciation (based on text patterns)
+3. If appropriate, transition to next question or part
+
+Respond as a professional but friendly British examiner. Keep responses conversational and natural."""
+                        }
+                    ],
+                    "inferenceConfig": {
+                        "max_new_tokens": 500,
+                        "temperature": 0.7
+                    }
+                })
+            )
+            
+            result = json.loads(response['body'].read())
+            
+            if 'content' in result and result['content']:
+                examiner_response = result['content'][0]['text']
+                
+                return {
+                    "success": True,
+                    "response": examiner_response,
+                    "assessment_notes": f"Processed transcript: {len(transcript)} characters",
+                    "next_part": part_number
+                }
+            else:
+                logger.warning("No content in Nova Sonic response")
+                return {"success": False, "error": "No response generated"}
+                
+        except ClientError as e:
+            logger.error(f"Nova Sonic assessment error: {e}")
+            return {"success": False, "error": str(e)}
+        except Exception as e:
+            logger.error(f"Unexpected assessment error: {e}")
+            return {"success": False, "error": str(e)}
+
     def create_speaking_conversation(self, user_level, part_number, topic):
         """
         Create a conversational speaking session with Nova Sonic
