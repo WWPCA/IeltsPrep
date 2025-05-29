@@ -17,7 +17,7 @@ add_assessment_routes(app)
 
 # Core assessment routes now integrated in routes.py
 import writing_assessment_routes  # noqa: F401
-# Removed old speaking assessment routes - using new 4 Elaris® assessment structure
+# Removed old speaking assessment routes - using new conversational ClearScore assessment structure
 
 # Import assessment structure routes
 import assessment_structure_routes  # noqa: F401
@@ -43,7 +43,7 @@ app.register_blueprint(cart_bp, url_prefix='/cart')
 from gdpr_routes import gdpr_bp
 app.register_blueprint(gdpr_bp)
 
-# Old conversational routes removed - using new 4 Elaris® assessment structure
+# Old conversational routes removed - using new ClearScore conversational assessment structure
 
 # Configure Talisman with security headers but let Replit handle HTTPS
 Talisman(app, 
