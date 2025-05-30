@@ -211,7 +211,7 @@ def get_user_accessible_assessments(user_id, assessment_type):
     }
     
     required_package = assessment_mapping.get(assessment_type)
-    if required_package and required_package not in user.assessment_package_status and 'All Products' not in user.assessment_package_status:
+    if required_package and required_package not in user.assessment_package_status:
         return []
     
     # Get the base assessment type (academic or general)
