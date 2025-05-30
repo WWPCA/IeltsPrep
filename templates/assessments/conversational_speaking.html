@@ -84,8 +84,8 @@
                                 </div>
                             </div>
                             <div class="alert alert-info mt-3">
-                                <h6><i class="fas fa-shield-alt me-2"></i>Enhanced Privacy Protection</h6>
-                                <p class="small mb-0">This assessment uses local browser speech recognition - your voice is processed entirely on your device and never sent to external servers for transcription. Only the text transcript is used for assessment.</p>
+                                <h6><i class="fas fa-microphone me-2"></i>Microphone Access</h6>
+                                <p class="small mb-0">Maya needs to hear you speak. Please allow microphone access when prompted by your browser.</p>
                             </div>
                         </div>
                     </div>
@@ -628,10 +628,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             speechRecognition.onerror = function(event) {
                 console.error('Speech recognition error:', event.error);
-                if (event.error === 'no-speech') {
+                if (event.error === 'not-allowed') {
+                    conversationStatus.innerHTML = '<div class="h5 text-warning">🎤 Please allow microphone access and try again</div>';
+                } else if (event.error === 'no-speech') {
                     conversationStatus.innerHTML = '<div class="h5 text-warning">🔇 No speech detected - Click "Speak" to try again</div>';
                 } else {
-                    conversationStatus.innerHTML = '<div class="h5 text-danger">❌ Speech recognition error - Please try again</div>';
+                    conversationStatus.innerHTML = '<div class="h5 text-danger">❌ Microphone error - Please try again</div>';
                 }
                 isLocalSpeechActive = false;
             };
