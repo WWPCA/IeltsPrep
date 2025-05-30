@@ -8,8 +8,27 @@ import requests
 def test_recaptcha_keys():
     """Test if the current reCAPTCHA keys are working"""
     
-    site_key = os.environ.get('RECAPTCHA_PUBLIC_KEY')
-    secret_key = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+    # Check both production and development keys
+    prod_site_key = os.environ.get('RECAPTCHA_PUBLIC_KEY')
+    prod_secret_key = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+    dev_site_key = os.environ.get('RECAPTCHA_DEV_PUBLIC_KEY')
+    dev_secret_key = os.environ.get('RECAPTCHA_DEV_PRIVATE_KEY')
+    
+    print("=== Production Keys ===")
+    print(f"Site key present: {bool(prod_site_key)}")
+    print(f"Secret key present: {bool(prod_secret_key)}")
+    if prod_site_key:
+        print(f"Site key starts with: {prod_site_key[:10]}...")
+    
+    print("\n=== Development Keys ===")
+    print(f"Dev site key present: {bool(dev_site_key)}")
+    print(f"Dev secret key present: {bool(dev_secret_key)}")
+    if dev_site_key:
+        print(f"Dev site key starts with: {dev_site_key[:10]}...")
+    
+    # Use development keys for testing
+    site_key = dev_site_key
+    secret_key = dev_secret_key
     
     print(f"Site key present: {bool(site_key)}")
     print(f"Secret key present: {bool(secret_key)}")
