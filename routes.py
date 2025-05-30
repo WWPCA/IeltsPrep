@@ -403,19 +403,19 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        identifier = security_manager.get_client_identifier()
+        identifier = email  # Use email as identifier
         
         # Enhanced validation
         if not email or not password:
             flash('Please provide both email and password', 'danger')
-            return render_template('login.html', title='Login')
+            return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
         
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
             # Successful login - clear failed attempts
             security_manager.clear_failed_attempts(identifier)
-            security_manager.log_security_event('successful_login', {'user_id': user.id})
+            security_manager.log_security_event('successful_login', user.id, {'email': email})
             
             login_user(user)
             
@@ -433,19 +433,20 @@ def login():
             return redirect(url_for('index'))
         else:
             # Failed login - record attempt
-            failed_count = security_manager.record_failed_login(identifier)
+            is_locked, failed_count = security_manager.record_failed_login(identifier)
             security_manager.log_security_event(
                 'failed_login', 
+                None,
                 {'email': email, 'attempt_count': failed_count}
             )
             
-            if failed_count >= security_manager.max_login_attempts:
+            if is_locked:
                 flash('Account temporarily locked due to multiple failed attempts. Please try again later.', 'danger')
             else:
-                remaining = security_manager.max_login_attempts - failed_count
+                remaining = 5 - failed_count  # MAX_LOGIN_ATTEMPTS = 5
                 flash(f'Invalid email or password. {remaining} attempts remaining.', 'danger')
     
-    return render_template('login.html', title='Login')
+    return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
 
 @app.route('/logout')
 def logout():
