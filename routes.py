@@ -410,6 +410,22 @@ def login():
             flash('Please provide both email and password', 'danger')
             return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
         
+        # reCAPTCHA validation - REQUIRED for security
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response:
+            flash('Security verification failed. Please try again.', 'danger')
+            return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+        
+        # Verify reCAPTCHA with Google
+        try:
+            recaptcha_result = recaptcha_v3.verify(recaptcha_response, action='login', min_score=0.5)
+            if not recaptcha_result.get('success'):
+                flash('Security verification failed. Please try again.', 'danger')
+                return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+        except Exception as e:
+            flash('Security verification service unavailable. Please try again later.', 'danger')
+            return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+        
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
