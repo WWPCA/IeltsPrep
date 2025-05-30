@@ -233,6 +233,30 @@ def assess_conversation():
         print(f"Conversation assessment error: {e}")
         return jsonify({'success': False, 'error': 'Assessment service unavailable'})
 
+# Conversational speaking assessment route with assessment numbers
+@app.route('/assessments/<assessment_type>/conversational/<int:assessment_number>')
+@login_required
+@country_access_required
+def conversational_speaking_from_number(assessment_type, assessment_number):
+    """Handle conversational speaking using assessment_number instead of assessment_id."""
+    # Get assessments of the specified type
+    assessments = Assessment.query.filter_by(
+        assessment_type=assessment_type,
+        status='active'
+    ).order_by(Assessment.id).all()
+    
+    # Convert assessment_number to assessment_id
+    if 1 <= assessment_number <= len(assessments):
+        assessment_id = assessments[assessment_number - 1].id
+    else:
+        flash('Assessment not found.', 'danger')
+        return redirect(url_for('profile'))
+    
+    # Redirect to the proper conversational route with assessment_id
+    return redirect(url_for('conversational_speaking_assessment', 
+                          assessment_type=assessment_type, 
+                          assessment_id=assessment_id))
+
 # Conversational speaking assessment route
 @app.route('/assessments/<assessment_type>/<int:assessment_id>/conversational')
 @login_required
