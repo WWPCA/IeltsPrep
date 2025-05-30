@@ -70,7 +70,29 @@
               }
               tokenInput.value = token;
               console.log('Submitting form with reCAPTCHA token');
-              form.submit();
+              
+              // Create a new form data object to ensure all fields are preserved
+              const formData = new FormData(form);
+              
+              // Submit using fetch to maintain all form data including CSRF
+              fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+              }).then(response => {
+                if (response.redirected) {
+                  window.location.href = response.url;
+                } else {
+                  return response.text().then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                  });
+                }
+              }).catch(error => {
+                console.error('Login submission error:', error);
+                alert('Login failed. Please try again.');
+              });
             })
             .catch(function(error) {
               console.error('reCAPTCHA verification failed:', error);
