@@ -468,7 +468,7 @@ The cloud deployment maintains GDPR compliance through:
 
 ## Conclusion
 
-IELTS GenAI Prep, featuring TrueScore® and Elaris® - the world's ONLY GenAI assessor tools for IELTS test preparation - has implemented a comprehensive GDPR compliance framework covering all aspects of the regulation. This framework ensures that:
+IELTS GenAI Prep, featuring TrueScore® and ClearScore® - the world's ONLY GenAI assessor tools for IELTS test preparation - has implemented a comprehensive GDPR compliance framework covering all aspects of the regulation. This framework ensures that:
 
 1. User privacy and data protection are built into the core of the platform (Article 5)
 2. Assessment package purchases and processing are handled with complete transparency and user control
