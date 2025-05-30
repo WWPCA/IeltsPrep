@@ -5,18 +5,23 @@ from flask import request, session
 from flask_login import current_user
 from models import Translation
 
-def get_user_region():
+def get_user_region(request_obj=None):
     """
     Determine user's region based on their IP address.
     This is a simplified version. In production, you would use a GeoIP service.
     For now, we'll use a dummy implementation that checks the Accept-Language header.
+    
+    Args:
+        request_obj: Flask request object (optional, uses global request if not provided)
     """
+    if request_obj is None:
+        request_obj = request
     # If user is authenticated and has a region set, use that
     if current_user.is_authenticated and current_user.region:
         return current_user.region
     
     # For simplicity, we're using the Accept-Language header as a proxy for region
-    accept_language = request.headers.get('Accept-Language', '')
+    accept_language = request_obj.headers.get('Accept-Language', '')
     
     # Map language codes to regions for payment methods
     language_region_map = {

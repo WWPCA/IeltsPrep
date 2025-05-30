@@ -18,6 +18,7 @@ from app import app, db, recaptcha_v3
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
 from utils import get_user_region, get_translation
 from input_validation import InputValidator, validate_registration_data, validate_api_request, validate_assessment_input
+from enhanced_error_handling import handle_database_error, handle_api_error, validate_request_size
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
@@ -452,6 +453,8 @@ def change_password():
 @app.route('/register', methods=['GET', 'POST'])
 @rate_limit('login')
 @validate_inputs(email='email', password='password', name='name')
+@handle_database_error
+@validate_request_size(max_size_mb=1)
 def register():
     """Registration page with enhanced security validation"""
     if current_user.is_authenticated:

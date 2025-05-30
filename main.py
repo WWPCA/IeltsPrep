@@ -10,6 +10,7 @@ except Exception as e:
     print(f"Failed to integrate recovery system: {e}")
 import routes  # noqa: F401
 from flask_talisman import Talisman
+from enhanced_error_handling import setup_global_error_handlers
 
 # Import and register assessment routes
 from add_assessment_routes import add_assessment_routes
@@ -60,6 +61,9 @@ Talisman(app,
          },
          frame_options='SAMEORIGIN', 
          frame_options_allow_from='*')
+
+# Set up global error handlers
+setup_global_error_handlers(app)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
