@@ -14,7 +14,7 @@ def add_database_indexes():
         try:
             # Add index on email field for faster user lookups
             db.session.execute(text("""
-                CREATE INDEX IF NOT EXISTS idx_user_email ON user(email);
+                CREATE INDEX IF NOT EXISTS idx_user_email ON "user"(email);
             """))
             
             # Add index on assessment type for faster assessment queries
