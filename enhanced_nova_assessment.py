@@ -363,7 +363,7 @@ class EnhancedNovaAssessment:
                 "session_active": True,
                 "part_number": part_number,
                 "topic": topic,
-                "assessment_type": "Elaris® Enhanced Nova Sonic Conversation",
+                "assessment_type": "ClearScore® Enhanced Nova Sonic Conversation",
                 "user_id": user_id
             }
             

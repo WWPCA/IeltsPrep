@@ -47,7 +47,7 @@ from add_assessment_details_route import assessment_details_route
 # Import Nova Sonic for speech generation
 from nova_sonic_services import NovaSonicService
 
-# Speech generation API route for Elaris® British voice
+# Speech generation API route for Maya British voice
 @app.route('/api/generate_speech', methods=['POST'])
 @login_required
 def generate_speech():
