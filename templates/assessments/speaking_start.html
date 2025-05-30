@@ -722,8 +722,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start assessment
     startAssessmentBtn.addEventListener('click', function() {
         if (micTested && speakerTested) {
-            // Navigate directly to conversational assessment
-            window.location.href = '/assessments/{{ assessment_type }}/assessment/{{ assessment_number }}';
+            // Navigate to speaking assessment interface
+            window.location.href = '/speaking/assessment/{{ assessment_type }}/{{ assessment_number }}';
         } else {
             alert('Please complete both microphone and speaker tests before starting the assessment.');
         }
