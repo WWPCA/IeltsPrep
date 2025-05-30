@@ -412,19 +412,27 @@ def login():
         
         # reCAPTCHA validation - REQUIRED for security
         recaptcha_response = request.form.get('g-recaptcha-response')
+        logging.debug(f"Received reCAPTCHA token: {recaptcha_response is not None}")
+        
         if not recaptcha_response:
             flash('Security verification failed. Please try again.', 'danger')
-            return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+            return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # Verify reCAPTCHA with Google
         try:
+            logging.debug(f"Verifying reCAPTCHA with token: {recaptcha_response[:20]}...")
             recaptcha_result = recaptcha_v3.verify(recaptcha_response, action='login', min_score=0.5)
+            logging.debug(f"reCAPTCHA verification result: {recaptcha_result}")
+            
             if not recaptcha_result.get('success'):
-                flash('Security verification failed. Please try again.', 'danger')
-                return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+                error_msg = recaptcha_result.get('error', 'Unknown verification error')
+                logging.error(f"reCAPTCHA verification failed: {error_msg}")
+                flash(f'Security verification failed: {error_msg}. Please try again.', 'danger')
+                return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         except Exception as e:
+            logging.error(f"reCAPTCHA verification exception: {str(e)}")
             flash('Security verification service unavailable. Please try again later.', 'danger')
-            return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+            return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         user = User.query.filter_by(email=email).first()
         

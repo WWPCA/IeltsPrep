@@ -1,40 +1,84 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
-<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
 <script>
-   document.addEventListener('DOMContentLoaded', function() {
-     const form = document.getElementById('login-form');
-     
-     form.addEventListener('submit', function(e) {
-       e.preventDefault();
-       
-       if (typeof grecaptcha === 'undefined') {
-         alert('Security verification service is not available. Please refresh the page and try again.');
-         return;
-       }
-       
-       grecaptcha.ready(function() {
-         grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'})
-           .then(function(token) {
-             let tokenInput = document.getElementById('g-recaptcha-response');
-             if (!tokenInput) {
-               tokenInput = document.createElement('input');
-               tokenInput.type = 'hidden';
-               tokenInput.id = 'g-recaptcha-response';
-               tokenInput.name = 'g-recaptcha-response';
-               form.appendChild(tokenInput);
-             }
-             tokenInput.value = token;
-             form.submit();
-           })
-           .catch(function(error) {
-             console.error('reCAPTCHA verification failed:', error);
-             alert('Security verification failed. Please refresh the page and try again.');
-           });
-       });
-     });
-   });
+  let recaptchaLoaded = false;
+  let recaptchaScript = null;
+  
+  function loadRecaptcha() {
+    console.log('Loading reCAPTCHA with site key: {{ recaptcha_site_key }}');
+    
+    if (!recaptchaScript) {
+      recaptchaScript = document.createElement('script');
+      recaptchaScript.src = 'https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}';
+      recaptchaScript.async = true;
+      recaptchaScript.defer = true;
+      
+      recaptchaScript.onload = function() {
+        console.log('reCAPTCHA script loaded successfully');
+        recaptchaLoaded = true;
+      };
+      
+      recaptchaScript.onerror = function() {
+        console.error('Failed to load reCAPTCHA script');
+        alert('Security verification service failed to load. Please check your internet connection and try again.');
+      };
+      
+      document.head.appendChild(recaptchaScript);
+    }
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    loadRecaptcha();
+    
+    const form = document.getElementById('login-form');
+    
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      console.log('Form submitted, checking reCAPTCHA status...');
+      console.log('recaptchaLoaded:', recaptchaLoaded);
+      console.log('typeof grecaptcha:', typeof grecaptcha);
+      
+      // Wait a moment for script to load if needed
+      if (!recaptchaLoaded || typeof grecaptcha === 'undefined') {
+        setTimeout(function() {
+          if (typeof grecaptcha === 'undefined') {
+            console.error('reCAPTCHA still not available after waiting');
+            alert('Security verification service is not available. Please refresh the page and try again.');
+            return;
+          }
+          submitWithRecaptcha();
+        }, 1000);
+      } else {
+        submitWithRecaptcha();
+      }
+      
+      function submitWithRecaptcha() {
+        console.log('Executing reCAPTCHA verification...');
+        grecaptcha.ready(function() {
+          grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'})
+            .then(function(token) {
+              console.log('reCAPTCHA token received:', token.substring(0, 20) + '...');
+              let tokenInput = document.getElementById('g-recaptcha-response');
+              if (!tokenInput) {
+                tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.id = 'g-recaptcha-response';
+                tokenInput.name = 'g-recaptcha-response';
+                form.appendChild(tokenInput);
+              }
+              tokenInput.value = token;
+              console.log('Submitting form with reCAPTCHA token');
+              form.submit();
+            })
+            .catch(function(error) {
+              console.error('reCAPTCHA verification failed:', error);
+              alert('Security verification failed: ' + error.message + '. Please refresh the page and try again.');
+            });
+        });
+      }
+    });
+  });
 </script>
 {% endblock %}
 
