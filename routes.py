@@ -16,11 +16,11 @@ from urllib.parse import urlparse
 from functools import wraps
 from app import app, db, recaptcha_v3
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
-from utils import get_user_region, get_translation, compress_audio
+from utils import get_user_region, get_translation
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
-from aws_services import analyze_speaking_response, analyze_pronunciation, transcribe_audio, generate_polly_speech
+from aws_services import analyze_speaking_response, analyze_pronunciation, generate_polly_speech
 # Using only get_country_from_ip since we've moved to fixed pricing
 from geoip_services import get_country_from_ip
 from country_restrictions import country_access_required, is_country_restricted, RESTRICTION_MESSAGE
@@ -155,41 +155,7 @@ def continue_conversation():
         print(f"Conversation continuation error: {e}")
         return jsonify({'success': False, 'error': 'Conversation service unavailable'})
 
-@app.route('/api/transcribe_speech', methods=['POST'])
-@login_required
-def transcribe_speech():
-    """Transcribe user speech to text"""
-    try:
-        if 'audio' not in request.files:
-            return jsonify({'success': False, 'error': 'No audio file provided'})
-        
-        audio_file = request.files['audio']
-        
-        # Save temporary audio file
-        import tempfile
-        import os
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_file:
-            audio_file.save(temp_file.name)
-            
-            # Use AWS Transcribe for speech recognition
-            from aws_services import transcribe_audio
-            transcript = transcribe_audio(temp_file.name)
-            
-            # Clean up temporary file
-            os.unlink(temp_file.name)
-            
-            if transcript:
-                return jsonify({
-                    'success': True,
-                    'transcript': transcript
-                })
-            else:
-                return jsonify({'success': False, 'error': 'Transcription failed'})
-                
-    except Exception as e:
-        print(f"Speech transcription error: {e}")
-        return jsonify({'success': False, 'error': 'Transcription service unavailable'})
+# Speech transcription route removed - using browser-based speech recognition for enhanced privacy
 
 @app.route('/api/assess_conversation', methods=['POST'])
 @login_required
