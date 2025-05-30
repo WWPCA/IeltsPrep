@@ -21,6 +21,9 @@ ALLOWED_COUNTRIES = {'CA'}  # Canada-only for initial launch
 GEOIP_LICENSE_KEY = os.environ.get('GEOIP_LICENSE_KEY')
 SESSION_VALIDATION_INTERVAL = timedelta(hours=1)
 
+# Standard restriction message for consistency
+RESTRICTION_MESSAGE = "Access is currently limited to Canada only. Thank you for your interest in IELTS GenAI Prep."
+
 class CountryRestrictionManager:
     """Manages country-based access restrictions with fallback mechanisms"""
     
@@ -197,14 +200,15 @@ def country_access_required(f):
         is_allowed, message = country_manager.validate_country_session(request)
         
         if not is_allowed:
+            error_message = message if message else RESTRICTION_MESSAGE
             if request.is_json:
                 return jsonify({
                     'success': False,
-                    'error': message,
+                    'error': error_message,
                     'restricted': True
                 }), 403
             else:
-                flash(message, 'warning')
+                flash(error_message, 'warning')
                 return redirect(url_for('index'))
         
         return f(*args, **kwargs)
@@ -253,3 +257,37 @@ def check_country_access(ip_address=None):
             'country_code': None,
             'message': 'Access validation failed'
         }
+
+# Legacy function compatibility for existing imports
+def is_country_restricted(country_code):
+    """
+    Legacy function for backwards compatibility
+    
+    Args:
+        country_code (str): ISO country code
+        
+    Returns:
+        bool: True if country is restricted
+    """
+    return country_manager.is_country_restricted(country_code)
+
+def get_allowed_countries():
+    """
+    Get list of allowed countries
+    
+    Returns:
+        list: List of allowed country codes
+    """
+    return list(ALLOWED_COUNTRIES)
+
+def validate_billing_country(billing_country):
+    """
+    Legacy function for billing validation
+    
+    Args:
+        billing_country (str): Billing country code
+        
+    Returns:
+        bool: True if valid
+    """
+    return country_manager.validate_billing_country(billing_country)

@@ -515,3 +515,30 @@ def api_protection():
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+def secure_session():
+    """Enhanced session security decorator"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Validate session integrity if user is authenticated
+            if current_user.is_authenticated:
+                if not security_manager.validate_session_integrity(current_user.id):
+                    logout_user()
+                    security_manager.log_security_event(
+                        'session_invalidated',
+                        current_user.id
+                    )
+                    if request.is_json:
+                        return jsonify({
+                            'success': False,
+                            'error': 'Session invalid. Please log in again.',
+                            'logout_required': True
+                        }), 401
+                    else:
+                        flash('Your session has been invalidated. Please log in again.', 'warning')
+                        return redirect(url_for('login'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
