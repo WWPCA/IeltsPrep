@@ -66,4 +66,7 @@ Talisman(app,
 setup_global_error_handlers(app)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Use environment variable to control debug mode - never debug=True in production
+    debug_mode = os.environ.get("FLASK_ENV") == "development"
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
