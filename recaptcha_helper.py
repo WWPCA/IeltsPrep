@@ -53,19 +53,17 @@ class ReCaptchaV3:
         
         # Get domain from request or environment
         domain = request.host if hasattr(request, 'host') else os.environ.get('REPLIT_DOMAINS', 'localhost')
+        logging.debug(f"Current domain: {domain}")
         
-        # Check if we're on the production domain (ieltsaiprep.com)
-        is_production_domain = 'ieltsaiprep.com' in domain
-        
-        # Skip validation for non-production domains
-        if not is_production_domain:
-            logging.info(f"Bypassing reCAPTCHA validation for non-production domain: {domain}")
-            return {'success': True, 'score': 1.0, 'action': action or 'default', 'domain': domain}
+        # For development/testing, we need proper reCAPTCHA validation too
+        # Only bypass if explicitly disabled or keys are missing
             
-        # Continue with normal validation for production domain
+        # Check if reCAPTCHA is properly configured
         if not self.is_enabled:
-            # If reCAPTCHA is not enabled, always return success
-            return {'success': True, 'score': 1.0, 'action': action or 'default'}
+            logging.error(f"reCAPTCHA not enabled - site_key: {bool(self.site_key)}, secret_key: {bool(self.secret_key)}")
+            return {'success': False, 'score': 0.0, 'action': None, 'error': 'reCAPTCHA not configured'}
+        
+        logging.debug(f"reCAPTCHA enabled with site_key: {self.site_key[:10]}... and secret_key configured")
         
         if not response:
             # Try to get the token from the form submission
