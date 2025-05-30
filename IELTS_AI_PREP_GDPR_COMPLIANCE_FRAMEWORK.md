@@ -331,14 +331,16 @@ The platform maintains current contact details and reporting methods for Data Pr
 | Country | Supervisory Authority | Reporting Method | Contact Details |
 |---------|------------------------|------------------|-----------------|
 | Canada | Office of the Privacy Commissioner | Web form | [priv.gc.ca](https://www.priv.gc.ca/en/report-a-concern/) |
+
+For potential expansion in the future:
+| Country/Region | Supervisory Authority | Reporting Method | Contact Details |
+|----------------|------------------------|------------------|-----------------|
 | USA | Federal Trade Commission | Online portal | [ftccomplaintassistant.gov](https://www.ftccomplaintassistant.gov/) |
 | India | Data Protection Authority of India | Email notification | [info@dpai.gov.in](mailto:info@dpai.gov.in) |
 | Nepal | Ministry of Communication and Information Technology | Email notification | [info@mocit.gov.np](mailto:info@mocit.gov.np) |
 | Kuwait | Communication and Information Technology Regulatory Authority | Web portal | [citra.gov.kw](https://www.citra.gov.kw/) |
 | Qatar | Ministry of Transport and Communications | Email notification | [info@motc.gov.qa](mailto:info@motc.gov.qa) |
-
-For potential EU/UK expansion in the future:
-| EU/UK | European Data Protection Board | One-stop-shop mechanism | [edpb.europa.eu](https://edpb.europa.eu/) |
+| EU | European Data Protection Board | One-stop-shop mechanism | [edpb.europa.eu](https://edpb.europa.eu/) |
 | UK | Information Commissioner's Office | Online portal | [ico.org.uk/report-a-breach](https://ico.org.uk/report-a-breach/) |
 
 ### Data Subject Notification
