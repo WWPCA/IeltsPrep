@@ -313,9 +313,23 @@ class User(UserMixin, db.Model):
                 UserPackage.expiry_date.is_(None),
                 UserPackage.expiry_date > datetime.utcnow()
             )
+        ).filter(
+            UserPackage.quantity_remaining > 0
         ).first()
         
         return active_package is not None
+    
+    def get_package_quantity_remaining(self, package_name):
+        """Get the number of remaining packages for a specific type."""
+        package = UserPackage.query.filter_by(
+            user_id=self.id,
+            package_name=package_name,
+            status='active'
+        ).first()
+        
+        if package and package.is_active:
+            return package.quantity_remaining
+        return 0
         
     def is_speaking_only_user(self):
         """
@@ -484,18 +498,20 @@ class UserAssessmentAttempt(db.Model):
         return f'<UserAssessmentAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
 
 class UserPackage(db.Model):
-    """Individual assessment package purchased by a user."""
+    """Individual assessment package purchased by a user with quantity tracking."""
     __tablename__ = 'user_package'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     package_name = db.Column(db.String(50), nullable=False)  # e.g., "Academic Speaking"
+    quantity_purchased = db.Column(db.Integer, default=1)  # Number of packages purchased
+    quantity_remaining = db.Column(db.Integer, default=1)  # Number of packages remaining
     purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
     expiry_date = db.Column(db.DateTime, nullable=True)
-    status = db.Column(db.String(20), default='active')  # active, expired, cancelled
+    status = db.Column(db.String(20), default='active')  # active, expired, cancelled, depleted
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Ensure one package type per user
+    # Allow multiple purchases but track them efficiently
     __table_args__ = (
         db.UniqueConstraint('user_id', 'package_name', name='unique_user_package'),
         db.Index('idx_user_package_user_id', 'user_id'),
@@ -504,16 +520,36 @@ class UserPackage(db.Model):
     )
     
     def __repr__(self):
-        return f'<UserPackage {self.package_name} for User {self.user_id}>'
+        return f'<UserPackage {self.package_name} for User {self.user_id} ({self.quantity_remaining}/{self.quantity_purchased})>'
     
     @property
     def is_active(self):
-        """Check if this package is currently active."""
-        if self.status != 'active':
+        """Check if this package is currently active and has remaining quantity."""
+        if self.status not in ['active']:
+            return False
+        if self.quantity_remaining <= 0:
             return False
         if self.expiry_date and self.expiry_date <= datetime.utcnow():
             return False
         return True
+    
+    def use_one_package(self):
+        """Use one package from this purchase (for assessment consumption)."""
+        if self.quantity_remaining > 0:
+            self.quantity_remaining -= 1
+            if self.quantity_remaining == 0:
+                self.status = 'depleted'
+            db.session.commit()
+            return True
+        return False
+    
+    def add_more_packages(self, additional_quantity):
+        """Add more packages to an existing purchase."""
+        self.quantity_purchased += additional_quantity
+        self.quantity_remaining += additional_quantity
+        if self.status == 'depleted' and self.quantity_remaining > 0:
+            self.status = 'active'
+        db.session.commit()
 
 class WritingResponse(db.Model):
     """Enhanced model for IELTS writing responses with TrueScore® validation"""
