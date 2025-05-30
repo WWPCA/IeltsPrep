@@ -23,7 +23,9 @@ recaptcha_v3 = ReCaptchaV3()
 
 # Create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "ielts-ai-prep-secret-key")
+app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("FLASK_SECRET_KEY")
+if not app.secret_key:
+    raise ValueError("SESSION_SECRET or FLASK_SECRET_KEY environment variable must be set")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure the database
@@ -45,12 +47,18 @@ app.config["RECAPTCHA_RTABINDEX"] = 10
 # Configure URL scheme - use HTTPS for URL generation
 app.config["PREFERRED_URL_SCHEME"] = "https"  # Generate HTTPS URLs for all links
 
+# Configure session security
+app.config["PERMANENT_SESSION_LIFETIME"] = 3600  # 1 hour session timeout
+app.config["SESSION_COOKIE_SECURE"] = True  # HTTPS only cookies
+app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent XSS
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # CSRF protection
+
 # Initialize extensions with the app
 db.init_app(app)
 login_manager.init_app(app)
 csrf.init_app(app)
 recaptcha_v3.init_app(app)
-login_manager.login_view = "login"
+setattr(login_manager, 'login_view', 'login')
 login_manager.login_message_category = "info"
 
 # Let Replit handle HTTPS - this is for when the app runs outside of Replit
