@@ -317,7 +317,7 @@ The platform includes an automated breach detection system that:
 
 1. **Containment**: Immediate steps to contain the breach through automated and manual processes
 2. **Assessment**: Evaluation of breach scope and impact using the automated assessment and manual verification
-3. **Notification to Authorities**: Upon administrator approval, automated submission to relevant DPAs (within 72 hours)
+3. **Notification to Authorities**: Upon administrator approval, automated submission to relevant Data Protection Authorities (within 72 hours)
 4. **Communication to Data Subjects**: Automated preparation of communications to affected users (required under Article 34)
 5. **Remediation**: Implementation of technical fixes and security enhancements
 6. **Documentation**: Comprehensive breach records maintained in a secure breach register
