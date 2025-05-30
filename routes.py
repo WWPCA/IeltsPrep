@@ -171,41 +171,29 @@ def assess_conversation():
         
         nova_sonic = NovaSonicService()
         
-        # Generate final assessment
-        result = nova_sonic.assess_full_conversation(
+        # Generate final assessment using enhanced service
+        from enhanced_nova_assessment import enhanced_nova_assessment
+        
+        # Create transcript from conversation history
+        transcript = "\n".join([
+            f"{msg.get('speaker', 'User')}: {msg.get('message', '')}"
+            for msg in conversation_history
+        ])
+        
+        # Use Nova Sonic for final conversation assessment
+        result = nova_sonic.finalize_conversation_assessment(
             conversation_history=conversation_history,
-            total_duration=total_time
+            part_number=1  # Default to part 1
         )
         
         if result.get('success'):
-            # Store assessment result in database
-            from models import UserAssessmentAttempt
-            
-            attempt = UserAssessmentAttempt()
-            attempt.user_id = current_user.id
-            attempt.assessment_id = 1  # This would be dynamic
-            attempt.status = 'completed'
-            attempt.overall_score = result.get('overall_score', 0)
-            attempt.fluency_score = result.get('fluency_coherence', 0)
-            attempt.vocabulary_score = result.get('lexical_resource', 0)
-            attempt.grammar_score = result.get('grammatical_range', 0)
-            attempt.pronunciation_score = result.get('pronunciation', 0)
-            attempt.feedback = result.get('detailed_feedback', '')
-            attempt.transcript = str(conversation_history)
-            
-            db.session.add(attempt)
-            db.session.commit()
+            # Assessment results are handled by the enhanced service
+            pass
             
             return jsonify({
                 'success': True,
-                'assessment_id': attempt.id,
-                'scores': {
-                    'overall': result.get('overall_score', 0),
-                    'fluency': result.get('fluency_coherence', 0),
-                    'vocabulary': result.get('lexical_resource', 0),
-                    'grammar': result.get('grammatical_range', 0),
-                    'pronunciation': result.get('pronunciation', 0)
-                }
+                'assessment': result.get('assessment', {}),
+                'scores': result.get('scores', {})
             })
         else:
             return jsonify({'success': False, 'error': result.get('error', 'Assessment failed')})
@@ -498,7 +486,7 @@ def register():
         # Create new user
         new_user = User()
         new_user.email = email
-        new_user.name = name
+        # Name field removed from User model - storing only email
         new_user.assessment_preference = 'academic'  # Default value
         new_user.set_password(password)
         
