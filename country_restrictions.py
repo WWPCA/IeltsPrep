@@ -88,7 +88,12 @@ class CountryRestrictionManager:
             bool: True if restricted, False if allowed
         """
         if not country_code:
-            return True  # Restrict if country cannot be determined
+            # If we can't determine location and no GeoIP service is configured,
+            # allow access (likely development or configuration issue)
+            if not GEOIP_LICENSE_KEY:
+                logger.info("No geolocation service configured - allowing access")
+                return False
+            return True  # Restrict if country cannot be determined with proper service
         
         return country_code not in ALLOWED_COUNTRIES
     
