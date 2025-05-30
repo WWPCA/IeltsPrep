@@ -593,8 +593,8 @@ def setup_global_security(app):
             # Strict transport security for HTTPS
             if request.is_secure:
                 response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-            # Content security policy
-            response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+            # Content security policy is handled by Talisman in main.py
+            # Don't override the more comprehensive CSP configuration
             
             return response
         
