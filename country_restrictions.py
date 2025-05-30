@@ -51,13 +51,9 @@ EU_UK_COUNTRIES = [
 
 # List of explicitly allowed countries (whitelisted)
 # ISO 3166-1 alpha-2 country codes (2 letter codes)
+# INITIAL LAUNCH: Canada only - will expand to other countries later
 ALLOWED_COUNTRIES = [
-    'US',  # United States
     'CA',  # Canada
-    'IN',  # India
-    'NP',  # Nepal
-    'KW',  # Kuwait
-    'QA',  # Qatar
 ]
 
 # List of country codes that are restricted from accessing the application for other reasons 
@@ -71,10 +67,10 @@ RESTRICTED_COUNTRIES = [
     'AF',  # Afghanistan
 ]
 
-# Standardized message for all blocked countries (both EU/UK and other regions)
+# Standardized message for all blocked countries during Canada-only launch
 RESTRICTION_MESSAGE = (
-    "We're sorry, but our services are not available in your region due to regulatory requirements. "
-    "We're working to expand our coverage. Thank you for your understanding."
+    "We're sorry, but IELTS GenAI Prep is currently available only in Canada during our initial launch phase. "
+    "We're working to expand to other countries soon. Thank you for your understanding."
 )
 
 def is_country_restricted(country_code):
