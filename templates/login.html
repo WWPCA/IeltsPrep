@@ -19,8 +19,9 @@
         recaptchaLoaded = true;
       };
       
-      recaptchaScript.onerror = function() {
-        console.error('Failed to load reCAPTCHA script');
+      recaptchaScript.onerror = function(event) {
+        console.error('Failed to load reCAPTCHA script:', event);
+        console.error('Script src was:', recaptchaScript.src);
         alert('Security verification service failed to load. Please check your internet connection and try again.');
       };
       
