@@ -56,19 +56,25 @@
       
       function submitWithRecaptcha() {
         console.log('Executing reCAPTCHA verification...');
+        
+        // Remove any existing reCAPTCHA token to ensure fresh generation
+        let existingToken = document.getElementById('g-recaptcha-response');
+        if (existingToken) {
+          existingToken.remove();
+        }
+        
         grecaptcha.ready(function() {
           grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'})
             .then(function(token) {
               console.log('reCAPTCHA token received:', token.substring(0, 20) + '...');
-              let tokenInput = document.getElementById('g-recaptcha-response');
-              if (!tokenInput) {
-                tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.id = 'g-recaptcha-response';
-                tokenInput.name = 'g-recaptcha-response';
-                form.appendChild(tokenInput);
-              }
+              
+              // Create fresh token input
+              let tokenInput = document.createElement('input');
+              tokenInput.type = 'hidden';
+              tokenInput.id = 'g-recaptcha-response';
+              tokenInput.name = 'g-recaptcha-response';
               tokenInput.value = token;
+              form.appendChild(tokenInput);
               console.log('Submitting form with reCAPTCHA token');
               
               // Create a new form data object to ensure all fields are preserved
