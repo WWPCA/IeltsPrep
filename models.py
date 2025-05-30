@@ -239,38 +239,51 @@ class User(UserMixin, db.Model):
         """
         Check if user has access to purchased assessment packages.
         """
-        # Check if assessment package has expired first
-        if self.assessment_package_expiry and self.assessment_package_expiry <= datetime.utcnow():
-            # Assessment package has expired - update status
-            self.assessment_package_status = "expired"
-            db.session.commit()
-            return False
-            
-        # Check for assessment purchases in assessment_history
-        for history_item in self.assessment_history:
-            if "assessment_purchase" in history_item:
-                purchase_data = history_item["assessment_purchase"]
-                if "expiry_date" in purchase_data:
-                    # Check if purchase is still valid
-                    expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
-                    if expiry_date > datetime.utcnow():
-                        return True
-            
-        # Simple list of all possible assessment package types
-        valid_packages = [
-            "Academic Writing", "Academic Speaking", 
-            "General Writing", "General Speaking",
-            "All Products", "unlimited_access"  # Added for test accounts
-        ]
-            
-        # Verify that assessment package status is valid and hasn't expired
-        if (self.assessment_package_status in valid_packages and 
-                self.assessment_package_status != "none" and
-                self.assessment_package_status != "expired" and
-                (not self.assessment_package_expiry or self.assessment_package_expiry > datetime.utcnow())):
-            return True
+        # First check legacy assessment_package_status for backward compatibility
+        if hasattr(self, 'assessment_package_status') and self.assessment_package_status:
+            # Check if assessment package has expired first
+            if self.assessment_package_expiry and self.assessment_package_expiry <= datetime.utcnow():
+                # Assessment package has expired - update status
+                self.assessment_package_status = "expired"
+                db.session.commit()
+                return False
                 
-        return False
+            # Check for assessment purchases in assessment_history
+            for history_item in self.assessment_history:
+                if "assessment_purchase" in history_item:
+                    purchase_data = history_item["assessment_purchase"]
+                    if "expiry_date" in purchase_data:
+                        # Check if purchase is still valid
+                        expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
+                        if expiry_date > datetime.utcnow():
+                            return True
+                
+            # Simple list of all possible assessment package types
+            valid_packages = [
+                "Academic Writing", "Academic Speaking", 
+                "General Writing", "General Speaking",
+                "All Products", "unlimited_access"  # Added for test accounts
+            ]
+                
+            # Verify that assessment package status is valid and hasn't expired
+            if (self.assessment_package_status in valid_packages and 
+                    self.assessment_package_status != "none" and
+                    self.assessment_package_status != "expired" and
+                    (not self.assessment_package_expiry or self.assessment_package_expiry > datetime.utcnow())):
+                return True
+        
+        # Check new UserPackage table for individual packages
+        active_packages = UserPackage.query.filter_by(
+            user_id=self.id,
+            status='active'
+        ).filter(
+            db.or_(
+                UserPackage.expiry_date.is_(None),
+                UserPackage.expiry_date > datetime.utcnow()
+            )
+        ).count()
+        
+        return active_packages > 0
         
     def is_speaking_only_user(self):
         """
@@ -437,6 +450,38 @@ class UserAssessmentAttempt(db.Model):
     
     def __repr__(self):
         return f'<UserAssessmentAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
+
+class UserPackage(db.Model):
+    """Individual assessment package purchased by a user."""
+    __tablename__ = 'user_package'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    package_name = db.Column(db.String(50), nullable=False)  # e.g., "Academic Speaking"
+    purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
+    expiry_date = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(20), default='active')  # active, expired, cancelled
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Ensure one package type per user
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'package_name', name='unique_user_package'),
+        db.Index('idx_user_package_user_id', 'user_id'),
+        db.Index('idx_user_package_status', 'status'),
+        db.Index('idx_user_package_expiry', 'expiry_date'),
+    )
+    
+    def __repr__(self):
+        return f'<UserPackage {self.package_name} for User {self.user_id}>'
+    
+    @property
+    def is_active(self):
+        """Check if this package is currently active."""
+        if self.status != 'active':
+            return False
+        if self.expiry_date and self.expiry_date <= datetime.utcnow():
+            return False
+        return True
 
 class WritingResponse(db.Model):
     """Enhanced model for IELTS writing responses with TrueScore® validation"""
