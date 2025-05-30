@@ -536,12 +536,12 @@ class AssessmentSpeakingResponse(db.Model):
 
 
 class UserAssessmentAssignment(db.Model):
-    """Track which assessments are assigned to each user to ensure no repeats"""
+    """Enhanced assessment assignment tracking with normalized structure"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    assessment_type = db.Column(db.String(20), nullable=False)  # academic or general
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    assessment_type = db.Column(db.String(20), nullable=False, index=True)  # academic or general
     assigned_assessment_ids = db.Column(db.Text, nullable=False)  # JSON array of assigned assessment IDs
-    purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
+    purchase_date = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     expiry_date = db.Column(db.DateTime, nullable=True)
     
     @property
@@ -552,6 +552,8 @@ class UserAssessmentAssignment(db.Model):
     @assessment_ids.setter
     def assessment_ids(self, value):
         """Set the list of assigned assessment IDs"""
+        if value and not isinstance(value, list):
+            raise ValueError("Assessment IDs must be a list")
         self.assigned_assessment_ids = json.dumps(value)
         
     def __repr__(self):
@@ -608,31 +610,39 @@ class UserTestAttempt(db.Model):
         return f'<UserTestAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
 
 class ConnectionIssueLog(db.Model):
-    """Track connection issues for monitoring and support purposes"""
+    """Enhanced connection issue tracking with GDPR compliance"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
     assessment_id = db.Column(db.Integer, nullable=True)  # ID of the assessment being taken
     product_id = db.Column(db.String(50), nullable=True)  # academic_writing, academic_speaking, etc.
     session_id = db.Column(db.Integer, db.ForeignKey('assessment_session.id'), nullable=True)
-    occurred_at = db.Column(db.DateTime, default=datetime.utcnow)
+    occurred_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     user_local_time = db.Column(db.String(50), nullable=True)  # Stored as string to preserve client timezone info
-    issue_type = db.Column(db.String(50), nullable=False)  # disconnect, reconnect, session_restart, etc.
-    ip_address = db.Column(db.String(50), nullable=True)
+    issue_type = db.Column(db.String(50), nullable=False, index=True)  # disconnect, reconnect, session_restart, etc.
+    
+    # Enhanced privacy protection for IP addresses
+    ip_address_hash = db.Column(db.String(64), nullable=True)  # Hashed for GDPR compliance
     user_agent = db.Column(db.String(255), nullable=True)
     city = db.Column(db.String(100), nullable=True)
     country = db.Column(db.String(100), nullable=True)
     browser_info = db.Column(db.Text, nullable=True)  # JSON string with browser details
     connection_info = db.Column(db.Text, nullable=True)  # JSON string with connection details
-    resolved = db.Column(db.Boolean, default=False)
+    resolved = db.Column(db.Boolean, default=False, index=True)
     resolved_at = db.Column(db.DateTime, nullable=True)
     resolution_method = db.Column(db.String(50), nullable=True)  # auto_restart, admin_intervention, etc.
+    
+    def set_ip_address(self, ip_address):
+        """Set hashed IP address for GDPR compliance"""
+        if ip_address:
+            import hashlib
+            self.ip_address_hash = hashlib.sha256(ip_address.encode()).hexdigest()
     
     def __repr__(self):
         return f'<ConnectionIssueLog {self.id} - User {self.user_id} - {self.issue_type}>'
     
     @classmethod
     def log_issue(cls, user_id, issue_type, request_obj=None, **kwargs):
-        """Log a connection issue with details from request and additional data"""
+        """Enhanced issue logging with privacy protection"""
         log_entry = cls(
             user_id=user_id,
             issue_type=issue_type,
@@ -644,15 +654,15 @@ class ConnectionIssueLog(db.Model):
         
         # Capture request data if available
         if request_obj:
-            log_entry.ip_address = request_obj.remote_addr
-            log_entry.user_agent = request_obj.user_agent.string
+            # Hash IP address for privacy
+            log_entry.set_ip_address(request_obj.remote_addr)
+            log_entry.user_agent = str(request_obj.user_agent.string)
             
-            # Extract and store browser info
+            # Store browser info safely
             browser_info = {
-                'browser': request_obj.user_agent.browser,
-                'version': request_obj.user_agent.version,
-                'platform': request_obj.user_agent.platform,
-                'language': request_obj.accept_languages.best
+                'browser': str(request_obj.user_agent.browser),
+                'version': str(request_obj.user_agent.version),
+                'platform': str(request_obj.user_agent.platform)
             }
             log_entry.browser_info = json.dumps(browser_info)
             
@@ -660,13 +670,7 @@ class ConnectionIssueLog(db.Model):
             if 'connection_info' in kwargs:
                 log_entry.connection_info = json.dumps(kwargs.get('connection_info'))
         
-        # Try to get location data from IP using geoip if available
-        try:
-            if log_entry.ip_address and hasattr(request_obj, 'geoip'):
-                log_entry.city = request_obj.geoip.get('city')
-                log_entry.country = request_obj.geoip.get('country_name')
-        except:
-            pass  # Ignore geoip errors
+        # Removed geoip functionality for privacy compliance
             
         db.session.add(log_entry)
         db.session.commit()
@@ -685,18 +689,23 @@ class ConnectionIssueLog(db.Model):
         return log_entry
 
 class AssessmentSession(db.Model):
-    """Track assessment sessions for products to allow restarts when connection issues occur"""
+    """Enhanced session management with unique constraints and indexes"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    product_id = db.Column(db.String(50), nullable=False)  # academic_writing, academic_speaking, etc.
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    product_id = db.Column(db.String(50), nullable=False, index=True)  # academic_writing, academic_speaking, etc.
     assessment_id = db.Column(db.Integer, nullable=True)  # ID of the assessment currently being taken
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_activity = db.Column(db.DateTime, default=datetime.utcnow)
-    completed = db.Column(db.Boolean, default=False)
+    started_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    last_activity = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    completed = db.Column(db.Boolean, default=False, index=True)
     marked_complete_at = db.Column(db.DateTime, nullable=True)
-    submitted = db.Column(db.Boolean, default=False)
+    submitted = db.Column(db.Boolean, default=False, index=True)
     submission_failed = db.Column(db.Boolean, default=False)
     failure_reason = db.Column(db.String(255), nullable=True)
+    
+    # Composite index for active sessions
+    __table_args__ = (
+        db.Index('idx_active_session', 'user_id', 'product_id', 'completed'),
+    )
     
     def __repr__(self):
         status = "Completed" if self.completed else "In Progress"
@@ -790,12 +799,17 @@ class PaymentRecord(db.Model):
 # Assessment results are now stored in the User model's assessment_history
 
 class SpeakingPrompt(db.Model):
+    """Enhanced speaking prompts for ClearScore® assessments with indexing"""
     id = db.Column(db.Integer, primary_key=True)
-    part = db.Column(db.Integer, nullable=False)  # IELTS Speaking Part 1, 2, or 3
-    prompt_text = db.Column(db.Text, nullable=False)
+    part = db.Column(db.Integer, nullable=False, index=True)  # IELTS Speaking Part 1, 2, or 3
+    prompt_text = db.Column(db.Text, nullable=False, unique=True)  # Ensure unique prompts
+    difficulty_level = db.Column(db.String(20), default="standard")  # beginner, standard, advanced
+    topic_category = db.Column(db.String(50), nullable=True, index=True)  # family, work, education, etc.
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    active = db.Column(db.Boolean, default=True, index=True)
     
     def __repr__(self):
-        return f'<SpeakingPrompt Part:{self.part}>'
+        return f'<SpeakingPrompt Part:{self.part} Topic:{self.topic_category}>'
 
 # SpeakingResponse model has been replaced by AssessmentSpeakingResponse
 # Keeping as a commented reference for backward compatibility
