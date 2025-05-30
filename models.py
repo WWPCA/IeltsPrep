@@ -11,21 +11,23 @@ def load_user(user_id):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    # Enhanced email field with index for performance
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
-    # Phone field removed as it doesn't exist in database
-    region = db.Column(db.String(50), nullable=True)
+    # Enhanced region field with index
+    region = db.Column(db.String(50), nullable=True, index=True)
     join_date = db.Column(db.DateTime, default=datetime.utcnow)
+    # Assessment package management with performance index
     assessment_package_status = db.Column(db.String(20), default="none")
-    assessment_package_expiry = db.Column(db.DateTime, nullable=True)
+    assessment_package_expiry = db.Column(db.DateTime, nullable=True, index=True)
     # App only available in English - preferred_language column retained for database compatibility
     # but not used in UI
     preferred_language = db.Column(db.String(10), default="en")
     assessment_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
-    # Account activation flag - only true after successful payment
-    account_activated = db.Column(db.Boolean, default=False)  # Renamed from is_active to avoid UserMixin conflict
-    # Email verification fields
-    email_verified = db.Column(db.Boolean, default=False)
+    # Enhanced account status with explicit defaults and nullability
+    account_activated = db.Column(db.Boolean, default=False, nullable=False)  # Renamed from is_active to avoid UserMixin conflict
+    # Email verification fields with enhanced defaults
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
     email_verification_token = db.Column(db.String(100), nullable=True)
     email_verification_sent_at = db.Column(db.DateTime, nullable=True)
     
@@ -347,7 +349,7 @@ class User(UserMixin, db.Model):
         return True
     
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'<User {self.email}>'
 
 # Model for assessment structure information pages
 class AssessmentStructure(db.Model):
@@ -363,13 +365,13 @@ class AssessmentStructure(db.Model):
         return f'<AssessmentStructure {self.test_type}>'  # test_type is the database column name
 
 class Assessment(db.Model):
-    """Model for IELTS assessments"""
+    """Enhanced model for IELTS assessments with validation"""
     id = db.Column(db.Integer, primary_key=True)
-    assessment_type = db.Column(db.String(50), nullable=False)  # academic_writing, academic_speaking, general_writing, general_speaking
+    assessment_type = db.Column(db.String(50), nullable=False, index=True)  # academic_writing, academic_speaking, general_writing, general_speaking
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), nullable=False, default="active")  # active, inactive
+    status = db.Column(db.String(20), nullable=False, default="active", index=True)  # active, inactive
     _criteria = db.Column(db.Text, nullable=True)  # JSON string with assessment criteria
     _questions = db.Column(db.Text, nullable=True)  # JSON string with assessment questions/content
     
@@ -379,6 +381,8 @@ class Assessment(db.Model):
     
     @criteria.setter
     def criteria(self, value):
+        if value and not isinstance(value, (list, dict)):
+            raise ValueError("Criteria must be a list or dictionary")
         self._criteria = json.dumps(value)
         
     @property
@@ -387,19 +391,21 @@ class Assessment(db.Model):
     
     @questions.setter
     def questions(self, value):
+        if value and not isinstance(value, (list, dict)):
+            raise ValueError("Questions must be a list or dictionary")
         self._questions = json.dumps(value)
     
     def __repr__(self):
         return f'<Assessment {self.assessment_type}: {self.title}>'
 
 class UserAssessmentAttempt(db.Model):
-    """Model for user assessment attempts"""
+    """Enhanced model for user assessment attempts with indexes"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    assessment_id = db.Column(db.Integer, db.ForeignKey('assessment.id'), nullable=False)
-    assessment_type = db.Column(db.String(50), nullable=False)  # listening, reading, writing, speaking
-    status = db.Column(db.String(20), nullable=False, default="in_progress")  # in_progress, completed, cancelled
-    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    assessment_id = db.Column(db.Integer, db.ForeignKey('assessment.id', ondelete='CASCADE'), nullable=False, index=True)
+    assessment_type = db.Column(db.String(50), nullable=False, index=True)  # listening, reading, writing, speaking
+    status = db.Column(db.String(20), nullable=False, default="in_progress", index=True)  # in_progress, completed, cancelled
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
     end_time = db.Column(db.DateTime, nullable=True)
     
     # Store results as JSON string
@@ -433,12 +439,12 @@ class UserAssessmentAttempt(db.Model):
         return f'<UserAssessmentAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
 
 class WritingResponse(db.Model):
-    """Model for IELTS writing responses"""
+    """Enhanced model for IELTS writing responses with TrueScore® validation"""
     id = db.Column(db.Integer, primary_key=True)
-    attempt_id = db.Column(db.Integer, db.ForeignKey('user_assessment_attempt.id'), nullable=False)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('user_assessment_attempt.id', ondelete='CASCADE'), nullable=False, index=True)
     task_number = db.Column(db.Integer, nullable=False)  # 1 or 2
     response_text = db.Column(db.Text, nullable=False)
-    submission_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    submission_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
     
     # Store GenAI assessment data for this specific writing task
     _assessment_data = db.Column(db.Text, nullable=True)  # JSON string with detailed GenAI assessment
@@ -451,17 +457,34 @@ class WritingResponse(db.Model):
     def assessment_data(self, value):
         self._assessment_data = json.dumps(value)
     
+    def set_truescore_assessment(self, data):
+        """Validate and set TrueScore® assessment data from AWS Nova Micro"""
+        required_fields = ['score', 'feedback', 'coherence', 'lexical_resource', 'grammar', 'task_achievement']
+        if not all(field in data for field in required_fields):
+            raise ValueError("Invalid TrueScore® assessment data - missing required fields")
+        
+        # Validate score range (IELTS bands 0-9)
+        if not (0 <= data.get('score', 0) <= 9):
+            raise ValueError("Score must be between 0 and 9")
+            
+        self.assessment_data = data
+    
     def __repr__(self):
         return f'<WritingResponse {self.id}: Task {self.task_number} for Attempt {self.attempt_id}>'
 
 class AssessmentSpeakingResponse(db.Model):
-    """Model for IELTS speaking assessment responses"""
+    """Enhanced model for IELTS speaking responses with ClearScore® validation"""
     id = db.Column(db.Integer, primary_key=True)
-    attempt_id = db.Column(db.Integer, db.ForeignKey('user_assessment_attempt.id'), nullable=False)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('user_assessment_attempt.id', ondelete='CASCADE'), nullable=False, index=True)
     part_number = db.Column(db.Integer, nullable=False)  # 1, 2, or 3
     audio_filename = db.Column(db.String(256), nullable=True)  # Local audio filename
     transcript_text = db.Column(db.Text, nullable=True)  # Transcription of audio
-    submission_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    submission_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+    
+    # Enhanced GCP storage with validation
+    gcp_audio_url = db.Column(db.String(500), nullable=True)
+    gcp_transcript_url = db.Column(db.String(500), nullable=True)
+    gcp_assessment_url = db.Column(db.String(500), nullable=True)
     
     # Store GenAI assessment data for this specific speaking part
     _assessment_data = db.Column(db.Text, nullable=True)  # JSON string with detailed GenAI assessment
@@ -473,6 +496,40 @@ class AssessmentSpeakingResponse(db.Model):
     @assessment_data.setter
     def assessment_data(self, value):
         self._assessment_data = json.dumps(value)
+    
+    def set_clearscore_assessment(self, data):
+        """Validate and set ClearScore® assessment data from AWS Sonic + Nova Micro"""
+        required_fields = ['score', 'feedback', 'pronunciation', 'fluency', 'grammar', 'vocabulary']
+        if not all(field in data for field in required_fields):
+            raise ValueError("Invalid ClearScore® assessment data - missing required fields")
+        
+        # Validate score range (IELTS bands 0-9)
+        if not (0 <= data.get('score', 0) <= 9):
+            raise ValueError("Score must be between 0 and 9")
+            
+        self.assessment_data = data
+    
+    def set_gcp_urls(self, audio_url, transcript_url, assessment_url):
+        """Validate and set GCP URLs"""
+        from urllib.parse import urlparse
+        
+        urls = [
+            ('audio_url', audio_url),
+            ('transcript_url', transcript_url), 
+            ('assessment_url', assessment_url)
+        ]
+        
+        for name, url in urls:
+            if url:
+                parsed = urlparse(url)
+                if not parsed.scheme in ['http', 'https']:
+                    raise ValueError(f"Invalid {name}: {url}")
+                if not parsed.netloc:
+                    raise ValueError(f"Invalid {name} - missing domain: {url}")
+        
+        self.gcp_audio_url = audio_url
+        self.gcp_transcript_url = transcript_url
+        self.gcp_assessment_url = assessment_url
     
     def __repr__(self):
         return f'<AssessmentSpeakingResponse {self.id}: Part {self.part_number} for Attempt {self.attempt_id}>'
