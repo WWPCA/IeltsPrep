@@ -408,7 +408,7 @@ def login():
         # Enhanced validation
         if not email or not password:
             flash('Please provide both email and password', 'danger')
-            return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+            return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # reCAPTCHA validation - REQUIRED for security
         recaptcha_response = request.form.get('g-recaptcha-response')
@@ -470,7 +470,7 @@ def login():
                 remaining = 5 - failed_count  # MAX_LOGIN_ATTEMPTS = 5
                 flash(f'Invalid email or password. {remaining} attempts remaining.', 'danger')
     
-    return render_template('login.html', title='Login', recaptcha_site_key=os.environ.get('RECAPTCHA_PUBLIC_KEY'))
+    return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
 
 @app.route('/logout')
 def logout():
