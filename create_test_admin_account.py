@@ -86,7 +86,7 @@ def create_test_admin_account():
         print(f"Package Expiry: {(datetime.utcnow() + timedelta(days=365)).strftime('%Y-%m-%d')}")
         print("="*60)
         print("✅ Ready to test TrueScore® writing assessments")
-        print("✅ Ready to test ClearScore pronunciation scoring")
+        print("✅ Ready to test ClearScore® pronunciation scoring")
         print("✅ Full access to all assessment types")
         print("="*60)
 
