@@ -84,34 +84,17 @@ class SecurityManager:
     
     def _increment_value(self, key, expire=None):
         """Increment value with expiration"""
-        try:
-            if self.redis_client:
-                value = self.redis_client.incr(key)
-                if expire and value == 1:  # First increment, set expiration
-                    self.redis_client.expire(key, expire)
-                return value
-            else:
-                # Memory storage increment
-                entry = self.memory_storage.get(key, {'value': 0, 'expires': None})
-                if entry.get('expires') and entry['expires'] <= datetime.utcnow():
-                    entry = {'value': 0, 'expires': None}
-                
-                entry['value'] += 1
-                if expire and entry['value'] == 1:
-                    entry['expires'] = datetime.utcnow() + timedelta(seconds=expire)
-                
-                self.memory_storage[key] = entry
-                return entry['value']
-        except (RedisError, AttributeError) as e:
-            logger.warning(f"Redis increment failed ({e}), using memory")
-            entry = self.memory_storage.get(key, {'value': 0, 'expires': None})
-            if not isinstance(entry, dict):
-                entry = {'value': 0, 'expires': None}
-            entry['value'] = entry.get('value', 0) + 1
-            if expire and entry['value'] == 1:
-                entry['expires'] = datetime.utcnow() + timedelta(seconds=expire)
-            self.memory_storage[key] = entry
-            return entry['value']
+        # Use memory storage for simplicity and reliability
+        entry = self.memory_storage.get(key, {'value': 0, 'expires': None})
+        if entry.get('expires') and entry['expires'] <= datetime.utcnow():
+            entry = {'value': 0, 'expires': None}
+        
+        entry['value'] += 1
+        if expire and entry['value'] == 1:
+            entry['expires'] = datetime.utcnow() + timedelta(seconds=expire)
+        
+        self.memory_storage[key] = entry
+        return entry['value']
     
     def check_rate_limit(self, identifier, limit, window):
         """
@@ -152,23 +135,15 @@ class SecurityManager:
         # Check if account is currently locked
         lockout_time = self._get_value(lockout_key)
         if lockout_time:
-            try:
-                lockout_expires = datetime.fromisoformat(str(lockout_time))
-                if lockout_expires > datetime.utcnow():
-                    return True, lockout_expires, MAX_LOGIN_ATTEMPTS
-                else:
-                    # Lockout expired, clear attempts
-                    self._set_value(attempts_key, "0", 300)  # Reset for 5 minutes
-            except (ValueError, TypeError):
-                # Invalid lockout time format, clear it
-                self._set_value(lockout_key, "", 1)
+            lockout_expires = datetime.fromisoformat(lockout_time)
+            if lockout_expires > datetime.utcnow():
+                return True, lockout_expires, MAX_LOGIN_ATTEMPTS
+            else:
+                # Lockout expired, clear attempts
+                self._set_value(attempts_key, "0", 300)  # Reset for 5 minutes
         
         # Get current attempts
-        attempts_str = self._get_value(attempts_key) or "0"
-        try:
-            attempts = int(attempts_str)
-        except (ValueError, TypeError):
-            attempts = 0
+        attempts = int(self._get_value(attempts_key) or "0")
         return False, None, attempts
     
     def record_failed_login(self, user_identifier):
@@ -186,13 +161,6 @@ class SecurityManager:
         
         # Increment failed attempts
         attempts = self._increment_value(attempts_key, 3600)  # 1 hour window
-        
-        # Ensure attempts is an integer
-        if not isinstance(attempts, int):
-            try:
-                attempts = int(attempts)
-            except (ValueError, TypeError):
-                attempts = 1
         
         # Lock account if threshold exceeded
         if attempts >= MAX_LOGIN_ATTEMPTS:
