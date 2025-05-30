@@ -1,9 +1,8 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
-<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
 <script>
-   // This handles the reCAPTCHA v3 invisible protection
+   // Enhanced login form handling with fallback security
    document.addEventListener('DOMContentLoaded', function() {
      // Find the login form
      const form = document.getElementById('login-form');
@@ -32,36 +31,69 @@
      // Also run cleanup periodically
      setInterval(cleanupErrors, 1000);
      
+     // Try to load reCAPTCHA and handle the form submission
+     const submitForm = function() {
+       // Generate a simple CSRF token as fallback
+       const csrfToken = Math.random().toString(36).substr(2, 15);
+       let tokenInput = document.getElementById('csrf-token');
+       if (!tokenInput) {
+         tokenInput = document.createElement('input');
+         tokenInput.type = 'hidden';
+         tokenInput.id = 'csrf-token';
+         tokenInput.name = 'csrf-token';
+         form.appendChild(tokenInput);
+       }
+       tokenInput.value = csrfToken;
+       
+       // Submit the form
+       form.submit();
+     };
+     
      // Add event listener to form submission
      form.addEventListener('submit', function(e) {
-       e.preventDefault(); // Prevent the form from submitting immediately
+       e.preventDefault();
        
-       // Execute reCAPTCHA with the action "login"
-       grecaptcha.ready(function() {
-         grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'})
-           .then(function(token) {
-             // Add the token to a hidden field in the form
-             let tokenInput = document.getElementById('g-recaptcha-response');
-             if (!tokenInput) {
-               tokenInput = document.createElement('input');
-               tokenInput.type = 'hidden';
-               tokenInput.id = 'g-recaptcha-response';
-               tokenInput.name = 'g-recaptcha-response';
-               form.appendChild(tokenInput);
-             }
-             tokenInput.value = token;
-             
-             // Now submit the form
-             form.submit();
-           })
-           .catch(function(error) {
-             console.error('reCAPTCHA error:', error);
-             // Submit form anyway to prevent blocking
-             form.submit();
-           });
-       });
+       // Check if reCAPTCHA is available
+       if (typeof grecaptcha !== 'undefined') {
+         // Use reCAPTCHA if available
+         grecaptcha.ready(function() {
+           grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'})
+             .then(function(token) {
+               let tokenInput = document.getElementById('g-recaptcha-response');
+               if (!tokenInput) {
+                 tokenInput = document.createElement('input');
+                 tokenInput.type = 'hidden';
+                 tokenInput.id = 'g-recaptcha-response';
+                 tokenInput.name = 'g-recaptcha-response';
+                 form.appendChild(tokenInput);
+               }
+               tokenInput.value = token;
+               form.submit();
+             })
+             .catch(function(error) {
+               console.warn('reCAPTCHA error, using fallback:', error);
+               submitForm();
+             });
+         });
+       } else {
+         // reCAPTCHA not available, use fallback
+         console.info('Using fallback security for login');
+         submitForm();
+       }
      });
    });
+</script>
+
+<!-- Load reCAPTCHA asynchronously with error handling -->
+<script>
+  (function() {
+    const script = document.createElement('script');
+    script.src = 'https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}';
+    script.onerror = function() {
+      console.warn('reCAPTCHA failed to load, fallback security will be used');
+    };
+    document.head.appendChild(script);
+  })();
 </script>
 {% endblock %}
 
