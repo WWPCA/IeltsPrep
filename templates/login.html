@@ -1,7 +1,9 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
-<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+{% if recaptcha_site_key %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}" onerror="console.warn('reCAPTCHA failed to load')"></script>
+{% endif %}
 <script>
    // This handles the reCAPTCHA v3 invisible protection
    document.addEventListener('DOMContentLoaded', function() {
@@ -34,27 +36,33 @@
      
      // Add event listener to form submission
      form.addEventListener('submit', function(e) {
-       e.preventDefault(); // Prevent the form from submitting immediately
-       
-       // Execute reCAPTCHA with the action "login"
-       grecaptcha.ready(function() {
-         grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'})
-           .then(function(token) {
-             // Add the token to a hidden field in the form
-             let tokenInput = document.getElementById('g-recaptcha-response');
-             if (!tokenInput) {
-               tokenInput = document.createElement('input');
-               tokenInput.type = 'hidden';
-               tokenInput.id = 'g-recaptcha-response';
-               tokenInput.name = 'g-recaptcha-response';
-               form.appendChild(tokenInput);
-             }
-             tokenInput.value = token;
-             
-             // Now submit the form
-             form.submit();
-           });
-       });
+       // Check if reCAPTCHA is available
+       if (typeof grecaptcha !== 'undefined') {
+         e.preventDefault(); // Prevent the form from submitting immediately
+         
+         // Execute reCAPTCHA with the action "login"
+         grecaptcha.ready(function() {
+           grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'})
+             .then(function(token) {
+               // Add the token to a hidden field in the form
+               let tokenInput = document.getElementById('g-recaptcha-response');
+               if (!tokenInput) {
+                 tokenInput = document.createElement('input');
+                 tokenInput.type = 'hidden';
+                 tokenInput.id = 'g-recaptcha-response';
+                 tokenInput.name = 'g-recaptcha-response';
+                 form.appendChild(tokenInput);
+               }
+               tokenInput.value = token;
+               
+               // Now submit the form
+               form.submit();
+             });
+         });
+       } else {
+         // reCAPTCHA not available, allow form to submit normally
+         console.warn('reCAPTCHA not available, proceeding without verification');
+       }
      });
    });
 </script>
