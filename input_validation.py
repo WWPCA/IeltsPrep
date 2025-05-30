@@ -14,7 +14,7 @@ class InputValidator:
     """Comprehensive input validation class"""
     
     @staticmethod
-    def validate_email(email: str) -> bool:
+    def validate_email(email: Optional[str]) -> bool:
         """Validate email format"""
         if not email or len(email) > 120:
             return False
@@ -22,7 +22,7 @@ class InputValidator:
         return re.match(email_pattern, email) is not None
     
     @staticmethod
-    def validate_password(password: str) -> Dict[str, Any]:
+    def validate_password(password: Optional[str]) -> Dict[str, Any]:
         """
         Validate password strength
         Returns: dict with 'valid' bool and 'errors' list

@@ -17,6 +17,7 @@ from functools import wraps
 from app import app, db, recaptcha_v3
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
 from utils import get_user_region, get_translation
+from input_validation import InputValidator, validate_registration_data, validate_api_request, validate_assessment_input
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
@@ -457,14 +458,19 @@ def register():
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        name = request.form.get('name')
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        name = request.form.get('name', '').strip()
         age_verified = request.form.get('age_verified')
         
-        # Enhanced validation
-        if not email or not password or not name:
-            flash('Please provide all required fields', 'danger')
+        # Basic validation first
+        if not email or not password:
+            flash('Email and password are required', 'danger')
+            return render_template('register.html', title='Register')
+        
+        # Enhanced validation using InputValidator
+        if not InputValidator.validate_email(email):
+            flash('Please provide a valid email address', 'danger')
             return render_template('register.html', title='Register')
         
         # Age verification check
@@ -472,9 +478,10 @@ def register():
             flash('You must confirm that you are 16 years or older to register', 'danger')
             return render_template('register.html', title='Register')
         
-        # Check password complexity
-        if not security_manager.validate_input(password, 'password'):
-            flash('Password must be at least 8 characters with uppercase, lowercase, number, and special character', 'danger')
+        # Check password complexity using new validator
+        password_validation = InputValidator.validate_password(password)
+        if not password_validation['valid']:
+            flash(f"Password validation failed: {', '.join(password_validation['errors'])}", 'danger')
             return render_template('register.html', title='Register')
         
         # Check if email exists
@@ -490,10 +497,17 @@ def register():
         new_user.assessment_preference = 'academic'  # Default value
         new_user.set_password(password)
         
-        # Store region information
-        region = get_user_region(request)
-        if region:
-            new_user.region = region
+        # Store region information safely
+        try:
+            region = get_user_region(request)
+            if region:
+                new_user.region = region
+            else:
+                new_user.region = "unknown"
+        except Exception as e:
+            # Log the error but don't fail registration
+            print(f"Warning: Could not get user region: {e}")
+            new_user.region = "unknown"
         
         # Set account as activated (auto-activation for now)
         new_user.account_activated = True
