@@ -437,12 +437,9 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
-            # Successful login
-            try:
-                security_manager.clear_failed_attempts(identifier)
-                security_manager.log_security_event('successful_login', user.id, {'email': email})
-            except Exception as e:
-                logging.warning(f"Security manager error (non-critical): {e}")
+            # Successful login - clear failed attempts
+            security_manager.clear_failed_attempts(identifier)
+            security_manager.log_security_event('successful_login', user.id, {'email': email})
             
             login_user(user)
             
@@ -459,23 +456,19 @@ def login():
             
             return redirect(url_for('index'))
         else:
-            # Failed login - record attempt with error handling
-            try:
-                is_locked, failed_count = security_manager.record_failed_login(identifier)
-                security_manager.log_security_event(
-                    'failed_login', 
-                    None,
-                    {'email': email, 'attempt_count': failed_count}
-                )
-                
-                if is_locked:
-                    flash('Account temporarily locked due to multiple failed attempts. Please try again later.', 'danger')
-                else:
-                    remaining = 5 - failed_count  # MAX_LOGIN_ATTEMPTS = 5
-                    flash(f'Invalid email or password. {remaining} attempts remaining.', 'danger')
-            except Exception as e:
-                logging.warning(f"Security manager error: {e}")
-                flash('Invalid email or password.', 'danger')
+            # Failed login - record attempt
+            is_locked, failed_count = security_manager.record_failed_login(identifier)
+            security_manager.log_security_event(
+                'failed_login', 
+                None,
+                {'email': email, 'attempt_count': failed_count}
+            )
+            
+            if is_locked:
+                flash('Account temporarily locked due to multiple failed attempts. Please try again later.', 'danger')
+            else:
+                remaining = 5 - failed_count  # MAX_LOGIN_ATTEMPTS = 5
+                flash(f'Invalid email or password. {remaining} attempts remaining.', 'danger')
     
     return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
 
