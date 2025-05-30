@@ -241,7 +241,7 @@ The platform maintains a comprehensive ROPA including:
 
 3. **Assessment Delivery**
    - Personal data: Test responses, performance data
-   - Purpose: Providing IELTS assessment practice using TrueScore® and Elaris® GenAI technology
+   - Purpose: Providing IELTS assessment practice using TrueScore® and ClearScore GenAI technology
    - Retention: Assessment access until used, results retained permanently for user access
    - Access: User and authorized system processes only
 
@@ -253,7 +253,7 @@ The platform maintains a comprehensive ROPA including:
 
 5. **AI-Powered Assessment**
    - Personal data: Test responses, writing samples
-   - Purpose: Automated scoring and feedback using TrueScore® and Elaris® GenAI technology
+   - Purpose: Automated scoring and feedback using TrueScore® and ClearScore GenAI technology
    - Processing: Advanced AI models with privacy safeguards
    - Retention: Results retained permanently for user access
 
