@@ -48,22 +48,34 @@
         margin-bottom: 2rem;
     }
     
-    /* Mobile responsiveness and scrolling fixes */
+    /* Mobile responsiveness and scrolling fixes for all touch devices */
     @media (max-width: 768px) {
+        html {
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        
         body {
+            height: 100%;
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-y pinch-zoom;
+            position: relative;
         }
         
         .container, .container-fluid {
             overflow: visible;
             min-height: auto;
+            position: relative;
         }
         
         .microphone-test {
             padding: 1rem;
             margin-bottom: 1rem;
+            touch-action: manipulation;
         }
         
         .test-button {
@@ -71,6 +83,13 @@
             height: 100px;
             font-size: 1.5rem;
             margin: 0.5rem;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            user-select: none;
+        }
+        
+        .test-button:active {
+            transform: scale(0.95);
         }
         
         .clearscore-header {
@@ -88,13 +107,45 @@
         
         /* Ensure proper height and scrolling */
         .main-content {
-            min-height: calc(100vh - 200px);
+            min-height: auto;
             overflow: visible;
+            position: relative;
         }
         
-        /* Fix any fixed positioning issues */
+        /* Remove fixed positioning that can interfere with scrolling */
         .navbar-fixed-top, .navbar-fixed-bottom {
             position: relative;
+        }
+        
+        /* Android-specific touch improvements */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        button, .btn {
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* Improve scroll performance on Android */
+        .container-fluid {
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+        
+        /* Fix viewport height issues on mobile browsers */
+        .py-5 {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+        }
+    }
+    
+    /* Additional touch support for tablets */
+    @media (max-width: 1024px) and (orientation: portrait) {
+        body {
+            -webkit-overflow-scrolling: touch;
+            overflow-y: auto;
         }
     }
     
