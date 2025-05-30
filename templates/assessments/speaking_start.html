@@ -39,13 +39,63 @@
         transition: width 0.1s ease;
     }
     
-    .elaris-header {
+    .clearscore-header {
         background: linear-gradient(45deg, #007bff, #0056b3);
         color: white;
         padding: 1.5rem;
         border-radius: 15px;
         text-align: center;
         margin-bottom: 2rem;
+    }
+    
+    /* Mobile responsiveness and scrolling fixes */
+    @media (max-width: 768px) {
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .container, .container-fluid {
+            overflow: visible;
+            min-height: auto;
+        }
+        
+        .microphone-test {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .test-button {
+            width: 100px;
+            height: 100px;
+            font-size: 1.5rem;
+            margin: 0.5rem;
+        }
+        
+        .clearscore-header {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert {
+            margin-bottom: 1rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        /* Ensure proper height and scrolling */
+        .main-content {
+            min-height: calc(100vh - 200px);
+            overflow: visible;
+        }
+        
+        /* Fix any fixed positioning issues */
+        .navbar-fixed-top, .navbar-fixed-bottom {
+            position: relative;
+        }
     }
     
     .question-preview {
