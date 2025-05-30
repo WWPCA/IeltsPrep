@@ -7,28 +7,115 @@ import os
 import json
 import boto3
 import logging
+import time
 from datetime import datetime
+from botocore.exceptions import ClientError, BotoCoreError
 from ielts_knowledge_base import ielts_knowledge_base
 from ielts_official_rubrics import get_writing_criteria, get_speaking_criteria
 from nova_sonic_services import nova_sonic_service
 
-# Configure logging
+# Configure structured logging
+import structlog
+logger = structlog.get_logger()
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+
+class InputValidator:
+    """Enhanced input validation for assessment data"""
+    
+    @staticmethod
+    def validate_writing_input(text, max_length=5000, min_length=150):
+        """Validate writing assessment input"""
+        if not text or not isinstance(text, str):
+            return False, "Text must be a non-empty string"
+        
+        text = text.strip()
+        if len(text) < min_length:
+            return False, f"Text must be at least {min_length} characters"
+        if len(text) > max_length:
+            return False, f"Text must not exceed {max_length} characters"
+        
+        # Check for malicious patterns
+        malicious_patterns = ['<script', 'javascript:', 'on\w+\s*=', 'data:text/html']
+        text_lower = text.lower()
+        if any(pattern in text_lower for pattern in malicious_patterns):
+            return False, "Invalid content detected"
+        
+        return True, ""
+    
+    @staticmethod
+    def validate_audio_input(audio_data):
+        """Validate audio assessment input"""
+        if not audio_data:
+            return False, "Audio data cannot be empty"
+        
+        # Check audio data size (max 10MB)
+        if isinstance(audio_data, (bytes, str)) and len(audio_data) > 10 * 1024 * 1024:
+            return False, "Audio data too large"
+        
+        return True, ""
 
 class EnhancedNovaAssessment:
-    """RAG-enhanced Nova assessment service for superior IELTS evaluation"""
+    """RAG-enhanced Nova assessment service with robust error handling"""
     
     def __init__(self):
-        """Initialize enhanced assessment service"""
-        self.bedrock_runtime = boto3.client(
-            'bedrock-runtime',
-            region_name='us-east-1',
-            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
-        )
-        self.knowledge_base = ielts_knowledge_base
-        logger.info("Enhanced Nova Assessment service initialized")
+        """Initialize enhanced assessment service with retry configuration"""
+        try:
+            self.bedrock_runtime = boto3.client(
+                'bedrock-runtime',
+                region_name=os.environ.get('AWS_REGION', 'us-east-1'),
+                aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+            )
+            self.knowledge_base = ielts_knowledge_base
+            self.max_retries = 3
+            self.base_delay = 1
+            logger.info("Enhanced Nova Assessment service initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize Nova Assessment service", error=str(e))
+            raise
+    
+    def call_aws_api_with_retry(self, method_name, model_id, **kwargs):
+        """Call AWS Bedrock API with exponential backoff retry logic"""
+        for attempt in range(self.max_retries):
+            try:
+                response = self.bedrock_runtime.invoke_model(
+                    modelId=model_id,
+                    contentType='application/json',
+                    accept='application/json',
+                    **kwargs
+                )
+                return json.loads(response['body'].read())
+            
+            except ClientError as e:
+                error_code = e.response.get('Error', {}).get('Code', '')
+                
+                if error_code == 'ThrottlingException' and attempt < self.max_retries - 1:
+                    delay = self.base_delay * (2 ** attempt)
+                    logger.warning(f"Throttling detected, retrying in {delay}s", 
+                                 attempt=attempt + 1, max_retries=self.max_retries)
+                    time.sleep(delay)
+                    continue
+                elif error_code in ['ValidationException', 'AccessDeniedException']:
+                    logger.error(f"AWS API error: {error_code}", error=str(e))
+                    raise
+                else:
+                    logger.error(f"AWS API error on attempt {attempt + 1}", error=str(e))
+                    if attempt == self.max_retries - 1:
+                        raise
+                    time.sleep(self.base_delay * (2 ** attempt))
+            
+            except BotoCoreError as e:
+                logger.error(f"AWS connection error on attempt {attempt + 1}", error=str(e))
+                if attempt == self.max_retries - 1:
+                    raise
+                time.sleep(self.base_delay * (2 ** attempt))
+    
+    def validate_rubric(self, rubric_data):
+        """Validate IELTS rubric data structure"""
+        required_fields = ['coherence', 'lexical_resource', 'grammar', 'task_achievement']
+        if not all(field in rubric_data for field in required_fields):
+            raise ValueError("Invalid IELTS rubric: missing required fields")
+        return rubric_data
 
     def assess_writing_with_rag(self, essay_text, task_type, specific_question=None, user_id=None):
         """
@@ -43,7 +130,16 @@ class EnhancedNovaAssessment:
         Returns:
             dict: Enhanced assessment with official criteria and question context
         """
+        logger.info("Starting TrueScore writing assessment", 
+                   user_id=user_id, task_type=task_type, question_id=specific_question)
+        
         try:
+            # Validate input text
+            is_valid, error_msg = InputValidator.validate_writing_input(essay_text)
+            if not is_valid:
+                logger.warning("Invalid writing input", user_id=user_id, error=error_msg)
+                return {'success': False, 'error': error_msg}
+            
             # Get authentic IELTS criteria
             official_criteria = get_writing_criteria(task_type)
             
@@ -61,11 +157,10 @@ class EnhancedNovaAssessment:
                 essay_text, task_type, official_criteria, kb_criteria, question_context
             )
             
-            # Use Nova Micro for professional assessment
-            response = self.bedrock_runtime.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
-                contentType='application/json',
-                accept='application/json',
+            # Use AWS API with retry logic
+            result = self.call_aws_api_with_retry(
+                'assess_writing',
+                'amazon.nova-micro-v1:0',
                 body=json.dumps({
                     "messages": [
                         {
@@ -85,13 +180,19 @@ class EnhancedNovaAssessment:
                 })
             )
             
-            result = json.loads(response['body'].read())
             assessment_text = result.get('content', [{}])[0].get('text', '')
             
             # Parse structured assessment
             scores = self._parse_enhanced_writing_scores(assessment_text)
             
-            return {
+            # Validate rubric compliance
+            try:
+                self.validate_rubric(scores)
+            except ValueError as e:
+                logger.error("Rubric validation failed", user_id=user_id, error=str(e))
+                return {'success': False, 'error': 'Assessment validation failed'}
+            
+            assessment_result = {
                 'success': True,
                 'overall_score': scores.get('overall_score', 0),
                 'task_achievement': scores.get('task_achievement', 0),
@@ -106,9 +207,17 @@ class EnhancedNovaAssessment:
                 'user_id': user_id
             }
             
+            logger.info("TrueScore writing assessment completed successfully", 
+                       user_id=user_id, score=assessment_result['overall_score'])
+            
+            return assessment_result
+            
+        except (ClientError, BotoCoreError) as e:
+            logger.error("AWS service error in writing assessment", user_id=user_id, error=str(e))
+            return {"success": False, "error": "Assessment service temporarily unavailable"}
         except Exception as e:
-            logger.error(f"Enhanced writing assessment error: {e}")
-            return {"success": False, "error": str(e)}
+            logger.error("Unexpected error in writing assessment", user_id=user_id, error=str(e))
+            return {"success": False, "error": "Assessment failed"}
 
     def assess_speaking_with_rag(self, conversation_history, part_number, specific_questions=None, user_id=None):
         """
