@@ -464,7 +464,7 @@ The cloud deployment maintains GDPR compliance through:
 
 - **Data Processing Addendum**: GDPR-compliant terms with cloud providers
 - **Technical Documentation**: Data protection controls and procedures
-- **Compliance Certifications**: ISO 27001, 27017, 27018, SOC 2/3
+- **Security Standards**: Adherence to industry best practices for data protection and security
 
 ## Conclusion
 
