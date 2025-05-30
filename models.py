@@ -284,6 +284,38 @@ class User(UserMixin, db.Model):
         ).count()
         
         return active_packages > 0
+    
+    def has_package_access(self, package_name):
+        """
+        Check if user has access to a specific package type.
+        
+        Args:
+            package_name (str): Package name like "Academic Speaking"
+            
+        Returns:
+            bool: True if user has active access to this package
+        """
+        # Check legacy system first
+        if hasattr(self, 'assessment_package_status') and self.assessment_package_status:
+            if (self.assessment_package_status == package_name or 
+                self.assessment_package_status == "All Products" or
+                package_name in self.assessment_package_status):
+                if not self.assessment_package_expiry or self.assessment_package_expiry > datetime.utcnow():
+                    return True
+        
+        # Check new UserPackage table
+        active_package = UserPackage.query.filter_by(
+            user_id=self.id,
+            package_name=package_name,
+            status='active'
+        ).filter(
+            db.or_(
+                UserPackage.expiry_date.is_(None),
+                UserPackage.expiry_date > datetime.utcnow()
+            )
+        ).first()
+        
+        return active_package is not None
         
     def is_speaking_only_user(self):
         """
