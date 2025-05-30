@@ -1,423 +1,517 @@
 """
-Comprehensive Security Manager for IELTS GenAI Prep
-
-This module provides advanced security features including:
-- Rate limiting with Redis backend
-- Account lockout protection
-- Enhanced input validation
-- Session security management
-- API endpoint protection
-- Security monitoring and logging
+Enterprise Security Manager
+Provides comprehensive security features including rate limiting, account lockout,
+input validation, SQL injection protection, and session security.
 """
 
 import os
 import re
-import time
-import json
 import hashlib
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import request, jsonify, session, current_app, g
-from flask_login import current_user
-from sqlalchemy import text
-import redis
-from werkzeug.security import check_password_hash
+from flask import request, session, flash, redirect, url_for, jsonify
+from flask_login import current_user, logout_user
+from email_validator import validate_email, EmailNotValidError
+from redis import Redis
+from redis.exceptions import RedisError
 
 # Configure logging
-security_logger = logging.getLogger('security')
-security_logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Redis connection for rate limiting (fallback to in-memory if Redis unavailable)
-try:
-    redis_client = redis.Redis(
-        host=os.environ.get('REDIS_HOST', 'localhost'),
-        port=int(os.environ.get('REDIS_PORT', 6379)),
-        db=0,
-        decode_responses=True,
-        socket_connect_timeout=5,
-        socket_timeout=5
-    )
-    redis_client.ping()  # Test connection
-    REDIS_AVAILABLE = True
-except:
-    REDIS_AVAILABLE = False
-    redis_client = None
-
-# Fallback to in-memory storage when Redis unavailable
-memory_store = {}
+# Configuration
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+RATE_LIMIT_STORAGE = {}  # Memory fallback
+SESSION_TIMEOUT = timedelta(minutes=30)
+ACCOUNT_LOCKOUT_DURATION = timedelta(hours=1)
+MAX_LOGIN_ATTEMPTS = 5
 
 class SecurityManager:
-    """Advanced security management for the IELTS platform"""
+    """Comprehensive security management with Redis backing and memory fallback"""
     
     def __init__(self):
-        self.max_login_attempts = 5
-        self.lockout_duration = 3600  # 1 hour in seconds
-        self.rate_limits = {
-            'login': {'requests': 5, 'window': 300},  # 5 attempts per 5 minutes
-            'api': {'requests': 100, 'window': 3600},  # 100 API calls per hour
-            'assessment': {'requests': 10, 'window': 3600},  # 10 assessments per hour
-            'contact': {'requests': 3, 'window': 3600},  # 3 contact forms per hour
-        }
+        self.redis_client = None
+        self.memory_storage = {}
+        
+        # Initialize Redis with fallback
+        try:
+            self.redis_client = Redis.from_url(REDIS_URL, decode_responses=True)
+            self.redis_client.ping()
+            logger.info("Redis security storage initialized successfully")
+        except (RedisError, ConnectionError) as e:
+            logger.warning(f"Redis unavailable, using memory storage: {e}")
     
-    def get_client_identifier(self):
-        """Get unique identifier for client (IP + User-Agent hash)"""
-        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-        if ip and ',' in ip:
-            ip = ip.split(',')[0].strip()
-        
-        user_agent = request.headers.get('User-Agent', '')
-        identifier = f"{ip}:{hashlib.md5(user_agent.encode()).hexdigest()[:8]}"
-        return identifier
+    def _get_storage(self):
+        """Get storage backend (Redis or memory fallback)"""
+        return self.redis_client if self.redis_client else self.memory_storage
     
-    def increment_counter(self, key, window_seconds):
-        """Increment rate limiting counter"""
-        if REDIS_AVAILABLE and redis_client:
-            pipe = redis_client.pipeline()
-            pipe.incr(key)
-            pipe.expire(key, window_seconds)
-            result = pipe.execute()
-            return result[0]
-        else:
-            # Fallback to memory store
-            now = time.time()
-            if key not in memory_store:
-                memory_store[key] = {'count': 1, 'expires': now + window_seconds}
-                return 1
-            
-            if now > memory_store[key]['expires']:
-                memory_store[key] = {'count': 1, 'expires': now + window_seconds}
-                return 1
-            
-            memory_store[key]['count'] += 1
-            return memory_store[key]['count']
-    
-    def check_rate_limit(self, limit_type, custom_identifier=None):
-        """Check if request exceeds rate limit"""
-        if limit_type not in self.rate_limits:
-            return True, 0
-        
-        config = self.rate_limits[limit_type]
-        identifier = custom_identifier or self.get_client_identifier()
-        key = f"rate_limit:{limit_type}:{identifier}"
-        
-        current_count = self.increment_counter(key, config['window'])
-        
-        if current_count > config['requests']:
-            security_logger.warning(
-                f"Rate limit exceeded for {limit_type} from {identifier}. "
-                f"Count: {current_count}/{config['requests']}"
-            )
-            return False, current_count
-        
-        return True, current_count
-    
-    def record_failed_login(self, identifier):
-        """Record failed login attempt"""
-        key = f"failed_login:{identifier}"
-        count = self.increment_counter(key, self.lockout_duration)
-        
-        if count >= self.max_login_attempts:
-            lockout_key = f"lockout:{identifier}"
-            if REDIS_AVAILABLE and redis_client:
-                redis_client.setex(lockout_key, self.lockout_duration, "locked")
-            else:
-                memory_store[lockout_key] = {
-                    'locked': True,
-                    'expires': time.time() + self.lockout_duration
-                }
-            
-            security_logger.warning(
-                f"Account locked due to {count} failed attempts from {identifier}"
-            )
-        
-        return count
-    
-    def is_account_locked(self, identifier):
-        """Check if account is locked due to failed attempts"""
-        lockout_key = f"lockout:{identifier}"
-        
-        if REDIS_AVAILABLE and redis_client:
-            return redis_client.exists(lockout_key)
-        else:
-            if lockout_key in memory_store:
-                if time.time() < memory_store[lockout_key]['expires']:
-                    return True
+    def _set_value(self, key, value, expire=None):
+        """Set value with expiration"""
+        try:
+            if self.redis_client:
+                if expire:
+                    self.redis_client.setex(key, expire, value)
                 else:
-                    del memory_store[lockout_key]
-            return False
+                    self.redis_client.set(key, value)
+            else:
+                # Memory storage with expiration tracking
+                expiry = datetime.utcnow() + timedelta(seconds=expire) if expire else None
+                self.memory_storage[key] = {'value': value, 'expires': expiry}
+        except RedisError:
+            logger.warning("Redis write failed, falling back to memory")
+            expiry = datetime.utcnow() + timedelta(seconds=expire) if expire else None
+            self.memory_storage[key] = {'value': value, 'expires': expiry}
     
-    def clear_failed_attempts(self, identifier):
+    def _get_value(self, key):
+        """Get value with expiration check"""
+        try:
+            if self.redis_client:
+                return self.redis_client.get(key)
+            else:
+                # Memory storage with expiration check
+                entry = self.memory_storage.get(key)
+                if entry and (not entry['expires'] or entry['expires'] > datetime.utcnow()):
+                    return entry['value']
+                elif entry:
+                    del self.memory_storage[key]
+                return None
+        except RedisError:
+            logger.warning("Redis read failed, checking memory")
+            entry = self.memory_storage.get(key)
+            if entry and (not entry['expires'] or entry['expires'] > datetime.utcnow()):
+                return entry['value']
+            return None
+    
+    def _increment_value(self, key, expire=None):
+        """Increment value with expiration"""
+        try:
+            if self.redis_client:
+                value = self.redis_client.incr(key)
+                if expire and value == 1:  # First increment, set expiration
+                    self.redis_client.expire(key, expire)
+                return value
+            else:
+                # Memory storage increment
+                entry = self.memory_storage.get(key, {'value': 0, 'expires': None})
+                if entry['expires'] and entry['expires'] <= datetime.utcnow():
+                    entry = {'value': 0, 'expires': None}
+                
+                entry['value'] += 1
+                if expire and entry['value'] == 1:
+                    entry['expires'] = datetime.utcnow() + timedelta(seconds=expire)
+                
+                self.memory_storage[key] = entry
+                return entry['value']
+        except RedisError:
+            logger.warning("Redis increment failed, using memory")
+            entry = self.memory_storage.get(key, {'value': 0, 'expires': None})
+            entry['value'] += 1
+            self.memory_storage[key] = entry
+            return entry['value']
+    
+    def check_rate_limit(self, identifier, limit, window):
+        """
+        Check if rate limit is exceeded
+        
+        Args:
+            identifier (str): Unique identifier (IP, user ID, etc.)
+            limit (int): Maximum requests allowed
+            window (int): Time window in seconds
+            
+        Returns:
+            tuple: (is_allowed, remaining_attempts)
+        """
+        key = f"rate_limit:{identifier}"
+        current_count = self._increment_value(key, window)
+        
+        remaining = max(0, limit - current_count)
+        is_allowed = current_count <= limit
+        
+        if not is_allowed:
+            logger.warning(f"Rate limit exceeded for {identifier}: {current_count}/{limit}")
+        
+        return is_allowed, remaining
+    
+    def check_account_lockout(self, user_identifier):
+        """
+        Check if account is locked due to failed login attempts
+        
+        Args:
+            user_identifier (str): User email or ID
+            
+        Returns:
+            tuple: (is_locked, lockout_expires, attempts)
+        """
+        attempts_key = f"login_attempts:{user_identifier}"
+        lockout_key = f"account_lockout:{user_identifier}"
+        
+        # Check if account is currently locked
+        lockout_time = self._get_value(lockout_key)
+        if lockout_time:
+            lockout_expires = datetime.fromisoformat(lockout_time)
+            if lockout_expires > datetime.utcnow():
+                return True, lockout_expires, MAX_LOGIN_ATTEMPTS
+            else:
+                # Lockout expired, clear attempts
+                self._set_value(attempts_key, "0", 300)  # Reset for 5 minutes
+        
+        # Get current attempts
+        attempts = int(self._get_value(attempts_key) or 0)
+        return False, None, attempts
+    
+    def record_failed_login(self, user_identifier):
+        """
+        Record failed login attempt and potentially lock account
+        
+        Args:
+            user_identifier (str): User email or ID
+            
+        Returns:
+            tuple: (is_now_locked, attempts_count)
+        """
+        attempts_key = f"login_attempts:{user_identifier}"
+        lockout_key = f"account_lockout:{user_identifier}"
+        
+        # Increment failed attempts
+        attempts = self._increment_value(attempts_key, 3600)  # 1 hour window
+        
+        # Lock account if threshold exceeded
+        if attempts >= MAX_LOGIN_ATTEMPTS:
+            lockout_expires = datetime.utcnow() + ACCOUNT_LOCKOUT_DURATION
+            self._set_value(lockout_key, lockout_expires.isoformat(), 
+                          int(ACCOUNT_LOCKOUT_DURATION.total_seconds()))
+            
+            logger.warning(f"Account locked for {user_identifier}: {attempts} failed attempts")
+            return True, attempts
+        
+        return False, attempts
+    
+    def clear_failed_attempts(self, user_identifier):
         """Clear failed login attempts after successful login"""
-        if REDIS_AVAILABLE and redis_client:
-            redis_client.delete(f"failed_login:{identifier}")
+        attempts_key = f"login_attempts:{user_identifier}"
+        self._set_value(attempts_key, "0", 300)
+        logger.info(f"Failed attempts cleared for {user_identifier}")
+    
+    def validate_email_input(self, email):
+        """
+        Validate email address format
+        
+        Args:
+            email (str): Email address to validate
+            
+        Returns:
+            tuple: (is_valid, error_message)
+        """
+        try:
+            if not email or len(email) > 254:
+                return False, "Email address required and must be under 254 characters"
+            
+            validated_email = validate_email(email)
+            return True, None
+            
+        except EmailNotValidError as e:
+            logger.warning(f"Invalid email format: {email[:50]}")
+            return False, "Invalid email address format"
+        except Exception as e:
+            logger.error(f"Email validation error: {e}")
+            return False, "Email validation failed"
+    
+    def validate_password_strength(self, password):
+        """
+        Validate password strength
+        
+        Args:
+            password (str): Password to validate
+            
+        Returns:
+            tuple: (is_valid, error_message, strength_score)
+        """
+        if not password:
+            return False, "Password is required", 0
+        
+        score = 0
+        issues = []
+        
+        # Length check
+        if len(password) < 8:
+            issues.append("at least 8 characters")
         else:
-            key = f"failed_login:{identifier}"
-            if key in memory_store:
-                del memory_store[key]
+            score += 1
+        
+        # Character variety checks
+        if not re.search(r'[a-z]', password):
+            issues.append("lowercase letters")
+        else:
+            score += 1
+            
+        if not re.search(r'[A-Z]', password):
+            issues.append("uppercase letters")
+        else:
+            score += 1
+            
+        if not re.search(r'\d', password):
+            issues.append("numbers")
+        else:
+            score += 1
+            
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]', password):
+            issues.append("special characters")
+        else:
+            score += 1
+        
+        # Common password check
+        common_passwords = ['password', '123456', 'qwerty', 'abc123', 'password123']
+        if password.lower() in common_passwords:
+            return False, "Password is too common", 0
+        
+        if score < 3:
+            missing = ", ".join(issues)
+            return False, f"Password must include: {missing}", score
+        
+        return True, None, score
     
-    def validate_input(self, data, validation_type):
-        """Enhanced input validation"""
-        if validation_type == 'email':
-            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-            return bool(re.match(pattern, data)) and len(data) <= 254
+    def check_sql_injection(self, input_string):
+        """
+        Check for SQL injection patterns
         
-        elif validation_type == 'password':
-            # Password complexity requirements
-            if len(data) < 8 or len(data) > 128:
-                return False
-            has_upper = bool(re.search(r'[A-Z]', data))
-            has_lower = bool(re.search(r'[a-z]', data))
-            has_digit = bool(re.search(r'\d', data))
-            has_special = bool(re.search(r'[!@#$%^&*(),.?":{}|<>]', data))
-            return has_upper and has_lower and has_digit and has_special
+        Args:
+            input_string (str): Input to check
+            
+        Returns:
+            bool: True if malicious patterns detected
+        """
+        if not input_string:
+            return False
         
-        elif validation_type == 'name':
-            # Allow letters, spaces, hyphens, apostrophes
-            pattern = r"^[a-zA-Z\s\-']{1,100}$"
-            return bool(re.match(pattern, data))
-        
-        elif validation_type == 'text':
-            # General text validation (no malicious patterns)
-            malicious_patterns = [
-                r'<script',
-                r'javascript:',
-                r'on\w+\s*=',
-                r'data:text/html',
-                r'vbscript:',
-            ]
-            data_lower = data.lower()
-            return not any(re.search(pattern, data_lower) for pattern in malicious_patterns)
-        
-        return True
-    
-    def sanitize_input(self, data):
-        """Sanitize user input"""
-        if isinstance(data, str):
-            # Remove null bytes and control characters
-            data = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', data)
-            # Limit length
-            data = data[:10000] if len(data) > 10000 else data
-        return data
-    
-    def check_sql_injection(self, query_string):
-        """Check for potential SQL injection patterns"""
+        # Common SQL injection patterns
         suspicious_patterns = [
-            r'(\bunion\b.*\bselect\b)',
-            r'(\bselect\b.*\bfrom\b)',
-            r'(\binsert\b.*\binto\b)',
-            r'(\bdelete\b.*\bfrom\b)',
-            r'(\bdrop\b.*\btable\b)',
-            r'(\bupdate\b.*\bset\b)',
-            r'(;.*--)',
-            r'(\bor\b.*1.*=.*1)',
-            r'(\band\b.*1.*=.*1)',
+            r"';?\s*(DROP|DELETE|UPDATE|INSERT|CREATE|ALTER)\s+",
+            r"UNION\s+SELECT",
+            r"--\s*$",
+            r"/\*.*\*/",
+            r"'\s*OR\s+\w+\s*=\s*\w+",
+            r"1\s*=\s*1",
+            r"admin'\s*--",
+            r"'\s*;\s*EXEC",
+            r"CONCAT\s*\(",
+            r"CHAR\s*\(",
+            r"0x[0-9a-fA-F]+",
         ]
         
-        query_lower = query_string.lower()
         for pattern in suspicious_patterns:
-            if re.search(pattern, query_lower):
+            if re.search(pattern, input_string.upper(), re.IGNORECASE):
+                logger.warning(f"SQL injection pattern detected: {pattern}")
                 return True
+        
         return False
     
-    def monitor_session_security(self):
-        """Monitor session for security issues"""
-        # Check session timeout (30 minutes)
-        if 'last_activity' in session:
-            last_activity = datetime.fromisoformat(session['last_activity'])
-            if datetime.now() - last_activity > timedelta(minutes=30):
-                session.clear()
-                return False
+    def sanitize_input(self, input_string, max_length=10000):
+        """
+        Sanitize user input
         
-        session['last_activity'] = datetime.now().isoformat()
+        Args:
+            input_string (str): Input to sanitize
+            max_length (int): Maximum allowed length
+            
+        Returns:
+            str: Sanitized input
+        """
+        if not input_string:
+            return ""
         
-        # Check for session hijacking indicators
-        if 'user_agent_hash' in session:
-            current_ua_hash = hashlib.md5(
-                request.headers.get('User-Agent', '').encode()
-            ).hexdigest()
-            if session['user_agent_hash'] != current_ua_hash:
-                security_logger.warning("Potential session hijacking detected")
-                session.clear()
-                return False
-        else:
-            session['user_agent_hash'] = hashlib.md5(
-                request.headers.get('User-Agent', '').encode()
-            ).hexdigest()
+        # Remove control characters
+        sanitized = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', str(input_string))
         
-        return True
+        # Limit length
+        if len(sanitized) > max_length:
+            sanitized = sanitized[:max_length]
+            logger.warning(f"Input truncated to {max_length} characters")
+        
+        return sanitized.strip()
     
-    def log_security_event(self, event_type, details):
-        """Log security events"""
+    def validate_session_integrity(self, user_id):
+        """
+        Validate session integrity against hijacking
+        
+        Args:
+            user_id (int): Current user ID
+            
+        Returns:
+            bool: True if session is valid
+        """
+        try:
+            # Check user agent consistency
+            current_ua = request.headers.get('User-Agent', '')
+            stored_ua_hash = session.get('user_agent_hash')
+            expected_hash = hashlib.md5(current_ua.encode()).hexdigest()
+            
+            if stored_ua_hash and stored_ua_hash != expected_hash:
+                logger.warning(f"Session user agent mismatch for user {user_id}")
+                return False
+            
+            # Store user agent hash if not present
+            if not stored_ua_hash:
+                session['user_agent_hash'] = expected_hash
+            
+            # Check session timeout
+            last_activity = session.get('last_activity')
+            if last_activity:
+                last_time = datetime.fromisoformat(last_activity)
+                if datetime.utcnow() - last_time > SESSION_TIMEOUT:
+                    logger.info(f"Session expired for user {user_id}")
+                    return False
+            
+            # Update last activity
+            session['last_activity'] = datetime.utcnow().isoformat()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Session validation error for user {user_id}: {e}")
+            return False
+    
+    def log_security_event(self, event_type, user_id=None, details=None):
+        """
+        Log security events with structured data
+        
+        Args:
+            event_type (str): Type of security event
+            user_id (int, optional): User ID if applicable
+            details (dict, optional): Additional event details
+        """
         log_data = {
-            'timestamp': datetime.now().isoformat(),
             'event_type': event_type,
-            'ip': request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr),
-            'user_agent': request.headers.get('User-Agent', ''),
-            'user_id': current_user.id if current_user.is_authenticated else None,
-            'details': details
+            'user_id': user_id,
+            'ip_address': self._hash_ip(request.remote_addr) if request else None,
+            'user_agent': request.headers.get('User-Agent', '')[:100] if request else None,
+            'timestamp': datetime.utcnow().isoformat(),
+            'details': details or {}
         }
         
-        security_logger.info(f"Security Event: {json.dumps(log_data)}")
+        logger.info("Security event", extra=log_data)
+    
+    def _hash_ip(self, ip_address):
+        """Hash IP address for privacy"""
+        salt = os.environ.get("IP_HASH_SALT", "default_salt_change_in_production")
+        return hashlib.sha256((ip_address + salt).encode()).hexdigest()[:16]
 
-# Global security manager instance
+# Global instance
 security_manager = SecurityManager()
 
-# Decorators for security protection
-def rate_limit(limit_type, custom_key=None):
-    """Rate limiting decorator"""
+def rate_limit(limit_type):
+    """
+    Rate limiting decorator
+    
+    Args:
+        limit_type (str): Type of rate limit ('login', 'api', 'assessment')
+    """
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            identifier = custom_key or security_manager.get_client_identifier()
-            allowed, count = security_manager.check_rate_limit(limit_type, identifier)
+            # Define rate limits
+            limits = {
+                'login': (5, 300),      # 5 attempts per 5 minutes
+                'api': (100, 3600),     # 100 requests per hour
+                'assessment': (10, 600), # 10 assessments per 10 minutes
+            }
             
-            if not allowed:
+            if limit_type not in limits:
+                logger.error(f"Unknown rate limit type: {limit_type}")
+                return f(*args, **kwargs)
+            
+            limit, window = limits[limit_type]
+            identifier = request.remote_addr
+            
+            # Use user ID if available for better tracking
+            if hasattr(current_user, 'id') and current_user.is_authenticated:
+                identifier = f"user_{current_user.id}"
+            
+            is_allowed, remaining = security_manager.check_rate_limit(
+                f"{limit_type}_{identifier}", limit, window
+            )
+            
+            if not is_allowed:
                 security_manager.log_security_event(
-                    'rate_limit_exceeded',
-                    {'limit_type': limit_type, 'count': count}
+                    'rate_limit_exceeded', 
+                    getattr(current_user, 'id', None),
+                    {'limit_type': limit_type, 'limit': limit, 'window': window}
                 )
-                # Return appropriate response based on request type
-                if request.is_json or 'application/json' in request.headers.get('Accept', ''):
+                
+                if request.is_json:
                     return jsonify({
+                        'success': False,
                         'error': 'Rate limit exceeded. Please try again later.',
-                        'retry_after': security_manager.rate_limits[limit_type]['window']
+                        'retry_after': window
                     }), 429
                 else:
-                    # For web forms, show flash message and render template
-                    from flask import flash, render_template
-                    flash('Too many attempts. Please try again later.', 'danger')
-                    if 'login' in request.endpoint:
-                        return render_template('login.html', title='Login'), 429
-                    return render_template('error.html', message='Rate limit exceeded'), 429
+                    flash('Too many requests. Please try again later.', 'warning')
+                    return redirect(url_for('index'))
             
             return f(*args, **kwargs)
         return decorated_function
     return decorator
 
-def validate_inputs(**validations):
-    """Input validation decorator"""
+def validate_inputs(**field_types):
+    """
+    Input validation decorator
+    
+    Args:
+        **field_types: Field names and their types ('email', 'password', 'text', 'audio')
+    """
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            for field, validation_type in validations.items():
-                if request.method == 'POST':
-                    data = request.form.get(field) or request.json.get(field) if request.json else None
-                else:
-                    data = request.args.get(field)
+            data = request.get_json() if request.is_json else request.form
+            
+            for field_name, field_type in field_types.items():
+                value = data.get(field_name)
                 
-                if data is not None:
-                    # Sanitize input
-                    data = security_manager.sanitize_input(data)
-                    
-                    # Validate input
-                    if not security_manager.validate_input(data, validation_type):
-                        security_manager.log_security_event(
-                            'invalid_input',
-                            {'field': field, 'validation_type': validation_type}
-                        )
-                        return jsonify({'error': f'Invalid {field} format'}), 400
-                    
-                    # Check for SQL injection
-                    if security_manager.check_sql_injection(str(data)):
+                if field_type == 'email':
+                    is_valid, error = security_manager.validate_email_input(value)
+                    if not is_valid:
+                        return jsonify({'success': False, 'error': error}), 400
+                
+                elif field_type == 'password':
+                    is_valid, error, _ = security_manager.validate_password_strength(value)
+                    if not is_valid:
+                        return jsonify({'success': False, 'error': error}), 400
+                
+                elif field_type == 'text':
+                    if value and security_manager.check_sql_injection(value):
                         security_manager.log_security_event(
                             'sql_injection_attempt',
-                            {'field': field, 'data': data[:100]}
+                            getattr(current_user, 'id', None),
+                            {'field': field_name, 'value': value[:100]}
                         )
-                        return jsonify({'error': 'Invalid input detected'}), 400
+                        return jsonify({'success': False, 'error': 'Invalid input detected'}), 400
+                    
+                    # Sanitize the input
+                    if value:
+                        data[field_name] = security_manager.sanitize_input(value)
             
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
-
-def secure_session():
-    """Session security decorator"""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if not security_manager.monitor_session_security():
-                return jsonify({'error': 'Session expired'}), 401
             return f(*args, **kwargs)
         return decorated_function
     return decorator
 
 def api_protection():
-    """Comprehensive API protection decorator"""
+    """Enhanced API protection decorator"""
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            # Check content length
-            if request.content_length and request.content_length > 10 * 1024 * 1024:  # 10MB limit
-                return jsonify({'error': 'Request too large'}), 413
-            
-            # Check for suspicious headers
-            suspicious_headers = ['x-forwarded-host', 'x-originating-ip']
-            for header in suspicious_headers:
-                if header in request.headers:
+            # Validate session integrity
+            if current_user.is_authenticated:
+                if not security_manager.validate_session_integrity(current_user.id):
+                    logout_user()
                     security_manager.log_security_event(
-                        'suspicious_header',
-                        {'header': header, 'value': request.headers[header]}
+                        'session_hijacking_detected',
+                        current_user.id
                     )
-            
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
-
-def account_lockout_protection():
-    """Account lockout protection decorator"""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            identifier = security_manager.get_client_identifier()
-            
-            if security_manager.is_account_locked(identifier):
-                security_manager.log_security_event(
-                    'locked_account_attempt',
-                    {'identifier': identifier}
-                )
-                # Return appropriate response based on request type
-                if request.is_json or 'application/json' in request.headers.get('Accept', ''):
                     return jsonify({
-                        'error': 'Account temporarily locked due to multiple failed attempts. Please try again later.'
-                    }), 423
-                else:
-                    # For web forms, show flash message and render template
-                    from flask import flash, render_template
-                    flash('Account temporarily locked due to multiple failed attempts. Please try again later.', 'danger')
-                    if 'login' in request.endpoint:
-                        return render_template('login.html', title='Login'), 423
-                    return render_template('error.html', message='Account locked'), 423
+                        'success': False,
+                        'error': 'Session invalid. Please log in again.',
+                        'logout_required': True
+                    }), 401
             
             return f(*args, **kwargs)
         return decorated_function
     return decorator
-
-def setup_global_security(app):
-    """Setup global security middleware for the Flask app"""
-    
-    @app.before_request
-    def global_security_check():
-        """Global security middleware"""
-        # Skip security checks for static files
-        if request.endpoint and request.endpoint.startswith('static'):
-            return
-        
-        # Check for common attack patterns in URL
-        suspicious_url_patterns = [
-            r'\.\./',
-            r'<script',
-            r'javascript:',
-            r'data:text/html',
-        ]
-        
-        for pattern in suspicious_url_patterns:
-            if re.search(pattern, request.url.lower()):
-                security_manager.log_security_event(
-                    'suspicious_url',
-                    {'url': request.url}
-                )
-                return jsonify({'error': 'Invalid request'}), 400
-        
-        # Monitor session security for authenticated routes
-        if current_user.is_authenticated:
-            security_manager.monitor_session_security()

@@ -1,234 +1,255 @@
 """
-Country Restrictions Configuration
-This module defines which countries are restricted from accessing the application.
+Country Access Restrictions
+Implements Canada-only access control with IP-based country detection,
+billing validation, and session management as per technical review recommendations.
 """
 
 import os
+import hashlib
 import logging
-from flask import request, redirect, url_for, flash, session, jsonify
+from datetime import datetime, timedelta
 from functools import wraps
+from flask import request, session, flash, redirect, url_for, jsonify
+from geoip2 import webservice
+import geoip2.errors
 
-# Set up logging
+# Configure logging
 logger = logging.getLogger(__name__)
 
-# Configuration settings for regional blocking
-# Set this to False to allow EU/UK access (when GDPR compliance is implemented)
-BLOCK_EU_UK = True
+# Configuration
+ALLOWED_COUNTRIES = {'CA'}  # Canada-only for initial launch
+GEOIP_LICENSE_KEY = os.environ.get('GEOIP_LICENSE_KEY')
+SESSION_VALIDATION_INTERVAL = timedelta(hours=1)
 
-# List of EU/UK country codes (used for regulatory compliance)
-# ISO 3166-1 alpha-2 country codes (2 letter codes)
-EU_UK_COUNTRIES = [
-    'AT',  # Austria
-    'BE',  # Belgium
-    'BG',  # Bulgaria
-    'HR',  # Croatia
-    'CY',  # Cyprus
-    'CZ',  # Czech Republic
-    'DK',  # Denmark
-    'EE',  # Estonia
-    'FI',  # Finland
-    'FR',  # France
-    'DE',  # Germany
-    'GR',  # Greece
-    'HU',  # Hungary
-    'IE',  # Ireland
-    'IT',  # Italy
-    'LV',  # Latvia
-    'LT',  # Lithuania
-    'LU',  # Luxembourg
-    'MT',  # Malta
-    'NL',  # Netherlands
-    'PL',  # Poland
-    'PT',  # Portugal
-    'RO',  # Romania
-    'SK',  # Slovakia
-    'SI',  # Slovenia
-    'ES',  # Spain
-    'SE',  # Sweden
-    'GB',  # Great Britain
-    'UK',  # United Kingdom (redundant with GB, but included for completeness)
-]
-
-# List of explicitly allowed countries (whitelisted)
-# ISO 3166-1 alpha-2 country codes (2 letter codes)
-# INITIAL LAUNCH: Canada only - will expand to other countries later
-ALLOWED_COUNTRIES = [
-    'CA',  # Canada
-]
-
-# List of country codes that are restricted from accessing the application for other reasons 
-# This is kept for backwards compatibility, but we now primarily use the allowlist approach
-# ISO 3166-1 alpha-2 country codes (2 letter codes)
-RESTRICTED_COUNTRIES = [
-    'BR',  # Brazil
-    'RU',  # Russia
-    'CN',  # China
-    'KR',  # South Korea
-    'AF',  # Afghanistan
-]
-
-# Standardized message for all blocked countries during Canada-only launch
-RESTRICTION_MESSAGE = (
-    "We're sorry, but IELTS GenAI Prep is currently available only in Canada during our initial launch phase. "
-    "We're working to expand to other countries soon. Thank you for your understanding."
-)
-
-def is_country_restricted(country_code):
-    """
-    Check if a country is restricted (not in the allowed list).
+class CountryRestrictionManager:
+    """Manages country-based access restrictions with fallback mechanisms"""
     
-    Args:
-        country_code (str): ISO 3166-1 alpha-2 country code
+    def __init__(self):
+        self.geoip_client = None
+        if GEOIP_LICENSE_KEY:
+            try:
+                self.geoip_client = webservice.Client(12345, GEOIP_LICENSE_KEY)  # Replace with actual account ID
+                logger.info("GeoIP2 service initialized successfully")
+            except Exception as e:
+                logger.warning(f"GeoIP2 initialization failed: {e}")
+    
+    def get_user_country(self, ip_address):
+        """
+        Get user's country with fallback mechanisms
         
-    Returns:
-        bool: True if the country is restricted, False otherwise
-    """
-    if not country_code:
-        return False
+        Args:
+            ip_address (str): User's IP address
+            
+        Returns:
+            str: Country code or None if detection fails
+        """
+        try:
+            # First try GeoIP2 service
+            if self.geoip_client:
+                try:
+                    response = self.geoip_client.country(ip_address)
+                    country_code = response.country.iso_code
+                    logger.info(f"Country detected via GeoIP2: {country_code}")
+                    return country_code
+                except geoip2.errors.AddressNotFoundError:
+                    logger.warning(f"IP lookup failed for {ip_address}")
+                except Exception as e:
+                    logger.error(f"GeoIP2 service error: {e}")
+            
+            # Fallback to basic detection for development
+            if ip_address in ['127.0.0.1', 'localhost', '::1']:
+                logger.info("Local development environment detected")
+                return 'CA'  # Allow local development
+            
+            # Log failed detection
+            logger.warning(f"Country detection failed for IP: {self._hash_ip(ip_address)}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Country detection error: {e}")
+            return None
     
-    country_code = country_code.upper()
+    def _hash_ip(self, ip_address):
+        """Hash IP address for privacy-compliant logging"""
+        salt = os.environ.get("IP_HASH_SALT", "default_salt_change_in_production")
+        return hashlib.sha256((ip_address + salt).encode()).hexdigest()[:16]
     
-    # First check if the country is explicitly allowed
-    if country_code in ALLOWED_COUNTRIES:
-        return False
+    def is_country_restricted(self, country_code):
+        """
+        Check if country is restricted
         
-    # Otherwise, it's restricted
-    return True
+        Args:
+            country_code (str): ISO country code
+            
+        Returns:
+            bool: True if restricted, False if allowed
+        """
+        if not country_code:
+            return True  # Restrict if country cannot be determined
+        
+        return country_code not in ALLOWED_COUNTRIES
+    
+    def validate_country_session(self, request_obj):
+        """
+        Validate country session with periodic refresh
+        
+        Args:
+            request_obj: Flask request object
+            
+        Returns:
+            tuple: (is_allowed, error_message)
+        """
+        try:
+            current_time = datetime.utcnow()
+            
+            # Check if we need to refresh country validation
+            last_validated = session.get('country_validated_at')
+            if (not last_validated or 
+                current_time - datetime.fromisoformat(last_validated) > SESSION_VALIDATION_INTERVAL):
+                
+                # Refresh country detection
+                country_code = self.get_user_country(request_obj.remote_addr)
+                session['country_code'] = country_code
+                session['country_validated_at'] = current_time.isoformat()
+                
+                logger.info("Country session refreshed", 
+                           extra={'country_code': country_code, 
+                                  'ip_hash': self._hash_ip(request_obj.remote_addr)})
+            
+            country_code = session.get('country_code')
+            
+            if self.is_country_restricted(country_code):
+                error_message = self.get_restriction_message(country_code)
+                logger.warning("Access denied for restricted country", 
+                             extra={'country_code': country_code})
+                return False, error_message
+            
+            return True, None
+            
+        except Exception as e:
+            logger.error(f"Country session validation error: {e}")
+            return False, "Access validation failed"
+    
+    def get_restriction_message(self, country_code):
+        """
+        Get appropriate restriction message based on region
+        
+        Args:
+            country_code (str): ISO country code
+            
+        Returns:
+            str: User-friendly restriction message
+        """
+        if country_code in {'GB', 'IE'}:
+            return ("Access is currently limited to Canada only. "
+                   "We're working on expanding to additional regions.")
+        elif country_code and country_code.startswith('EU'):
+            return ("Access is currently limited to Canada only. "
+                   "We're working on GDPR compliance for EU access.")
+        else:
+            return ("Access is currently limited to Canada only. "
+                   "Thank you for your interest in IELTS GenAI Prep.")
+    
+    def validate_billing_country(self, billing_country, stripe_payment_intent=None):
+        """
+        Validate billing address country with Stripe integration
+        
+        Args:
+            billing_country (str): Billing country code
+            stripe_payment_intent (dict, optional): Stripe payment intent data
+            
+        Returns:
+            bool: True if valid Canadian billing address
+        """
+        try:
+            if billing_country != 'CA':
+                logger.warning(f"Non-Canadian billing country: {billing_country}")
+                return False
+            
+            # Additional validation with Stripe if available
+            if stripe_payment_intent:
+                stripe_country = stripe_payment_intent.get('charges', {}).get('data', [{}])[0].get('billing_details', {}).get('address', {}).get('country')
+                if stripe_country and stripe_country != 'CA':
+                    logger.warning(f"Stripe billing country mismatch: {stripe_country}")
+                    return False
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Billing validation error: {e}")
+            return False
 
-def is_eu_uk_country(country_code):
-    """
-    Check if a country is in the EU/UK list.
-    
-    Args:
-        country_code (str): ISO 3166-1 alpha-2 country code
-        
-    Returns:
-        bool: True if the country is in EU/UK, False otherwise
-    """
-    if not country_code:
-        return False
-        
-    return country_code.upper() in EU_UK_COUNTRIES
-    
-def is_country_blocked(country_code):
-    """
-    Check if a country is blocked for any reason (not allowed or EU/UK).
-    
-    Args:
-        country_code (str): ISO 3166-1 alpha-2 country code
-        
-    Returns:
-        tuple: (is_blocked, reason) where reason is 'restricted' or 'eu_uk' or None
-    """
-    if not country_code:
-        return (False, None)
-    
-    country_code = country_code.upper()
-    
-    # Check if country is explicitly allowed first
-    if country_code in ALLOWED_COUNTRIES:
-        return (False, None)
-    
-    # Check EU/UK restrictions separately (for different error message)
-    if BLOCK_EU_UK and country_code in EU_UK_COUNTRIES:
-        return (True, 'eu_uk')
-    
-    # All other countries not in ALLOWED_COUNTRIES are restricted by default
-    return (True, 'restricted')
+# Global instance
+country_manager = CountryRestrictionManager()
 
 def country_access_required(f):
     """
-    Decorator to restrict access based on country.
-    Redirects to a restriction page if the user's country is restricted or blocked.
+    Decorator to enforce country access restrictions
     
     Usage:
-        @app.route('/some-route')
+        @app.route('/assessment-products')
         @country_access_required
-        def some_view():
-            ...
+        def assessment_products():
+            return render_template('assessment_products.html')
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Check if there's already a country code in the session (for simulations)
-        country_code = session.get('country_code')
+        is_allowed, message = country_manager.validate_country_session(request)
         
-        # If no simulated country, get the real country from IP
-        if not country_code or not session.get('simulated_country'):
-            from geoip_services import get_country_from_ip
-            
-            # Get the user's country code
-            detected_country, _ = get_country_from_ip()
-            
-            # Store the country code in the session for future reference
-            if detected_country:
-                session['country_code'] = detected_country
-                country_code = detected_country
-        
-        # Check if the country is blocked for any reason
-        is_blocked, reason = is_country_blocked(country_code)
-        if is_blocked:
-            # Log with specific reason for internal tracking, but use standard message for user
-            if reason == 'eu_uk':
-                logger.info(f"Blocked access from EU/UK region: {country_code}")
+        if not is_allowed:
+            if request.is_json:
+                return jsonify({
+                    'success': False,
+                    'error': message,
+                    'restricted': True
+                }), 403
             else:
-                logger.info(f"Blocked access from restricted country: {country_code}")
-                
-            # Use standardized message for all blocked countries
-            flash(RESTRICTION_MESSAGE, "warning")
-                
-            # Store the reason in session for the restriction page (for admin reference)
-            session['restriction_reason'] = reason
-            return redirect(url_for('access_restricted_page', reason=reason))
-            
+                flash(message, 'warning')
+                return redirect(url_for('index'))
+        
         return f(*args, **kwargs)
     
     return decorated_function
 
-def validate_billing_country(billing_country):
+def get_user_country_info():
     """
-    Validate that the billing country is in our allowed list.
-    Used during checkout to prevent users from non-allowed countries.
+    Get current user's country information from session
     
-    Args:
-        billing_country (str): The country code from the billing address
-        
     Returns:
-        tuple: (is_valid, message) where is_valid is a boolean and message is an error message if invalid
+        dict: Country information including code and validation status
     """
-    if not billing_country:
-        return False, "Billing country information is required."
-    
-    billing_country = billing_country.upper()
-    
-    # Check if the country is in our allowed list
-    if billing_country in ALLOWED_COUNTRIES:
-        return True, ""
-    
-    # Standardized message for all non-allowed countries
-    return False, RESTRICTION_MESSAGE
+    return {
+        'country_code': session.get('country_code'),
+        'is_restricted': country_manager.is_country_restricted(session.get('country_code')),
+        'validated_at': session.get('country_validated_at'),
+        'allowed_countries': list(ALLOWED_COUNTRIES)
+    }
 
-def get_allowed_countries():
+def check_country_access(ip_address=None):
     """
-    Get a list of allowed countries for Stripe checkout.
-    Returns our explicitly allowed countries list.
-    
-    Returns:
-        list: List of country codes that are allowed
-    """
-    # Return the explicitly defined allowed countries
-    return ALLOWED_COUNTRIES
-    
-def is_country_allowed(country_code):
-    """
-    Check if a country is in the allowed list for Stripe checkout.
+    Check country access without session storage (for API endpoints)
     
     Args:
-        country_code (str): ISO 3166-1 alpha-2 country code
+        ip_address (str, optional): IP address to check
         
     Returns:
-        bool: True if the country is in the allowed list, False otherwise
+        dict: Access status and details
     """
-    if not country_code:
-        return False  # If no country code is provided, don't allow it by default
+    try:
+        ip_address = ip_address or request.remote_addr
+        country_code = country_manager.get_user_country(ip_address)
+        is_restricted = country_manager.is_country_restricted(country_code)
         
-    return country_code.upper() in ALLOWED_COUNTRIES
+        return {
+            'allowed': not is_restricted,
+            'country_code': country_code,
+            'message': country_manager.get_restriction_message(country_code) if is_restricted else None
+        }
+        
+    except Exception as e:
+        logger.error(f"Country access check error: {e}")
+        return {
+            'allowed': False,
+            'country_code': None,
+            'message': 'Access validation failed'
+        }

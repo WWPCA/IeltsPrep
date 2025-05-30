@@ -35,4 +35,9 @@ dependencies = [
     "flask-session>=0.8.0",
     "google-auth>=2.40.1",
     "flask-talisman>=1.1.0",
+    "celery>=5.5.2",
+    "flask-testing>=0.8.1",
+    "pytest>=8.3.5",
+    "structlog>=25.3.0",
+    "geoip2>=5.1.0",
 ]
