@@ -51,18 +51,24 @@ from nova_sonic_services import NovaSonicService
 @app.route('/api/generate_speech', methods=['POST'])
 @login_required
 def generate_speech():
-    """Generate speech audio using Nova Sonic for Elaris® British voice"""
+    """Generate speech audio using Nova Sonic for ClearScore® British voice"""
+    from botocore.exceptions import ClientError, BotoCoreError
+    
     try:
         data = request.get_json()
         question_text = data.get('text', '')
         
+        # Enhanced input validation
         if not question_text:
-            return jsonify({'success': False, 'error': 'No text provided'})
+            return jsonify({'success': False, 'error': 'No text provided'}), 400
+        
+        if len(question_text) > 1000:
+            return jsonify({'success': False, 'error': 'Text must be less than 1000 characters'}), 400
         
         # Initialize Nova Sonic service
         nova_sonic = NovaSonicService()
         
-        # Generate speech with British female voice for Elaris®
+        # Generate speech with British female voice for ClearScore®
         result = nova_sonic.generate_speech(
             text=question_text,
             voice='british_female',
@@ -74,13 +80,19 @@ def generate_speech():
                 'success': True,
                 'audio_url': result.get('audio_url'),
                 'audio_data': result.get('audio_data')
-            })
+            }), 200
         else:
-            return jsonify({'success': False, 'error': result.get('error', 'Speech generation failed')})
+            return jsonify({'success': False, 'error': result.get('error', 'Speech generation failed')}), 500
             
+    except ClientError as e:
+        app.logger.error(f"AWS Sonic error: {e}")
+        return jsonify({'success': False, 'error': 'AWS service error'}), 500
+    except BotoCoreError as e:
+        app.logger.error(f"AWS SDK error: {e}")
+        return jsonify({'success': False, 'error': 'AWS SDK error'}), 500
     except Exception as e:
-        print(f"Speech generation error: {e}")
-        return jsonify({'success': False, 'error': 'Speech generation service unavailable'})
+        app.logger.error(f"Unexpected error in speech generation: {e}")
+        return jsonify({'success': False, 'error': 'Speech generation service unavailable'}), 500
 
 # Real-time conversation API endpoints
 @app.route('/api/start_conversation', methods=['POST'])

@@ -46,21 +46,20 @@ app.register_blueprint(gdpr_bp)
 
 # Browser-based speech recognition integrated into existing routes
 
-# Configure Talisman with security headers but let Replit handle HTTPS
+# Configure Talisman with tightened Content Security Policy
 Talisman(app, 
          force_https=False,  # Let Replit handle HTTPS
          content_security_policy={
-             'default-src': ['\'self\'', '*.replit.dev', '*.replit.com', '*.stripe.com', 'https://cdn.jsdelivr.net'],
-             'script-src': ['\'self\'', '\'unsafe-inline\'', '*.replit.dev', '*.replit.com', '*.stripe.com', 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com', 'https://www.google.com', 'https://www.gstatic.com'],
-             'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com', 'https://fonts.googleapis.com'],
-             'img-src': ['\'self\'', 'data:', 'https:', 'blob:'],
-             'connect-src': ['\'self\'', 'https:', 'wss:', 'ws:'],  # Allow WebSocket connections
-             'frame-src': ['\'self\'', '*.stripe.com', '*.replit.dev', '*.replit.com', 'https://www.google.com'],
-             'font-src': ['\'self\'', 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'],
-             'media-src': ['\'self\'', 'https:', 'blob:'],
+             'default-src': ['\'self\''],
+             'script-src': ['\'self\'', '\'unsafe-inline\'', 'js.stripe.com', 'cdn.jsdelivr.net', 'www.google.com', 'www.gstatic.com'],
+             'style-src': ['\'self\'', '\'unsafe-inline\'', 'cdn.jsdelivr.net', 'fonts.googleapis.com'],
+             'img-src': ['\'self\'', 'data:', 'https:'],
+             'connect-src': ['\'self\'', 'api.stripe.com', 'wss://*.replit.dev', 'wss://*.replit.com'],
+             'frame-src': ['\'self\'', 'js.stripe.com', 'www.google.com'],
+             'font-src': ['\'self\'', 'fonts.gstatic.com', 'cdn.jsdelivr.net'],
+             'media-src': ['\'self\'', 'blob:'],
          },
-         frame_options='SAMEORIGIN', 
-         frame_options_allow_from='*')
+         frame_options='SAMEORIGIN')
 
 # Set up global error handlers
 setup_global_error_handlers(app)

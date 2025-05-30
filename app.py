@@ -28,17 +28,25 @@ if not app.secret_key:
     raise ValueError("SESSION_SECRET or FLASK_SECRET_KEY environment variable must be set")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///ielts_prep.db")
+# Configure the database - require PostgreSQL in production
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+if not app.config["SQLALCHEMY_DATABASE_URI"]:
+    if os.environ.get("FLASK_ENV") == "development":
+        logging.warning("DATABASE_URL not set, falling back to SQLite for development")
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///ielts_prep.db"
+    else:
+        raise ValueError("DATABASE_URL must be set in production")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Configure reCAPTCHA
-app.config["RECAPTCHA_SITE_KEY"] = os.environ.get("RECAPTCHA_PUBLIC_KEY", "")
-app.config["RECAPTCHA_SECRET_KEY"] = os.environ.get("RECAPTCHA_PRIVATE_KEY", "")
+# Configure reCAPTCHA with validation
+app.config["RECAPTCHA_SITE_KEY"] = os.environ.get("RECAPTCHA_PUBLIC_KEY")
+app.config["RECAPTCHA_SECRET_KEY"] = os.environ.get("RECAPTCHA_PRIVATE_KEY")
+if not (app.config["RECAPTCHA_SITE_KEY"] and app.config["RECAPTCHA_SECRET_KEY"]):
+    logging.warning("reCAPTCHA keys missing; CAPTCHA functionality will be disabled")
 app.config["RECAPTCHA_THEME"] = "light"
 app.config["RECAPTCHA_TYPE"] = "image"
 app.config["RECAPTCHA_SIZE"] = "invisible"
@@ -73,18 +81,13 @@ def check_proxy_headers():
         url = request.url.replace('http://', 'https://', 1)
         return Response('', 301, {'Location': url})
 
-# Add Content Security Policy and HTTPS-related headers
+# Add non-redundant security headers (Talisman handles X-Frame-Options)
 @app.after_request
 def add_security_headers(response):
-    """Add security headers to enhance HTTPS protection."""
-    # Add security headers compatible with Replit's environment
+    """Add security headers not handled by Talisman."""
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    
-    # Strict-Transport-Security is managed by Replit's proxy
-    # Don't set Content-Security-Policy here as it's handled by Talisman
     
     return response
 
