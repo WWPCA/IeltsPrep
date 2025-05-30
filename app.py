@@ -42,9 +42,29 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Configure reCAPTCHA with validation
-app.config["RECAPTCHA_SITE_KEY"] = os.environ.get("RECAPTCHA_PUBLIC_KEY")
-app.config["RECAPTCHA_SECRET_KEY"] = os.environ.get("RECAPTCHA_PRIVATE_KEY")
+# Configure reCAPTCHA with validation - use dev keys for development domains
+def get_recaptcha_keys():
+    """Get appropriate reCAPTCHA keys based on current domain"""
+    # Check if we're on a development domain (Replit)
+    current_domain = os.environ.get('REPLIT_DOMAINS', '')
+    is_dev_domain = 'replit.dev' in current_domain
+    
+    if is_dev_domain:
+        # Use development keys for Replit domains
+        return (
+            os.environ.get("RECAPTCHA_DEV_PUBLIC_KEY"),
+            os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY")
+        )
+    else:
+        # Use production keys for live domains
+        return (
+            os.environ.get("RECAPTCHA_PUBLIC_KEY"),
+            os.environ.get("RECAPTCHA_PRIVATE_KEY")
+        )
+
+site_key, secret_key = get_recaptcha_keys()
+app.config["RECAPTCHA_SITE_KEY"] = site_key
+app.config["RECAPTCHA_SECRET_KEY"] = secret_key
 if not (app.config["RECAPTCHA_SITE_KEY"] and app.config["RECAPTCHA_SECRET_KEY"]):
     logging.warning("reCAPTCHA keys missing; CAPTCHA functionality will be disabled")
 app.config["RECAPTCHA_THEME"] = "light"
