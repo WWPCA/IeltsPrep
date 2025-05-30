@@ -723,7 +723,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startAssessmentBtn.addEventListener('click', function() {
         if (micTested && speakerTested) {
             // Navigate to speaking assessment interface
-            window.location.href = '/speaking/assessment/{{ assessment_type }}/{{ assessment_number }}';
+            window.location.href = '/assessments/{{ assessment_type }}/conversational/{{ assessment_number }}';
         } else {
             alert('Please complete both microphone and speaker tests before starting the assessment.');
         }

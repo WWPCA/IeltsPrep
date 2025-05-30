@@ -48,6 +48,23 @@ from add_assessment_details_route import assessment_details_route
 from nova_sonic_services import NovaSonicService
 
 # Speech generation API route for Maya British voice
+
+def get_assessment_id_from_number(assessment_type, assessment_number):
+    """
+    Convert assessment_number (1-4) to actual assessment_id from database.
+    This bridges the gap between user-facing numbers and database IDs.
+    """
+    # Get all assessments of the specified type
+    assessments = Assessment.query.filter_by(
+        assessment_type=assessment_type,
+        status='active'
+    ).order_by(Assessment.id).all()
+    
+    # Return the assessment_id for the given number (1-indexed)
+    if 1 <= assessment_number <= len(assessments):
+        return assessments[assessment_number - 1].id
+    return None
+
 @app.route('/api/generate_speech', methods=['POST'])
 @login_required
 def generate_speech():
@@ -279,7 +296,7 @@ def general_writing_selection():
                          assessment_type='general_writing')
 
 @app.route('/assessments/<assessment_type>/assessment/<int:assessment_number>')
-@login_required
+@login_required  
 def assessment_start(assessment_type, assessment_number):
     """Start a specific assessment (speaking or writing) with proper setup"""
     valid_types = ['academic_speaking', 'general_speaking', 'academic_writing', 'general_writing']
