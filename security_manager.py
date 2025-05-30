@@ -542,3 +542,73 @@ def secure_session():
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+def account_lockout_protection():
+    """Account lockout protection decorator"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Check if account is locked for authenticated users
+            if current_user.is_authenticated:
+                user_identifier = current_user.email
+                is_locked, lockout_expires, attempts = security_manager.check_account_lockout(user_identifier)
+                
+                if is_locked:
+                    security_manager.log_security_event(
+                        'account_locked_access_attempt',
+                        current_user.id,
+                        {'lockout_expires': lockout_expires.isoformat() if lockout_expires else None}
+                    )
+                    
+                    if request.is_json:
+                        return jsonify({
+                            'success': False,
+                            'error': 'Account locked due to failed login attempts.',
+                            'lockout_expires': lockout_expires.isoformat() if lockout_expires else None
+                        }), 423
+                    else:
+                        flash('Account locked for 1 hour due to failed login attempts.', 'warning')
+                        return redirect(url_for('password_reset'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def setup_global_security(app):
+    """Initialize global security settings for the Flask application"""
+    try:
+        # Initialize security manager
+        if not hasattr(app, 'security_manager'):
+            app.security_manager = SecurityManager()
+        
+        # Set up security headers
+        @app.after_request
+        def add_security_headers(response):
+            # Prevent clickjacking
+            response.headers['X-Frame-Options'] = 'DENY'
+            # Prevent MIME type sniffing
+            response.headers['X-Content-Type-Options'] = 'nosniff'
+            # Enable XSS protection
+            response.headers['X-XSS-Protection'] = '1; mode=block'
+            # Strict transport security for HTTPS
+            if request.is_secure:
+                response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+            # Content security policy
+            response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+            
+            return response
+        
+        # Set up session security
+        app.config.update(
+            SESSION_COOKIE_SECURE=True,
+            SESSION_COOKIE_HTTPONLY=True,
+            SESSION_COOKIE_SAMESITE='Lax',
+            PERMANENT_SESSION_LIFETIME=SESSION_TIMEOUT
+        )
+        
+        logger.info("Global security configuration applied successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to setup global security: {e}")
+        return False

@@ -160,3 +160,79 @@ def send_contact_form_notification(admin_email, name, user_email, message):
 def send_contact_auto_reply(user_email, name):
     """Send auto-reply to contact form submitter"""
     return professional_email_service.send_contact_auto_reply(user_email, name)
+
+def send_gdpr_notification(user_email, notification_type, details=None):
+    """Send GDPR-related notifications to users"""
+    try:
+        if notification_type == 'data_export':
+            subject = "Your Data Export Request - IELTS GenAI Prep"
+            html_body = f"""
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .header {{ background-color: #2c3e50; color: white; padding: 20px; text-align: center; }}
+                    .content {{ padding: 30px; }}
+                    .footer {{ background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; }}
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>IELTS GenAI Prep</h1>
+                    <p>Data Export Request</p>
+                </div>
+                <div class="content">
+                    <h2>Your Data Export is Ready</h2>
+                    <p>Your personal data export has been prepared as requested under GDPR Article 20.</p>
+                    <p>The export includes all data associated with your account that you have the right to receive.</p>
+                    <p>If you have any questions about your data export, please contact our support team.</p>
+                </div>
+                <div class="footer">
+                    <p>IELTS GenAI Prep - Professional IELTS Test Preparation</p>
+                    <p>This email was sent in response to your data export request.</p>
+                </div>
+            </body>
+            </html>
+            """
+            text_body = "Your data export request has been completed. Please contact support if you have questions."
+            
+        elif notification_type == 'data_deletion':
+            subject = "Account Deletion Confirmation - IELTS GenAI Prep"
+            html_body = f"""
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .header {{ background-color: #2c3e50; color: white; padding: 20px; text-align: center; }}
+                    .content {{ padding: 30px; }}
+                    .footer {{ background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; }}
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>IELTS GenAI Prep</h1>
+                    <p>Account Deletion Confirmation</p>
+                </div>
+                <div class="content">
+                    <h2>Your Account Has Been Deleted</h2>
+                    <p>Your account and all associated personal data have been permanently deleted as requested.</p>
+                    <p>This action cannot be undone. If you wish to use our services again, you will need to create a new account.</p>
+                    <p>Thank you for using IELTS GenAI Prep.</p>
+                </div>
+                <div class="footer">
+                    <p>IELTS GenAI Prep - Professional IELTS Test Preparation</p>
+                </div>
+            </body>
+            </html>
+            """
+            text_body = "Your account and all associated data have been permanently deleted as requested."
+            
+        else:
+            logger.error(f"Unknown GDPR notification type: {notification_type}")
+            return False
+            
+        return professional_email_service._send_email(user_email, subject, html_body, text_body)
+        
+    except Exception as e:
+        logger.error(f"Failed to send GDPR notification: {e}")
+        return False

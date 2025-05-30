@@ -846,6 +846,28 @@ class PaymentMethod(db.Model):
     def __repr__(self):
         return f'<PaymentMethod {self.name} Region:{self.region or "Global"}>'
 
+class ConsentRecord(db.Model):
+    """GDPR-compliant consent tracking with versioning and audit trails"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    consent_type = db.Column(db.String(50), nullable=False, index=True)
+    consent_given = db.Column(db.Boolean, nullable=False)
+    version = db.Column(db.String(10), nullable=False, default='1.0')
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    ip_address_hash = db.Column(db.String(64), nullable=True)  # Privacy-compliant hashed IP
+    user_agent_hash = db.Column(db.String(64), nullable=True)  # Privacy-compliant hashed user agent
+    
+    # Relationship to user
+    user = db.relationship('User', backref=db.backref('consent_records', lazy=True))
+    
+    # Composite index for efficient queries
+    __table_args__ = (
+        db.Index('idx_user_consent_type', 'user_id', 'consent_type'),
+    )
+    
+    def __repr__(self):
+        return f'<ConsentRecord User:{self.user_id} Type:{self.consent_type} Given:{self.consent_given}>'
+
 class Translation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     page = db.Column(db.String(50), nullable=False)
