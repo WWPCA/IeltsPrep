@@ -340,6 +340,10 @@ For potential expansion in the future:
 | Nepal | Ministry of Communication and Information Technology | Email notification | [info@mocit.gov.np](mailto:info@mocit.gov.np) |
 | Kuwait | Communication and Information Technology Regulatory Authority | Web portal | [citra.gov.kw](https://www.citra.gov.kw/) |
 | Qatar | Ministry of Transport and Communications | Email notification | [info@motc.gov.qa](mailto:info@motc.gov.qa) |
+| UAE | Telecommunications and Digital Government Regulatory Authority | Web portal | [tdra.gov.ae](https://www.tdra.gov.ae/) |
+| Bahrain | Information & eGovernment Authority | Email notification | [info@iga.gov.bh](mailto:info@iga.gov.bh) |
+| Oman | Information Technology Authority | Email notification | [info@ita.gov.om](mailto:info@ita.gov.om) |
+| Saudi Arabia | Communications and Information Technology Commission | Web portal | [citc.gov.sa](https://www.citc.gov.sa/) |
 | EU | European Data Protection Board | One-stop-shop mechanism | [edpb.europa.eu](https://edpb.europa.eu/) |
 | UK | Information Commissioner's Office | Online portal | [ico.org.uk/report-a-breach](https://ico.org.uk/report-a-breach/) |
 
