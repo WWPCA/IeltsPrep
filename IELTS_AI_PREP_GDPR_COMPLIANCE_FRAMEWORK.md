@@ -354,7 +354,7 @@ For potential expansion in the future:
 When a breach is likely to result in a high risk to individuals' rights and freedoms, the platform:
 
 1. **Required Notification**: Automatically prepares communications to affected users without undue delay
-2. **Notification Channels**: Employs multiple channels (email, in-app notification, SMS) to ensure receipt
+2. **Notification Channels**: Employs multiple channels (email, in-app notification) to ensure receipt
 3. **Content Requirements**: Provides clear description of the breach nature, contact details of DPO, likely consequences, and measures taken
 4. **Plain Language**: Ensures all communications use clear, plain language appropriate for non-technical users
 5. **Action Guidance**: Includes specific steps users should take to protect themselves
