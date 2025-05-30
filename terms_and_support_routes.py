@@ -1,11 +1,15 @@
 """
 Terms and Support Routes Module
-This module provides routes for terms of service, assessment day guide, and user profile.
+This module provides routes for terms of service, assessment day guide, user profile,
+and assessment product purchasing with enhanced security and error handling.
 """
 
+import os
 from main import app
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, url_for, request, flash, session, jsonify
 from flask_login import login_required, current_user
+from botocore.exceptions import ClientError, BotoCoreError
+import logging
 
 
 @app.route('/terms-and-payment')
@@ -53,6 +57,10 @@ def address_usage_policy():
     """Display the address usage policy."""
     return render_template('gdpr/address_usage_policy.html', 
                           title='Address Usage Policy')
+
+
+# Note: Assessment product routes are defined in add_assessment_routes.py
+# This file focuses on terms, support, and profile routes only
 
 
 # Add these routes to main.py
