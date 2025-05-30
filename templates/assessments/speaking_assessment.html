@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 audio.onloadeddata = () => {
                     audio.play().then(() => {
-                        console.log('Elaris® speaking question with British accent');
+                        console.log('ClearScore speaking question with British accent');
                     }).catch(err => {
                         console.error('Audio playback failed:', err);
                         timerDisplay.textContent = 'Audio playback failed. Click record to begin your answer.';

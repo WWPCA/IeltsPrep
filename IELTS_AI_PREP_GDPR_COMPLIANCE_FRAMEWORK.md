@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines the comprehensive GDPR compliance framework implemented in IELTS GenAI Prep, featuring TrueScore® and Elaris® - the world's ONLY GenAI assessor tools for IELTS test preparation. The platform has been designed with privacy and data protection as core principles, ensuring compliance with the General Data Protection Regulation (GDPR) from day one.
+This document outlines the comprehensive GDPR compliance framework implemented in IELTS GenAI Prep, featuring TrueScore® and ClearScore - the world's ONLY GenAI assessor tools for IELTS test preparation. The platform has been designed with privacy and data protection as core principles, ensuring compliance with the General Data Protection Regulation (GDPR) from day one.
 
 This GDPR framework demonstrates our commitment to best practices in data protection globally and provides robust privacy protections for all users regardless of their location.
 

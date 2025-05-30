@@ -181,7 +181,7 @@ class EnhancedNovaAssessment:
                 'detailed_feedback': scores.get('feedback', ''),
                 'band_justification': scores.get('justification', ''),
                 'conversation_transcript': conversation_history,
-                'assessment_type': 'Elaris® RAG-Enhanced Nova Sonic + Micro Assessment',
+                'assessment_type': 'ClearScore RAG-Enhanced Nova Sonic + Micro Assessment',
                 'criteria_compliance': 'Official IELTS Standards',
                 'assessment_timestamp': datetime.now().isoformat(),
                 'user_id': user_id
@@ -400,7 +400,7 @@ class EnhancedNovaAssessment:
         CONVERSATION TRANSCRIPT TO ASSESS:
         {transcript}
         
-        Elaris® ASSESSMENT REQUIREMENTS:
+        ClearScore ASSESSMENT REQUIREMENTS:
         Provide precise scores (0-9) based strictly on the speaking band descriptors above:
         
         OVERALL_SCORE: [score with one decimal place]
