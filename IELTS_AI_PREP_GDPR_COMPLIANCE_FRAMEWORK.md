@@ -39,7 +39,7 @@ The IELTS GenAI Prep application processes personal data under the following leg
 
 *Compliant with GDPR Article 7 (Conditions for consent)*
 
-1. **Granular Consent**: All consent is collected through separate, unticked checkboxes
+1. **Granular Consent**: All consent is collected through separate, unticked checkboxes (see Appendix A for detailed explanation)
 2. **Specific Purpose**: Each consent request clearly states the purpose
 3. **Withdrawable**: Simple interface to withdraw consent in user dashboard (Article 7(3))
 4. **Documented**: All consent events are timestamped and stored securely (Article 7(1))
@@ -499,3 +499,21 @@ The following matrix shows how our implementation covers the key GDPR articles:
 | Articles 44-50 | Transfers to third countries | International Data Transfers section |
 
 This matrix demonstrates our comprehensive approach to GDPR compliance, addressing each relevant article through specific implementation details.
+
+---
+
+## Appendix A: Granular Consent Detailed Explanation
+
+**Granular Consent** refers to the practice of allowing users to provide specific consent for each type of data processing activity separately. This is an important concept in privacy and data protection under GDPR, as it ensures that users are fully informed and in control of how their data is used.
+
+**Separate, Unticked Checkboxes** means that for each consent request, the application uses distinct checkboxes that are not pre-selected (unticked). This approach ensures that users must actively provide consent for each type of data processing or activity. This is in line with GDPR Article 7, which requires consent to be freely given, specific, informed, and unambiguous.
+
+### Key Points:
+
+**Specificity**: Each consent pertains to a particular processing activity. This means users are not giving blanket consent, but rather consenting to specific actions (e.g., receiving marketing emails).
+
+**User Control**: Unticked (unchecked) by default checkboxes give users control over their consent choices, preventing assumptions of consent unless a user actively chooses to provide it.
+
+**Transparent Communication**: By presenting separate options for consent, users can understand exactly what they are agreeing to, promoting transparency in data handling.
+
+This practice is crucial for GDPR compliance, which emphasizes user autonomy and informed decision-making in personal data processing.
