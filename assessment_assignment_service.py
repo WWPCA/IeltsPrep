@@ -1,14 +1,22 @@
 """
-Assessment Assignment Service
-This module manages the assignment of assessments to users, ensuring they don't receive
-the same assessment twice when purchasing new packages.
+Enhanced Assessment Assignment Service
+This module manages the assignment of assessments to users with robust error handling,
+performance optimization, and comprehensive monitoring.
 """
 import json
 import random
+import logging
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_, and_
+from sqlalchemy.exc import SQLAlchemyError
 
 from models import db, UserAssessmentAssignment, User, Assessment
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Configuration
+MAX_ACTIVE_ASSESSMENTS = 100  # Soft limit for monitoring
 
 # Total number of unique assessments for each assessment type
 TOTAL_ACADEMIC_ASSESSMENTS = 16
@@ -57,8 +65,7 @@ def get_available_assessment_ids(user_id, assessment_type):
 
 def assign_assessments_to_user(user_id, assessment_type, num_assessments):
     """
-    Assign a specific number of assessments to a user, ensuring they don't receive 
-    assessments they've already seen. Access never expires unless user deletes account.
+    Assign a specific number of assessments to a user with enhanced error handling and monitoring.
     
     Args:
         user_id (int): The user's ID
@@ -66,38 +73,91 @@ def assign_assessments_to_user(user_id, assessment_type, num_assessments):
         num_assessments (int): Number of assessments to assign (1, 2 or 4)
         
     Returns:
-        list: The assigned assessment IDs
-        bool: True if successful, False if not enough unique assessments available
+        tuple: (assigned_ids, success) where assigned_ids is list and success is boolean
     """
-    # Validate parameters
-    if num_assessments not in [1, 2, 4]:
-        raise ValueError("Number of assessments must be 1, 2, or 4")
-    if assessment_type not in ['academic', 'general']:
-        raise ValueError("Assessment type must be 'academic' or 'general'")
-    
-    # Get available assessment IDs
-    available_ids = get_available_assessment_ids(user_id, assessment_type)
-    
-    # Check if we have enough unique assessments
-    if len(available_ids) < num_assessments:
+    try:
+        # Validate parameters
+        if num_assessments not in [1, 2, 4]:
+            logger.error(f"Invalid assessment count: {num_assessments} for user {user_id}")
+            raise ValueError("Number of assessments must be 1, 2, or 4")
+        if assessment_type not in ['academic', 'general']:
+            logger.error(f"Invalid assessment type: {assessment_type} for user {user_id}")
+            raise ValueError("Assessment type must be 'academic' or 'general'")
+        
+        # Check soft limit for active assessments
+        active_assignments = UserAssessmentAssignment.query.filter_by(
+            user_id=user_id, assessment_type=assessment_type
+        ).count()
+        
+        if active_assignments > MAX_ACTIVE_ASSESSMENTS:
+            logger.warning(f"User {user_id} exceeds active assessment limit: {active_assignments}")
+            return [], False
+        
+        # Get used assessment IDs with optimized query
+        used_ids = db.session.query(UserAssessmentAssignment.assigned_assessment_ids).filter_by(
+            user_id=user_id, assessment_type=assessment_type
+        ).all()
+        
+        # Flatten the list of used assessment IDs
+        used_ids_set = set()
+        for assignment_ids in used_ids:
+            if assignment_ids[0]:  # Check if not None
+                try:
+                    ids = json.loads(assignment_ids[0]) if isinstance(assignment_ids[0], str) else assignment_ids[0]
+                    used_ids_set.update(ids)
+                except (json.JSONDecodeError, TypeError) as e:
+                    logger.warning(f"Invalid assignment data for user {user_id}: {e}")
+        
+        # Get available assessments with optimized query
+        assessment_category_map = {
+            'academic': ['academic_writing', 'academic_speaking'],
+            'general': ['general_writing', 'general_speaking']
+        }
+        
+        assessment_categories = assessment_category_map.get(assessment_type, [])
+        available_assessments = db.session.query(Assessment.id).filter(
+            Assessment.assessment_type.in_(assessment_categories),
+            Assessment.status == 'active',
+            ~Assessment.id.in_(used_ids_set)
+        ).limit(num_assessments * 2).all()  # Get extra to have selection flexibility
+        
+        available_ids = [aid[0] for aid in available_assessments]
+        
+        # Check if we have enough unique assessments
+        if len(available_ids) < num_assessments:
+            logger.warning(f"Not enough unique assessments for user {user_id}: {len(available_ids)}/{num_assessments}")
+            return [], False
+        
+        # Randomly select assessments from available IDs
+        assigned_ids = random.sample(available_ids, num_assessments)
+        
+        # Create new assignment record with transaction management
+        assignment = UserAssessmentAssignment(
+            user_id=user_id,
+            assessment_type=assessment_type,
+            assigned_assessment_ids=assigned_ids,
+            purchase_date=datetime.utcnow(),
+            expiry_date=None  # Never expires unless user deletes account
+        )
+        
+        db.session.add(assignment)
+        db.session.commit()
+        
+        # Log successful assignment
+        logger.info(f"Assigned {num_assessments} {assessment_type} assessments to user {user_id}", 
+                   extra={'user_id': user_id, 'assessment_type': assessment_type, 
+                          'count': num_assessments, 'assigned_ids': assigned_ids})
+        
+        return assigned_ids, True
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logger.error(f"Database error in assignment for user {user_id}: {e}")
         return [], False
-    
-    # Randomly select assessments from available IDs
-    assigned_ids = random.sample(available_ids, num_assessments)
-    
-    # Create new assignment record
-    assignment = UserAssessmentAssignment()
-    assignment.user_id = user_id
-    assignment.assessment_type = assessment_type
-    assignment.assigned_assessment_ids = json.dumps(assigned_ids)
-    assignment.purchase_date = datetime.utcnow()
-    assignment.expiry_date = None  # Never expires unless user deletes account
-    
-    db.session.add(assignment)
-    db.session.commit()
-    
-    # Return the assigned assessment IDs
-    return assigned_ids, True
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Unexpected error in assignment for user {user_id}: {e}")
+        return [], False
 
 def get_current_assessment_assignments(user_id, assessment_type):
     """
