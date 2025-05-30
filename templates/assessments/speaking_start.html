@@ -216,6 +216,11 @@
                     Test Your Microphone and Speakers
                 </h3>
                 
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Before you begin:</strong> Your browser will show a permission popup asking to use your microphone. This popup shows a long website address - that's normal. Just click "Allow" to continue.
+                </div>
+                
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Important:</strong> Please test your microphone and speakers before starting the assessment to ensure proper recording and playback.
@@ -352,6 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 audioLevelBar.style.width = '0%';
                 return;
             }
+            
+            // Show user-friendly message before browser popup
+            micStatus.innerHTML = 'Your browser will ask for microphone permission - please click "Allow"';
+            micStatus.style.color = '#007bff';
             
             recordedChunks = [];
             audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
