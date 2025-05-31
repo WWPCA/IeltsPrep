@@ -410,14 +410,13 @@ def writing_assessment_interface(assessment_type, assessment_number):
         flash('Invalid assessment number.', 'danger')
         return redirect(url_for('profile'))
     
-    # Check if user has access to this assessment type
-    package_status = current_user.assessment_package_status or ""
+    # Check if user has access using the new individual package system
     has_access = False
     
-    if 'academic_writing' in assessment_type and (current_user.has_package_access('Academic Writing') or 'All Products' in package_status):
-        has_access = True
-    elif 'general_writing' in assessment_type and (current_user.has_package_access('General Writing') or 'All Products' in package_status):
-        has_access = True
+    if 'academic_writing' in assessment_type:
+        has_access = current_user.has_package_access('Academic Writing')
+    elif 'general_writing' in assessment_type:
+        has_access = current_user.has_package_access('General Writing')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     
