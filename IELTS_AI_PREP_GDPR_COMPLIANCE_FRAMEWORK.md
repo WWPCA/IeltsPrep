@@ -162,9 +162,12 @@ The application provides direct mechanisms for users to exercise their GDPR righ
    - **Multi-layered authorization system**: login_required, verified_email_required, active_account_required decorators
    - **Role-based access control (RBAC)**: Admin-only access with email-based validation
    - **Package-based authorization**: Users can only access purchased assessment content
+   - **Session-based authentication**: Secure user sessions managed by Flask-Login with automatic timeout
+   - **CSRF token authentication**: All forms and API calls protected with unique validation tokens
    - **Session security**: 1-hour timeout, HttpOnly cookies, SameSite protection
    - **Password security**: Salted hashing with Werkzeug, complexity requirements, history tracking
    - **Account activation**: Email verification required before platform access
+   - **Multi-factor request validation**: Combination of session authentication, CSRF tokens, and origin validation
 
 3. **Comprehensive Security Headers & HTTP Protection**
    - **X-Content-Type-Options: nosniff**: Prevents MIME type sniffing attacks
