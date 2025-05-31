@@ -39,7 +39,7 @@ def fix_assessment_types_in_database():
         # Update each assessment type
         for old_type, new_type in type_mapping.items():
             result = db.session.execute(
-                "UPDATE assessment SET assessment_type = :new_type WHERE assessment_type = :old_type",
+                text("UPDATE assessment SET assessment_type = :new_type WHERE assessment_type = :old_type"),
                 {"new_type": new_type, "old_type": old_type}
             )
             print(f"  {old_type} → {new_type} ({result.rowcount} assessments updated)")
@@ -48,7 +48,7 @@ def fix_assessment_types_in_database():
         print(f"\nUpdating user assignment types...")
         for old_type, new_type in type_mapping.items():
             result = db.session.execute(
-                "UPDATE user_assessment_assignment SET assessment_type = :new_type WHERE assessment_type = :old_type",
+                text("UPDATE user_assessment_assignment SET assessment_type = :new_type WHERE assessment_type = :old_type"),
                 {"new_type": new_type, "old_type": old_type}
             )
             print(f"  {old_type} → {new_type} ({result.rowcount} assignments updated)")
@@ -58,7 +58,7 @@ def fix_assessment_types_in_database():
         # Verify the changes
         print(f"\nVerifying changes...")
         updated_types = db.session.execute(
-            "SELECT DISTINCT assessment_type FROM assessment ORDER BY assessment_type"
+            text("SELECT DISTINCT assessment_type FROM assessment ORDER BY assessment_type")
         ).fetchall()
         
         print("Updated assessment types in database:")
@@ -83,7 +83,7 @@ def verify_package_structure():
     with app.app_context():
         # Check what packages exist in user_package table
         existing_packages = db.session.execute(
-            "SELECT DISTINCT package_name FROM user_package ORDER BY package_name"
+            text("SELECT DISTINCT package_name FROM user_package ORDER BY package_name")
         ).fetchall()
         
         print("Packages found in database:")
@@ -94,7 +94,7 @@ def verify_package_structure():
         print(f"\nAssessment counts by type:")
         for product in expected_products:
             count = db.session.execute(
-                "SELECT COUNT(*) FROM assessment WHERE assessment_type = :type AND status = 'active'",
+                text("SELECT COUNT(*) FROM assessment WHERE assessment_type = :type AND status = 'active'"),
                 {"type": product}
             ).scalar()
             print(f"  {product}: {count} assessments")
