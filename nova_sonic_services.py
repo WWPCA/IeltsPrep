@@ -288,6 +288,66 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             logger.error(f"Final assessment error: {e}")
             return {"success": False, "error": str(e)}
 
+    def assess_conversation_final(self, conversation_history, assessment_type='Academic Speaking'):
+        """
+        Provide final assessment and scoring for the complete conversation
+        
+        Args:
+            conversation_history (list): Complete conversation between examiner and candidate
+            assessment_type (str): Type of assessment (Academic Speaking, General Speaking)
+            
+        Returns:
+            dict: Final scores and detailed feedback
+        """
+        try:
+            # Build final assessment prompt
+            assessment_prompt = self._build_final_assessment_prompt(conversation_history, assessment_type)
+            
+            response = self.client.invoke_model(
+                modelId='amazon.nova-sonic-v1:0',
+                contentType='application/json',
+                accept='application/json',
+                body=json.dumps({
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "text": assessment_prompt
+                                }
+                            ]
+                        }
+                    ],
+                    "inferenceConfig": {
+                        "max_new_tokens": 2000,
+                        "temperature": 0.3,
+                        "top_p": 0.8
+                    }
+                })
+            )
+            
+            result = json.loads(response['body'].read())
+            assessment_text = result.get('content', [{}])[0].get('text', '')
+            
+            # Parse assessment scores
+            scores = self._parse_assessment_scores(assessment_text)
+            
+            return {
+                "success": True,
+                "overall_score": scores.get('overall_score', 6.0),
+                "fluency_coherence": scores.get('fluency_coherence', 6.0),
+                "lexical_resource": scores.get('lexical_resource', 6.0),
+                "grammatical_range": scores.get('grammatical_range', 6.0),
+                "pronunciation": scores.get('pronunciation', 6.0),
+                "detailed_feedback": assessment_text,
+                "strengths": scores.get('strengths', []),
+                "improvements": scores.get('improvements', [])
+            }
+            
+        except Exception as e:
+            logger.error(f"Final conversation assessment error: {e}")
+            return {"success": False, "error": str(e)}
+
     def _build_conversation_prompt(self, user_level, part_number, topic):
         """Build the initial conversation prompt for Nova Sonic"""
         
