@@ -35,11 +35,14 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Account settings will be added in future updates -->
+                    <!-- Account settings -->
                     <div class="mt-4">
-                        <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm w-100 mb-2">
                             <i class="fas fa-user me-1"></i> My Profile
                         </a>
+                        <button type="button" class="btn btn-outline-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            <i class="fas fa-trash me-1"></i> Delete My Account
+                        </button>
                     </div>
                     
                     {% if not current_user.has_active_assessment_package() %}
@@ -219,9 +222,105 @@
     </div>
 </div>
 
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAccountModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Delete Account
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading"><i class="fas fa-warning me-2"></i>Warning: Account Deletion</h6>
+                    <p class="mb-0">This action will permanently delete your account and all associated data. This cannot be undone.</p>
+                </div>
+                
+                <div id="assessmentWarning" class="alert alert-warning d-none">
+                    <h6 class="alert-heading"><i class="fas fa-clock me-2"></i>Active Assessments Detected</h6>
+                    <p class="mb-0">You have unused assessments available. If you continue, your account will be suspended for 72 hours before deletion. You'll receive an email with an option to reactivate your account during this period.</p>
+                </div>
+                
+                <h6 class="mt-3">What will be deleted:</h6>
+                <ul>
+                    <li>Your account and profile information</li>
+                    <li>All test results and assessment history</li>
+                    <li>Any unused assessment packages</li>
+                    <li>All personal data associated with your account</li>
+                </ul>
+                
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confirmDeletion" required>
+                    <label class="form-check-label" for="confirmDeletion">
+                        I understand that this action is permanent and cannot be undone
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton" disabled>
+                    <i class="fas fa-trash me-2"></i>Delete My Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add proper spacing to prevent footer overlap -->
 <div style="height: 100px;"></div>
 {% endblock %}
 
 {% block scripts %}
+<script>
+$(document).ready(function() {
+    // Check for active assessments when modal opens
+    $('#deleteAccountModal').on('show.bs.modal', function() {
+        // Check if user has active assessments
+        {% if current_user.has_active_assessment_package() %}
+        $('#assessmentWarning').removeClass('d-none');
+        {% endif %}
+    });
+    
+    // Enable/disable delete button based on checkbox
+    $('#confirmDeletion').change(function() {
+        $('#confirmDeleteButton').prop('disabled', !this.checked);
+    });
+    
+    // Handle delete confirmation
+    $('#confirmDeleteButton').click(function() {
+        if (!$('#confirmDeletion').prop('checked')) {
+            alert('Please confirm that you understand this action is permanent.');
+            return;
+        }
+        
+        // Show loading state
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+        
+        // Send delete request
+        $.ajax({
+            url: '{{ url_for("delete_account_request") }}',
+            method: 'POST',
+            data: {
+                'csrf_token': $('meta[name=csrf-token]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Show success message and redirect
+                    alert(response.message);
+                    window.location.href = '{{ url_for("index") }}';
+                } else {
+                    alert('Error: ' + response.message);
+                    $('#confirmDeleteButton').prop('disabled', false).html('<i class="fas fa-trash me-2"></i>Delete My Account');
+                }
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
+                $('#confirmDeleteButton').prop('disabled', false).html('<i class="fas fa-trash me-2"></i>Delete My Account');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

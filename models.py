@@ -34,6 +34,12 @@ class User(UserMixin, db.Model):
     # Password reset fields
     password_reset_token = db.Column(db.String(255), nullable=True)
     password_reset_expires = db.Column(db.DateTime, nullable=True)
+    
+    # Account deletion fields
+    deletion_requested = db.Column(db.Boolean, default=False, nullable=False)
+    deletion_requested_at = db.Column(db.DateTime, nullable=True)
+    deletion_scheduled_for = db.Column(db.DateTime, nullable=True)
+    reactivation_token = db.Column(db.String(255), nullable=True)
     # target_score field removed as it doesn't exist in database
     # Admin check based on email address
     @property
