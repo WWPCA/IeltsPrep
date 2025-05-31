@@ -47,12 +47,10 @@ assessment_products = {
     }
 }
 
-def add_assessment_routes(app=None):
+def add_assessment_routes(app):
     """Add routes for assessment products."""
     if app is None:
-        # For backward compatibility when called directly
-        from flask import current_app
-        app = current_app
+        raise ValueError("Flask app instance is required")
     
     @app.route('/assessment-products')
     def assessment_products_page():
