@@ -339,13 +339,13 @@ def assessment_start(assessment_type, assessment_number):
     has_access = False
     
     if 'academic_speaking' in assessment_type:
-        has_access = current_user.has_package_access('academic_speaking')
+        has_access = current_user.has_package_access('Academic Speaking')
     elif 'general_speaking' in assessment_type:
-        has_access = current_user.has_package_access('general_speaking')
+        has_access = current_user.has_package_access('General Speaking')
     elif 'academic_writing' in assessment_type:
-        has_access = current_user.has_package_access('academic_writing')
+        has_access = current_user.has_package_access('Academic Writing')
     elif 'general_writing' in assessment_type:
-        has_access = current_user.has_package_access('general_writing')
+        has_access = current_user.has_package_access('General Writing')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     
@@ -382,9 +382,9 @@ def speaking_assessment_interface(assessment_type, assessment_number):
     has_access = False
     
     if 'academic_speaking' in assessment_type:
-        has_access = current_user.has_package_access('academic_speaking')
+        has_access = current_user.has_package_access('Academic Speaking')
     elif 'general_speaking' in assessment_type:
-        has_access = current_user.has_package_access('general_speaking')
+        has_access = current_user.has_package_access('General Speaking')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     

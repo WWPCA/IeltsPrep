@@ -103,9 +103,9 @@ def start_speaking_session():
         has_access = False
         
         if assessment_type == 'academic_speaking':
-            has_access = current_user.has_package_access('academic_speaking')
+            has_access = current_user.has_package_access('Academic Speaking')
         elif assessment_type == 'general_speaking':
-            has_access = current_user.has_package_access('general_speaking')
+            has_access = current_user.has_package_access('General Speaking')
         
         if hasattr(current_user, 'is_admin') and current_user.is_admin:
             has_access = True
