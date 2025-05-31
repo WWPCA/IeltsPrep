@@ -14,7 +14,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from urllib.parse import urlparse
 from functools import wraps
-from app import app, db, recaptcha_v3
+from app import app, db, recaptcha_v3, csrf
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
 from utils import get_user_region, get_translation
 from input_validation import InputValidator, validate_registration_data, validate_api_request, validate_assessment_input
@@ -114,6 +114,7 @@ def generate_speech():
 # Real-time conversation API endpoints
 @app.route('/api/start_conversation', methods=['POST'])
 @login_required
+@csrf.exempt
 def start_conversation():
     """Start a real-time conversation with Elaris®"""
     try:
@@ -144,7 +145,8 @@ def start_conversation():
         return jsonify({'success': False, 'error': 'Conversation service unavailable'})
 
 @app.route('/api/continue_conversation', methods=['POST'])
-@login_required  
+@login_required
+@csrf.exempt
 def continue_conversation():
     """Continue the conversation with user input"""
     try:
