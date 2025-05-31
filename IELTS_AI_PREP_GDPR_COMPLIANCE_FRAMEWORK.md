@@ -181,6 +181,8 @@ The application provides direct mechanisms for users to exercise their GDPR righ
    - **Cross-site scripting (XSS) prevention**: Comprehensive input sanitization and output encoding
    - **Request size limits**: Protection against denial of service attacks
    - **API endpoint protection**: Rate limiting and abuse detection for all assessment endpoints
+   - **CORS domain restrictions**: Cross-Origin Resource Sharing protection ensures only authorized domains can access API endpoints
+   - **Unauthorized domain blocking**: Automatic blocking of cross-origin requests from non-authorized domains with comprehensive logging
 
 5. **Real-Time Security Monitoring & Incident Response**
    - **Security event logging**: Comprehensive audit trails for all security-related events
