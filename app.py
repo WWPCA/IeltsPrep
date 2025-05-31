@@ -89,6 +89,14 @@ recaptcha_v3.init_app(app)
 setattr(login_manager, 'login_view', 'login')
 login_manager.login_message_category = "info"
 
+# Configure CSRF exemptions for Maya conversation API endpoints
+app.config['WTF_CSRF_EXEMPT_LIST'] = [
+    '/api/start_conversation',
+    '/api/continue_conversation', 
+    '/api/assess_conversation',
+    '/api/generate_speech'
+]
+
 # Let Replit handle HTTPS - this is for when the app runs outside of Replit
 @app.before_request
 def check_proxy_headers():
