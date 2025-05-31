@@ -322,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         if (csrfToken) {
             headers['X-CSRFToken'] = csrfToken;
+            headers['X-CSRF-TOKEN'] = csrfToken;
         }
         return headers;
     }
@@ -692,9 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const conversationResponse = await Promise.race([
                 fetch('/api/continue_conversation', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAPIHeaders(),
                     body: JSON.stringify({
                         user_message: transcriptText,
                         conversation_history: conversationHistory,
