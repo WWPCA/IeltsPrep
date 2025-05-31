@@ -99,14 +99,13 @@ def start_speaking_session():
             logger.warning(f"Invalid part number: {part_number} from user {current_user.id}")
             return jsonify({'success': False, 'error': 'Invalid part number'}), 400
         
-        # Check user access permissions
-        package_status = current_user.assessment_package_status or ""
+        # Check user access permissions using new individual package system
         has_access = False
         
         if assessment_type == 'academic_speaking':
-            has_access = 'Academic Speaking' in package_status or 'All Products' in package_status
+            has_access = current_user.has_package_access('academic_speaking')
         elif assessment_type == 'general_speaking':
-            has_access = 'General Speaking' in package_status or 'All Products' in package_status
+            has_access = current_user.has_package_access('general_speaking')
         
         if hasattr(current_user, 'is_admin') and current_user.is_admin:
             has_access = True

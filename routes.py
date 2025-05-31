@@ -335,18 +335,17 @@ def assessment_start(assessment_type, assessment_number):
         flash('Invalid assessment number.', 'danger')
         return redirect(url_for('profile'))
     
-    # Check if user has active assessment package for this type
-    package_status = current_user.assessment_package_status or ""
+    # Check if user has access using the new individual package system
     has_access = False
     
-    if 'academic_speaking' in assessment_type and ('Academic Speaking' in package_status or 'All Products' in package_status):
-        has_access = True
-    elif 'general_speaking' in assessment_type and ('General Speaking' in package_status or 'All Products' in package_status):
-        has_access = True
-    elif 'academic_writing' in assessment_type and ('Academic Writing' in package_status or 'All Products' in package_status):
-        has_access = True
-    elif 'general_writing' in assessment_type and ('General Writing' in package_status or 'All Products' in package_status):
-        has_access = True
+    if 'academic_speaking' in assessment_type:
+        has_access = current_user.has_package_access('academic_speaking')
+    elif 'general_speaking' in assessment_type:
+        has_access = current_user.has_package_access('general_speaking')
+    elif 'academic_writing' in assessment_type:
+        has_access = current_user.has_package_access('academic_writing')
+    elif 'general_writing' in assessment_type:
+        has_access = current_user.has_package_access('general_writing')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     
@@ -379,14 +378,13 @@ def speaking_assessment_interface(assessment_type, assessment_number):
         flash('Invalid assessment number.', 'danger')
         return redirect(url_for('profile'))
     
-    # Check if user has access to this assessment type
-    package_status = current_user.assessment_package_status or ""
+    # Check if user has access using the new individual package system
     has_access = False
     
-    if 'academic_speaking' in assessment_type and ('Academic Speaking' in package_status or 'All Products' in package_status):
-        has_access = True
-    elif 'general_speaking' in assessment_type and ('General Speaking' in package_status or 'All Products' in package_status):
-        has_access = True
+    if 'academic_speaking' in assessment_type:
+        has_access = current_user.has_package_access('academic_speaking')
+    elif 'general_speaking' in assessment_type:
+        has_access = current_user.has_package_access('general_speaking')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     
