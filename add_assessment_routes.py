@@ -208,15 +208,14 @@ def assign_assessment_sets(user, product_id):
             print(f"Added 1 more package to existing {assessment_type_mapping[product_id]} package")
         else:
             # Create new package
-            new_package = UserPackage(
-                user_id=user.id,
-                package_name=assessment_type_mapping[product_id],
-                quantity_purchased=1,
-                quantity_remaining=1,
-                purchase_date=datetime.utcnow(),
-                expiry_date=datetime.utcnow() + timedelta(days=30),
-                status='active'
-            )
+            new_package = UserPackage()
+            new_package.user_id = user.id
+            new_package.package_name = assessment_type_mapping[product_id]
+            new_package.quantity_purchased = 1
+            new_package.quantity_remaining = 1
+            new_package.purchase_date = datetime.utcnow()
+            new_package.expiry_date = datetime.utcnow() + timedelta(days=30)
+            new_package.status = 'active'
             db.session.add(new_package)
             print(f"Created new UserPackage: {assessment_type_mapping[product_id]}")
         
@@ -225,13 +224,14 @@ def assign_assessment_sets(user, product_id):
         assigned_ids = []  # Will be assigned when user starts assessment
         
         if success:
-            print(f"Successfully assigned {len(assigned_ids)} assessments to user {user.id}")
-            purchase['assigned_assessment_ids'] = assigned_ids
+            print(f"Successfully created UserPackage for {assessment_type_mapping[product_id]}")
+            purchase['assigned_package'] = assessment_type_mapping[product_id]
         else:
-            print(f"Failed to assign assessments to user {user.id}: not enough unique assessments available")
+            print(f"Failed to create UserPackage for {assessment_type_mapping[product_id]}")
     except Exception as e:
-        print(f"Error assigning assessments to user {user.id}: {str(e)}")
+        print(f"Error creating UserPackage for user {user.id}: {str(e)}")
     
+    # Also maintain legacy system for backward compatibility
     if product_id in assessment_type_mapping:
         user.assessment_package_status = assessment_type_mapping[product_id]
         # Set expiry date to 30 days from now
