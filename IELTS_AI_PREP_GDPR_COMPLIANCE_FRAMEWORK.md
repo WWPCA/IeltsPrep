@@ -156,7 +156,7 @@ The application provides direct mechanisms for users to exercise their GDPR righ
    - TLS 1.3 for all communications
    - AES-256 encryption for data at rest
    - Encrypted database backups
-   - HTTPS-only session cookies with secure headers
+   - **Enterprise-grade secure cookies**: HTTPS-only transmission, HttpOnly protection against XSS, SameSite CSRF protection, automatic 1-hour timeout
 
 2. **Enterprise-Grade Authentication & Access Controls**
    - **Multi-layered authorization system**: login_required, verified_email_required, active_account_required decorators
