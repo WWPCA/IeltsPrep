@@ -315,15 +315,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get CSRF token for API requests
     const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
     
-    // Helper function to get headers with CSRF token
+
+    // Debug CSRF token
+    console.log("CSRF Token:", csrfToken);
+    if (!csrfToken) {
+        console.error("CSRF token is missing from meta tag");
+    }
+    
+    // Enhanced helper function with better error handling
     function getAPIHeaders() {
         const headers = {
             'Content-Type': 'application/json'
         };
-        if (csrfToken) {
-            headers['X-CSRFToken'] = csrfToken;
-            headers['X-CSRF-TOKEN'] = csrfToken;
+        
+        // Get fresh CSRF token from meta tag
+        const freshToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+        if (freshToken) {
+            headers['X-CSRFToken'] = freshToken;
+            console.log("Adding CSRF token to request headers");
+        } else {
+            console.error("No CSRF token available for API request");
         }
+        
         return headers;
     }
 
@@ -800,6 +813,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     part: currentPart
                 })
             });
+
+            if (response.status === 400) {
+                console.error('CSRF token validation failed');
+                alert('Security token expired. Please refresh the page and try again.');
+                return;
+            }
 
             const result = await response.json();
             
