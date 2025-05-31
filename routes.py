@@ -240,9 +240,13 @@ def assess_conversation():
 @country_access_required
 def conversational_speaking_from_number(assessment_type, assessment_number):
     """Handle conversational speaking using assessment_number instead of assessment_id."""
+    # Convert route format to database format
+    from assessment_type_converters import convert_route_to_db_type
+    db_assessment_type = convert_route_to_db_type(assessment_type)
+    
     # Get assessments of the specified type
     assessments = Assessment.query.filter_by(
-        assessment_type=assessment_type,
+        assessment_type=db_assessment_type,
         status='active'
     ).order_by(Assessment.id).all()
     
