@@ -347,7 +347,7 @@ def assessment_start(assessment_type, assessment_number):
         has_access = True
     
     if not has_access:
-        flash('You need to purchase an assessment package to access this feature.', 'info')
+        flash('Assessment not available. Please start from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     # Determine which template to use based on assessment type
@@ -388,7 +388,7 @@ def speaking_assessment_interface(assessment_type, assessment_number):
         has_access = True
     
     if not has_access:
-        flash('You need to purchase an assessment package to access this feature.', 'info')
+        flash('Assessment not available. Please start from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     return render_template('assessments/speaking_assessment.html', 
@@ -422,7 +422,7 @@ def writing_assessment_interface(assessment_type, assessment_number):
         has_access = True
     
     if not has_access:
-        flash('You need to purchase an assessment package to access this feature.', 'info')
+        flash('Assessment not available. Please start from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     return render_template('assessments/writing_assessment.html', 
