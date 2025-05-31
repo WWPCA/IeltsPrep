@@ -3,6 +3,7 @@
 {% block title %}Conversational Speaking Assessment - ClearScore{% endblock %}
 
 {% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 {% endblock %}
 
@@ -310,6 +311,20 @@ document.addEventListener('DOMContentLoaded', function() {
     let speechRecognition = null;
     let localTranscription = '';
     let isLocalSpeechActive = false;
+
+    // Get CSRF token for API requests
+    const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+    
+    // Helper function to get headers with CSRF token
+    function getAPIHeaders() {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (csrfToken) {
+            headers['X-CSRFToken'] = csrfToken;
+        }
+        return headers;
+    }
 
     // Voice Globe Visualization
     let scene, camera, renderer, particles;
@@ -780,9 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch('/api/start_conversation', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAPIHeaders(),
                 body: JSON.stringify({
                     assessment_type: '{{ assessment_type }}',
                     part: currentPart

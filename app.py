@@ -89,8 +89,8 @@ recaptcha_v3.init_app(app)
 setattr(login_manager, 'login_view', 'login')
 login_manager.login_message_category = "info"
 
-# Disable CSRF for API endpoints to allow Maya conversation system
-app.config['WTF_CSRF_CHECK_DEFAULT'] = False
+# Re-enable CSRF protection for security
+app.config['WTF_CSRF_TIME_LIMIT'] = None
 
 # Let Replit handle HTTPS - this is for when the app runs outside of Replit
 @app.before_request
