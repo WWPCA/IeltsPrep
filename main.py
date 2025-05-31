@@ -31,6 +31,7 @@ import assessment_submission_routes  # noqa: F401
 
 # Import account deletion routes
 import account_deletion_routes  # noqa: F401
+import account_deletion_routes_enhanced  # noqa: F401
 
 # Import password reset routes
 import password_reset_routes  # noqa: F401
