@@ -365,16 +365,16 @@ def assessment_start(assessment_type, assessment_number):
 @login_required
 def speaking_assessment_interface(assessment_type, assessment_number):
     """Main speaking assessment interface with AI examiner"""
-    # Validate assessment type and number
+    # Validate assessment type
     valid_types = ['academic_speaking', 'general_speaking']
     if assessment_type not in valid_types:
-        flash('Invalid assessment type.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     # Validate that this is a legitimate assessment assignment
     # Users should only access assessments through the proper assignment system
     if assessment_number < 1:
-        flash('Assessment not found. Please start an assessment from your dashboard.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     # Check if user has access using the new individual package system
