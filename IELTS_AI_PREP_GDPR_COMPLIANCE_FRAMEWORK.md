@@ -194,6 +194,8 @@ The application provides direct mechanisms for users to exercise their GDPR righ
    - **Admin dashboard transparency**: Real-time visibility into CSRF errors, Maya conversation issues, and user activity
    - **Breach detection**: Automated monitoring for unusual database access patterns
    - **Session integrity validation**: Protection against session hijacking attempts
+   - **Secure logging practices**: Console logs contain only operational status information without exposing sensitive data
+   - **Information security compliance**: No API keys, credentials, user data, or personally identifiable information exposed in application logs
 
 6. **Data Validation and Sanitization**
    - **Password complexity enforcement**: Mandatory uppercase, lowercase, numbers, and special characters
