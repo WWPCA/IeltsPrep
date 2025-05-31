@@ -7,7 +7,8 @@ from models import Assessment
 def assessment_details_route(assessment_type, assessment_id):
     """Show details about an assessment before starting it"""
     if assessment_type not in ['academic_writing', 'general_writing', 'academic_speaking', 'general_speaking']:
-        abort(404)
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
+        return redirect(url_for('profile'))
     
     assessment = Assessment.query.get_or_404(assessment_id)
     

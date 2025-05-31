@@ -33,12 +33,12 @@ def take_writing_assessment(assessment_id, attempt_id):
     
     # Ensure this attempt belongs to the current user
     if attempt.user_id != current_user.id:
-        flash('You do not have permission to access this assessment attempt.', 'danger')
+        flash('Assessment not available. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('assessment_index'))
     
     # Check if the assessment type matches
     if 'writing' not in assessment.assessment_type:
-        flash('Invalid assessment type for this route.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('assessment_index'))
     
     # Get existing responses
@@ -82,7 +82,7 @@ def submit_writing_task1(assessment_id, attempt_id):
     
     # Ensure this attempt belongs to the current user
     if attempt.user_id != current_user.id:
-        flash('You do not have permission to access this assessment attempt.', 'danger')
+        flash('Assessment not available. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('assessment_index'))
     
     # Check if the assessment is already completed
@@ -140,7 +140,7 @@ def submit_writing_task2(assessment_id, attempt_id):
     
     # Ensure this attempt belongs to the current user
     if attempt.user_id != current_user.id:
-        flash('You do not have permission to access this assessment attempt.', 'danger')
+        flash('Assessment not available. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('assessment_index'))
     
     # Check if the assessment is already completed
@@ -198,7 +198,7 @@ def complete_writing_assessment(assessment_id, attempt_id):
     
     # Ensure this attempt belongs to the current user
     if attempt.user_id != current_user.id:
-        flash('You do not have permission to access this assessment attempt.', 'danger')
+        flash('Assessment not available. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('assessment_index'))
     
     # Check if the assessment is already completed

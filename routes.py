@@ -249,7 +249,7 @@ def conversational_speaking_from_number(assessment_type, assessment_number):
     if 1 <= assessment_number <= len(assessments):
         assessment_id = assessments[assessment_number - 1].id
     else:
-        flash('Assessment not found.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     # Redirect to the proper conversational route with assessment_id
@@ -325,11 +325,11 @@ def assessment_start(assessment_type, assessment_number):
     """Start a specific assessment (speaking or writing) with proper setup"""
     valid_types = ['academic_speaking', 'general_speaking', 'academic_writing', 'general_writing']
     if assessment_type not in valid_types:
-        flash('Invalid assessment type.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     if assessment_number not in [1, 2, 3, 4]:
-        flash('Invalid assessment number.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     # Check if user has access using the new individual package system
@@ -347,7 +347,7 @@ def assessment_start(assessment_type, assessment_number):
         has_access = True
     
     if not has_access:
-        flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
+        flash('You need to purchase an assessment package to access this feature.', 'info')
         return redirect(url_for('profile'))
     
     # Determine which template to use based on assessment type
@@ -388,7 +388,7 @@ def speaking_assessment_interface(assessment_type, assessment_number):
         has_access = True
     
     if not has_access:
-        flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
+        flash('You need to purchase an assessment package to access this feature.', 'info')
         return redirect(url_for('profile'))
     
     return render_template('assessments/speaking_assessment.html', 
@@ -402,13 +402,13 @@ def writing_assessment_interface(assessment_type, assessment_number):
     # Validate assessment type and number
     valid_types = ['academic_writing', 'general_writing']
     if assessment_type not in valid_types:
-        flash('Invalid assessment type.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     # Validate that this is a legitimate assessment assignment
     # Users should only access assessments through the proper assignment system
     if assessment_number < 1:
-        flash('Assessment not found. Please start an assessment from your dashboard.', 'danger')
+        flash('Assessment not found. Please start an assessment from your dashboard.', 'info')
         return redirect(url_for('profile'))
     
     # Check if user has access using the new individual package system
@@ -422,7 +422,7 @@ def writing_assessment_interface(assessment_type, assessment_number):
         has_access = True
     
     if not has_access:
-        flash('You do not have access to this assessment type. Please purchase an assessment package.', 'danger')
+        flash('You need to purchase an assessment package to access this feature.', 'info')
         return redirect(url_for('profile'))
     
     return render_template('assessments/writing_assessment.html', 
