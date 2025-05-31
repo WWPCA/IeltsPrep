@@ -171,10 +171,11 @@ class AccountDeletionService:
             </div>
             """
             
-            send_professional_email(
+            professional_email_service._send_email(
                 to_email=user.email,
                 subject=subject,
-                html_content=html_content
+                html_body=html_content,
+                text_body="Your account has been suspended and scheduled for deletion in 72 hours. Check your email for reactivation instructions."
             )
             
             logger.info(f"Suspension email sent to user {user.id}")
@@ -224,10 +225,11 @@ class AccountDeletionService:
             </div>
             """
             
-            send_professional_email(
+            professional_email_service._send_email(
                 to_email=email,
                 subject=subject,
-                html_content=html_content
+                html_body=html_content,
+                text_body="Your IELTS AI Prep account has been permanently deleted as requested."
             )
             
             logger.info(f"Deletion confirmation email sent to {email}")
@@ -326,10 +328,11 @@ class AccountDeletionService:
             </div>
             """
             
-            send_professional_email(
+            professional_email_service._send_email(
                 to_email=user.email,
                 subject=subject,
-                html_content=html_content
+                html_body=html_content,
+                text_body="Your account has been successfully reactivated! You can now log in."
             )
             
             logger.info(f"Reactivation confirmation email sent to user {user.id}")
