@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from functools import wraps
 from app import app, db, recaptcha_v3
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
+from api_issues import APIIssueLog
 from utils import get_user_region, get_translation
 from input_validation import InputValidator, validate_registration_data, validate_api_request, validate_assessment_input
 from enhanced_error_handling import handle_database_error, handle_api_error, validate_request_size

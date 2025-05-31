@@ -3,7 +3,7 @@ API Issue Tracking Module
 This module provides functionality for tracking and monitoring API-related issues.
 """
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import db
 from models import User
 
@@ -11,7 +11,7 @@ class APIIssueLog(db.Model):
     """Track API-related issues for monitoring and support purposes"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Can be null for unauthenticated requests
-    api_name = db.Column(db.String(100), nullable=False)  # aws_bedrock, openai, assemblyai, azure_speech
+    api_name = db.Column(db.String(100), nullable=False)  # aws_bedrock, openai, assemblyai, azure_speech, csrf_validation, maya_conversation
     endpoint = db.Column(db.String(255), nullable=False)  # Specific endpoint that failed
     occurred_at = db.Column(db.DateTime, default=datetime.utcnow)
     error_code = db.Column(db.String(100), nullable=True)  # HTTP status code or API-specific error code
@@ -23,6 +23,7 @@ class APIIssueLog(db.Model):
     user_agent = db.Column(db.String(255), nullable=True)
     city = db.Column(db.String(100), nullable=True)
     country = db.Column(db.String(100), nullable=True)
+    attempt_count = db.Column(db.Integer, default=1)  # Number of times this issue occurred
     resolved = db.Column(db.Boolean, default=False)
     resolved_at = db.Column(db.DateTime, nullable=True)
     resolution_notes = db.Column(db.Text, nullable=True)
@@ -49,34 +50,56 @@ class APIIssueLog(db.Model):
             elif isinstance(request_data, str):
                 request_data = request_data
         
-        log_entry = cls(
+        # Check if similar issue exists within last hour for same user/endpoint
+        existing_issue = cls.query.filter_by(
             user_id=user_id,
             api_name=api_name,
             endpoint=endpoint,
-            error_code=error_code,
-            error_message=error_message,
-            request_data=request_data,
-            response_data=response_data if isinstance(response_data, str) else json.dumps(response_data) if response_data else None,
-            request_duration=request_duration
-        )
+            resolved=False
+        ).filter(
+            cls.occurred_at >= datetime.utcnow() - timedelta(hours=1)
+        ).first()
         
-        # Capture request data if available
-        if request_obj:
-            log_entry.ip_address = request_obj.remote_addr
-            if hasattr(request_obj, 'user_agent'):
-                log_entry.user_agent = request_obj.user_agent.string
-                
-            # Try to get location data from IP using geoip if available
-            try:
-                if log_entry.ip_address and hasattr(request_obj, 'geoip'):
-                    log_entry.city = request_obj.geoip.get('city')
-                    log_entry.country = request_obj.geoip.get('country_name')
-            except:
-                pass  # Ignore geoip errors
-        
-        db.session.add(log_entry)
-        db.session.commit()
-        return log_entry
+        if existing_issue:
+            # Update existing issue with incremented count
+            existing_issue.attempt_count += 1
+            existing_issue.occurred_at = datetime.utcnow()
+            if error_message:
+                existing_issue.error_message = error_message
+            db.session.commit()
+            return existing_issue
+        else:
+            # Create new issue log
+            log_entry = cls(
+                user_id=user_id,
+                api_name=api_name,
+                endpoint=endpoint,
+                error_code=error_code,
+                error_message=error_message,
+                request_data=request_data,
+                response_data=response_data if isinstance(response_data, str) else json.dumps(response_data) if response_data else None,
+                request_duration=request_duration,
+                attempt_count=1
+            )
+            
+            # Capture request data if available
+            if request_obj:
+                log_entry.ip_address = request_obj.remote_addr
+                if hasattr(request_obj, 'user_agent'):
+                    log_entry.user_agent = request_obj.user_agent.string
+                    
+                # Try to get location data from IP using geoip if available
+                try:
+                    from geoip_services import get_country_from_ip
+                    country_info = get_country_from_ip(log_entry.ip_address)
+                    if country_info:
+                        log_entry.country = country_info
+                except:
+                    pass  # Ignore geoip errors
+            
+            db.session.add(log_entry)
+            db.session.commit()
+            return log_entry
         
     @classmethod
     def mark_resolved(cls, issue_id, resolution_notes=None):
