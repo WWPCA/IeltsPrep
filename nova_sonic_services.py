@@ -462,3 +462,6 @@ try:
 except Exception as e:
     logger.error(f"Failed to initialize Nova Sonic service: {e}")
     nova_sonic_service = None
+
+# Export the service with expected name for compatibility
+NovaService = NovaSonicService
