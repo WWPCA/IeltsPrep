@@ -8,6 +8,7 @@ to proper assessments in the assessment table with correct naming conventions.
 from app import app, db
 from models import Assessment
 from datetime import datetime
+from sqlalchemy import text
 
 def migrate_writing_assessments():
     """Migrate writing assessments from practice_test to assessment table."""
@@ -17,7 +18,7 @@ def migrate_writing_assessments():
         
         # Get Academic Writing tests
         print("\nProcessing Academic Writing tests...")
-        academic_tests = db.session.execute("""
+        academic_tests = db.session.execute(text("""
             SELECT id, title, description 
             FROM practice_test 
             WHERE test_type = 'writing' 
@@ -25,11 +26,11 @@ def migrate_writing_assessments():
             AND title LIKE '%Academic Writing Test%'
             ORDER BY id 
             LIMIT 4
-        """).fetchall()
+        """)).fetchall()
         
         # Get General Training Writing tests  
         print("Processing General Training Writing tests...")
-        general_tests = db.session.execute("""
+        general_tests = db.session.execute(text("""
             SELECT id, title, description 
             FROM practice_test 
             WHERE test_type = 'writing' 
@@ -37,7 +38,7 @@ def migrate_writing_assessments():
             AND title LIKE '%General Training Writing Test%'
             ORDER BY id 
             LIMIT 4
-        """).fetchall()
+        """)).fetchall()
         
         # Convert Academic tests
         for i, test in enumerate(academic_tests, 1):
