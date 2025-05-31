@@ -15,6 +15,8 @@ from botocore.exceptions import ClientError, NoCredentialsError
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Export the main service class with the expected name
+
 class NovaSonicService:
     """Service for Nova Sonic conversational assessments"""
     
