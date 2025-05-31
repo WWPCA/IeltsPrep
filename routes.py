@@ -117,7 +117,7 @@ def generate_speech():
 @app.route('/api/start_conversation', methods=['POST'])
 @login_required
 def start_conversation():
-    """Start a real-time conversation with Elaris®"""
+    """Start a real-time conversation with Maya"""
     try:
         data = request.get_json()
         assessment_type = data.get('assessment_type', 'academic_speaking')
@@ -139,10 +139,28 @@ def start_conversation():
                 'conversation_id': result.get('conversation_id')
             })
         else:
+            # Log Maya conversation issue
+            APIIssueLog.log_issue(
+                api_name='maya_conversation',
+                endpoint='/api/start_conversation',
+                error_code='CONVERSATION_START_FAILED',
+                error_message=result.get('error', 'Conversation start failed'),
+                request_obj=request,
+                user_id=current_user.id,
+                request_data={'assessment_type': assessment_type, 'part': part}
+            )
             return jsonify({'success': False, 'error': result.get('error', 'Conversation start failed')})
             
     except Exception as e:
-        print(f"Conversation start error: {e}")
+        # Log Maya conversation error
+        APIIssueLog.log_issue(
+            api_name='maya_conversation',
+            endpoint='/api/start_conversation',
+            error_code='EXCEPTION',
+            error_message=str(e),
+            request_obj=request,
+            user_id=current_user.id if current_user.is_authenticated else None
+        )
         return jsonify({'success': False, 'error': 'Conversation service unavailable'})
 
 @app.route('/api/continue_conversation', methods=['POST'])

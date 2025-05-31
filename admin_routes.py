@@ -539,3 +539,84 @@ def connection_issues_summary_api():
         'data': date_counts
     })
 
+
+
+@app.route('/admin/system_issues')
+@admin_required
+def system_issues():
+    """Comprehensive system issues dashboard including CSRF and Maya conversation issues."""
+    try:
+        from sqlalchemy import func
+        
+        # Get pagination and filters
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        api_filter = request.args.get('api_name', '')
+        country_filter = request.args.get('country', '')
+        resolved_filter = request.args.get('resolved', '')
+        
+        # Build query with filters
+        query = APIIssueLog.query
+        
+        if api_filter:
+            query = query.filter(APIIssueLog.api_name == api_filter)
+        if country_filter:
+            query = query.filter(APIIssueLog.country == country_filter)
+        if resolved_filter:
+            query = query.filter(APIIssueLog.resolved == (resolved_filter == 'true'))
+        
+        issues = query.order_by(APIIssueLog.occurred_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Get comprehensive statistics
+        total_issues = APIIssueLog.query.count()
+        unresolved_issues = APIIssueLog.query.filter_by(resolved=False).count()
+        csrf_issues = APIIssueLog.query.filter_by(api_name='csrf_validation', resolved=False).count()
+        maya_issues = APIIssueLog.query.filter_by(api_name='maya_conversation', resolved=False).count()
+        
+        # Get unique countries for filter dropdown
+        countries = db.session.query(APIIssueLog.country).filter(
+            APIIssueLog.country.isnot(None)
+        ).distinct().order_by(APIIssueLog.country).all()
+        countries = [c[0] for c in countries if c[0]]
+        
+        # Get high-frequency issues (more than 3 attempts, unresolved)
+        frequent_issues = APIIssueLog.query.filter(
+            APIIssueLog.attempt_count > 3,
+            APIIssueLog.resolved == False
+        ).order_by(APIIssueLog.attempt_count.desc()).limit(5).all()
+        
+        return render_template('admin/system_issues.html',
+                             issues=issues,
+                             total_issues=total_issues,
+                             unresolved_issues=unresolved_issues,
+                             csrf_issues=csrf_issues,
+                             maya_issues=maya_issues,
+                             countries=countries,
+                             frequent_issues=frequent_issues,
+                             api_filter=api_filter,
+                             country_filter=country_filter,
+                             resolved_filter=resolved_filter)
+                             
+    except Exception as e:
+        flash(f'Error loading system issues: {str(e)}', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/mark_issue_resolved/<int:issue_id>', methods=['POST'])
+@admin_required
+def mark_issue_resolved(issue_id):
+    """Mark a system issue as resolved."""
+    try:
+        issue = APIIssueLog.query.get_or_404(issue_id)
+        issue.resolved = True
+        issue.resolved_at = datetime.utcnow()
+        issue.resolution_notes = f"Marked resolved by admin user at {datetime.utcnow()}"
+        
+        db.session.commit()
+        flash(f'Issue #{issue_id} marked as resolved', 'success')
+        
+    except Exception as e:
+        flash(f'Error resolving issue: {str(e)}', 'error')
+    
+    return redirect(url_for('system_issues'))
