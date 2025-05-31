@@ -18,9 +18,11 @@ logger = logging.getLogger(__name__)
 # Configuration
 MAX_ACTIVE_ASSESSMENTS = 100  # Soft limit for monitoring
 
-# Total number of unique assessments for each assessment type
-TOTAL_ACADEMIC_ASSESSMENTS = 16
-TOTAL_GENERAL_ASSESSMENTS = 16
+# Total number of unique assessments for each assessment type (updated after migration)
+TOTAL_ACADEMIC_WRITING_ASSESSMENTS = 76
+TOTAL_ACADEMIC_SPEAKING_ASSESSMENTS = 34
+TOTAL_GENERAL_WRITING_ASSESSMENTS = 48
+TOTAL_GENERAL_SPEAKING_ASSESSMENTS = 14
 
 def get_available_assessment_ids(user_id, assessment_type):
     """
@@ -28,26 +30,18 @@ def get_available_assessment_ids(user_id, assessment_type):
     
     Args:
         user_id (int): The user's ID
-        assessment_type (str): Either 'academic' or 'general'
+        assessment_type (str): Specific type like 'academic_writing', 'academic_speaking', 'general_writing', 'general_speaking'
         
     Returns:
         list: Available assessment IDs not previously assigned to this user
     """
-    # Get the assessment category prefix based on assessment_type
-    assessment_category_map = {
-        'academic': ['academic_writing', 'academic_speaking'],
-        'general': ['general_writing', 'general_speaking']
-    }
-    
-    assessment_categories = assessment_category_map.get(assessment_type, [])
-    
-    # Get all assessments of this type
+    # Get all assessments of this specific type
     all_assessments = Assessment.query.filter(
-        Assessment.assessment_type.in_(assessment_categories),
+        Assessment.assessment_type == assessment_type,
         Assessment.status == 'active'
     ).all()
     
-    # Get all assessment IDs previously assigned to this user
+    # Get all assessment IDs previously assigned to this user for this specific type
     previous_assignments = UserAssessmentAssignment.query.filter_by(
         user_id=user_id,
         assessment_type=assessment_type
