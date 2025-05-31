@@ -52,12 +52,6 @@ def privacy_policy():
                           title='Privacy Policy')
 
 
-@app.route('/address-usage-policy')
-def address_usage_policy():
-    """Display the address usage policy."""
-    return render_template('gdpr/address_usage_policy.html', 
-                          title='Address Usage Policy')
-
 
 # Note: Assessment product routes are defined in add_assessment_routes.py
 # This file focuses on terms, support, and profile routes only
