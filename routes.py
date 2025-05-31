@@ -371,8 +371,15 @@ def speaking_assessment_interface(assessment_type, assessment_number):
         flash('Invalid assessment type.', 'danger')
         return redirect(url_for('profile'))
     
-    if assessment_number not in [1, 2, 3, 4]:
-        flash('Invalid assessment number.', 'danger')
+    # Validate assessment number against available assessments in database
+    max_assessments = {
+        'academic_speaking': 34,
+        'general_speaking': 14
+    }
+    
+    max_allowed = max_assessments.get(assessment_type, 4)
+    if assessment_number < 1 or assessment_number > max_allowed:
+        flash(f'Invalid assessment number. Valid range for {assessment_type.replace("_", " ").title()} is 1-{max_allowed}.', 'danger')
         return redirect(url_for('profile'))
     
     # Check if user has access using the new individual package system
@@ -403,8 +410,15 @@ def writing_assessment_interface(assessment_type, assessment_number):
         flash('Invalid assessment type.', 'danger')
         return redirect(url_for('profile'))
     
-    if assessment_number not in [1, 2, 3, 4]:
-        flash('Invalid assessment number.', 'danger')
+    # Validate assessment number against available assessments in database
+    max_assessments = {
+        'academic_writing': 76,
+        'general_writing': 48
+    }
+    
+    max_allowed = max_assessments.get(assessment_type, 4)
+    if assessment_number < 1 or assessment_number > max_allowed:
+        flash(f'Invalid assessment number. Valid range for {assessment_type.replace("_", " ").title()} is 1-{max_allowed}.', 'danger')
         return redirect(url_for('profile'))
     
     # Check if user has access using the new individual package system

@@ -6,7 +6,7 @@ from models import Assessment
 # Add the assessment details route function
 def assessment_details_route(assessment_type, assessment_id):
     """Show details about an assessment before starting it"""
-    if assessment_type not in ['listening', 'reading', 'writing', 'speaking']:
+    if assessment_type not in ['academic_writing', 'general_writing', 'academic_speaking', 'general_speaking']:
         abort(404)
     
     assessment = Assessment.query.get_or_404(assessment_id)
