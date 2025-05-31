@@ -157,6 +157,43 @@ def add_assessment_routes(app=None):
             'has_assessment_products': True
         }
     
+    @app.route('/payment-success')
+    def payment_success():
+        """Handle successful payment for assessment products."""
+        if not current_user.is_authenticated:
+            flash('Please log in to complete your purchase.', 'warning')
+            return redirect(url_for('login'))
+            
+        # Check if this is an assessment product payment
+        if 'checkout' in session and session['checkout'].get('product_id'):
+            product_id = session['checkout'].get('product_id')
+            
+            if is_assessment_product(product_id):
+                # Get product details
+                product = assessment_products[product_id]
+                
+                # Mark payment as processed to prevent double-processing
+                if not session['checkout'].get('processed', False):
+                    session['checkout']['processed'] = True
+                    
+                    # Process the purchase
+                    result = handle_assessment_product_payment(current_user, product_id)
+                    
+                    if result:
+                        flash(f'Thank you for your purchase! Your {product["name"]} package is now active.', 'success')
+                        # Clear the checkout session
+                        session.pop('checkout', None)
+                        return redirect(url_for('assessment_products_page'))
+                    else:
+                        flash('There was an issue processing your purchase. Please contact support.', 'danger')
+                        return redirect(url_for('assessment_products_page'))
+                else:
+                    flash('Your purchase has already been processed.', 'info')
+                    return redirect(url_for('assessment_products_page'))
+        
+        # Default success page for other types of payments
+        return render_template('payment_success.html', title='Payment Successful')
+    
     print("Assessment routes added successfully.")
 
 def assign_assessment_sets(user, product_id):
