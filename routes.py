@@ -414,9 +414,9 @@ def writing_assessment_interface(assessment_type, assessment_number):
     package_status = current_user.assessment_package_status or ""
     has_access = False
     
-    if 'academic_writing' in assessment_type and ('Academic Writing' in package_status or 'All Products' in package_status):
+    if 'academic_writing' in assessment_type and (current_user.has_package_access('Academic Writing') or 'All Products' in package_status):
         has_access = True
-    elif 'general_writing' in assessment_type and ('General Writing' in package_status or 'All Products' in package_status):
+    elif 'general_writing' in assessment_type and (current_user.has_package_access('General Writing') or 'All Products' in package_status):
         has_access = True
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
