@@ -104,13 +104,40 @@ def check_proxy_headers():
         url = request.url.replace('http://', 'https://', 1)
         return Response('', 301, {'Location': url})
 
-# Add non-redundant security headers (Talisman handles X-Frame-Options)
+# Add non-redundant security headers and CORS protection
 @app.after_request
 def add_security_headers(response):
-    """Add security headers not handled by Talisman."""
+    """Add security headers and CORS protection."""
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # CORS protection - only allow requests from our own domain
+    origin = request.headers.get('Origin')
+    if origin:
+        # Get allowed domains
+        allowed_domains = []
+        
+        # Add Replit domains
+        replit_domains = os.environ.get('REPLIT_DOMAINS', '')
+        if replit_domains:
+            for domain in replit_domains.split(','):
+                domain = domain.strip()
+                if domain:
+                    allowed_domains.extend([f'https://{domain}', f'http://{domain}'])
+        
+        # Add custom domain
+        custom_domain = os.environ.get('CUSTOM_DOMAIN', '')
+        if custom_domain:
+            allowed_domains.append(f'https://{custom_domain}')
+        
+        # Check if origin is allowed
+        if origin in allowed_domains:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+        else:
+            # Block unauthorized origins - no CORS headers
+            logging.warning(f"Blocked cross-origin request from unauthorized domain: {origin}")
     
     return response
 
