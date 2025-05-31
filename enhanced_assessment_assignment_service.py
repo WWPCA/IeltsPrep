@@ -96,12 +96,12 @@ def assign_unique_assessments_to_user(user_id, package_name, quantity):
         dict: Result with assigned assessment IDs and success status
     """
     try:
-        # Map package names to assessment types
+        # Map package names to assessment types (database format)
         package_to_type = {
-            "Academic Writing": "academic_writing",
-            "General Writing": "general_writing", 
-            "Academic Speaking": "academic_speaking",
-            "General Speaking": "general_speaking"
+            "Academic Writing": "Academic Writing",
+            "General Writing": "General Writing", 
+            "Academic Speaking": "Academic Speaking",
+            "General Speaking": "General Speaking"
         }
         
         assessment_type = package_to_type.get(package_name)

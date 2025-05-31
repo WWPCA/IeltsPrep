@@ -26,23 +26,23 @@ country_name_map = {
 # Define the assessment products with pricing (speaking-only packages removed)
 assessment_products = {
     'academic_writing': {
-        'name': 'Academic Writing Assessment',
+        'name': 'Academic Writing',
         'description': 'Complete Academic Writing assessment with Task 1 and Task 2',
         'price': 25,  # Price in dollars
     },
     'academic_speaking': {
-        'name': 'Academic Speaking Assessment',
+        'name': 'Academic Speaking',
         'description': 'Complete Academic Speaking assessment with all three parts',
         'price': 25,  # Price in dollars
     },
     'general_writing': {
-        'name': 'General Training Writing Assessment',
-        'description': 'Complete General Training Writing assessment with Task 1 and Task 2',
+        'name': 'General Writing',
+        'description': 'Complete General Writing assessment with Task 1 and Task 2',
         'price': 25,  # Price in dollars
     },
     'general_speaking': {
-        'name': 'General Training Speaking Assessment',
-        'description': 'Complete General Training Speaking assessment with all three parts',
+        'name': 'General Speaking',
+        'description': 'Complete General Speaking assessment with all three parts',
         'price': 25,  # Price in dollars
     }
 }
@@ -179,6 +179,7 @@ def assign_assessment_sets(user, product_id):
     purchase['assigned'] = True
     
     # Set the assessment package status based on product_id
+    # Now product names match package names exactly
     assessment_type_mapping = {
         'academic_writing': 'Academic Writing',
         'academic_speaking': 'Academic Speaking', 
