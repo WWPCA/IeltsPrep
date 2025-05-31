@@ -193,15 +193,36 @@ def assign_assessment_sets(user, product_id):
     # Number of assessments to assign (using standard package size of 4)
     num_assessments = 4
     
-    # Use the new assessment_assignment_service to assign assessments
+    # Create UserPackage record for the new system
+    from models import UserPackage
     try:
-        import assessment_assignment_service
-        assigned_ids, success = assessment_assignment_service.assign_assessments_to_user(
+        # Check if package already exists
+        existing_package = UserPackage.query.filter_by(
             user_id=user.id,
-            assessment_type=base_assessment_type,
-            num_assessments=num_assessments,
-            access_days=30
-        )
+            package_name=assessment_type_mapping[product_id]
+        ).first()
+        
+        if existing_package:
+            # Add to existing package
+            existing_package.add_more_packages(1)
+            print(f"Added 1 more package to existing {assessment_type_mapping[product_id]} package")
+        else:
+            # Create new package
+            new_package = UserPackage(
+                user_id=user.id,
+                package_name=assessment_type_mapping[product_id],
+                quantity_purchased=1,
+                quantity_remaining=1,
+                purchase_date=datetime.utcnow(),
+                expiry_date=datetime.utcnow() + timedelta(days=30),
+                status='active'
+            )
+            db.session.add(new_package)
+            print(f"Created new UserPackage: {assessment_type_mapping[product_id]}")
+        
+        db.session.commit()
+        success = True
+        assigned_ids = []  # Will be assigned when user starts assessment
         
         if success:
             print(f"Successfully assigned {len(assigned_ids)} assessments to user {user.id}")
