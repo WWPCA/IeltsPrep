@@ -263,12 +263,9 @@ def conversational_speaking_from_number(assessment_type, assessment_number):
 @country_access_required
 def conversational_speaking_assessment(assessment_type, assessment_id):
     """Access the new conversational speaking assessment interface"""
-    # Convert assessment_type to the format expected by assignment service
-    base_type = assessment_type.replace('_speaking', '')  # academic_speaking -> academic
-    
-    # Check if user has access to this assessment
+    # Check if user has access to this assessment using the full assessment type
     accessible_assessments = assessment_assignment_service.get_user_accessible_assessments(
-        current_user.id, base_type
+        current_user.id, assessment_type
     )
     
     assessment = next((a for a in accessible_assessments if a.id == assessment_id), None)
