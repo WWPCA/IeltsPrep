@@ -13,9 +13,9 @@ def convert_db_to_package_name(assessment_type):
     """Convert database format to package name format"""
     conversion_map = {
         'Academic Speaking': 'Academic Speaking',
-        'General Speaking': 'General Training Speaking',
+        'General Speaking': 'General Speaking',
         'Academic Writing': 'Academic Writing',
-        'General Writing': 'General Training Writing'
+        'General Writing': 'General Writing'
     }
     return conversion_map.get(assessment_type, assessment_type)
 

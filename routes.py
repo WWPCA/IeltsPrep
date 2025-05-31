@@ -269,8 +269,11 @@ def conversational_speaking_from_number(assessment_type, assessment_number):
 def conversational_speaking_assessment(assessment_type, assessment_id):
     """Access the new conversational speaking assessment interface"""
     # Check if user has access to this assessment using the full assessment type
+    # Convert route format to database format for assessment service
+    from assessment_type_converters import convert_route_to_db_type
+    db_assessment_type = convert_route_to_db_type(assessment_type)
     accessible_assessments = assessment_assignment_service.get_user_accessible_assessments(
-        current_user.id, assessment_type
+        current_user.id, db_assessment_type
     )
     
     assessment = next((a for a in accessible_assessments if a.id == assessment_id), None)
@@ -343,11 +346,11 @@ def assessment_start(assessment_type, assessment_number):
     if 'academic_speaking' in assessment_type:
         has_access = current_user.has_package_access('Academic Speaking')
     elif 'general_speaking' in assessment_type:
-        has_access = current_user.has_package_access('General Training Speaking')
+        has_access = current_user.has_package_access('General Speaking')
     elif 'academic_writing' in assessment_type:
         has_access = current_user.has_package_access('Academic Writing')
     elif 'general_writing' in assessment_type:
-        has_access = current_user.has_package_access('General Training Writing')
+        has_access = current_user.has_package_access('General Writing')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     
@@ -388,7 +391,7 @@ def speaking_assessment_interface(assessment_type, assessment_number):
     if 'academic_speaking' in assessment_type:
         has_access = current_user.has_package_access('Academic Speaking')
     elif 'general_speaking' in assessment_type:
-        has_access = current_user.has_package_access('General Training Speaking')
+        has_access = current_user.has_package_access('General Speaking')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     
@@ -422,7 +425,7 @@ def writing_assessment_interface(assessment_type, assessment_number):
     if 'academic_writing' in assessment_type:
         has_access = current_user.has_package_access('Academic Writing')
     elif 'general_writing' in assessment_type:
-        has_access = current_user.has_package_access('General Training Writing')
+        has_access = current_user.has_package_access('General Writing')
     elif hasattr(current_user, 'is_admin') and current_user.is_admin:
         has_access = True
     
