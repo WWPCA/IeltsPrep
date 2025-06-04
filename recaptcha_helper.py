@@ -12,8 +12,10 @@ import json
 logger = logging.getLogger(__name__)
 
 def get_recaptcha_secret_key():
-    """Get the appropriate reCAPTCHA v2 secret key"""
+    """Get the appropriate reCAPTCHA v2 secret key per Google documentation"""
+    # Priority order: v2 keys first, then fallbacks
     return (os.environ.get("RECAPTCHA_V2_SECRET_KEY") or 
+            os.environ.get("RECAPTCHA_SECRET_KEY") or
             os.environ.get("RECAPTCHA_PRIVATE_KEY") or 
             os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY"))
 
@@ -47,46 +49,49 @@ def verify_recaptcha(token, action=None, min_score=0.5):
     }
     
     try:
-        # Enhanced logging for debugging
-        logger.info(f"Making reCAPTCHA verification request to Google")
-        logger.info(f"Secret key present: {bool(secret_key)}")
-        logger.info(f"Token length: {len(token) if token else 0}")
-        logger.info(f"Client IP: {get_client_ip()}")
+        # Log verification attempt
+        logger.info(f"Starting reCAPTCHA v2 verification")
+        logger.debug(f"Secret key configured: {bool(secret_key)}")
+        logger.debug(f"Token length: {len(token) if token else 0}")
+        logger.debug(f"Client IP: {get_client_ip()}")
         
-        # Make request to Google's verification endpoint
-        response = requests.post(verify_url, data=data, timeout=10)
-        logger.info(f"HTTP response status: {response.status_code}")
-        response.raise_for_status()
+        # Make POST request to Google's siteverify endpoint per official docs
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'IELTSAIPrep/1.0'
+        }
         
-        result = response.json()
-        logger.info(f"Google reCAPTCHA verification response: {result}")
+        response = requests.post(
+            verify_url, 
+            data=data, 
+            headers=headers,
+            timeout=15,
+            allow_redirects=False
+        )
+        
+        logger.info(f"Google API HTTP status: {response.status_code}")
+        
+        if response.status_code != 200:
+            logger.error(f"Google API returned HTTP {response.status_code}")
+            return False, None, [f"HTTP {response.status_code} error"]
+        
+        try:
+            result = response.json()
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON response from Google: {e}")
+            return False, None, ["Invalid API response format"]
+        
+        logger.info(f"Google API response: {result}")
         
         success = result.get('success', False)
         errors = result.get('error-codes', [])
         
-        # reCAPTCHA v2 doesn't have scores or actions, so we return None for score
-        score = None
-        
         if success:
-            logger.info(f"reCAPTCHA v2 verification SUCCESSFUL")
+            logger.info("reCAPTCHA v2 verification SUCCESS")
+            return True, None, []
         else:
-            logger.error(f"reCAPTCHA v2 verification FAILED: success={success}, errors={errors}")
-            # Log additional details for debugging
-            for error in errors:
-                if error == 'missing-input-secret':
-                    logger.error("Error: reCAPTCHA secret key is missing")
-                elif error == 'invalid-input-secret':
-                    logger.error("Error: reCAPTCHA secret key is invalid")
-                elif error == 'missing-input-response':
-                    logger.error("Error: reCAPTCHA response parameter is missing")
-                elif error == 'invalid-input-response':
-                    logger.error("Error: reCAPTCHA response parameter is invalid or malformed")
-                elif error == 'bad-request':
-                    logger.error("Error: Request to reCAPTCHA API is malformed")
-                elif error == 'timeout-or-duplicate':
-                    logger.error("Error: reCAPTCHA response is no longer valid")
-        
-        return success, score, errors
+            logger.error(f"reCAPTCHA v2 verification FAILED: {errors}")
+            return False, None, errors
         
     except requests.exceptions.Timeout:
         logger.error("reCAPTCHA verification timeout")
