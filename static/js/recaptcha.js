@@ -9,6 +9,11 @@ if (typeof window.recaptchaLoaded === 'undefined') {
     window.loadAttempts = 0;
     window.maxRetries = 5;
     window.retryDelay = 2000; // 2 seconds
+    
+    // Get reCAPTCHA site key from meta tag
+    const metaTag = document.querySelector('meta[name="recaptcha-site-key"]');
+    window.recaptchaSiteKey = metaTag ? metaTag.getAttribute('content') : null;
+    console.log('reCAPTCHA site key loaded:', window.recaptchaSiteKey);
 }
 
 /**
