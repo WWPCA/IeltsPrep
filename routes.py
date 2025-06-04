@@ -489,7 +489,8 @@ def login():
         # Verify reCAPTCHA with Google
         try:
             logging.debug(f"Verifying reCAPTCHA with token: {recaptcha_response[:20]}...")
-            recaptcha_result = recaptcha_v3.verify(recaptcha_response, action='login', min_score=0.5)
+            success, score, errors = recaptcha_helper.verify_recaptcha(recaptcha_response, action='login', min_score=0.5)
+            recaptcha_result = {'success': success, 'error': ', '.join(errors) if errors else None}
             logging.debug(f"reCAPTCHA verification result: {recaptcha_result}")
             
             if not recaptcha_result.get('success'):
