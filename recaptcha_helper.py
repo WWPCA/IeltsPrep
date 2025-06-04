@@ -54,25 +54,15 @@ def verify_recaptcha(token, action=None, min_score=0.5):
         logger.info(f"reCAPTCHA verification response: {result}")
         
         success = result.get('success', False)
-        score = result.get('score', 0.0)
         errors = result.get('error-codes', [])
         
-        # Check action if provided
-        if success and action:
-            returned_action = result.get('action', '')
-            if returned_action != action:
-                logger.warning(f"reCAPTCHA action mismatch: expected {action}, got {returned_action}")
-                return False, score, [f"Action mismatch: expected {action}"]
-        
-        # Check score threshold
-        if success and score < min_score:
-            logger.warning(f"reCAPTCHA score too low: {score} < {min_score}")
-            return False, score, [f"Score too low: {score}"]
+        # reCAPTCHA v2 doesn't have scores or actions, so we return None for score
+        score = None
         
         if success:
-            logger.info(f"reCAPTCHA verification successful: score={score}, action={action}")
+            logger.info(f"reCAPTCHA v2 verification successful")
         else:
-            logger.warning(f"reCAPTCHA verification failed: errors={errors}")
+            logger.warning(f"reCAPTCHA v2 verification failed: errors={errors}")
         
         return success, score, errors
         

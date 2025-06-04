@@ -2,43 +2,10 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('login-form');
-    
-    // Mark form as requiring reCAPTCHA
-    form.setAttribute('data-requires-recaptcha', 'true');
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Use the robust reCAPTCHA loader
-        if (window.submitFormWithRecaptcha) {
-            window.submitFormWithRecaptcha(form, 'login')
-                .then(() => {
-                    console.log('reCAPTCHA verification successful, submitting form');
-                    form.submit();
-                })
-                .catch(error => {
-                    console.error('reCAPTCHA verification failed:', error);
-                    // Show user-friendly error message
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'alert alert-danger mt-3';
-                    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Security verification failed. Please refresh the page and try again.';
-                    
-                    // Remove any existing error messages
-                    const existingErrors = form.querySelectorAll('.alert-danger');
-                    existingErrors.forEach(err => err.remove());
-                    
-                    form.appendChild(errorDiv);
-                });
-        } else {
-            // Fallback if reCAPTCHA loader not available
-            console.warn('reCAPTCHA loader not available, submitting without verification');
-            form.submit();
-        }
-    });
-});
+// Set the reCAPTCHA site key for the JavaScript module
+window.recaptchaSiteKey = '{{ recaptcha_site_key }}';
 </script>
+<script src="{{ url_for('static', filename='js/recaptcha.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -50,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h2 class="mb-0">Login</h2>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('login') }}" id="login-form">
+                    <form method="POST" action="{{ url_for('login') }}" id="login-form" data-recaptcha="true">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         
                         <div class="form-group mb-3">
@@ -72,9 +39,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             <a href="{{ url_for('forgot_password') }}" class="text-decoration-none">Forgot password?</a>
                         </div>
                         
+                        <!-- reCAPTCHA v2 Widget -->
+                        <div class="mb-3">
+                            <div class="g-recaptcha" id="recaptcha-login"></div>
+                        </div>
+                        
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Login</button>
-                            <p class="text-muted small mt-2">This site is protected by Google reCAPTCHA v3 and the Google <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.</p>
+                            <p class="text-muted small mt-2">This site is protected by Google reCAPTCHA v2 and the Google <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.</p>
                         </div>
                     </form>
                 </div>

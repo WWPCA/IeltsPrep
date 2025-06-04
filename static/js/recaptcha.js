@@ -1,171 +1,212 @@
 /**
- * Robust reCAPTCHA Loader with Retry Mechanism
- * Handles network issues and ensures reCAPTCHA loads properly
+ * reCAPTCHA v2 Integration with Enhanced Error Handling
+ * Provides robust loading, retry mechanism, and fallback for network issues
  */
 
-class ReCaptchaLoader {
-    constructor(siteKey) {
-        this.siteKey = siteKey;
-        this.maxRetries = 5;
-        this.retryDelay = 2000;
-        this.currentRetry = 0;
-        this.isLoaded = false;
-        this.isLoading = false;
-    }
+let recaptchaLoaded = false;
+let loadAttempts = 0;
+const maxRetries = 5;
+const retryDelay = 2000; // 2 seconds
 
-    async load() {
-        if (this.isLoaded || this.isLoading) {
+/**
+ * Load reCAPTCHA v2 script dynamically with retry mechanism
+ */
+function loadRecaptcha() {
+    return new Promise((resolve, reject) => {
+        console.log(`Loading reCAPTCHA v2 with site key: ${window.recaptchaSiteKey}`);
+        
+        if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
+            recaptchaLoaded = true;
+            resolve();
             return;
         }
 
-        if (!this.siteKey) {
-            console.error('reCAPTCHA site key is missing');
-            return;
-        }
+        const script = document.createElement('script');
+        script.src = 'https://www.google.com/recaptcha/api.js';
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+            if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
+                recaptchaLoaded = true;
+                resolve();
+            } else {
+                reject(new Error('reCAPTCHA object not available after loading'));
+            }
+        };
+        
+        script.onerror = () => {
+            reject(new Error('Failed to load reCAPTCHA script'));
+        };
+        
+        // Set timeout for script loading
+        setTimeout(() => {
+            if (!recaptchaLoaded) {
+                reject(new Error('reCAPTCHA loading timeout'));
+            }
+        }, 10000);
+        
+        document.head.appendChild(script);
+    });
+}
 
-        this.isLoading = true;
-        console.log(`Loading reCAPTCHA with site key: ${this.siteKey}`);
-
+/**
+ * Load reCAPTCHA with retry mechanism
+ */
+async function loadRecaptchaWithRetry() {
+    while (loadAttempts < maxRetries && !recaptchaLoaded) {
         try {
-            await this.loadScript();
-            this.isLoaded = true;
-            this.isLoading = false;
-            console.log('reCAPTCHA loaded successfully');
+            await loadRecaptcha();
+            return true;
         } catch (error) {
+            loadAttempts++;
             console.error('reCAPTCHA loading failed:', error);
-            this.isLoading = false;
             
-            if (this.currentRetry < this.maxRetries) {
-                this.currentRetry++;
-                console.log(`Retrying reCAPTCHA load (attempt ${this.currentRetry}/${this.maxRetries})`);
-                setTimeout(() => this.load(), this.retryDelay);
-            } else {
-                console.error('reCAPTCHA loading failed after all retries');
-                this.showFallbackMessage();
+            if (loadAttempts < maxRetries) {
+                console.log(`Retrying reCAPTCHA load (attempt ${loadAttempts}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
             }
         }
     }
-
-    loadScript() {
-        return new Promise((resolve, reject) => {
-            // Remove any existing reCAPTCHA scripts
-            const existingScripts = document.querySelectorAll('script[src*="recaptcha"]');
-            existingScripts.forEach(script => script.remove());
-
-            const script = document.createElement('script');
-            script.src = `https://www.google.com/recaptcha/api.js?render=${this.siteKey}`;
-            script.async = true;
-            script.defer = true;
-
-            script.onload = () => {
-                // Wait for grecaptcha to be available
-                const checkReady = () => {
-                    if (window.grecaptcha && window.grecaptcha.ready) {
-                        window.grecaptcha.ready(() => {
-                            resolve();
-                        });
-                    } else {
-                        setTimeout(checkReady, 100);
-                    }
-                };
-                checkReady();
-            };
-
-            script.onerror = (error) => {
-                reject(new Error('Failed to load reCAPTCHA script'));
-            };
-
-            // Add to head instead of body for better loading
-            document.head.appendChild(script);
-
-            // Set a timeout for the loading process
-            setTimeout(() => {
-                if (!this.isLoaded) {
-                    reject(new Error('reCAPTCHA loading timeout'));
-                }
-            }, 10000);
-        });
+    
+    if (!recaptchaLoaded) {
+        console.error('reCAPTCHA loading failed after all retries');
+        showRecaptchaError('Unable to load security verification. Please check your internet connection and refresh the page.');
+        return false;
     }
+    
+    return true;
+}
 
-    showFallbackMessage() {
-        // Create a user-friendly message when reCAPTCHA fails
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'alert alert-warning mt-3';
-        messageDiv.innerHTML = `
-            <i class="fas fa-exclamation-triangle"></i>
-            <strong>Connection Issue:</strong> Unable to load security verification. 
-            Please check your internet connection and refresh the page.
-        `;
-
-        // Insert after forms that require reCAPTCHA
-        const forms = document.querySelectorAll('form[data-requires-recaptcha="true"]');
-        forms.forEach(form => {
-            if (!form.querySelector('.recaptcha-error')) {
-                messageDiv.classList.add('recaptcha-error');
-                form.appendChild(messageDiv.cloneNode(true));
+/**
+ * Render reCAPTCHA v2 widget
+ */
+function renderRecaptcha(containerId) {
+    if (!recaptchaLoaded || typeof grecaptcha === 'undefined') {
+        console.error('reCAPTCHA not loaded');
+        return null;
+    }
+    
+    try {
+        return grecaptcha.render(containerId, {
+            'sitekey': window.recaptchaSiteKey,
+            'theme': 'light',
+            'callback': function(response) {
+                console.log('reCAPTCHA v2 completed');
+                // Clear any error messages on successful completion
+                const existingErrors = document.querySelectorAll('.recaptcha-error');
+                existingErrors.forEach(error => error.remove());
+            },
+            'expired-callback': function() {
+                console.log('reCAPTCHA v2 expired');
+                showRecaptchaError('Security verification expired. Please complete it again.');
+            },
+            'error-callback': function() {
+                console.log('reCAPTCHA v2 error');
+                showRecaptchaError('Security verification failed. Please refresh the page and try again.');
             }
         });
-    }
-
-    async executeRecaptcha(action = 'submit') {
-        if (!this.isLoaded) {
-            await this.load();
-        }
-
-        return new Promise((resolve, reject) => {
-            if (window.grecaptcha && window.grecaptcha.ready) {
-                window.grecaptcha.ready(() => {
-                    window.grecaptcha.execute(this.siteKey, { action })
-                        .then(token => resolve(token))
-                        .catch(error => reject(error));
-                });
-            } else {
-                reject(new Error('reCAPTCHA not available'));
-            }
-        });
+    } catch (error) {
+        console.error('Failed to render reCAPTCHA:', error);
+        showRecaptchaError('Failed to load security verification. Please refresh the page.');
+        return null;
     }
 }
 
-// Initialize reCAPTCHA when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Get site key from meta tag or global variable
-    const siteKey = document.querySelector('meta[name="recaptcha-site-key"]')?.content ||
-                   window.RECAPTCHA_SITE_KEY ||
-                   '6LdD2VUrAAAAABG_Tt5fFYmWkRB4YFVHPdjggYzQ';
-
-    if (siteKey && siteKey !== 'None') {
-        window.recaptchaLoader = new ReCaptchaLoader(siteKey);
-        window.recaptchaLoader.load();
+/**
+ * Get reCAPTCHA v2 response
+ */
+function getRecaptchaResponse(widgetId) {
+    if (!recaptchaLoaded || typeof grecaptcha === 'undefined') {
+        return null;
     }
+    
+    if (widgetId !== undefined) {
+        return grecaptcha.getResponse(widgetId);
+    } else {
+        return grecaptcha.getResponse();
+    }
+}
+
+/**
+ * Reset reCAPTCHA v2 widget
+ */
+function resetRecaptcha(widgetId) {
+    if (!recaptchaLoaded || typeof grecaptcha === 'undefined') {
+        return;
+    }
+    
+    if (widgetId !== undefined) {
+        grecaptcha.reset(widgetId);
+    } else {
+        grecaptcha.reset();
+    }
+}
+
+/**
+ * Show reCAPTCHA error message to user
+ */
+function showRecaptchaError(message) {
+    // Remove any existing error messages
+    const existingErrors = document.querySelectorAll('.recaptcha-error');
+    existingErrors.forEach(error => error.remove());
+    
+    // Create new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-warning recaptcha-error mt-3';
+    errorDiv.innerHTML = `
+        <strong>Connection Issue:</strong> ${message}
+    `;
+    
+    // Find the form and add error message
+    const form = document.querySelector('form');
+    if (form) {
+        form.appendChild(errorDiv);
+    }
+}
+
+/**
+ * Validate reCAPTCHA v2 response on form submission
+ */
+function validateRecaptcha() {
+    const response = getRecaptchaResponse();
+    if (!response || response.length === 0) {
+        showRecaptchaError('Please complete the security verification.');
+        return false;
+    }
+    return true;
+}
+
+// Initialize reCAPTCHA when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Pre-load reCAPTCHA for better user experience
+    loadRecaptchaWithRetry().then(() => {
+        // Render reCAPTCHA widgets after loading
+        const recaptchaContainers = document.querySelectorAll('.g-recaptcha');
+        recaptchaContainers.forEach(container => {
+            if (!container.hasChildNodes()) {
+                renderRecaptcha(container.id || container);
+            }
+        });
+    });
+    
+    // Handle form submissions
+    const forms = document.querySelectorAll('form[data-recaptcha="true"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!validateRecaptcha()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
 });
 
-// Form submission handler with reCAPTCHA
-function handleFormSubmission(form, action = 'submit') {
-    if (!window.recaptchaLoader) {
-        console.warn('reCAPTCHA loader not initialized');
-        return Promise.resolve(null);
-    }
-
-    return window.recaptchaLoader.executeRecaptcha(action)
-        .then(token => {
-            // Add token to form
-            let tokenInput = form.querySelector('input[name="g-recaptcha-response"]');
-            if (!tokenInput) {
-                tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = 'g-recaptcha-response';
-                form.appendChild(tokenInput);
-            }
-            tokenInput.value = token;
-            return token;
-        })
-        .catch(error => {
-            console.error('reCAPTCHA execution failed:', error);
-            throw error;
-        });
-}
-
-// Global function for form submissions
-window.submitFormWithRecaptcha = function(form, action = 'submit') {
-    return handleFormSubmission(form, action);
+// Export functions for global access
+window.recaptchaModule = {
+    renderRecaptcha,
+    getRecaptchaResponse,
+    resetRecaptcha,
+    validateRecaptcha,
+    loadRecaptchaWithRetry
 };
