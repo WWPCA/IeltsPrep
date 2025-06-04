@@ -912,11 +912,19 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Use Amazon Polly for professional British voice
             console.log('Calling Amazon Polly API for speech generation...');
+            console.log('Text to synthesize:', text);
+            console.log('Text length:', text ? text.length : 'undefined');
+            
+            if (!text || text.trim() === '') {
+                console.error('Empty text provided to playMayaResponse');
+                return;
+            }
+            
             const response = await fetch('/api/generate_speech', {
                 method: 'POST',
                 headers: getAPIHeaders(),
                 body: JSON.stringify({
-                    text: text
+                    text: text.trim()
                 })
             });
             
