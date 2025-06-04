@@ -11,6 +11,7 @@ from datetime import datetime
 from botocore.exceptions import ClientError
 from ielts_question_database import IELTSQuestionDatabase
 from ielts_rubric_scorer import IELTSRubricScorer
+from nova_sonic_knowledge_base import NovaSonicKnowledgeBase
 
 logger = logging.getLogger(__name__)
 
@@ -312,7 +313,16 @@ class NovaSonicProperService:
         
         Your opening: {script}"""
         
-        return base_prompt
+        # Enhance prompt with comprehensive knowledge base
+        conversation_context = {
+            'part': part,
+            'assessment_type': assessment_type,
+            'current_topic': None
+        }
+        
+        enhanced_prompt = NovaSonicKnowledgeBase.enhance_nova_sonic_prompt(base_prompt, conversation_context)
+        
+        return enhanced_prompt
     
     def _build_conversation_context(self, conversation_history):
         """Build conversation context from history for Nova Sonic"""
