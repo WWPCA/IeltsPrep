@@ -213,6 +213,9 @@
      password.addEventListener('input', validatePassword);
      confirmPassword.addEventListener('input', validateConfirmPassword);
      
+     // Mark form as requiring reCAPTCHA
+     form.setAttribute('data-requires-recaptcha', 'true');
+     
      // Add event listener to form submission
      form.addEventListener('submit', function(e) {
        e.preventDefault(); // Prevent the form from submitting immediately
@@ -226,25 +229,31 @@
          return;
        }
        
-       // Execute reCAPTCHA with the action "register"
-       grecaptcha.ready(function() {
-         grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'register'})
-           .then(function(token) {
-             // Add the token to a hidden field in the form
-             let tokenInput = document.getElementById('g-recaptcha-response');
-             if (!tokenInput) {
-               tokenInput = document.createElement('input');
-               tokenInput.type = 'hidden';
-               tokenInput.id = 'g-recaptcha-response';
-               tokenInput.name = 'g-recaptcha-response';
-               form.appendChild(tokenInput);
-             }
-             tokenInput.value = token;
-             
-             // Now submit the form
+       // Use the robust reCAPTCHA loader
+       if (window.submitFormWithRecaptcha) {
+         window.submitFormWithRecaptcha(form, 'register')
+           .then(() => {
+             console.log('reCAPTCHA verification successful, submitting registration form');
              form.submit();
+           })
+           .catch(error => {
+             console.error('reCAPTCHA verification failed:', error);
+             // Show user-friendly error message
+             const errorDiv = document.createElement('div');
+             errorDiv.className = 'alert alert-danger mt-3';
+             errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Security verification failed. Please refresh the page and try again.';
+             
+             // Remove any existing error messages
+             const existingErrors = form.querySelectorAll('.alert-danger');
+             existingErrors.forEach(err => err.remove());
+             
+             form.appendChild(errorDiv);
            });
-       });
+       } else {
+         // Fallback if reCAPTCHA loader not available
+         console.warn('reCAPTCHA loader not available, submitting without verification');
+         form.submit();
+       }
      });
    });
 </script>

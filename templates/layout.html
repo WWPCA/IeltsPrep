@@ -38,6 +38,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="IELTS GenAI Prep - Your comprehensive IELTS assessment preparation platform">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="recaptcha-site-key" content="{{ config.RECAPTCHA_SITE_KEY }}">
     
     <title>{% if title %}{{ title }} | IELTS GenAI Prep{% else %}IELTS GenAI Prep{% endif %}</title>
     
@@ -337,6 +338,9 @@
     
     <!-- Error Suppressor (Must be loaded before other scripts) -->
     <script src="{{ url_for('static', filename='js/error_suppressor.js') }}?v={{ cache_buster }}"></script>
+    
+    <!-- Robust reCAPTCHA Loader -->
+    <script src="{{ url_for('static', filename='js/recaptcha.js') }}"></script>
     
     <!-- Custom JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
