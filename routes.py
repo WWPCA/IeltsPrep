@@ -232,7 +232,7 @@ def assess_conversation():
         # Use Nova Sonic for final conversation assessment
         result = nova_sonic.finalize_conversation_assessment(
             conversation_history=conversation_history,
-            part_number=1  # Default to part 1
+            assessment_data={}  # Additional assessment data
         )
         
         if result.get('success'):

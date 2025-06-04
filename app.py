@@ -48,15 +48,22 @@ def get_recaptcha_keys():
     # Check if we're on a development domain (Replit)
     current_domain = os.environ.get('REPLIT_DOMAINS', '')
     is_dev_domain = 'replit.dev' in current_domain
+    is_production_domain = 'ieltsaiprep.com' in current_domain
     
-    if is_dev_domain:
+    if is_production_domain:
+        # Use production keys for ieltsaiprep.com
+        return (
+            os.environ.get("RECAPTCHA_PUBLIC_KEY"),
+            os.environ.get("RECAPTCHA_PRIVATE_KEY")
+        )
+    elif is_dev_domain:
         # Use development keys for Replit domains
         return (
             os.environ.get("RECAPTCHA_DEV_PUBLIC_KEY"),
             os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY")
         )
     else:
-        # Use production keys for live domains
+        # Default to production keys for custom domains
         return (
             os.environ.get("RECAPTCHA_PUBLIC_KEY"),
             os.environ.get("RECAPTCHA_PRIVATE_KEY")
