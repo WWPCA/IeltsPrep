@@ -7,7 +7,7 @@
 <!-- jQuery - Required for button functionality -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- THREE.js - Required for 3D visualization -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/three@0.144.0/build/three.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -757,6 +757,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Start conversation
     startConversationBtn.addEventListener('click', async function() {
+        console.log('Start conversation button clicked!');
         try {
             // Check if speech recognition is available
             if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
