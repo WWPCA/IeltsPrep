@@ -85,8 +85,10 @@ csrf.init_app(app)
 setattr(login_manager, 'login_view', 'login')
 login_manager.login_message_category = "info"
 
-# Re-enable CSRF protection for security
+# Configure CSRF protection
 app.config['WTF_CSRF_TIME_LIMIT'] = None
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['SECRET_KEY'] = app.secret_key  # Ensure SECRET_KEY is set for CSRF
 
 # Let Replit handle HTTPS - this is for when the app runs outside of Replit
 @app.before_request
