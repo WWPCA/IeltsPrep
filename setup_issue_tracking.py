@@ -122,7 +122,7 @@ def generate_sample_api_issues(user_id):
         {
             'name': 'aws_bedrock',
             'endpoints': [
-                'model/amazon.nova-micro-v1:0/invoke'
+                'model/amazon.nova-sonic-v1:0/invoke'
             ],
             'errors': [
                 {'code': '429', 'message': 'Too Many Requests: Rate limit exceeded'},
