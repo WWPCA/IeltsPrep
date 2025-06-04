@@ -174,12 +174,12 @@ def continue_conversation():
         if not user_message:
             return jsonify({'success': False, 'error': 'No user message provided'})
         
-        nova_sonic = NovaSonicService()
+        nova_sonic = NovaSonicCompleteService()
         
-        # Continue conversation
+        # Continue conversation using complete Nova Sonic service
         result = nova_sonic.continue_conversation(
             conversation_id=f"conv_{current_user.id}_{current_part}",
-            user_response=user_message,
+            user_audio_data=None,  # Text input for now
             conversation_history=conversation_history
         )
         
@@ -218,7 +218,7 @@ def assess_conversation():
         if not conversation_history:
             return jsonify({'success': False, 'error': 'No conversation data provided'})
         
-        nova_sonic = NovaSonicService()
+        nova_sonic = NovaSonicCompleteService()
         
         # Generate final assessment using enhanced service
         from enhanced_nova_assessment import enhanced_nova_assessment
