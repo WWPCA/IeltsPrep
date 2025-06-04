@@ -80,7 +80,7 @@ class NovaSonicCompleteService:
 
             # Use Nova Sonic for complete speech-to-speech interaction
             response = self.client.invoke_model(
-                modelId='amazon.nova-lite-v1:0',
+                modelId='amazon.nova-sonic-v1',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -98,6 +98,11 @@ class NovaSonicCompleteService:
                         "maxTokens": 200,
                         "temperature": 0.7,
                         "topP": 0.9
+                    },
+                    "additionalModelRequestFields": {
+                        "audio": {
+                            "format": "mp3"
+                        }
                     }
                 })
             )
@@ -187,7 +192,7 @@ class NovaSonicCompleteService:
             logger.info("Processing Nova Sonic speech-to-speech conversation turn")
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-lite-v1:0',
+                modelId='amazon.nova-sonic-v1',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -196,6 +201,11 @@ class NovaSonicCompleteService:
                         "maxTokens": 300,
                         "temperature": 0.8,
                         "topP": 0.9
+                    },
+                    "additionalModelRequestFields": {
+                        "audio": {
+                            "format": "mp3"
+                        }
                     }
                 })
             )
