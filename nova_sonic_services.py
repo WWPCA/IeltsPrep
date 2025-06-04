@@ -179,7 +179,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
     def generate_speech(self, text, voice='Female', style='professional_examiner'):
         """
         Generate speech audio using Nova Sonic's text-to-speech capabilities
-        Based on AWS Nova Sonic documentation for speech generation
+        Based on AWS Nova Sonic invoke API documentation
         
         Args:
             text (str): Text to convert to speech
@@ -192,7 +192,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
         try:
             import base64
             
-            # Prepare Nova Sonic text-to-speech request based on AWS documentation
+            # Prepare Nova Sonic text-to-speech request using proper invoke API format
             request_body = {
                 "messages": [
                     {
@@ -206,19 +206,18 @@ Respond as a professional but friendly British examiner. Keep responses conversa
                 ],
                 "inferenceConfig": {
                     "maxTokens": 1000,
-                    "temperature": 0.7,
+                    "temperature": 0.1,
                     "topP": 0.9
                 },
-                "speechConfig": {
-                    "voice": "Female",
-                    "outputFormat": "mp3",
-                    "sampleRate": 24000,
-                    "stability": 0.8,
-                    "similarityBoost": 0.7
+                "additionalModelRequestFields": {
+                    "audio": {
+                        "format": "mp3"
+                    }
                 }
             }
             
             logger.info(f"Generating speech with Nova Sonic for text: {text[:50]}...")
+            logger.debug(f"Request body: {json.dumps(request_body, indent=2)}")
             
             response = self.client.invoke_model(
                 modelId='amazon.nova-sonic-v1:0',
@@ -229,15 +228,28 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             
             result = json.loads(response['body'].read())
             logger.info(f"Nova Sonic speech response structure: {list(result.keys())}")
+            logger.debug(f"Full response: {json.dumps(result, indent=2)[:500]}...")
             
-            # Extract audio data from Nova Sonic response according to AWS format
+            # Extract audio data from Nova Sonic response according to AWS invoke API format
             audio_data = None
+            
+            # Check different possible response structures
             if 'output' in result and 'message' in result['output']:
                 content = result['output']['message'].get('content', [])
                 for item in content:
-                    if 'audio' in item:
+                    if isinstance(item, dict) and 'audio' in item:
                         audio_data = item['audio']
                         break
+            elif 'content' in result:
+                # Direct content format
+                content = result['content']
+                for item in content:
+                    if isinstance(item, dict) and 'audio' in item:
+                        audio_data = item['audio']
+                        break
+            elif 'audio' in result:
+                # Direct audio format
+                audio_data = result['audio']
             
             if audio_data:
                 # Create data URL for web playback
