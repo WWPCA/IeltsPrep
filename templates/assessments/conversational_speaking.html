@@ -838,11 +838,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const result = await response.json();
+            console.log('Start conversation API result:', result);
             
             if (result.success) {
                 // Maya speaks her opening
-                await playMayaResponse(result.opening_message);
-                addMessageToHistory('Maya (ClearScore IELTS Examiner)', result.opening_message);
+                const openingMessage = result.opening_message || result.response || result.message;
+                console.log('Opening message to synthesize:', openingMessage);
+                await playMayaResponse(openingMessage);
+                addMessageToHistory('Maya (ClearScore IELTS Examiner)', openingMessage);
                 
                 conversationStatus.innerHTML = '<div class="h5 text-primary">Maya has spoken - Click "Speak" to respond</div>';
             }
