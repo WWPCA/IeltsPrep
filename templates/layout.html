@@ -1,37 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Immediate Error Suppression - Highest Priority -->
+    <!-- Simple error prevention for critical elements only -->
     <script>
-        (function() {
-            // Run immediately to catch any errors as early as possible
-            function removeErrorMessages() {
-                // Target specific error messages related to checkout
-                var elements = document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"], .alert-danger, .alert-error');
-                for (var i = 0; i < elements.length; i++) {
-                    if (elements[i].textContent && (
-                        elements[i].textContent.includes('ERROR') || 
-                        elements[i].textContent.includes('Invalid details') || 
-                        elements[i].textContent.includes('Error')
-                    )) {
-
-                        elements[i].remove();
-                    }
-                }
+        // Minimal error handling without aggressive DOM manipulation
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('reCAPTCHA')) {
+                e.preventDefault();
             }
-            
-            // Run immediately
-            removeErrorMessages();
-            
-            // Continue checking for errors
-            setInterval(removeErrorMessages, 50);
-            
-            // Also run when DOM loads
-            document.addEventListener('DOMContentLoaded', function() {
-                removeErrorMessages();
-                setInterval(removeErrorMessages, 50);
-            });
-        })();
+        });
     </script>
     
     <meta charset="UTF-8">
