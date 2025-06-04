@@ -44,7 +44,7 @@ class NovaSonicProperService:
             
             logger.info(f"Starting Nova Sonic conversation for {assessment_type} part {part}")
             
-            # Nova Sonic request with audio output enabled
+            # Nova Sonic request with proper voice configuration
             request_body = {
                 "messages": [
                     {
@@ -63,7 +63,8 @@ class NovaSonicProperService:
                 },
                 "additionalModelRequestFields": {
                     "audio": {
-                        "format": "mp3"
+                        "format": "mp3",
+                        "voice": "Emma"
                     }
                 }
             }
@@ -145,7 +146,8 @@ class NovaSonicProperService:
                 },
                 "additionalModelRequestFields": {
                     "audio": {
-                        "format": "mp3"
+                        "format": "mp3",
+                        "voice": "Emma"
                     }
                 }
             }
@@ -317,4 +319,75 @@ class NovaSonicProperService:
             
         except Exception as e:
             logger.error(f"Nova Sonic speech generation error: {e}")
+            return {"success": False, "error": str(e)}
+
+    def finalize_conversation_assessment(self, conversation_history, assessment_data):
+        """
+        Generate final assessment using Nova Sonic based on conversation history
+        
+        Args:
+            conversation_history (list): Complete conversation turns
+            assessment_data (dict): Assessment metadata
+            
+        Returns:
+            dict: Final assessment results
+        """
+        try:
+            # Build assessment prompt
+            assessment_prompt = f"""
+            You are Maya, an IELTS Speaking examiner. Based on the conversation history provided, 
+            give a comprehensive assessment of the candidate's speaking performance.
+            
+            Evaluate on these criteria:
+            - Fluency and Coherence (0-9)
+            - Lexical Resource (0-9) 
+            - Grammatical Range and Accuracy (0-9)
+            - Pronunciation (0-9)
+            
+            Provide specific feedback and an overall band score.
+            """
+            
+            # Build conversation summary for assessment
+            conversation_text = ""
+            for turn in conversation_history:
+                speaker = "Candidate" if turn['speaker'].startswith('User') else "Examiner"
+                conversation_text += f"{speaker}: {turn['message']}\n"
+            
+            request_body = {
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": [{"text": assessment_prompt}]
+                    },
+                    {
+                        "role": "user",
+                        "content": [{"text": f"Please assess this conversation:\n\n{conversation_text}"}]
+                    }
+                ],
+                "inferenceConfig": {
+                    "maxTokens": 500,
+                    "temperature": 0.3,
+                    "topP": 0.9
+                }
+            }
+            
+            response = self.client.invoke_model(
+                modelId='amazon.nova-sonic-v1:0',
+                contentType='application/json',
+                accept='application/json',
+                body=json.dumps(request_body)
+            )
+            
+            result = json.loads(response['body'].read())
+            assessment_text, _ = self._parse_nova_response(result)
+            
+            return {
+                "success": True,
+                "assessment": assessment_text,
+                "conversation_length": len(conversation_history),
+                "assessment_type": assessment_data.get('assessment_type', 'speaking')
+            }
+            
+        except Exception as e:
+            logger.error(f"Nova Sonic assessment error: {e}")
             return {"success": False, "error": str(e)}
