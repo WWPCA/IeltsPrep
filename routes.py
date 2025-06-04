@@ -120,6 +120,9 @@ def generate_speech():
 def start_conversation():
     """Start a real-time conversation with Maya"""
     try:
+        # Reset database session to avoid transaction issues
+        db.session.rollback()
+        
         data = request.get_json()
         assessment_type = data.get('assessment_type', 'academic_speaking')
         part = data.get('part', 1)
@@ -136,32 +139,47 @@ def start_conversation():
             return jsonify({
                 'success': True,
                 'opening_message': result.get('opening_message', 'Hello! I\'m ready to begin your assessment.'),
-                'conversation_id': result.get('conversation_id')
+                'conversation_id': result.get('conversation_id'),
+                'audio_url': result.get('audio_url')
             })
         else:
-            # Log Maya conversation issue
-            APIIssueLog.log_issue(
-                api_name='maya_conversation',
-                endpoint='/api/start_conversation',
-                error_code='CONVERSATION_START_FAILED',
-                error_message=result.get('error', 'Conversation start failed'),
-                request_obj=request,
-                user_id=current_user.id,
-                request_data={'assessment_type': assessment_type, 'part': part}
-            )
+            # Log Maya conversation issue with fresh database session
+            try:
+                db.session.rollback()
+                APIIssueLog.log_issue(
+                    api_name='maya_conversation',
+                    endpoint='/api/start_conversation',
+                    error_code='CONVERSATION_START_FAILED',
+                    error_message=result.get('error', 'Conversation start failed'),
+                    request_obj=request,
+                    user_id=current_user.id,
+                    request_data={'assessment_type': assessment_type, 'part': part}
+                )
+                db.session.commit()
+            except Exception as log_error:
+                logger.error(f"Failed to log conversation issue: {log_error}")
+                db.session.rollback()
+            
             return jsonify({'success': False, 'error': result.get('error', 'Conversation start failed')})
             
     except Exception as e:
-        # Log Maya conversation error
-        APIIssueLog.log_issue(
-            api_name='maya_conversation',
-            endpoint='/api/start_conversation',
-            error_code='EXCEPTION',
-            error_message=str(e),
-            request_obj=request,
-            user_id=current_user.id if current_user.is_authenticated else None
-        )
-        return jsonify({'success': False, 'error': 'Conversation service unavailable'})
+        # Log Maya conversation error with fresh database session
+        try:
+            db.session.rollback()
+            APIIssueLog.log_issue(
+                api_name='maya_conversation',
+                endpoint='/api/start_conversation',
+                error_code='EXCEPTION',
+                error_message=str(e),
+                request_obj=request,
+                user_id=current_user.id if current_user.is_authenticated else None
+            )
+            db.session.commit()
+        except Exception as log_error:
+            logger.error(f"Failed to log conversation error: {log_error}")
+            db.session.rollback()
+            
+        return jsonify({'success': False, 'error': 'Internal server error. Please try again later.'})
 
 @app.route('/api/continue_conversation', methods=['POST'])
 @login_required
