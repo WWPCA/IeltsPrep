@@ -910,7 +910,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function playMayaResponse(text) {
         try {
-            // Use AWS Nova Sonic for professional British voice
+            // Use Amazon Polly for professional British voice
+            console.log('Calling Amazon Polly API for speech generation...');
             const response = await fetch('/api/generate_speech', {
                 method: 'POST',
                 headers: getAPIHeaders(),
@@ -919,7 +920,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
             
+            console.log('Polly API response status:', response.status);
             const result = await response.json();
+            console.log('Polly API result:', result);
             
             if (result.success && result.audio_url) {
                 const audio = new Audio(result.audio_url);
