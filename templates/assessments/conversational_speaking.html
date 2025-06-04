@@ -6,8 +6,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <!-- jQuery - Required for button functionality -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- THREE.js - Required for 3D visualization -->
-<script src="https://unpkg.com/three@0.144.0/build/three.min.js"></script>
+<!-- THREE.js removed temporarily to fix button functionality -->
 {% endblock %}
 
 {% block content %}
@@ -371,6 +370,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Voice Globe
     function initVoiceGlobe() {
         if (isGlobeInitialized) return;
+        
+        // Check if THREE.js is properly loaded
+        if (typeof THREE === 'undefined' || !voiceGlobeCanvas) {
+            console.log('THREE.js or canvas not available - skipping globe initialization');
+            return;
+        }
 
         // Scene setup
         scene = new THREE.Scene();
@@ -752,8 +757,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize globe on page load
-    initVoiceGlobe();
+    // Initialize globe on page load - check if THREE.js is available
+    if (typeof THREE !== 'undefined') {
+        initVoiceGlobe();
+    } else {
+        console.log('THREE.js not available - globe visualization disabled');
+        // Hide the globe container
+        if (voiceGlobeCanvas) {
+            voiceGlobeCanvas.style.display = 'none';
+        }
+    }
 
     // Start conversation
     startConversationBtn.addEventListener('click', async function() {
