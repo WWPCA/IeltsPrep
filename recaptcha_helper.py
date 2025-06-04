@@ -12,8 +12,9 @@ import json
 logger = logging.getLogger(__name__)
 
 def get_recaptcha_secret_key():
-    """Get the appropriate reCAPTCHA secret key"""
-    return (os.environ.get("RECAPTCHA_PRIVATE_KEY") or 
+    """Get the appropriate reCAPTCHA v2 secret key"""
+    return (os.environ.get("RECAPTCHA_V2_SECRET_KEY") or 
+            os.environ.get("RECAPTCHA_PRIVATE_KEY") or 
             os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY"))
 
 def verify_recaptcha(token, action=None, min_score=0.5):

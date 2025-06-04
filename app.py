@@ -44,19 +44,19 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Configure reCAPTCHA with validation - use dev keys for development domains
 def get_recaptcha_keys():
-    """Get appropriate reCAPTCHA keys based on current domain"""
-    # Always use production keys as they exist in secrets
-    public_key = os.environ.get("RECAPTCHA_PUBLIC_KEY")
-    private_key = os.environ.get("RECAPTCHA_PRIVATE_KEY")
+    """Get appropriate reCAPTCHA v2 keys"""
+    # Use the new v2 checkbox keys
+    public_key = os.environ.get("RECAPTCHA_V2_SITE_KEY")
+    private_key = os.environ.get("RECAPTCHA_V2_SECRET_KEY")
     
     if public_key and private_key:
         return (public_key, private_key)
     
-    # Fallback to dev keys if production keys not available
-    dev_public = os.environ.get("RECAPTCHA_DEV_PUBLIC_KEY")
-    dev_private = os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY")
+    # Fallback to original keys if v2 keys not available
+    fallback_public = os.environ.get("RECAPTCHA_PUBLIC_KEY")
+    fallback_private = os.environ.get("RECAPTCHA_PRIVATE_KEY")
     
-    return (dev_public, dev_private)
+    return (fallback_public, fallback_private)
 
 site_key, secret_key = get_recaptcha_keys()
 app.config["RECAPTCHA_SITE_KEY"] = site_key
