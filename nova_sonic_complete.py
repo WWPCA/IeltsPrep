@@ -80,33 +80,24 @@ class NovaSonicCompleteService:
 
             # Use Nova Sonic for complete speech-to-speech interaction
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',
+                modelId='amazon.nova-lite-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
                     "messages": [
                         {
                             "role": "system",
-                            "content": examiner_prompt
+                            "content": [{"text": examiner_prompt}]
                         },
                         {
                             "role": "user",
-                            "content": [
-                                {
-                                    "text": "Please begin the speaking assessment."
-                                }
-                            ]
+                            "content": [{"text": "Please begin the speaking assessment."}]
                         }
                     ],
                     "inferenceConfig": {
                         "maxTokens": 200,
                         "temperature": 0.7,
                         "topP": 0.9
-                    },
-                    "additionalModelRequestFields": {
-                        "audio": {
-                            "format": "mp3"
-                        }
                     }
                 })
             )
@@ -114,28 +105,24 @@ class NovaSonicCompleteService:
             result = json.loads(response['body'].read())
             logger.info(f"Nova Sonic complete response structure: {list(result.keys())}")
             
-            # Extract both text and audio from Nova Sonic response
+            # Extract text response from Nova Lite
             examiner_response = ""
-            audio_data = None
             
             if 'output' in result and 'message' in result['output']:
                 content = result['output']['message'].get('content', [])
                 for item in content:
-                    if isinstance(item, dict):
-                        if 'text' in item:
-                            examiner_response = item['text']
-                        if 'audio' in item:
-                            audio_data = item['audio']
+                    if isinstance(item, dict) and 'text' in item:
+                        examiner_response = item['text']
+                        break
             
             logger.info(f"Nova Sonic text response: {examiner_response[:100]}...")
-            logger.info(f"Nova Sonic audio data: {'Present' if audio_data else 'Missing'}")
             
             return {
                 "success": True,
                 "conversation_id": f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
                 "opening_message": examiner_response,
-                "audio_data": audio_data,
-                "audio_url": f"data:audio/mp3;base64,{audio_data}" if audio_data else None,
+                "audio_data": None,
+                "audio_url": None,
                 "session_active": True,
                 "part_number": part,
                 "topic": topic
