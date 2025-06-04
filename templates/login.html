@@ -1,32 +1,29 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
-<!-- reCAPTCHA v2 API -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<!-- reCAPTCHA v2 API with explicit rendering -->
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 
 <script>
-// Simple reCAPTCHA validation without complex error handling
-function validateRecaptcha() {
-    if (typeof grecaptcha !== 'undefined') {
-        const response = grecaptcha.getResponse();
+var recaptchaWidgetId;
+
+function onRecaptchaLoad() {
+    recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
+        'sitekey': '{{ config.RECAPTCHA_V2_SITE_KEY or config.RECAPTCHA_SITE_KEY }}',
+        'theme': 'light'
+    });
+}
+
+function validateLogin() {
+    if (typeof grecaptcha !== 'undefined' && recaptchaWidgetId !== undefined) {
+        var response = grecaptcha.getResponse(recaptchaWidgetId);
         if (!response) {
             alert('Please complete the reCAPTCHA verification.');
             return false;
         }
-        console.log('reCAPTCHA validated successfully');
     }
     return true;
 }
-
-// Attach validation to form
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('login-form');
-    if (form) {
-        form.onsubmit = function() {
-            return validateRecaptcha();
-        };
-    }
-});
 </script>
 {% endblock %}
 
@@ -39,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h2 class="mb-0">Login</h2>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('login') }}" id="login-form">
+                    <form method="POST" action="{{ url_for('login') }}" id="login-form" onsubmit="return validateLogin()">
                         {{ form.hidden_tag() }}
                         
                         <div class="form-group mb-3">
@@ -61,9 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <a href="{{ url_for('forgot_password') }}" class="text-decoration-none">Forgot password?</a>
                         </div>
                         
-                        <!-- reCAPTCHA v2 Widget as per Google documentation -->
+                        <!-- reCAPTCHA v2 Widget with explicit rendering -->
                         <div class="mb-3">
-                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_V2_SITE_KEY or config.RECAPTCHA_SITE_KEY }}"></div>
+                            <div id="recaptcha-container"></div>
                         </div>
                         
                         <div class="d-grid">
