@@ -1,25 +1,26 @@
 """
 Flask-WTF Forms for IELTS AI Prep Application
-This module provides form classes with proper CSRF protection.
+Following Google reCAPTCHA v2 documentation standards
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
 from wtforms.validators import DataRequired, Email, Length
-from flask_wtf.recaptcha import RecaptchaField
 
 class LoginForm(FlaskForm):
-    """Login form with reCAPTCHA v2 integration"""
+    """Login form with manual reCAPTCHA v2 integration per Google docs"""
     email = StringField('Email Address', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
-    recaptcha = RecaptchaField()
+    # Manual reCAPTCHA handling as per Google documentation
+    g_recaptcha_response = HiddenField('g-recaptcha-response')
     submit = SubmitField('Login')
 
 class RegistrationForm(FlaskForm):
-    """Registration form with reCAPTCHA v2 integration"""
+    """Registration form with manual reCAPTCHA v2 integration per Google docs"""
     email = StringField('Email Address', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired()])
-    recaptcha = RecaptchaField()
+    # Manual reCAPTCHA handling as per Google documentation
+    g_recaptcha_response = HiddenField('g-recaptcha-response')
     submit = SubmitField('Create Account')

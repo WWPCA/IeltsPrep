@@ -15,28 +15,28 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('login') }}" id="login-form">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ form.hidden_tag() }}
                         
                         <div class="form-group mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control", id="email") }}
                         </div>
                         
                         <div class="form-group mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control", id="password") }}
                         </div>
                         
                         <div class="form-check mb-3">
-                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">Remember me</label>
+                            {{ form.remember_me(class="form-check-input", id="remember") }}
+                            {{ form.remember_me.label(class="form-check-label", for="remember") }}
                         </div>
                         
                         <div class="mb-3 small text-end">
                             <a href="{{ url_for('forgot_password') }}" class="text-decoration-none">Forgot password?</a>
                         </div>
                         
-                        <!-- reCAPTCHA v2 Widget -->
+                        <!-- reCAPTCHA v2 Widget as per Google documentation -->
                         <div class="mb-3">
                             <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
                         </div>

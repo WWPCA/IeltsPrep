@@ -479,7 +479,7 @@ def login():
         # Enhanced validation
         if not email or not password:
             flash('Please provide both email and password', 'danger')
-            return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+            return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # reCAPTCHA validation - REQUIRED for security
         recaptcha_response = request.form.get('g-recaptcha-response')
@@ -487,7 +487,7 @@ def login():
         
         if not recaptcha_response:
             flash('Security verification failed. Please try again.', 'danger')
-            return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+            return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # Verify reCAPTCHA with Google
         try:
@@ -500,11 +500,11 @@ def login():
                 error_msg = recaptcha_result.get('error', 'Unknown verification error')
                 logging.error(f"reCAPTCHA verification failed: {error_msg}")
                 flash(f'Security verification failed: {error_msg}. Please try again.', 'danger')
-                return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+                return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         except Exception as e:
             logging.error(f"reCAPTCHA verification exception: {str(e)}")
             flash('Security verification service unavailable. Please try again later.', 'danger')
-            return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+            return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         user = User.query.filter_by(email=email).first()
         
@@ -542,7 +542,7 @@ def login():
                 remaining = 5 - failed_count  # MAX_LOGIN_ATTEMPTS = 5
                 flash(f'Invalid email or password. {remaining} attempts remaining.', 'danger')
     
-    return render_template('login.html', title='Login', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+    return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
 
 @app.route('/logout')
 def logout():
