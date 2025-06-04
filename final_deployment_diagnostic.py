@@ -86,7 +86,9 @@ def test_security_configuration():
     # Check required environment variables
     required_vars = [
         'SESSION_SECRET',
-        'DATABASE_URL'
+        'DATABASE_URL',
+        'RECAPTCHA_PUBLIC_KEY',
+        'RECAPTCHA_PRIVATE_KEY'
     ]
     
     missing_vars = []
