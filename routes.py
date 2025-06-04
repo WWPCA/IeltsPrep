@@ -10,7 +10,7 @@ import requests
 import hashlib
 from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, session, abort, send_file
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from urllib.parse import urlparse
