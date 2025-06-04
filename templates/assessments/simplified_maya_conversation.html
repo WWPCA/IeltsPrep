@@ -1,0 +1,332 @@
+{% extends "layout.html" %}
+
+{% block title %}Maya Conversation - Academic Speaking{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- jQuery - Required for button functionality -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+.conversation-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.maya-interface {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.maya-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    animation: pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+.conversation-status {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-maya {
+    background: #28a745;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-maya:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.conversation-history {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    min-height: 200px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 10px;
+}
+
+.message.maya {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+}
+
+.message.user {
+    background: #f1f8e9;
+    border-left: 4px solid #4caf50;
+    text-align: right;
+}
+
+.timer {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.listening-indicator {
+    display: none;
+    background: #ff5722;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0.5; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="conversation-container">
+    <div class="timer" id="timer">00:00</div>
+    
+    <div class="maya-interface">
+        <div class="maya-avatar">🤖</div>
+        <h2>Maya - Your AI IELTS Examiner</h2>
+        <div class="conversation-status" id="status">Ready to begin your speaking assessment</div>
+        
+        <div class="controls">
+            <button class="btn btn-maya btn-lg" id="startBtn">
+                <i class="fas fa-play"></i> Start Conversation
+            </button>
+            <button class="btn btn-maya" id="speakBtn" style="display: none;">
+                <i class="fas fa-microphone"></i> Speak
+            </button>
+            <button class="btn btn-secondary" id="pauseBtn" style="display: none;">
+                <i class="fas fa-pause"></i> Pause
+            </button>
+            <button class="btn btn-danger" id="endBtn" style="display: none;">
+                <i class="fas fa-stop"></i> End Assessment
+            </button>
+        </div>
+        
+        <div class="listening-indicator" id="listeningIndicator">
+            🎤 Listening... Speak now
+        </div>
+    </div>
+    
+    <div class="conversation-history" id="conversationHistory">
+        <h4>Conversation History</h4>
+        <div id="messages">
+            <p class="text-muted">Your conversation with Maya will appear here...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    console.log('Maya conversation interface initialized');
+    
+    let conversationActive = false;
+    let timer = 0;
+    let timerInterval = null;
+    let isListening = false;
+    let recognition = null;
+    
+    // DOM elements
+    const startBtn = $('#startBtn');
+    const speakBtn = $('#speakBtn');
+    const pauseBtn = $('#pauseBtn');
+    const endBtn = $('#endBtn');
+    const status = $('#status');
+    const messages = $('#messages');
+    const listeningIndicator = $('#listeningIndicator');
+    const timerDisplay = $('#timer');
+    
+    // Initialize speech recognition
+    function initializeSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        } else {
+            alert('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
+            return false;
+        }
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        
+        recognition.onstart = function() {
+            console.log('Speech recognition started');
+            isListening = true;
+            listeningIndicator.show();
+            speakBtn.text('🎤 Listening...');
+        };
+        
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            console.log('Speech recognized:', transcript);
+            addMessage('user', transcript);
+            processUserSpeech(transcript);
+        };
+        
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+            isListening = false;
+            listeningIndicator.hide();
+            speakBtn.text('🎤 Speak');
+        };
+        
+        recognition.onend = function() {
+            console.log('Speech recognition ended');
+            isListening = false;
+            listeningIndicator.hide();
+            speakBtn.text('🎤 Speak');
+        };
+        
+        return true;
+    }
+    
+    // Start conversation
+    startBtn.click(function() {
+        console.log('Start conversation clicked');
+        
+        if (!initializeSpeechRecognition()) {
+            return;
+        }
+        
+        conversationActive = true;
+        startBtn.hide();
+        speakBtn.show();
+        pauseBtn.show();
+        endBtn.show();
+        
+        status.text('Conversation active - Click "Speak" when ready');
+        startTimer();
+        
+        // Maya's opening message
+        setTimeout(function() {
+            addMessage('maya', 'Hello! I\'m Maya, your IELTS speaking examiner. Let\'s begin with Part 1. Can you tell me your name and where you\'re from?');
+        }, 1000);
+    });
+    
+    // Speak button
+    speakBtn.click(function() {
+        if (!isListening && recognition) {
+            recognition.start();
+        }
+    });
+    
+    // Pause button
+    pauseBtn.click(function() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            status.text('Assessment paused');
+        } else {
+            startTimer();
+            status.text('Assessment resumed');
+        }
+    });
+    
+    // End button
+    endBtn.click(function() {
+        if (confirm('Are you sure you want to end the assessment?')) {
+            endAssessment();
+        }
+    });
+    
+    // Add message to conversation
+    function addMessage(sender, text) {
+        const messageDiv = $('<div class="message ' + sender + '"></div>');
+        const senderName = sender === 'maya' ? 'Maya' : 'You';
+        messageDiv.html('<strong>' + senderName + ':</strong> ' + text);
+        messages.append(messageDiv);
+        
+        // Scroll to bottom
+        $('#conversationHistory').scrollTop($('#conversationHistory')[0].scrollHeight);
+    }
+    
+    // Process user speech
+    function processUserSpeech(transcript) {
+        // Send to Maya for response (simplified for now)
+        setTimeout(function() {
+            const responses = [
+                'Thank you for that response. Can you tell me more about your hobbies?',
+                'That\'s interesting. How do you usually spend your weekends?',
+                'Great! Now let\'s move on to Part 2. I\'ll give you a topic to speak about for 2 minutes.',
+                'Excellent! Can you describe a place you would like to visit?',
+                'Very good. How important is family in your culture?'
+            ];
+            
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            addMessage('maya', randomResponse);
+        }, 2000);
+    }
+    
+    // Timer functions
+    function startTimer() {
+        timerInterval = setInterval(function() {
+            timer++;
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.text(String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0'));
+        }, 1000);
+    }
+    
+    function endAssessment() {
+        conversationActive = false;
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        if (recognition) {
+            recognition.stop();
+        }
+        
+        status.text('Assessment completed');
+        speakBtn.hide();
+        pauseBtn.hide();
+        endBtn.hide();
+        startBtn.show().text('Start New Assessment');
+        
+        addMessage('maya', 'Thank you for completing your IELTS speaking assessment. Your performance will be evaluated and you\'ll receive detailed feedback soon.');
+    }
+});
+</script>
+{% endblock %}

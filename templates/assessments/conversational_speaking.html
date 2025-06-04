@@ -910,11 +910,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function playMayaResponse(text) {
         try {
+            // Use AWS Nova Sonic for professional British voice
             const response = await fetch('/api/generate_speech', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAPIHeaders(),
                 body: JSON.stringify({
                     text: text
                 })
@@ -925,11 +924,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.success && result.audio_url) {
                 const audio = new Audio(result.audio_url);
                 
-                // Setup Nova Sonic audio analysis for voice globe reactivity
-                if (isGlobeInitialized && globeSettings.enabled) {
-                    setupNovaAudioAnalyzer(audio);
-                }
-                
                 conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is speaking...</div>';
                 
                 return new Promise((resolve) => {
@@ -937,14 +931,48 @@ document.addEventListener('DOMContentLoaded', function() {
                         resolve();
                     };
                     audio.onerror = () => {
+                        console.error('Audio playback error');
                         resolve();
                     };
                     audio.play();
                 });
+            } else {
+                console.log('Nova Sonic speech generation failed, using browser fallback');
+                // Fallback to browser speech synthesis
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.1;
+                    utterance.volume = 0.8;
+                    
+                    conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is speaking...</div>';
+                    
+                    return new Promise((resolve) => {
+                        utterance.onend = () => resolve();
+                        utterance.onerror = () => resolve();
+                        speechSynthesis.speak(utterance);
+                    });
+                }
             }
         } catch (error) {
-            console.error('Error playing Maya response:', error);
+            console.error('Error with Nova Sonic speech generation:', error);
+            // Fallback to browser speech synthesis
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1.1;
+                utterance.volume = 0.8;
+                
+                conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is speaking...</div>';
+                
+                return new Promise((resolve) => {
+                    utterance.onend = () => resolve();
+                    utterance.onerror = () => resolve();
+                    speechSynthesis.speak(utterance);
+                });
+            }
         }
+        return Promise.resolve();
     }
 
     // Enhanced audio analyzer for Nova Sonic integration
