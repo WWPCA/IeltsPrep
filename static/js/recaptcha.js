@@ -1,5 +1,5 @@
 /**
- * reCAPTCHA v2 Integration with Enhanced Error Handling
+ * reCAPTCHA v3 Integration with Enhanced Error Handling
  * Provides robust loading, retry mechanism, and fallback for network issues
  */
 
@@ -12,27 +12,29 @@ if (typeof window.recaptchaLoaded === 'undefined') {
 }
 
 /**
- * Load reCAPTCHA v2 script dynamically with retry mechanism
+ * Load reCAPTCHA v3 script dynamically with retry mechanism
  */
 function loadRecaptcha() {
     return new Promise((resolve, reject) => {
-        console.log(`Loading reCAPTCHA v2 with site key: ${window.recaptchaSiteKey}`);
+        console.log(`Loading reCAPTCHA v3 with site key: ${window.recaptchaSiteKey}`);
         
-        if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
+        if (typeof grecaptcha !== 'undefined' && grecaptcha.ready) {
             window.recaptchaLoaded = true;
             resolve();
             return;
         }
 
         const script = document.createElement('script');
-        script.src = 'https://www.google.com/recaptcha/api.js';
+        script.src = `https://www.google.com/recaptcha/api.js?render=${window.recaptchaSiteKey}`;
         script.async = true;
         script.defer = true;
         
         script.onload = () => {
-            if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
-                window.recaptchaLoaded = true;
-                resolve();
+            if (typeof grecaptcha !== 'undefined' && grecaptcha.ready) {
+                grecaptcha.ready(() => {
+                    window.recaptchaLoaded = true;
+                    resolve();
+                });
             } else {
                 reject(new Error('reCAPTCHA object not available after loading'));
             }
