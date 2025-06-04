@@ -41,7 +41,7 @@ window.recaptchaSiteKey = '{{ recaptcha_site_key }}';
                         
                         <!-- reCAPTCHA v2 Widget -->
                         <div class="mb-3">
-                            <div class="g-recaptcha" id="recaptcha-login"></div>
+                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}" id="recaptcha-login"></div>
                         </div>
                         
                         <div class="d-grid">
