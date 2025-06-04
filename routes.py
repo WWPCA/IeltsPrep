@@ -27,6 +27,10 @@ from payment_services import create_stripe_checkout_session, create_payment_reco
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation, generate_polly_speech
+from nova_sonic_proper import NovaSonicProperService
+import logging
+
+logger = logging.getLogger(__name__)
 # Using only get_country_from_ip since we've moved to fixed pricing
 from geoip_services import get_country_from_ip
 from country_restrictions import country_access_required, is_country_restricted, RESTRICTION_MESSAGE
@@ -49,7 +53,7 @@ setup_global_security(app)
 from add_assessment_details_route import assessment_details_route
 
 # Import Nova Sonic for speech generation
-from nova_sonic_complete import NovaSonicCompleteService
+from nova_sonic_proper import NovaSonicProperService
 
 # Speech generation API route for Maya British voice
 
@@ -87,7 +91,7 @@ def generate_speech():
             return jsonify({'success': False, 'error': 'Text must be less than 1000 characters'}), 400
         
         # Initialize Nova Sonic complete service
-        nova_sonic = NovaSonicCompleteService()
+        nova_sonic = NovaSonicProperService()
         
         # Generate speech with Nova Sonic's built-in voice
         result = nova_sonic.generate_speech_only(question_text)
@@ -127,7 +131,7 @@ def start_conversation():
         assessment_type = data.get('assessment_type', 'academic_speaking')
         part = data.get('part', 1)
         
-        nova_sonic = NovaSonicCompleteService()
+        nova_sonic = NovaSonicProperService()
         
         # Start conversation using complete Nova Sonic service
         result = nova_sonic.start_conversation(
@@ -194,7 +198,7 @@ def continue_conversation():
         if not user_message:
             return jsonify({'success': False, 'error': 'No user message provided'})
         
-        nova_sonic = NovaSonicCompleteService()
+        nova_sonic = NovaSonicProperService()
         
         # Continue conversation using complete Nova Sonic service
         result = nova_sonic.continue_conversation(
@@ -238,7 +242,7 @@ def assess_conversation():
         if not conversation_history:
             return jsonify({'success': False, 'error': 'No conversation data provided'})
         
-        nova_sonic = NovaSonicCompleteService()
+        nova_sonic = NovaSonicProperService()
         
         # Generate final assessment using enhanced service
         from enhanced_nova_assessment import enhanced_nova_assessment
