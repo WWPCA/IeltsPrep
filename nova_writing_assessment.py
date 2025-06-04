@@ -127,7 +127,7 @@ def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="a
         
         # Make the API call
         response = client.invoke_model(
-            modelId="amazon.nova-micro-v1:0",
+            modelId="amazon.nova-sonic-v1:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps(request_body)

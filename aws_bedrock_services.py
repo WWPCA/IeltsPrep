@@ -108,7 +108,7 @@ def evaluate_writing_with_nova_micro(essay_text, prompt_text, essay_type, ielts_
         
         # Make the API call
         response = client.invoke_model(
-            modelId="amazon.nova-micro-v1:0",
+            modelId="amazon.nova-sonic-v1:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps(request_body)
@@ -226,7 +226,7 @@ def assess_speaking_with_nova_micro(transcription, prompt_text, part_number):
         
         # Make the API call
         response = client.invoke_model(
-            modelId="amazon.nova-micro-v1:0",
+            modelId="amazon.nova-sonic-v1:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps(request_body)
@@ -302,7 +302,7 @@ def test_bedrock_nova_micro_access():
         
         # Make the API call
         response = client.invoke_model(
-            modelId="amazon.nova-micro-v1:0",
+            modelId="amazon.nova-sonic-v1:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps(request_body)

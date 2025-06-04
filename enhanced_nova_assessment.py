@@ -160,7 +160,7 @@ class EnhancedNovaAssessment:
             # Use AWS API with retry logic
             result = self.call_aws_api_with_retry(
                 'assess_writing',
-                'amazon.nova-micro-v1:0',
+                'amazon.nova-sonic-v1:0',
                 body=json.dumps({
                     "messages": [
                         {
@@ -252,7 +252,7 @@ class EnhancedNovaAssessment:
             
             # Use Nova Micro for professional assessment documentation
             response = self.bedrock_runtime.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
+                modelId='amazon.nova-sonic-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({

@@ -56,7 +56,7 @@ def check_bedrock_credentials():
         
         # Make a lightweight API call to verify access
         response = client.invoke_model(
-            modelId="amazon.nova-micro-v1:0",
+            modelId="amazon.nova-sonic-v1:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps(request_body)

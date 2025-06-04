@@ -58,7 +58,7 @@ class NovaSonicService:
             ])
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
+                modelId='amazon.nova-sonic-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -127,7 +127,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             conversation_prompt = self._build_conversation_prompt(user_level, part_number, topic)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-micro-v1:0',  # Using Nova Micro for text generation
+                modelId='amazon.nova-sonic-v1:0',  # Using Nova Micro for text generation
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -290,7 +290,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             context = self._build_conversation_context(conversation_history, user_response)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-micro-v1:0',  # Nova Micro for text generation
+                modelId='amazon.nova-sonic-v1:0',  # Nova Micro for text generation
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -342,7 +342,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             
             # Use Nova Micro for professional assessment documentation
             response = self.client.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
+                modelId='amazon.nova-sonic-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -402,7 +402,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             assessment_prompt = self._build_final_assessment_prompt(conversation_history, assessment_type)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
+                modelId='amazon.nova-sonic-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({

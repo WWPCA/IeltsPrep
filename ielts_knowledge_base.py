@@ -121,7 +121,7 @@ class IELTSKnowledgeBase:
             
             # Use Nova Micro with RAG-enhanced context
             response = self.bedrock_runtime.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
+                modelId='amazon.nova-sonic-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -189,7 +189,7 @@ class IELTSKnowledgeBase:
             
             # Use Nova Micro with RAG-enhanced context for professional documentation
             response = self.bedrock_runtime.invoke_model(
-                modelId='amazon.nova-micro-v1:0',
+                modelId='amazon.nova-sonic-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
