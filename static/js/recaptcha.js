@@ -3,10 +3,13 @@
  * Provides robust loading, retry mechanism, and fallback for network issues
  */
 
-let recaptchaLoaded = false;
-let loadAttempts = 0;
-const maxRetries = 5;
-const retryDelay = 2000; // 2 seconds
+// Prevent variable redeclaration if script is loaded multiple times
+if (typeof window.recaptchaLoaded === 'undefined') {
+    window.recaptchaLoaded = false;
+    window.loadAttempts = 0;
+    window.maxRetries = 5;
+    window.retryDelay = 2000; // 2 seconds
+}
 
 /**
  * Load reCAPTCHA v2 script dynamically with retry mechanism
@@ -16,7 +19,7 @@ function loadRecaptcha() {
         console.log(`Loading reCAPTCHA v2 with site key: ${window.recaptchaSiteKey}`);
         
         if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
-            recaptchaLoaded = true;
+            window.recaptchaLoaded = true;
             resolve();
             return;
         }
