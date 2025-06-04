@@ -396,6 +396,103 @@ class NovaSonicProperService:
         except Exception as e:
             logger.error(f"Nova Sonic speech generation error: {e}")
             return {"success": False, "error": str(e)}
+    
+    def finalize_conversation_assessment(self, conversation_id):
+        """
+        Generate comprehensive final assessment using conversation performance data
+        
+        Args:
+            conversation_id (str): The conversation to assess
+            
+        Returns:
+            dict: Complete IELTS assessment with band scores and feedback
+        """
+        try:
+            # Get performance data for this conversation
+            perf_data = self.performance_tracker.get(conversation_id, {})
+            conv_state = self.conversation_state.get(conversation_id, {})
+            
+            if not perf_data.get('responses'):
+                return {
+                    "success": False,
+                    "error": "No conversation data available for assessment"
+                }
+            
+            # Calculate overall performance metrics
+            all_responses = perf_data['responses']
+            total_responses = len(all_responses)
+            
+            # Average scores across all responses
+            avg_fluency = sum(r['assessment'].get('fluency_coherence', 0) for r in all_responses) / total_responses
+            avg_lexical = sum(r['assessment'].get('lexical_resource', 0) for r in all_responses) / total_responses
+            avg_grammar = sum(r['assessment'].get('grammar_accuracy', 0) for r in all_responses) / total_responses
+            avg_pronunciation = sum(r['assessment'].get('pronunciation', 6) for r in all_responses) / total_responses
+            
+            # Calculate overall band score
+            overall_band = (avg_fluency + avg_lexical + avg_grammar + avg_pronunciation) / 4
+            overall_band = round(overall_band * 2) / 2  # Round to nearest 0.5
+            
+            # Generate comprehensive feedback
+            assessment_duration = (datetime.now() - conv_state.get('start_time', datetime.now())).seconds // 60
+            
+            # Collect all feedback notes
+            all_feedback = []
+            for response in all_responses:
+                all_feedback.extend(response['assessment'].get('detailed_feedback', []))
+            
+            # Remove duplicates and create unique feedback
+            unique_feedback = list(set(all_feedback))
+            
+            # Generate performance summary
+            performance_summary = {
+                'total_questions': conv_state.get('questions_asked', 0),
+                'assessment_duration_minutes': assessment_duration,
+                'part_completed': conv_state.get('part', 1),
+                'assessment_type': conv_state.get('assessment_type', 'academic_speaking')
+            }
+            
+            # Create detailed band descriptor feedback
+            band_feedback = {
+                'fluency_coherence': {
+                    'score': round(avg_fluency),
+                    'descriptor': IELTSRubricScorer.FLUENCY_COHERENCE.get(round(avg_fluency), "Assessment unavailable")
+                },
+                'lexical_resource': {
+                    'score': round(avg_lexical),
+                    'descriptor': IELTSRubricScorer.LEXICAL_RESOURCE.get(round(avg_lexical), "Assessment unavailable")
+                },
+                'grammar_accuracy': {
+                    'score': round(avg_grammar),
+                    'descriptor': IELTSRubricScorer.GRAMMAR_ACCURACY.get(round(avg_grammar), "Assessment unavailable")
+                },
+                'pronunciation': {
+                    'score': round(avg_pronunciation),
+                    'descriptor': IELTSRubricScorer.PRONUNCIATION.get(round(avg_pronunciation), "Assessment unavailable")
+                }
+            }
+            
+            logger.info(f"Final assessment completed for conversation {conversation_id}")
+            
+            return {
+                "success": True,
+                "conversation_id": conversation_id,
+                "overall_band_score": overall_band,
+                "individual_scores": {
+                    "fluency_coherence": round(avg_fluency),
+                    "lexical_resource": round(avg_lexical), 
+                    "grammar_accuracy": round(avg_grammar),
+                    "pronunciation": round(avg_pronunciation)
+                },
+                "band_descriptors": band_feedback,
+                "performance_summary": performance_summary,
+                "improvement_recommendations": unique_feedback[:5],  # Top 5 recommendations
+                "conversation_complete": True,
+                "assessment_timestamp": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logger.error(f"Assessment finalization error: {e}")
+            return {"success": False, "error": str(e)}
 
     def finalize_conversation_assessment(self, conversation_history, assessment_data):
         """
