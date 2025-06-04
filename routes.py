@@ -47,7 +47,7 @@ setup_global_security(app)
 from add_assessment_details_route import assessment_details_route
 
 # Import Nova Sonic for speech generation
-from nova_sonic_services import NovaSonicService
+from nova_sonic_complete import NovaSonicCompleteService
 
 # Speech generation API route for Maya British voice
 
@@ -84,15 +84,11 @@ def generate_speech():
         if len(question_text) > 1000:
             return jsonify({'success': False, 'error': 'Text must be less than 1000 characters'}), 400
         
-        # Initialize Nova Sonic service
-        nova_sonic = NovaSonicService()
+        # Initialize Nova Sonic complete service
+        nova_sonic = NovaSonicCompleteService()
         
-        # Generate speech with British female voice for Maya
-        result = nova_sonic.generate_speech(
-            text=question_text,
-            voice='Amy',
-            style='professional_examiner'
-        )
+        # Generate speech with Nova Sonic's built-in voice
+        result = nova_sonic.generate_speech_only(question_text)
         
         if result.get('success'):
             return jsonify({
@@ -126,19 +122,18 @@ def start_conversation():
         assessment_type = data.get('assessment_type', 'academic_speaking')
         part = data.get('part', 1)
         
-        nova_sonic = NovaSonicService()
+        nova_sonic = NovaSonicCompleteService()
         
-        # Create conversation session
-        result = nova_sonic.create_speaking_conversation(
-            user_level='intermediate',  # Could be determined from user profile
-            part_number=part,
-            topic='general_introduction'
+        # Start conversation using complete Nova Sonic service
+        result = nova_sonic.start_conversation(
+            assessment_type=assessment_type,
+            part=part
         )
         
         if result.get('success'):
             return jsonify({
                 'success': True,
-                'opening_message': result.get('examiner_response', 'Hello! I\'m ready to begin your assessment.'),
+                'opening_message': result.get('opening_message', 'Hello! I\'m ready to begin your assessment.'),
                 'conversation_id': result.get('conversation_id')
             })
         else:
