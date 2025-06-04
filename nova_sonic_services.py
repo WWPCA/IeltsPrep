@@ -151,10 +151,19 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             
             result = json.loads(response['body'].read())
             
+            # Extract text from Nova Micro response format
+            examiner_response = ""
+            if 'output' in result and 'message' in result['output']:
+                content = result['output']['message'].get('content', [])
+                if content and len(content) > 0:
+                    examiner_response = content[0].get('text', '')
+            
+            logger.info(f"Nova Micro response: {examiner_response[:100]}...")
+            
             return {
                 "success": True,
                 "conversation_id": f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                "examiner_response": result.get('content', [{}])[0].get('text', ''),
+                "examiner_response": examiner_response,
                 "session_active": True,
                 "part_number": part_number,
                 "topic": topic
