@@ -31,7 +31,7 @@ function loadRecaptcha() {
         
         script.onload = () => {
             if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
-                recaptchaLoaded = true;
+                window.recaptchaLoaded = true;
                 resolve();
             } else {
                 reject(new Error('reCAPTCHA object not available after loading'));
@@ -44,7 +44,7 @@ function loadRecaptcha() {
         
         // Set timeout for script loading
         setTimeout(() => {
-            if (!recaptchaLoaded) {
+            if (!window.recaptchaLoaded) {
                 reject(new Error('reCAPTCHA loading timeout'));
             }
         }, 10000);
@@ -57,22 +57,22 @@ function loadRecaptcha() {
  * Load reCAPTCHA with retry mechanism
  */
 async function loadRecaptchaWithRetry() {
-    while (loadAttempts < maxRetries && !recaptchaLoaded) {
+    while (window.loadAttempts < window.maxRetries && !window.recaptchaLoaded) {
         try {
             await loadRecaptcha();
             return true;
         } catch (error) {
-            loadAttempts++;
+            window.loadAttempts++;
             console.error('reCAPTCHA loading failed:', error);
             
-            if (loadAttempts < maxRetries) {
-                console.log(`Retrying reCAPTCHA load (attempt ${loadAttempts}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
+            if (window.loadAttempts < window.maxRetries) {
+                console.log(`Retrying reCAPTCHA load (attempt ${window.loadAttempts}/${window.maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, window.retryDelay));
             }
         }
     }
     
-    if (!recaptchaLoaded) {
+    if (!window.recaptchaLoaded) {
         console.error('reCAPTCHA loading failed after all retries');
         showRecaptchaError('Unable to load security verification. Please check your internet connection and refresh the page.');
         return false;
@@ -85,8 +85,14 @@ async function loadRecaptchaWithRetry() {
  * Render reCAPTCHA v2 widget
  */
 function renderRecaptcha(containerId) {
-    if (!recaptchaLoaded || typeof grecaptcha === 'undefined') {
+    if (!window.recaptchaLoaded || typeof grecaptcha === 'undefined') {
         console.error('reCAPTCHA not loaded');
+        return null;
+    }
+    
+    if (!window.recaptchaSiteKey) {
+        console.error('reCAPTCHA site key not available');
+        showRecaptchaError('Security verification configuration error. Please refresh the page.');
         return null;
     }
     
@@ -120,7 +126,7 @@ function renderRecaptcha(containerId) {
  * Get reCAPTCHA v2 response
  */
 function getRecaptchaResponse(widgetId) {
-    if (!recaptchaLoaded || typeof grecaptcha === 'undefined') {
+    if (!window.recaptchaLoaded || typeof grecaptcha === 'undefined') {
         return null;
     }
     
@@ -135,7 +141,7 @@ function getRecaptchaResponse(widgetId) {
  * Reset reCAPTCHA v2 widget
  */
 function resetRecaptcha(widgetId) {
-    if (!recaptchaLoaded || typeof grecaptcha === 'undefined') {
+    if (!window.recaptchaLoaded || typeof grecaptcha === 'undefined') {
         return;
     }
     
@@ -182,15 +188,29 @@ function validateRecaptcha() {
 
 // Initialize reCAPTCHA when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Skip if already initialized
+    if (window.recaptchaInitialized) {
+        return;
+    }
+    window.recaptchaInitialized = true;
+    
     // Pre-load reCAPTCHA for better user experience
     loadRecaptchaWithRetry().then(() => {
         // Render reCAPTCHA widgets after loading
         const recaptchaContainers = document.querySelectorAll('.g-recaptcha');
         recaptchaContainers.forEach(container => {
-            if (!container.hasChildNodes()) {
-                renderRecaptcha(container.id || container);
+            if (!container.hasChildNodes() && container.id) {
+                renderRecaptcha(container.id);
+            } else if (!container.hasChildNodes()) {
+                // Create unique ID if none exists
+                const uniqueId = 'recaptcha-' + Math.random().toString(36).substr(2, 9);
+                container.id = uniqueId;
+                renderRecaptcha(uniqueId);
             }
         });
+    }).catch(error => {
+        console.error('Failed to initialize reCAPTCHA:', error);
+        showRecaptchaError('Failed to load security verification. Please refresh the page.');
     });
     
     // Handle form submissions
