@@ -58,7 +58,7 @@ class NovaSonicService:
             ])
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',
+                modelId='amazon.nova-micro-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -127,7 +127,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             conversation_prompt = self._build_conversation_prompt(user_level, part_number, topic)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',  # Using Nova Sonic for conversational speech
+                modelId='amazon.nova-micro-v1:0',  # Using Nova Micro for text generation
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -188,7 +188,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             context = self._build_conversation_context(conversation_history, user_response)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',  # Nova Sonic for continued conversation
+                modelId='amazon.nova-micro-v1:0',  # Nova Micro for text generation
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -304,7 +304,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             assessment_prompt = self._build_final_assessment_prompt(conversation_history, assessment_type)
             
             response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',
+                modelId='amazon.nova-micro-v1:0',
                 contentType='application/json',
                 accept='application/json',
                 body=json.dumps({
@@ -456,60 +456,49 @@ Respond as a professional but friendly British examiner. Keep responses conversa
         # This could be enhanced to extract real-time assessment notes
         return "Assessment in progress..."
 
-    def generate_speech(self, text, voice='british_female', style='professional_examiner'):
+    def generate_speech(self, text, voice='Amy', style='professional_examiner'):
         """
-        Generate speech audio using Nova Sonic for Elaris® British voice
+        Generate speech audio using Amazon Polly for Maya's British voice
         
         Args:
             text (str): Text to convert to speech
-            voice (str): Voice type (british_female for Elaris®)
-            style (str): Speaking style (professional_examiner)
+            voice (str): Voice ID for Polly (Amy for British female)
+            style (str): Speaking style (not used in Polly)
             
         Returns:
             dict: Speech generation result with audio data
         """
         try:
-            response = self.client.invoke_model(
-                modelId='amazon.nova-sonic-v1:0',
-                contentType='application/json',
-                accept='application/json',
-                body=json.dumps({
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "text": f"Generate natural speech for: {text}"
-                                }
-                            ]
-                        }
-                    ],
-                    "inferenceConfig": {
-                        "max_new_tokens": 1000,
-                        "temperature": 0.3
-                    },
-                    "additionalModelRequestFields": {
-                        "voice": voice,
-                        "speaking_style": style,
-                        "output_format": "audio/wav"
-                    }
-                })
+            # Initialize Polly client
+            polly_client = boto3.client(
+                'polly',
+                region_name='us-east-1',
+                aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
             )
             
-            result = json.loads(response['body'].read())
+            response = polly_client.synthesize_speech(
+                Text=text,
+                OutputFormat='mp3',
+                VoiceId=voice,  # Amy is British English female
+                Engine='neural'  # Use neural engine for better quality
+            )
             
-            if 'audio_data' in result:
-                return {
-                    "success": True,
-                    "audio_data": result['audio_data'],
-                    "audio_url": f"data:audio/wav;base64,{result['audio_data']}"
-                }
-            else:
-                logger.warning("No audio data in Nova Sonic response")
-                return {"success": False, "error": "No audio generated"}
+            # Read audio stream
+            audio_data = response['AudioStream'].read()
+            
+            # Convert to base64 for web playback
+            import base64
+            audio_base64 = base64.b64encode(audio_data).decode()
+            
+            return {
+                "success": True,
+                "audio_data": audio_base64,
+                "audio_url": f"data:audio/mp3;base64,{audio_base64}"
+            }
                 
         except ClientError as e:
-            logger.error(f"Nova Sonic speech generation error: {e}")
+            logger.error(f"Amazon Polly speech generation error: {e}")
             return {"success": False, "error": str(e)}
         except Exception as e:
             logger.error(f"Unexpected speech generation error: {e}")
