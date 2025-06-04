@@ -575,17 +575,17 @@ def register():
         # Basic validation first
         if not email or not password:
             flash('Email and password are required', 'danger')
-            return render_template('register.html', title='Register')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # Enhanced validation using InputValidator
         if not InputValidator.validate_email(email):
             flash('Please provide a valid email address', 'danger')
-            return render_template('register.html', title='Register')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # Age verification check
         if not age_verified:
             flash('You must confirm that you are 16 years or older to register', 'danger')
-            return render_template('register.html', title='Register')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # Check password complexity using new validator
         password_validation = InputValidator.validate_password(password)
