@@ -60,6 +60,7 @@ def get_recaptcha_keys():
 
 site_key, secret_key = get_recaptcha_keys()
 app.config["RECAPTCHA_SITE_KEY"] = site_key
+app.config["RECAPTCHA_V2_SITE_KEY"] = site_key  # Ensure v2 key is available
 app.config["RECAPTCHA_SECRET_KEY"] = secret_key
 if not (app.config["RECAPTCHA_SITE_KEY"] and app.config["RECAPTCHA_SECRET_KEY"]):
     logging.warning("reCAPTCHA keys missing; CAPTCHA functionality will be disabled")

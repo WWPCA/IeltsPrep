@@ -38,7 +38,7 @@
                         
                         <!-- reCAPTCHA v2 Widget as per Google documentation -->
                         <div class="mb-3">
-                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
+                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_V2_SITE_KEY or config.RECAPTCHA_SITE_KEY }}"></div>
                         </div>
                         
                         <div class="d-grid">
