@@ -9,6 +9,7 @@ import base64
 import logging
 from datetime import datetime
 from botocore.exceptions import ClientError
+from ielts_question_database import IELTSQuestionDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -188,31 +189,31 @@ class NovaSonicProperService:
             return {"success": False, "error": str(e)}
     
     def _build_examiner_prompt(self, assessment_type, part):
-        """Build appropriate examiner prompt based on assessment type and part"""
+        """Build comprehensive examiner prompt with authentic IELTS questions"""
         
-        base_prompt = "You are Maya, a professional IELTS Speaking examiner. Speak naturally and professionally."
+        # Get authentic examiner script from database
+        script, additional_data = IELTSQuestionDatabase.build_examiner_script(assessment_type, part)
         
-        if assessment_type == 'academic_speaking':
-            if part == 1:
-                return f"""{base_prompt} You are conducting Part 1 of the Academic Speaking test.
-                Begin with a warm welcome, introduce yourself, and ask the candidate about themselves,
-                where they're from, and what they do. Keep your opening concise and professional."""
-            elif part == 2:
-                return f"""{base_prompt} You are conducting Part 2 of the Academic Speaking test.
-                Present a cue card topic and give clear instructions for the 2-minute presentation."""
-            else:
-                return f"""{base_prompt} You are conducting Part 3 of the Academic Speaking test.
-                Ask thoughtful questions requiring abstract thinking and detailed responses."""
-        else:  # general_speaking
-            if part == 1:
-                return f"""{base_prompt} You are conducting Part 1 of the General Training Speaking test.
-                Begin with a warm welcome and ask about familiar topics like home, family, work, or studies."""
-            elif part == 2:
-                return f"""{base_prompt} You are conducting Part 2 of the General Training Speaking test.
-                Present a practical cue card topic and give clear instructions."""
-            else:
-                return f"""{base_prompt} You are conducting Part 3 of the General Training Speaking test.
-                Ask questions about opinions and experiences related to the Part 2 topic."""
+        # Store additional questions/data for conversation flow
+        self.current_questions = additional_data if isinstance(additional_data, list) else []
+        self.current_part = part
+        self.assessment_type = assessment_type
+        
+        # Enhanced system prompt with authentic IELTS structure
+        base_prompt = f"""You are Maya, a certified IELTS Speaking examiner conducting an official speaking assessment.
+        
+        IMPORTANT GUIDELINES:
+        - Follow authentic IELTS test procedures and timing
+        - Ask questions naturally, one at a time
+        - Listen to candidate responses and ask appropriate follow-up questions
+        - Maintain professional but friendly demeanor
+        - For Part 1: 4-5 minutes covering 2-3 familiar topics
+        - For Part 2: Give cue card, 1 minute preparation, 1-2 minute speech
+        - For Part 3: 4-5 minutes with abstract discussion questions
+        
+        Your opening: {script}"""
+        
+        return base_prompt
     
     def _build_conversation_context(self, conversation_history):
         """Build conversation context from history for Nova Sonic"""
