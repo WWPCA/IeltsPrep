@@ -4,6 +4,9 @@
 
 {% block head %}
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- jQuery - Required for button functionality -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- THREE.js - Required for 3D visualization -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 {% endblock %}
 
