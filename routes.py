@@ -18,6 +18,7 @@ from functools import wraps
 from app import app, db
 import recaptcha_helper
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
+from forms import LoginForm, RegistrationForm
 from api_issues import APIIssueLog
 from utils import get_user_region, get_translation
 from input_validation import InputValidator, validate_registration_data, validate_api_request, validate_assessment_input
@@ -468,9 +469,11 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    form = LoginForm()
+    
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
         identifier = email  # Use email as identifier
         
         # Enhanced validation
