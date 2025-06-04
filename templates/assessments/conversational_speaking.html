@@ -938,18 +938,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } else {
                 console.log('Nova Sonic speech generation failed, using browser fallback');
-                // Fallback to browser speech synthesis
+                // Fallback to browser speech synthesis with British voice
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.rate = 0.9;
                     utterance.pitch = 1.1;
                     utterance.volume = 0.8;
                     
+                    // Wait for voices to load and select British voice
+                    const selectBritishVoice = () => {
+                        const voices = speechSynthesis.getVoices();
+                        const britishVoice = voices.find(voice => 
+                            voice.lang.includes('en-GB') || 
+                            voice.name.includes('British') ||
+                            voice.name.includes('UK') ||
+                            voice.name.includes('Amy') ||
+                            voice.name.includes('Emma')
+                        );
+                        
+                        if (britishVoice) {
+                            utterance.voice = britishVoice;
+                            console.log('Using British voice:', britishVoice.name);
+                        }
+                    };
+                    
+                    // Ensure voices are loaded
+                    if (speechSynthesis.getVoices().length === 0) {
+                        speechSynthesis.addEventListener('voiceschanged', selectBritishVoice, { once: true });
+                    } else {
+                        selectBritishVoice();
+                    }
+                    
                     conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is speaking...</div>';
                     
                     return new Promise((resolve) => {
-                        utterance.onend = () => resolve();
-                        utterance.onerror = () => resolve();
+                        utterance.onend = () => {
+                            console.log('Browser speech completed');
+                            resolve();
+                        };
+                        utterance.onerror = (event) => {
+                            console.error('Speech synthesis error:', event);
+                            resolve();
+                        };
                         speechSynthesis.speak(utterance);
                     });
                 }
