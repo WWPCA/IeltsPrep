@@ -145,10 +145,6 @@ Respond as a professional but friendly British examiner. Keep responses conversa
                         "max_new_tokens": 2000,
                         "temperature": 0.7,
                         "top_p": 0.9
-                    },
-                    "additionalModelRequestFields": {
-                        "voice": "british_female",
-                        "speaking_style": "professional_examiner"
                     }
                 })
             )
@@ -206,10 +202,6 @@ Respond as a professional but friendly British examiner. Keep responses conversa
                         "max_new_tokens": 1500,
                         "temperature": 0.7,
                         "top_p": 0.9
-                    },
-                    "additionalModelRequestFields": {
-                        "voice": "british_female",
-                        "speaking_style": "professional_examiner"
                     }
                 })
             )
