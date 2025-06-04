@@ -47,12 +47,19 @@ def verify_recaptcha(token, action=None, min_score=0.5):
     }
     
     try:
+        # Enhanced logging for debugging
+        logger.info(f"Making reCAPTCHA verification request to Google")
+        logger.info(f"Secret key present: {bool(secret_key)}")
+        logger.info(f"Token length: {len(token) if token else 0}")
+        logger.info(f"Client IP: {get_client_ip()}")
+        
         # Make request to Google's verification endpoint
         response = requests.post(verify_url, data=data, timeout=10)
+        logger.info(f"HTTP response status: {response.status_code}")
         response.raise_for_status()
         
         result = response.json()
-        logger.info(f"reCAPTCHA verification response: {result}")
+        logger.info(f"Google reCAPTCHA verification response: {result}")
         
         success = result.get('success', False)
         errors = result.get('error-codes', [])
@@ -61,9 +68,23 @@ def verify_recaptcha(token, action=None, min_score=0.5):
         score = None
         
         if success:
-            logger.info(f"reCAPTCHA v2 verification successful")
+            logger.info(f"reCAPTCHA v2 verification SUCCESSFUL")
         else:
-            logger.warning(f"reCAPTCHA v2 verification failed: errors={errors}")
+            logger.error(f"reCAPTCHA v2 verification FAILED: success={success}, errors={errors}")
+            # Log additional details for debugging
+            for error in errors:
+                if error == 'missing-input-secret':
+                    logger.error("Error: reCAPTCHA secret key is missing")
+                elif error == 'invalid-input-secret':
+                    logger.error("Error: reCAPTCHA secret key is invalid")
+                elif error == 'missing-input-response':
+                    logger.error("Error: reCAPTCHA response parameter is missing")
+                elif error == 'invalid-input-response':
+                    logger.error("Error: reCAPTCHA response parameter is invalid or malformed")
+                elif error == 'bad-request':
+                    logger.error("Error: Request to reCAPTCHA API is malformed")
+                elif error == 'timeout-or-duplicate':
+                    logger.error("Error: reCAPTCHA response is no longer valid")
         
         return success, score, errors
         
