@@ -1,8 +1,30 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
-<!-- reCAPTCHA v2 automatic rendering -->
+<!-- reCAPTCHA v2 API -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('login-form');
+    
+    form.addEventListener('submit', function(e) {
+        // Get reCAPTCHA response
+        const recaptchaResponse = grecaptcha.getResponse();
+        
+        console.log('reCAPTCHA response length:', recaptchaResponse ? recaptchaResponse.length : 0);
+        
+        if (!recaptchaResponse || recaptchaResponse.length === 0) {
+            e.preventDefault();
+            alert('Please complete the reCAPTCHA verification before submitting.');
+            return false;
+        }
+        
+        // Log successful capture
+        console.log('reCAPTCHA token captured successfully');
+    });
+});
+</script>
 {% endblock %}
 
 {% block content %}
