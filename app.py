@@ -65,7 +65,7 @@ if not (app.config["RECAPTCHA_SITE_KEY"] and app.config["RECAPTCHA_SECRET_KEY"])
     logging.warning("reCAPTCHA keys missing; CAPTCHA functionality will be disabled")
 app.config["RECAPTCHA_THEME"] = "light"
 app.config["RECAPTCHA_TYPE"] = "image"
-app.config["RECAPTCHA_SIZE"] = "invisible"
+app.config["RECAPTCHA_SIZE"] = "normal"
 app.config["RECAPTCHA_RTABINDEX"] = 10
 
 # Configure URL scheme - use HTTPS for URL generation
