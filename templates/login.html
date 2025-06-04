@@ -1,30 +1,8 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
-<!-- reCAPTCHA v2 API with explicit rendering -->
-<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
-
-<script>
-var recaptchaWidgetId;
-
-function onRecaptchaLoad() {
-    recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
-        'sitekey': '{{ config.RECAPTCHA_V2_SITE_KEY or config.RECAPTCHA_SITE_KEY }}',
-        'theme': 'light'
-    });
-}
-
-function validateLogin() {
-    if (typeof grecaptcha !== 'undefined' && recaptchaWidgetId !== undefined) {
-        var response = grecaptcha.getResponse(recaptchaWidgetId);
-        if (!response) {
-            alert('Please complete the reCAPTCHA verification.');
-            return false;
-        }
-    }
-    return true;
-}
-</script>
+<!-- Simple reCAPTCHA v2 automatic rendering -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %}
 
 {% block content %}
@@ -36,7 +14,7 @@ function validateLogin() {
                     <h2 class="mb-0">Login</h2>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('login') }}" id="login-form" onsubmit="return validateLogin()">
+                    <form method="POST" action="{{ url_for('login') }}" id="login-form">
                         {{ form.hidden_tag() }}
                         
                         <div class="form-group mb-3">
@@ -58,9 +36,9 @@ function validateLogin() {
                             <a href="{{ url_for('forgot_password') }}" class="text-decoration-none">Forgot password?</a>
                         </div>
                         
-                        <!-- reCAPTCHA v2 Widget with explicit rendering -->
+                        <!-- reCAPTCHA v2 Widget with automatic rendering -->
                         <div class="mb-3">
-                            <div id="recaptcha-container"></div>
+                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_V2_SITE_KEY or config.RECAPTCHA_SITE_KEY }}"></div>
                         </div>
                         
                         <div class="d-grid">
