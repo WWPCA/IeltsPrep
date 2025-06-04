@@ -481,29 +481,35 @@ def login():
             flash('Please provide both email and password', 'danger')
             return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
-        # reCAPTCHA validation - REQUIRED for security
+        # MANDATORY reCAPTCHA validation - SECURITY CRITICAL
         recaptcha_response = request.form.get('g-recaptcha-response')
-        logging.debug(f"Received reCAPTCHA token: {recaptcha_response is not None}")
+        logging.debug(f"reCAPTCHA token received: {bool(recaptcha_response)}")
         
-        if not recaptcha_response:
-            flash('Security verification failed. Please try again.', 'danger')
+        # STRICT: No login without reCAPTCHA response
+        if not recaptcha_response or len(recaptcha_response.strip()) == 0:
+            logging.warning(f"Login attempt blocked: Missing reCAPTCHA token from {request.remote_addr}")
+            flash('Please complete the security verification to continue.', 'danger')
             return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
-        # Verify reCAPTCHA with Google
+        # STRICT: Verify with Google - NO BYPASS
         try:
-            logging.debug(f"Verifying reCAPTCHA with token: {recaptcha_response[:20]}...")
-            success, score, errors = recaptcha_helper.verify_recaptcha(recaptcha_response, action='login', min_score=0.5)
-            recaptcha_result = {'success': success, 'error': ', '.join(errors) if errors else None}
-            logging.debug(f"reCAPTCHA verification result: {recaptcha_result}")
+            logging.info(f"Verifying reCAPTCHA token: {recaptcha_response[:20]}...")
+            success, score, errors = recaptcha_helper.verify_recaptcha(recaptcha_response)
             
-            if not recaptcha_result.get('success'):
-                error_msg = recaptcha_result.get('error', 'Unknown verification error')
-                logging.error(f"reCAPTCHA verification failed: {error_msg}")
-                flash(f'Security verification failed: {error_msg}. Please try again.', 'danger')
+            logging.info(f"reCAPTCHA verification result: success={success}, errors={errors}")
+            
+            # STRICT: Must pass verification
+            if not success:
+                error_msg = ', '.join(errors) if errors else 'Verification failed'
+                logging.error(f"reCAPTCHA verification FAILED for {request.remote_addr}: {error_msg}")
+                flash('Security verification failed. Please try again.', 'danger')
                 return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+                
+            logging.info(f"reCAPTCHA verification SUCCESSFUL for {request.remote_addr}")
+            
         except Exception as e:
-            logging.error(f"reCAPTCHA verification exception: {str(e)}")
-            flash('Security verification service unavailable. Please try again later.', 'danger')
+            logging.error(f"reCAPTCHA verification EXCEPTION: {str(e)}")
+            flash('Security verification service error. Please try again.', 'danger')
             return render_template('login.html', title='Login', form=form, recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         user = User.query.filter_by(email=email).first()
