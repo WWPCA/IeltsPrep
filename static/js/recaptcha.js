@@ -102,7 +102,12 @@ function renderRecaptcha(containerId) {
     }
     
     try {
-        return grecaptcha.render(containerId, {
+        console.log('Rendering reCAPTCHA widget with parameters:', {
+            containerId: containerId,
+            sitekey: window.recaptchaSiteKey
+        });
+        
+        const widgetId = grecaptcha.render(containerId, {
             'sitekey': window.recaptchaSiteKey,
             'theme': 'light',
             'callback': function(response) {
@@ -120,6 +125,9 @@ function renderRecaptcha(containerId) {
                 showRecaptchaError('Security verification failed. Please refresh the page and try again.');
             }
         });
+        
+        console.log('reCAPTCHA widget rendered successfully, widget ID:', widgetId);
+        return widgetId;
     } catch (error) {
         console.error('Failed to render reCAPTCHA:', error);
         showRecaptchaError('Failed to load security verification. Please refresh the page.');
@@ -201,18 +209,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Pre-load reCAPTCHA for better user experience
     loadRecaptchaWithRetry().then(() => {
-        // Render reCAPTCHA widgets after loading
-        const recaptchaContainers = document.querySelectorAll('.g-recaptcha');
-        recaptchaContainers.forEach(container => {
-            if (!container.hasChildNodes() && container.id) {
-                renderRecaptcha(container.id);
-            } else if (!container.hasChildNodes()) {
-                // Create unique ID if none exists
-                const uniqueId = 'recaptcha-' + Math.random().toString(36).substr(2, 9);
-                container.id = uniqueId;
-                renderRecaptcha(uniqueId);
-            }
-        });
+        console.log('reCAPTCHA loaded successfully, rendering widgets...');
+        
+        // Wait a moment for the API to be fully ready
+        setTimeout(() => {
+            // Render reCAPTCHA widgets after loading
+            const recaptchaContainers = document.querySelectorAll('.g-recaptcha');
+            console.log('Found reCAPTCHA containers:', recaptchaContainers.length);
+            
+            recaptchaContainers.forEach((container, index) => {
+                console.log(`Processing container ${index + 1}:`, container);
+                
+                if (!container.hasChildNodes() && container.id) {
+                    console.log(`Rendering reCAPTCHA for container with ID: ${container.id}`);
+                    renderRecaptcha(container.id);
+                } else if (!container.hasChildNodes()) {
+                    // Create unique ID if none exists
+                    const uniqueId = 'recaptcha-' + Math.random().toString(36).substr(2, 9);
+                    container.id = uniqueId;
+                    console.log(`Rendering reCAPTCHA for container with new ID: ${uniqueId}`);
+                    renderRecaptcha(uniqueId);
+                }
+            });
+        }, 100); // Small delay to ensure API is ready
     }).catch(error => {
         console.error('Failed to initialize reCAPTCHA:', error);
         showRecaptchaError('Failed to load security verification. Please refresh the page.');
