@@ -116,13 +116,16 @@ def generate_speech():
         }), 200
             
     except ClientError as e:
-        app.logger.error(f"AWS Sonic error: {e}")
-        return jsonify({'success': False, 'error': 'AWS service error'}), 500
+        app.logger.error(f"AWS Polly ClientError: {e}")
+        app.logger.error(f"Error code: {e.response.get('Error', {}).get('Code', 'Unknown')}")
+        app.logger.error(f"Error message: {e.response.get('Error', {}).get('Message', 'Unknown')}")
+        return jsonify({'success': False, 'error': f'AWS Polly error: {e.response.get("Error", {}).get("Message", "Unknown error")}'}), 500
     except BotoCoreError as e:
-        app.logger.error(f"AWS SDK error: {e}")
+        app.logger.error(f"AWS SDK BotoCoreError: {e}")
         return jsonify({'success': False, 'error': 'AWS SDK error'}), 500
     except Exception as e:
-        app.logger.error(f"Unexpected error in speech generation: {e}")
+        app.logger.error(f"Unexpected error in Polly speech generation: {e}")
+        app.logger.error(f"Exception type: {type(e).__name__}")
         return jsonify({'success': False, 'error': 'Speech generation service unavailable'}), 500
 
 # Real-time conversation API endpoints
