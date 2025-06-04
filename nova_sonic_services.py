@@ -472,8 +472,9 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             response = polly_client.synthesize_speech(
                 Text=text,
                 OutputFormat='mp3',
-                VoiceId=voice,  # Amy is British English female
-                Engine='neural'  # Use neural engine for better quality
+                VoiceId='Amy',  # Amy is British English female
+                Engine='generative',  # Use generative engine for most natural speech
+                LanguageCode='en-GB'  # British English
             )
             
             # Read audio stream
