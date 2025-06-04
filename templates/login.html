@@ -77,10 +77,15 @@
               form.appendChild(tokenInput);
               console.log('Submitting form with reCAPTCHA token');
               
-              // Create a new form data object to ensure all fields are preserved
-              const formData = new FormData(form);
+              // Ensure CSRF token is preserved during submission
+              const csrfToken = document.querySelector('input[name="csrf_token"]');
+              if (csrfToken) {
+                console.log('CSRF token found and will be preserved');
+              } else {
+                console.error('CSRF token not found in form');
+              }
               
-              // Simply submit the form normally now that reCAPTCHA token is added
+              // Submit form with all tokens preserved
               form.submit();
             })
             .catch(function(error) {
