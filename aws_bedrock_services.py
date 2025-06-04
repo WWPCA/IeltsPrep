@@ -274,7 +274,7 @@ def assess_speaking_with_nova_micro(transcription, prompt_text, part_number):
         logger.error(f"AWS Bedrock error: {error_code} - {error_message}")
         raise
     except Exception as e:
-        logger.error(f"Error assessing speaking with Nova Micro: {str(e)}")
+        logger.error(f"Error assessing speaking with Nova Sonic: {str(e)}")
         raise
 
 # Add simple test function to validate credentials and access

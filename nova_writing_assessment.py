@@ -183,7 +183,7 @@ def evaluate_writing_with_nova(essay_text, prompt_text, essay_type, test_type="a
         logger.error(f"AWS Bedrock error: {error_code} - {error_message}")
         raise
     except Exception as e:
-        logger.error(f"Error evaluating writing with Nova Micro: {str(e)}")
+        logger.error(f"Error evaluating writing with Nova Sonic: {str(e)}")
         raise
 
 def analyze_writing_response(student_essay, prompt, task_type="task1", test_type="academic"):
