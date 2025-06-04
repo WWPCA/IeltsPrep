@@ -14,7 +14,7 @@
                     <h2 class="mb-0">Login</h2>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('login') }}" id="login-form" data-recaptcha="true">
+                    <form method="POST" action="{{ url_for('login') }}" id="login-form">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         
                         <div class="form-group mb-3">
@@ -38,7 +38,7 @@
                         
                         <!-- reCAPTCHA v2 Widget -->
                         <div class="mb-3">
-                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}" id="recaptcha-login"></div>
+                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
                         </div>
                         
                         <div class="d-grid">
