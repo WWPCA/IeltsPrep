@@ -913,8 +913,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function playMayaResponse(text) {
         try {
-            // Use Amazon Polly for professional British voice
-            console.log('Calling Amazon Polly API for speech generation...');
+            // Use Nova Sonic for professional British voice
+            console.log('Calling Nova Sonic API for speech generation...');
             console.log('Text to synthesize:', text);
             console.log('Text length:', text ? text.length : 'undefined');
             
@@ -931,12 +931,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
             
-            console.log('Polly API response status:', response.status);
+            console.log('Nova Sonic API response status:', response.status);
             const result = await response.json();
-            console.log('Polly API result:', result);
+            console.log('Nova Sonic API result:', result);
             
             if (result.success && result.audio_url) {
                 const audio = new Audio(result.audio_url);
+                
+                // Setup audio analyzer for Nova Sonic's enhanced voice visualization
+                setupNovaAudioAnalyzer(audio);
                 
                 conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is speaking...</div>';
                 
@@ -951,12 +954,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     audio.play();
                 });
             } else {
-                console.error('Amazon Polly speech generation failed:', result.error || 'Unknown error');
+                console.error('Nova Sonic speech generation failed:', result.error || 'Unknown error');
                 conversationStatus.innerHTML = '<div class="h5 text-danger">Speech generation failed - Check your connection</div>';
                 return Promise.resolve();
             }
         } catch (error) {
-            console.error('Error with Amazon Polly speech generation:', error);
+            console.error('Error with Nova Sonic speech generation:', error);
             conversationStatus.innerHTML = '<div class="h5 text-danger">Speech generation error - Please try again</div>';
         }
         return Promise.resolve();

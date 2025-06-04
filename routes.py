@@ -104,17 +104,17 @@ def generate_speech():
             return jsonify({'success': False, 'error': result.get('error', 'Speech generation failed')}), 500
             
     except ClientError as e:
-        app.logger.error(f"AWS Polly ClientError: {e}")
+        app.logger.error(f"AWS Nova Sonic ClientError: {e}")
         app.logger.error(f"Error code: {e.response.get('Error', {}).get('Code', 'Unknown')}")
         app.logger.error(f"Error message: {e.response.get('Error', {}).get('Message', 'Unknown')}")
-        return jsonify({'success': False, 'error': f'AWS Polly error: {e.response.get("Error", {}).get("Message", "Unknown error")}'}), 500
+        return jsonify({'success': False, 'error': f'AWS Nova Sonic error: {e.response.get("Error", {}).get("Message", "Unknown error")}'}), 500
     except BotoCoreError as e:
         app.logger.error(f"AWS SDK BotoCoreError: {e}")
         return jsonify({'success': False, 'error': 'AWS SDK error'}), 500
     except Exception as e:
-        app.logger.error(f"Unexpected error in Polly speech generation: {e}")
+        app.logger.error(f"Unexpected error in Nova Sonic speech generation: {e}")
         app.logger.error(f"Exception type: {type(e).__name__}")
-        return jsonify({'success': False, 'error': 'Speech generation service unavailable'}), 500
+        return jsonify({'success': False, 'error': 'Nova Sonic speech generation service unavailable'}), 500
 
 # Real-time conversation API endpoints
 @app.route('/api/start_conversation', methods=['POST'])
