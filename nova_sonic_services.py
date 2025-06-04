@@ -175,6 +175,78 @@ Respond as a professional but friendly British examiner. Keep responses conversa
         except Exception as e:
             logger.error(f"Unexpected Nova Sonic error: {e}")
             return {"success": False, "error": str(e)}
+    
+    def generate_speech(self, text, voice='Amy', style='professional_examiner'):
+        """
+        Generate speech audio using Nova Sonic's text-to-speech capabilities
+        
+        Args:
+            text (str): Text to convert to speech
+            voice (str): Voice to use (default: Amy for British accent)
+            style (str): Speaking style (default: professional_examiner)
+            
+        Returns:
+            dict: Audio data and success status
+        """
+        try:
+            import base64
+            
+            # Prepare Nova Sonic text-to-speech request
+            request_body = {
+                "inputText": text,
+                "voiceConfig": {
+                    "voice": "Female",  # Nova Sonic voice option
+                    "style": "professional",
+                    "speed": "normal",
+                    "language": "en-GB"  # British English
+                },
+                "outputConfig": {
+                    "audioFormat": "mp3",
+                    "sampleRate": "24000"
+                }
+            }
+            
+            logger.info(f"Generating speech with Nova Sonic for text: {text[:50]}...")
+            
+            response = self.client.invoke_model(
+                modelId='amazon.nova-sonic-v1:0',
+                contentType='application/json',
+                accept='application/json',
+                body=json.dumps(request_body)
+            )
+            
+            result = json.loads(response['body'].read())
+            
+            # Extract audio data from Nova Sonic response
+            audio_data = None
+            if 'audio' in result:
+                audio_data = result['audio']
+            elif 'audioData' in result:
+                audio_data = result['audioData']
+            elif 'output' in result and 'audio' in result['output']:
+                audio_data = result['output']['audio']
+            
+            if audio_data:
+                # Create data URL for web playback
+                audio_url = f"data:audio/mp3;base64,{audio_data}"
+                
+                logger.info("Nova Sonic speech generation successful")
+                
+                return {
+                    "success": True,
+                    "audio_url": audio_url,
+                    "audio_data": audio_data
+                }
+            else:
+                logger.error("No audio data in Nova Sonic response")
+                return {"success": False, "error": "No audio data received from Nova Sonic"}
+                
+        except ClientError as e:
+            logger.error(f"Nova Sonic speech generation error: {e}")
+            return {"success": False, "error": str(e)}
+        except Exception as e:
+            logger.error(f"Unexpected Nova Sonic speech error: {e}")
+            return {"success": False, "error": str(e)}
 
     def continue_conversation(self, conversation_id, user_response, conversation_history):
         """
