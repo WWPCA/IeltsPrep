@@ -64,7 +64,7 @@ class NovaSonicProperService:
                 "additionalModelRequestFields": {
                     "audio": {
                         "format": "mp3",
-                        "voice": "Emma"
+                        "voice": "amy"
                     }
                 }
             }
@@ -147,7 +147,7 @@ class NovaSonicProperService:
                 "additionalModelRequestFields": {
                     "audio": {
                         "format": "mp3",
-                        "voice": "Emma"
+                        "voice": "amy"
                     }
                 }
             }
