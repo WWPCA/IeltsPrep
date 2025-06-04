@@ -70,9 +70,7 @@ def get_assessment_id_from_number(assessment_type, assessment_number):
 @app.route('/api/generate_speech', methods=['POST'])
 @login_required
 def generate_speech():
-    """Generate speech audio using Amazon Polly for Maya's British voice"""
-    import boto3
-    import base64
+    """Generate speech audio using Nova Sonic for Maya's British voice"""
     from botocore.exceptions import ClientError, BotoCoreError
     
     try:
@@ -86,34 +84,24 @@ def generate_speech():
         if len(question_text) > 1000:
             return jsonify({'success': False, 'error': 'Text must be less than 1000 characters'}), 400
         
-        # Initialize Amazon Polly client directly
-        polly_client = boto3.client(
-            'polly',
-            region_name='us-east-1',
-            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+        # Initialize Nova Sonic service
+        nova_sonic = NovaSonicService()
+        
+        # Generate speech with British female voice for Maya
+        result = nova_sonic.generate_speech(
+            text=question_text,
+            voice='Amy',
+            style='professional_examiner'
         )
         
-        # Generate speech with Amy's British voice using Generative Engine
-        response = polly_client.synthesize_speech(
-            Text=question_text,
-            OutputFormat='mp3',
-            VoiceId='Amy',
-            Engine='generative',
-            LanguageCode='en-GB'
-        )
-        
-        # Read audio stream
-        audio_data = response['AudioStream'].read()
-        
-        # Convert to base64 for web playback
-        audio_base64 = base64.b64encode(audio_data).decode()
-        
-        return jsonify({
-            'success': True,
-            'audio_url': f"data:audio/mp3;base64,{audio_base64}",
-            'audio_data': audio_base64
-        }), 200
+        if result.get('success'):
+            return jsonify({
+                'success': True,
+                'audio_url': result.get('audio_url'),
+                'audio_data': result.get('audio_data')
+            }), 200
+        else:
+            return jsonify({'success': False, 'error': result.get('error', 'Speech generation failed')}), 500
             
     except ClientError as e:
         app.logger.error(f"AWS Polly ClientError: {e}")
