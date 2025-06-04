@@ -176,13 +176,14 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             logger.error(f"Unexpected Nova Sonic error: {e}")
             return {"success": False, "error": str(e)}
     
-    def generate_speech(self, text, voice='Amy', style='professional_examiner'):
+    def generate_speech(self, text, voice='Female', style='professional_examiner'):
         """
         Generate speech audio using Nova Sonic's text-to-speech capabilities
+        Based on AWS Nova Sonic documentation for speech generation
         
         Args:
             text (str): Text to convert to speech
-            voice (str): Voice to use (default: Amy for British accent)
+            voice (str): Voice to use (default: Female for British accent)
             style (str): Speaking style (default: professional_examiner)
             
         Returns:
@@ -191,18 +192,29 @@ Respond as a professional but friendly British examiner. Keep responses conversa
         try:
             import base64
             
-            # Prepare Nova Sonic text-to-speech request
+            # Prepare Nova Sonic text-to-speech request based on AWS documentation
             request_body = {
-                "inputText": text,
-                "voiceConfig": {
-                    "voice": "Female",  # Nova Sonic voice option
-                    "style": "professional",
-                    "speed": "normal",
-                    "language": "en-GB"  # British English
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "text": text
+                            }
+                        ]
+                    }
+                ],
+                "inferenceConfig": {
+                    "maxTokens": 1000,
+                    "temperature": 0.7,
+                    "topP": 0.9
                 },
-                "outputConfig": {
-                    "audioFormat": "mp3",
-                    "sampleRate": "24000"
+                "speechConfig": {
+                    "voice": "Female",
+                    "outputFormat": "mp3",
+                    "sampleRate": 24000,
+                    "stability": 0.8,
+                    "similarityBoost": 0.7
                 }
             }
             
@@ -216,15 +228,16 @@ Respond as a professional but friendly British examiner. Keep responses conversa
             )
             
             result = json.loads(response['body'].read())
+            logger.info(f"Nova Sonic speech response structure: {list(result.keys())}")
             
-            # Extract audio data from Nova Sonic response
+            # Extract audio data from Nova Sonic response according to AWS format
             audio_data = None
-            if 'audio' in result:
-                audio_data = result['audio']
-            elif 'audioData' in result:
-                audio_data = result['audioData']
-            elif 'output' in result and 'audio' in result['output']:
-                audio_data = result['output']['audio']
+            if 'output' in result and 'message' in result['output']:
+                content = result['output']['message'].get('content', [])
+                for item in content:
+                    if 'audio' in item:
+                        audio_data = item['audio']
+                        break
             
             if audio_data:
                 # Create data URL for web playback
@@ -238,7 +251,7 @@ Respond as a professional but friendly British examiner. Keep responses conversa
                     "audio_data": audio_data
                 }
             else:
-                logger.error("No audio data in Nova Sonic response")
+                logger.error(f"No audio data in Nova Sonic response: {result}")
                 return {"success": False, "error": "No audio data received from Nova Sonic"}
                 
         except ClientError as e:
