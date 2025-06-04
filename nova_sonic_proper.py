@@ -35,7 +35,7 @@ class NovaSonicProperService:
     
     def start_conversation(self, assessment_type='academic_speaking', part=1):
         """
-        Start a conversation using Nova Sonic with proper audio generation
+        Auto-start conversation when assessment page loads with Maya's introduction
         
         Args:
             assessment_type (str): Type of assessment
@@ -48,9 +48,9 @@ class NovaSonicProperService:
             # Build examiner prompt based on IELTS requirements
             examiner_prompt = self._build_examiner_prompt(assessment_type, part)
             
-            logger.info(f"Starting Nova Sonic conversation for {assessment_type} part {part}")
+            logger.info(f"Auto-starting Nova Sonic conversation for {assessment_type} part {part}")
             
-            # Nova Sonic request with proper voice configuration
+            # Auto-trigger conversation on page load
             request_body = {
                 "messages": [
                     {
@@ -59,7 +59,7 @@ class NovaSonicProperService:
                     },
                     {
                         "role": "user", 
-                        "content": [{"text": "Hello, I'm ready to begin the speaking assessment."}]
+                        "content": [{"text": "The assessment page has loaded and I'm ready to begin."}]
                     }
                 ],
                 "inferenceConfig": {
@@ -241,6 +241,27 @@ class NovaSonicProperService:
                     self.conversation_state[conversation_id]['questions_asked'] = \
                         self.conversation_state[conversation_id].get('questions_asked', 0) + 1
                     self.conversation_state[conversation_id]['last_interaction'] = datetime.now()
+                    
+                    # Check if Part 1 is complete (4-5 minutes or sufficient questions)
+                    elapsed_time = (datetime.now() - self.conversation_state[conversation_id]['start_time']).seconds // 60
+                    questions_asked = self.conversation_state[conversation_id]['questions_asked']
+                    current_part = self.conversation_state[conversation_id]['part']
+                    
+                    if current_part == 1 and (elapsed_time >= 4 or questions_asked >= 6):
+                        # Mark Part 1 as complete and suggest Part 2
+                        self.conversation_state[conversation_id]['part_1_complete'] = True
+
+            # Check if this is the end of Part 1 and add transition guidance
+            part_completion_guidance = ""
+            show_part2_button = False
+            
+            if conversation_id in self.conversation_state:
+                conv_state = self.conversation_state[conversation_id]
+                if conv_state.get('part_1_complete') and conv_state['part'] == 1:
+                    part_completion_guidance = "Thank you for completing Part 1. When you're ready to move to Part 2, please click the 'Start Part 2' button at the bottom of the screen."
+                    show_part2_button = True
+                    # Add polite transition to examiner response
+                    examiner_text += " " + part_completion_guidance
 
             return {
                 "success": True,
@@ -253,7 +274,10 @@ class NovaSonicProperService:
                 "assessment_feedback": assessment_data if user_transcription else None,
                 "current_performance": self.performance_tracker.get(conversation_id, {}).get('current_scores', {}),
                 "questions_completed": self.conversation_state.get(conversation_id, {}).get('questions_asked', 0),
-                "conversation_guidance": "Nova Sonic automatically listens for your response and asks the next question"
+                "conversation_guidance": "Nova Sonic automatically listens for your response and asks the next question",
+                "part_complete": self.conversation_state.get(conversation_id, {}).get('part_1_complete', False),
+                "show_part2_button": show_part2_button,
+                "transition_message": part_completion_guidance if show_part2_button else None
             }
             
         except ClientError as e:

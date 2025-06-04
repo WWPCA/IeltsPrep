@@ -10,12 +10,12 @@ class NovaSonicTriggerAnalysis:
     
     CONVERSATION_TRIGGERS = {
         "initial_conversation_start": {
-            "trigger": "User clicks 'Start Conversation' button",
+            "trigger": "Assessment page loads automatically",
             "method": "start_conversation()",
-            "input_text": "Hello, I'm ready to begin the speaking assessment.",
+            "input_text": "The assessment page has loaded and I'm ready to begin.",
             "system_prompt": "Maya, certified IELTS examiner conducting official assessment",
             "audio_generation": "Automatic with 'amy' British voice",
-            "expected_response": "Good morning! I'm Maya, your IELTS examiner. Let's begin..."
+            "expected_response": "Good morning! I'm Maya, your IELTS examiner. This is Part 1..."
         },
         
         "user_audio_response": {
@@ -25,6 +25,22 @@ class NovaSonicTriggerAnalysis:
             "processing": "Speech-to-text transcription + IELTS assessment",
             "audio_generation": "Automatic response with next question",
             "flow_logic": "Intelligent question progression based on test structure"
+        },
+        
+        "part_1_completion": {
+            "trigger": "4-5 minutes elapsed or 6+ questions answered",
+            "method": "Auto-detection in continue_conversation()",
+            "system_response": "Maya politely suggests Part 2 transition",
+            "audio_generation": "Thank you for completing Part 1. Please click 'Start Part 2' button",
+            "ui_change": "Part 2 button appears at bottom of screen"
+        },
+        
+        "part_2_start": {
+            "trigger": "User clicks 'Start Part 2' button",
+            "method": "start_conversation() with part=2",
+            "system_response": "Maya presents cue card and instructions",
+            "audio_generation": "Part 2 introduction with speaking topic",
+            "preparation_time": "1 minute thinking + 1-2 minute speech"
         },
         
         "conversation_completion": {
