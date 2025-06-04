@@ -10,6 +10,7 @@ import logging
 from datetime import datetime
 from botocore.exceptions import ClientError
 from ielts_question_database import IELTSQuestionDatabase
+from ielts_rubric_scorer import IELTSRubricScorer
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +21,13 @@ class NovaSonicProperService:
     """
     
     def __init__(self):
-        """Initialize Nova Sonic client with proper error handling"""
+        """Initialize Nova Sonic client with conversation state management"""
         try:
             self.client = boto3.client('bedrock-runtime', region_name='us-east-1')
+            self.conversation_state = {}
+            self.performance_tracker = {}
+            self.current_questions = []
+            self.question_index = 0
             logger.info("Nova Sonic client initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Nova Sonic client: {e}")
@@ -86,8 +91,25 @@ class NovaSonicProperService:
             if not examiner_text:
                 examiner_text = "Good morning! I'm Maya, your IELTS examiner. Let's begin your speaking assessment."
             
-            # Create conversation ID
+            # Create conversation ID and initialize state
             conversation_id = f"nova_conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            # Initialize conversation state for intelligent flow management
+            self.conversation_state[conversation_id] = {
+                'part': part,
+                'assessment_type': assessment_type,
+                'start_time': datetime.now(),
+                'questions_asked': 0,
+                'current_topic': None,
+                'next_question_ready': True
+            }
+            
+            # Initialize performance tracking
+            self.performance_tracker[conversation_id] = {
+                'responses': [],
+                'current_scores': {'fluency': 0, 'lexical': 0, 'grammar': 0, 'pronunciation': 0},
+                'assessment_notes': []
+            }
             
             return {
                 "success": True,
@@ -97,7 +119,8 @@ class NovaSonicProperService:
                 "audio_url": f"data:audio/mp3;base64,{audio_data}" if audio_data else None,
                 "session_active": True,
                 "part_number": part,
-                "assessment_type": assessment_type
+                "assessment_type": assessment_type,
+                "conversation_guidance": "Nova Sonic will automatically ask the next question when you finish speaking"
             }
             
         except ClientError as e:
@@ -171,6 +194,54 @@ class NovaSonicProperService:
             logger.info(f"Nova Sonic response: {examiner_text[:100]}...")
             logger.info(f"User transcription: {user_transcription[:100]}...")
             
+            # Perform real-time IELTS assessment on user response
+            assessment_data = None
+            if user_transcription:
+                conv_state = self.conversation_state.get(conversation_id, {})
+                assessment_data = IELTSRubricScorer.analyze_response(
+                    user_transcription, 
+                    {
+                        'topic': conv_state.get('current_topic', 'general'),
+                        'part': conv_state.get('part', 1),
+                        'assessment_type': conv_state.get('assessment_type', 'academic')
+                    }
+                )
+                
+                # Update performance tracking
+                if conversation_id not in self.performance_tracker:
+                    self.performance_tracker[conversation_id] = {
+                        'responses': [],
+                        'current_scores': {'fluency': 0, 'lexical': 0, 'grammar': 0, 'pronunciation': 0},
+                        'assessment_notes': []
+                    }
+                
+                perf_tracker = self.performance_tracker[conversation_id]
+                perf_tracker['responses'].append({
+                    'timestamp': datetime.now().isoformat(),
+                    'user_text': user_transcription,
+                    'assessment': assessment_data,
+                    'question_number': conv_state.get('questions_asked', 0) + 1
+                })
+                
+                # Update current scores
+                perf_tracker['current_scores'] = {
+                    'fluency': assessment_data.get('fluency_coherence', 0),
+                    'lexical': assessment_data.get('lexical_resource', 0),
+                    'grammar': assessment_data.get('grammar_accuracy', 0),
+                    'pronunciation': assessment_data.get('pronunciation', 6)
+                }
+                
+                # Add assessment notes
+                perf_tracker['assessment_notes'].extend(
+                    assessment_data.get('detailed_feedback', [])
+                )
+                
+                # Update conversation state
+                if conversation_id in self.conversation_state:
+                    self.conversation_state[conversation_id]['questions_asked'] = \
+                        self.conversation_state[conversation_id].get('questions_asked', 0) + 1
+                    self.conversation_state[conversation_id]['last_interaction'] = datetime.now()
+
             return {
                 "success": True,
                 "conversation_id": conversation_id,
@@ -178,7 +249,11 @@ class NovaSonicProperService:
                 "user_transcription": user_transcription,
                 "audio_data": audio_data,
                 "audio_url": f"data:audio/mp3;base64,{audio_data}" if audio_data else None,
-                "session_active": True
+                "session_active": True,
+                "assessment_feedback": assessment_data if user_transcription else None,
+                "current_performance": self.performance_tracker.get(conversation_id, {}).get('current_scores', {}),
+                "questions_completed": self.conversation_state.get(conversation_id, {}).get('questions_asked', 0),
+                "conversation_guidance": "Nova Sonic automatically listens for your response and asks the next question"
             }
             
         except ClientError as e:
