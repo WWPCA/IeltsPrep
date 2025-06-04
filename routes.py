@@ -90,7 +90,7 @@ def generate_speech():
         # Generate speech with British female voice for ClearScore®
         result = nova_sonic.generate_speech(
             text=question_text,
-            voice='british_female',
+            voice='Amy',
             style='professional_examiner'
         )
         
