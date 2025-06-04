@@ -1,135 +1,169 @@
 """
-Custom reCAPTCHA v3 implementation for IELTS GenAI Prep application.
-This helper works with invisible reCAPTCHA v3 to provide protection against bots.
+reCAPTCHA Helper Module
+Provides server-side reCAPTCHA verification with robust error handling
 """
 
 import os
 import requests
-from flask import request
+import logging
+from flask import request, current_app
+import json
 
-class ReCaptchaV3:
-    """Simple reCAPTCHA v3 implementation for Flask applications."""
+logger = logging.getLogger(__name__)
+
+def get_recaptcha_secret_key():
+    """Get the appropriate reCAPTCHA secret key"""
+    return (os.environ.get("RECAPTCHA_PRIVATE_KEY") or 
+            os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY"))
+
+def verify_recaptcha(token, action=None, min_score=0.5):
+    """
+    Verify reCAPTCHA token with Google's servers
     
-    VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
+    Args:
+        token (str): The reCAPTCHA token from the client
+        action (str): Expected action (login, register, etc.)
+        min_score (float): Minimum score threshold (0.0 to 1.0)
     
-    def __init__(self, app=None):
-        self.site_key = None
-        self.secret_key = None
-        self.is_enabled = False
-        
-        if app:
-            self.init_app(app)
+    Returns:
+        tuple: (success: bool, score: float, errors: list)
+    """
+    if not token:
+        logger.warning("reCAPTCHA verification failed: No token provided")
+        return False, 0.0, ["No reCAPTCHA token provided"]
     
-    def init_app(self, app):
-        """Initialize with Flask app instance"""
-        self.site_key = app.config.get("RECAPTCHA_SITE_KEY", "")
-        self.secret_key = app.config.get("RECAPTCHA_SECRET_KEY", "")
-        self.is_enabled = bool(self.site_key and self.secret_key)
-        
-        # Register context processor to make site_key available in templates
-        @app.context_processor
-        def inject_recaptcha():
-            return dict(recaptcha_site_key=self.site_key)
+    secret_key = get_recaptcha_secret_key()
+    if not secret_key:
+        logger.error("reCAPTCHA verification failed: No secret key configured")
+        return False, 0.0, ["reCAPTCHA not configured"]
     
-    def verify(self, response=None, remote_ip=None, action=None, min_score=0.5):
-        """
-        Verify the reCAPTCHA response
+    # Prepare verification request
+    verify_url = "https://www.google.com/recaptcha/api/siteverify"
+    data = {
+        'secret': secret_key,
+        'response': token,
+        'remoteip': get_client_ip()
+    }
+    
+    try:
+        # Make request to Google's verification endpoint
+        response = requests.post(verify_url, data=data, timeout=10)
+        response.raise_for_status()
         
-        Args:
-            response (str, optional): The g-recaptcha-response token from the form
-            remote_ip (str, optional): Remote IP address, defaults to request.remote_addr
-            action (str, optional): Expected action name to verify
-            min_score (float, optional): Minimum score threshold (0.0-1.0), defaults to 0.5
-            
-        Returns:
-            dict: Verification result with keys 'success', 'score', 'action'
-        """
-        import logging
-        import os
-        import re
-        from flask import request
+        result = response.json()
+        logger.info(f"reCAPTCHA verification response: {result}")
         
-        logging.basicConfig(level=logging.DEBUG)
+        success = result.get('success', False)
+        score = result.get('score', 0.0)
+        errors = result.get('error-codes', [])
         
-        # Get domain from request or environment
-        domain = request.host if hasattr(request, 'host') else os.environ.get('REPLIT_DOMAINS', 'localhost')
-        logging.debug(f"Current domain: {domain}")
+        # Check action if provided
+        if success and action:
+            returned_action = result.get('action', '')
+            if returned_action != action:
+                logger.warning(f"reCAPTCHA action mismatch: expected {action}, got {returned_action}")
+                return False, score, [f"Action mismatch: expected {action}"]
         
-        # For development/testing, we need proper reCAPTCHA validation too
-        # Only bypass if explicitly disabled or keys are missing
-            
-        # Check if reCAPTCHA is properly configured
-        if not self.is_enabled:
-            logging.error(f"reCAPTCHA not enabled - site_key: {bool(self.site_key)}, secret_key: {bool(self.secret_key)}")
-            return {'success': False, 'score': 0.0, 'action': None, 'error': 'reCAPTCHA not configured'}
+        # Check score threshold
+        if success and score < min_score:
+            logger.warning(f"reCAPTCHA score too low: {score} < {min_score}")
+            return False, score, [f"Score too low: {score}"]
         
-        logging.debug(f"reCAPTCHA enabled with site_key: {self.site_key[:10]}... and secret_key configured")
+        if success:
+            logger.info(f"reCAPTCHA verification successful: score={score}, action={action}")
+        else:
+            logger.warning(f"reCAPTCHA verification failed: errors={errors}")
         
-        if not response:
-            # Try to get the token from the form submission
-            response = request.form.get('g-recaptcha-response')
-            logging.debug(f"Found reCAPTCHA response token: {response is not None}")
-            
-        if not response:
-            # No token found
-            return {'success': False, 'score': 0.0, 'action': None, 'error': 'Missing reCAPTCHA response'}
+        return success, score, errors
         
-        # Prepare verification data
-        verify_data = {
-            'secret': self.secret_key,
-            'response': response,
-            'remoteip': remote_ip or request.remote_addr
-        }
+    except requests.exceptions.Timeout:
+        logger.error("reCAPTCHA verification timeout")
+        return False, 0.0, ["Verification service timeout"]
         
-        try:
-            # Send verification request to Google
-            r = requests.post(self.VERIFY_URL, data=verify_data)
-            result = r.json()
-            logging.debug(f"reCAPTCHA verification result: {result}")
+    except requests.exceptions.ConnectionError:
+        logger.error("reCAPTCHA verification connection error")
+        return False, 0.0, ["Cannot connect to verification service"]
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"reCAPTCHA verification request error: {e}")
+        return False, 0.0, ["Verification service error"]
+        
+    except json.JSONDecodeError:
+        logger.error("reCAPTCHA verification invalid response format")
+        return False, 0.0, ["Invalid verification response"]
+        
+    except Exception as e:
+        logger.error(f"reCAPTCHA verification unexpected error: {e}")
+        return False, 0.0, ["Verification failed"]
+
+def get_client_ip():
+    """Get the real client IP address, accounting for proxies"""
+    # Check for forwarded IP first (common in proxy setups)
+    forwarded_ips = request.headers.get('X-Forwarded-For')
+    if forwarded_ips:
+        # Get the first IP (original client)
+        return forwarded_ips.split(',')[0].strip()
+    
+    # Check other common proxy headers
+    real_ip = request.headers.get('X-Real-IP')
+    if real_ip:
+        return real_ip
+    
+    # Fall back to remote address
+    return request.environ.get('REMOTE_ADDR', '127.0.0.1')
+
+def require_recaptcha(action=None, min_score=0.5):
+    """
+    Decorator to require reCAPTCHA verification for a route
+    
+    Args:
+        action (str): Expected reCAPTCHA action
+        min_score (float): Minimum score threshold
+    
+    Returns:
+        Flask response or None if verification passes
+    """
+    def decorator(f):
+        def decorated_function(*args, **kwargs):
+            # Get reCAPTCHA token from form data
+            token = request.form.get('g-recaptcha-response')
             
-            # Check basic success
-            if not result.get('success', False):
-                return {
-                    'success': False, 
-                    'score': 0.0, 
-                    'action': None,
-                    'error': result.get('error-codes', ['verification-failed'])
-                }
+            # Verify the token
+            success, score, errors = verify_recaptcha(token, action, min_score)
             
-            # Get score and action from result
-            score = result.get('score', 0.0)
-            response_action = result.get('action', '')
+            if not success:
+                logger.warning(f"reCAPTCHA verification failed for route {request.endpoint}: {errors}")
+                from flask import flash, redirect, url_for
+                
+                # Flash appropriate error message
+                if "timeout" in str(errors).lower() or "connect" in str(errors).lower():
+                    flash("Security verification is temporarily unavailable. Please try again in a moment.", "error")
+                elif "score" in str(errors).lower():
+                    flash("Security verification failed. Please try again.", "error")
+                else:
+                    flash("Security verification failed. Please refresh the page and try again.", "error")
+                
+                # Redirect back to the referring page or login
+                return redirect(request.referrer or url_for('login'))
             
-            # Check score threshold
-            if score < min_score:
-                return {
-                    'success': False,
-                    'score': score,
-                    'action': response_action,
-                    'error': 'Score too low'
-                }
+            # Verification successful, proceed with the original function
+            logger.info(f"reCAPTCHA verification successful for route {request.endpoint}: score={score}")
+            return f(*args, **kwargs)
             
-            # Check action match if specified
-            if action and action != response_action:
-                return {
-                    'success': False,
-                    'score': score,
-                    'action': response_action,
-                    'error': 'Action mismatch'
-                }
-            
-            # All checks passed
-            return {
-                'success': True,
-                'score': score,
-                'action': response_action
-            }
-            
-        except Exception as e:
-            logging.error(f"reCAPTCHA error: {str(e)}")
-            return {
-                'success': False,
-                'score': 0.0,
-                'action': None,
-                'error': str(e)
-            }
+        decorated_function.__name__ = f.__name__
+        return decorated_function
+    return decorator
+
+def is_recaptcha_configured():
+    """Check if reCAPTCHA is properly configured"""
+    site_key = current_app.config.get('RECAPTCHA_SITE_KEY')
+    secret_key = get_recaptcha_secret_key()
+    return bool(site_key and secret_key)
+
+def get_recaptcha_status():
+    """Get current reCAPTCHA configuration status"""
+    return {
+        'configured': is_recaptcha_configured(),
+        'site_key': current_app.config.get('RECAPTCHA_SITE_KEY', 'Not configured'),
+        'secret_key_present': bool(get_recaptcha_secret_key())
+    }

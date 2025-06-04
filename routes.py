@@ -15,7 +15,8 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from urllib.parse import urlparse
 from functools import wraps
-from app import app, db, recaptcha_v3
+from app import app, db
+import recaptcha_helper
 from models import User, AssessmentStructure, SpeakingPrompt, Assessment, UserAssessmentAssignment, PaymentRecord
 from api_issues import APIIssueLog
 from utils import get_user_region, get_translation

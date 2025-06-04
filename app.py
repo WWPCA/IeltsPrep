@@ -7,7 +7,7 @@ from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
-from recaptcha_helper import ReCaptchaV3
+import recaptcha_helper
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -19,7 +19,7 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 csrf = CSRFProtect()
-recaptcha_v3 = ReCaptchaV3()
+# reCAPTCHA will be handled by recaptcha_helper module
 
 # Create the app
 app = Flask(__name__)
@@ -81,7 +81,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # CSRF protection
 db.init_app(app)
 login_manager.init_app(app)
 csrf.init_app(app)
-recaptcha_v3.init_app(app)
+# reCAPTCHA initialization handled by recaptcha_helper module
 setattr(login_manager, 'login_view', 'login')
 login_manager.login_message_category = "info"
 
