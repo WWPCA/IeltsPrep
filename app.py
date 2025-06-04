@@ -45,29 +45,18 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # Configure reCAPTCHA with validation - use dev keys for development domains
 def get_recaptcha_keys():
     """Get appropriate reCAPTCHA keys based on current domain"""
-    # Check if we're on a development domain (Replit)
-    current_domain = os.environ.get('REPLIT_DOMAINS', '')
-    is_dev_domain = 'replit.dev' in current_domain
-    is_production_domain = 'ieltsaiprep.replit.app' in current_domain
+    # Always use production keys as they exist in secrets
+    public_key = os.environ.get("RECAPTCHA_PUBLIC_KEY")
+    private_key = os.environ.get("RECAPTCHA_PRIVATE_KEY")
     
-    if is_production_domain:
-        # Use production keys for ieltsaiprep.replit.app
-        return (
-            os.environ.get("RECAPTCHA_PUBLIC_KEY"),
-            os.environ.get("RECAPTCHA_PRIVATE_KEY")
-        )
-    elif is_dev_domain:
-        # Use development keys for Replit domains
-        return (
-            os.environ.get("RECAPTCHA_DEV_PUBLIC_KEY"),
-            os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY")
-        )
-    else:
-        # Default to production keys for custom domains
-        return (
-            os.environ.get("RECAPTCHA_PUBLIC_KEY"),
-            os.environ.get("RECAPTCHA_PRIVATE_KEY")
-        )
+    if public_key and private_key:
+        return (public_key, private_key)
+    
+    # Fallback to dev keys if production keys not available
+    dev_public = os.environ.get("RECAPTCHA_DEV_PUBLIC_KEY")
+    dev_private = os.environ.get("RECAPTCHA_DEV_PRIVATE_KEY")
+    
+    return (dev_public, dev_private)
 
 site_key, secret_key = get_recaptcha_keys()
 app.config["RECAPTCHA_SITE_KEY"] = site_key
