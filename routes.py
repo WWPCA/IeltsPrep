@@ -26,7 +26,7 @@ from enhanced_error_handling import handle_database_error, handle_api_error, val
 from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
-from aws_services import analyze_speaking_response, analyze_pronunciation, generate_polly_speech
+from aws_services import analyze_speaking_response, analyze_pronunciation
 from maya_conversation_service import MayaConversationService
 import logging
 
@@ -52,10 +52,7 @@ setup_global_security(app)
 # Import the assessment details route
 from add_assessment_details_route import assessment_details_route
 
-# Import Nova Sonic for speech generation
-from nova_sonic_proper import NovaSonicProperService
-
-# Speech generation API route for Maya British voice
+# Maya conversation service handles all speech generation
 
 def get_assessment_id_from_number(assessment_type, assessment_number):
     """
