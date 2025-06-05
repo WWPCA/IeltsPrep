@@ -27,7 +27,7 @@ from payment_services import create_stripe_checkout_session, create_payment_reco
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation
-from nova_sonic_production import NovaSonicProductionService
+from comprehensive_nova_service import ComprehensiveNovaService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -87,11 +87,11 @@ def generate_speech():
         if len(question_text) > 1000:
             return jsonify({'success': False, 'error': 'Text must be less than 1000 characters'}), 400
         
-        # Initialize Nova Sonic production service
-        nova_sonic = NovaSonicProductionService()
+        # Initialize comprehensive Nova service
+        nova_service = ComprehensiveNovaService()
         
-        # Generate speech with Nova Sonic's built-in voice
-        result = nova_sonic.generate_speech_only(question_text)
+        # Generate speech with best available Nova model
+        result = nova_service.generate_speech_only(question_text)
         
         if result.get('success'):
             return jsonify({
@@ -128,10 +128,10 @@ def start_conversation():
         assessment_type = data.get('assessment_type', 'academic_speaking')
         part = data.get('part', 1)
         
-        nova_sonic = NovaSonicProperService()
+        nova_service = ComprehensiveNovaService()
         
-        # Start conversation using complete Nova Sonic service
-        result = nova_sonic.start_conversation(
+        # Start Maya conversation using comprehensive Nova service
+        result = nova_service.start_maya_conversation(
             assessment_type=assessment_type,
             part=part
         )
@@ -195,13 +195,13 @@ def continue_conversation():
         if not user_message:
             return jsonify({'success': False, 'error': 'No user message provided'})
         
-        nova_sonic = NovaSonicProperService()
+        nova_service = ComprehensiveNovaService()
         
-        # Continue conversation using complete Nova Sonic service
-        result = nova_sonic.continue_conversation(
-            conversation_id=f"conv_{current_user.id}_{current_part}",
-            user_audio_data=None,  # Text input for now
-            conversation_history=conversation_history
+        # Continue Maya conversation using comprehensive Nova service
+        conversation_id = f"conv_{current_user.id}_{current_part}"
+        result = nova_service.continue_maya_conversation(
+            conversation_id=conversation_id,
+            user_input=user_message
         )
         
         if result.get('success'):
