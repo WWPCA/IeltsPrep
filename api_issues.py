@@ -2,148 +2,89 @@
 API Issue Tracking Module
 This module provides functionality for tracking and monitoring API-related issues.
 """
+
 import json
 from datetime import datetime, timedelta
 from app import db
-from models import User
+from flask import request
 
 class APIIssueLog(db.Model):
     """Track API-related issues for monitoring and support purposes"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Can be null for unauthenticated requests
-    api_name = db.Column(db.String(100), nullable=False)  # aws_bedrock, openai, assemblyai, azure_speech, csrf_validation, maya_conversation
-    endpoint = db.Column(db.String(255), nullable=False)  # Specific endpoint that failed
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    api_name = db.Column(db.String(100), nullable=False)
+    endpoint = db.Column(db.String(255), nullable=False)
     occurred_at = db.Column(db.DateTime, default=datetime.utcnow)
-    error_code = db.Column(db.String(100), nullable=True)  # HTTP status code or API-specific error code
-    error_message = db.Column(db.Text, nullable=True)  # Original error message
-    request_data = db.Column(db.Text, nullable=True)  # JSON string with request data (sanitized)
-    response_data = db.Column(db.Text, nullable=True)  # JSON string with response data
-    request_duration = db.Column(db.Float, nullable=True)  # Request duration in seconds
+    error_code = db.Column(db.String(100), nullable=True)
+    error_message = db.Column(db.Text, nullable=True)
+    request_data = db.Column(db.Text, nullable=True)
+    response_data = db.Column(db.Text, nullable=True)
+    request_duration = db.Column(db.Float, nullable=True)
     ip_address = db.Column(db.String(50), nullable=True)
     user_agent = db.Column(db.String(255), nullable=True)
     city = db.Column(db.String(100), nullable=True)
     country = db.Column(db.String(100), nullable=True)
-    attempt_count = db.Column(db.Integer, default=1)  # Number of times this issue occurred
+    attempt_count = db.Column(db.Integer, default=1)
     resolved = db.Column(db.Boolean, default=False)
     resolved_at = db.Column(db.DateTime, nullable=True)
     resolution_notes = db.Column(db.Text, nullable=True)
-    
-    # Relationship
+
     user = db.relationship('User', backref=db.backref('api_issues', lazy=True))
-    
+
     def __repr__(self):
-        return f'<APIIssueLog {self.id} - API {self.api_name} - {self.error_code}>'
-        
+        return f'<APIIssueLog {self.api_name}:{self.endpoint}>'
+
     @classmethod
     def log_issue(cls, api_name, endpoint, error_code=None, error_message=None, request_obj=None, 
                  user_id=None, request_data=None, response_data=None, request_duration=None):
         """Log an API issue with details"""
-        # Sanitize request and response data to remove sensitive information
-        if request_data:
-            if isinstance(request_data, dict):
-                # Remove any sensitive fields
-                sanitized_data = request_data.copy()
-                for key in ['password', 'token', 'key', 'secret', 'auth', 'authorization']:
-                    if key in sanitized_data:
-                        sanitized_data[key] = '[REDACTED]'
-                request_data = json.dumps(sanitized_data)
-            elif isinstance(request_data, str):
-                request_data = request_data
-        
-        # Check if similar issue exists within last hour for same user/endpoint
-        existing_issue = cls.query.filter_by(
-            user_id=user_id,
-            api_name=api_name,
-            endpoint=endpoint,
-            resolved=False
-        ).filter(
-            cls.occurred_at >= datetime.utcnow() - timedelta(hours=1)
-        ).first()
-        
-        if existing_issue:
-            # Update existing issue with incremented count
-            existing_issue.attempt_count += 1
-            existing_issue.occurred_at = datetime.utcnow()
-            if error_message:
-                existing_issue.error_message = error_message
-            db.session.commit()
-            return existing_issue
-        else:
-            # Create new issue log
-            log_entry = cls(
-                user_id=user_id,
+        try:
+            issue = cls(
                 api_name=api_name,
                 endpoint=endpoint,
                 error_code=error_code,
-                error_message=error_message,
-                request_data=request_data,
-                response_data=response_data if isinstance(response_data, str) else json.dumps(response_data) if response_data else None,
+                error_message=str(error_message) if error_message else None,
+                user_id=user_id,
+                request_data=json.dumps(request_data) if request_data else None,
+                response_data=json.dumps(response_data) if response_data else None,
                 request_duration=request_duration,
-                attempt_count=1
+                ip_address=request_obj.remote_addr if request_obj else None,
+                user_agent=request_obj.headers.get('User-Agent') if request_obj else None
             )
             
-            # Capture request data if available
-            if request_obj:
-                log_entry.ip_address = request_obj.remote_addr
-                if hasattr(request_obj, 'user_agent'):
-                    log_entry.user_agent = request_obj.user_agent.string
-                    
-                # Try to get location data from IP using geoip if available
-                try:
-                    from geoip_services import get_country_from_ip
-                    country_info = get_country_from_ip(log_entry.ip_address)
-                    if country_info:
-                        log_entry.country = country_info
-                except:
-                    pass  # Ignore geoip errors
-            
-            db.session.add(log_entry)
+            db.session.add(issue)
             db.session.commit()
-            return log_entry
-        
+            return issue
+        except Exception as e:
+            db.session.rollback()
+            print(f"Failed to log API issue: {e}")
+            return None
+
     @classmethod
     def mark_resolved(cls, issue_id, resolution_notes=None):
         """Mark an API issue as resolved with optional notes"""
-        log_entry = cls.query.get(issue_id)
-        if log_entry:
-            log_entry.resolved = True
-            log_entry.resolved_at = datetime.utcnow()
-            if resolution_notes:
-                log_entry.resolution_notes = resolution_notes
-            db.session.commit()
-            return True
+        try:
+            issue = cls.query.get(issue_id)
+            if issue:
+                issue.resolved = True
+                issue.resolved_at = datetime.utcnow()
+                issue.resolution_notes = resolution_notes
+                db.session.commit()
+                return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"Failed to mark issue as resolved: {e}")
         return False
 
-# Utility functions for API error handling
 def log_api_error(api_name, endpoint, error, request_obj=None, user_id=None, request_data=None, response_data=None, request_duration=None):
     """
     Utility function to log API errors consistently across the application.
-    
-    Args:
-        api_name (str): Name of the API service (e.g., 'aws_bedrock', 'openai')
-        endpoint (str): Specific API endpoint that was called
-        error (Exception): The error that occurred
-        request_obj (Request, optional): Flask request object
-        user_id (int, optional): User ID if authenticated
-        request_data (dict, optional): Data sent in the request
-        response_data (dict, optional): Data received in the response
-        request_duration (float, optional): Duration of the request in seconds
-    
-    Returns:
-        APIIssueLog: The created log entry
     """
-    # Extract error code and message
-    error_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
-    if error_code is None and hasattr(error, 'response') and hasattr(error.response, 'status_code'):
-        error_code = error.response.status_code
-        
-    error_message = str(error)
-    
     return APIIssueLog.log_issue(
         api_name=api_name,
-        endpoint=endpoint, 
-        error_code=error_code,
-        error_message=error_message,
+        endpoint=endpoint,
+        error_code=getattr(error, 'code', None),
+        error_message=str(error),
         request_obj=request_obj,
         user_id=user_id,
         request_data=request_data,
@@ -154,73 +95,21 @@ def log_api_error(api_name, endpoint, error, request_obj=None, user_id=None, req
 def get_api_issue_statistics(api_name=None, days=30):
     """
     Get statistics about API issues for monitoring dashboards.
-    
-    Args:
-        api_name (str, optional): Filter by specific API name
-        days (int, optional): Number of days to look back, defaults to 30
-    
-    Returns:
-        dict: Statistics about API issues
     """
-    from datetime import datetime, timedelta
-    from sqlalchemy import func, and_
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
     
-    start_date = datetime.utcnow() - timedelta(days=days)
+    query = APIIssueLog.query.filter(APIIssueLog.occurred_at >= cutoff_date)
     
-    # Base query
-    query = APIIssueLog.query.filter(APIIssueLog.occurred_at >= start_date)
-    
-    # Apply API name filter if provided
     if api_name:
         query = query.filter(APIIssueLog.api_name == api_name)
     
-    # Total issues
     total_issues = query.count()
-    
-    # Resolved issues
     resolved_issues = query.filter(APIIssueLog.resolved == True).count()
-    
-    # Resolution rate
-    resolution_rate = (resolved_issues / total_issues * 100) if total_issues > 0 else 0
-    
-    # Issues by API
-    issues_by_api = db.session.query(
-        APIIssueLog.api_name, 
-        func.count(APIIssueLog.id)
-    ).filter(
-        APIIssueLog.occurred_at >= start_date
-    ).group_by(
-        APIIssueLog.api_name
-    ).all()
-    
-    # Issues by error code
-    issues_by_error = db.session.query(
-        APIIssueLog.error_code, 
-        func.count(APIIssueLog.id)
-    ).filter(
-        and_(
-            APIIssueLog.occurred_at >= start_date,
-            APIIssueLog.error_code.isnot(None)
-        )
-    ).group_by(
-        APIIssueLog.error_code
-    ).all()
-    
-    # Average request duration
-    avg_duration = db.session.query(
-        func.avg(APIIssueLog.request_duration)
-    ).filter(
-        and_(
-            APIIssueLog.occurred_at >= start_date,
-            APIIssueLog.request_duration.isnot(None)
-        )
-    ).scalar()
+    unresolved_issues = total_issues - resolved_issues
     
     return {
         'total_issues': total_issues,
         'resolved_issues': resolved_issues,
-        'resolution_rate': resolution_rate,
-        'issues_by_api': issues_by_api,
-        'issues_by_error': issues_by_error,
-        'avg_duration': avg_duration or 0
+        'unresolved_issues': unresolved_issues,
+        'resolution_rate': round((resolved_issues / total_issues * 100) if total_issues > 0 else 0, 2)
     }
