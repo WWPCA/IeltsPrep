@@ -51,16 +51,12 @@ class NovaSonicProperService:
             
             logger.info(f"Auto-starting Nova Sonic conversation for {assessment_type} part {part}")
             
-            # Auto-trigger conversation on page load
+            # Nova Sonic initiates first with welcome message (following AWS documentation)
             request_body = {
                 "messages": [
                     {
                         "role": "system",
                         "content": [{"text": examiner_prompt}]
-                    },
-                    {
-                        "role": "user", 
-                        "content": [{"text": "The assessment page has loaded and I'm ready to begin."}]
                     }
                 ],
                 "inferenceConfig": {
@@ -133,7 +129,7 @@ class NovaSonicProperService:
     
     def continue_conversation(self, conversation_id, user_audio_data, conversation_history):
         """
-        Continue conversation with Nova Sonic using speech input
+        Continue conversation with Nova Sonic using speech-to-speech pattern
         
         Args:
             conversation_id (str): Active conversation ID
@@ -144,10 +140,10 @@ class NovaSonicProperService:
             dict: Maya's response with text and audio
         """
         try:
-            # Build conversation context
+            # Build conversation context following AWS Nova Sonic documentation
             messages = self._build_conversation_context(conversation_history)
             
-            # Add user audio input
+            # Add user audio input using correct Nova Sonic format
             messages.append({
                 "role": "user",
                 "content": [
@@ -299,10 +295,11 @@ class NovaSonicProperService:
         self.current_part = part
         self.assessment_type = assessment_type
         
-        # Enhanced system prompt with authentic IELTS structure
-        base_prompt = f"""You are Maya, a certified IELTS Speaking examiner conducting an official speaking assessment.
+        # Enhanced system prompt with authentic IELTS structure and Nova Sonic trigger pattern
+        base_prompt = f"""You are Maya, a certified IELTS Speaking examiner. Start the conversation immediately with a warm welcome and your first question.
         
         IMPORTANT GUIDELINES:
+        - Begin speaking immediately when triggered
         - Follow authentic IELTS test procedures and timing
         - Ask questions naturally, one at a time
         - Listen to candidate responses and ask appropriate follow-up questions
@@ -311,7 +308,7 @@ class NovaSonicProperService:
         - For Part 2: Give cue card, 1 minute preparation, 1-2 minute speech
         - For Part 3: 4-5 minutes with abstract discussion questions
         
-        Your opening: {script}"""
+        Start now with: {script}"""
         
         # Enhance prompt with comprehensive knowledge base
         conversation_context = {
