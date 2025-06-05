@@ -15,16 +15,11 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     # Enhanced region field with index
-    region = db.Column(db.String(50), nullable=True, index=True)
-    join_date = db.Column(db.DateTime, default=datetime.utcnow)
-    # Assessment package management with performance index
+    region = db.Column(db.String(50), nullable=True, index=True)    # Assessment package management with performance index
     assessment_package_status = db.Column(db.String(20), default="none")
     assessment_package_expiry = db.Column(db.DateTime, nullable=True, index=True)
     # App only available in English - preferred_language column retained for database compatibility
-    # but not used in UI
-    preferred_language = db.Column(db.String(10), default="en")
-    assessment_preference = db.Column(db.String(20), default="academic")  # Options: academic, general
-    # Enhanced account status with explicit defaults and nullability
+    # but not used in UI    # Enhanced account status with explicit defaults and nullability
     account_activated = db.Column(db.Boolean, default=False, nullable=False)  # Renamed from is_active to avoid UserMixin conflict
     # Email verification fields with enhanced defaults
     email_verified = db.Column(db.Boolean, default=False, nullable=False)
@@ -420,7 +415,6 @@ class AssessmentStructure(db.Model):
     __tablename__ = 'test_structure'  # Keep the table name for database compatibility
     
     id = db.Column(db.Integer, primary_key=True)
-    test_type = db.Column(db.String(50), nullable=False)  # Keeping "test_type" column name for database compatibility
     description = db.Column(db.Text, nullable=False)
     format_details = db.Column(db.Text, nullable=False)
     sample_image_url = db.Column(db.String(256), nullable=True)
