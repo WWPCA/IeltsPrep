@@ -246,16 +246,13 @@
             <i class="fas fa-home"></i>
             <span>Home</span>
         </a>
-        <a href="{{ url_for('assessment_products_page') }}">
+        <a href="{{ url_for('register') }}">
             <i class="fas fa-graduation-cap"></i>
-            <span>Assessments</span>
+            <span>Get Started</span>
         </a>
-        <a href="{{ url_for('cart.view_cart') }}">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Cart</span>
-            {% if session.get('cart') and session['cart']|length > 0 %}
-            <span class="badge bg-danger rounded-pill">{{ session['cart']|length }}</span>
-            {% endif %}
+        <a href="{{ url_for('login') }}">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Sign In</span>
         </a>
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('profile') }}">
@@ -282,11 +279,13 @@
                 <div class="footer-links">
                     <h3>Quick Links</h3>
                     <ul>
-                        <li><a href="{{ url_for('assessment_structure') }}">Assessment Structure</a></li>
-                        {% if current_user.is_authenticated and current_user.has_active_assessment_package() %}
-                        <li><a href="{{ url_for('test_day') }}">Assessment Day Guide</a></li>
+                        {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('academic_speaking_selection') }}">Academic Speaking</a></li>
+                        <li><a href="{{ url_for('general_speaking_selection') }}">General Speaking</a></li>
+                        <li><a href="{{ url_for('academic_writing_selection') }}">Academic Writing</a></li>
+                        <li><a href="{{ url_for('general_writing_selection') }}">General Writing</a></li>
                         {% endif %}
-                        <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
+                        <li><a href="{{ url_for('register') }}">Get Started</a></li>
                     </ul>
                 </div>
                 
