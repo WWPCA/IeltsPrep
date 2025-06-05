@@ -27,7 +27,7 @@ from payment_services import create_stripe_checkout_session, create_payment_reco
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation
-from maya_conversation_service import MayaConversationService
+from nova_sonic_production import NovaSonicProductionService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -87,8 +87,8 @@ def generate_speech():
         if len(question_text) > 1000:
             return jsonify({'success': False, 'error': 'Text must be less than 1000 characters'}), 400
         
-        # Initialize Nova Sonic complete service
-        nova_sonic = NovaSonicProperService()
+        # Initialize Nova Sonic production service
+        nova_sonic = NovaSonicProductionService()
         
         # Generate speech with Nova Sonic's built-in voice
         result = nova_sonic.generate_speech_only(question_text)
