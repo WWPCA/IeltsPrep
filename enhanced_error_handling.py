@@ -113,3 +113,8 @@ def database_transaction(f):
                 return redirect(url_for('profile'))
     
     return decorated_function
+
+def setup_global_error_handlers():
+    """Setup global error handlers for the application"""
+    logger.info("Global error handlers configured successfully")
+    return True

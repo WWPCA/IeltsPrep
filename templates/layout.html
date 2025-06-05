@@ -179,11 +179,12 @@
                 </div>
                 <ul>
                     <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
-                    <li><a href="{{ url_for('assessment_structure') }}">Test Structure</a></li>
                     {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('test_day') }}">Test Day Guide</a></li>
+                    <li><a href="{{ url_for('academic_speaking_selection') }}">Academic Speaking</a></li>
+                    <li><a href="{{ url_for('general_speaking_selection') }}">General Speaking</a></li>
+                    <li><a href="{{ url_for('academic_writing_selection') }}">Academic Writing</a></li>
+                    <li><a href="{{ url_for('general_writing_selection') }}">General Writing</a></li>
                     {% endif %}
-                    <li><a href="{{ url_for('assessment_products_page') }}">GenAI Assessed IELTS Modules</a></li>
                     <li><a href="{{ url_for('terms_and_payment') }}">Terms of Service</a></li>
                     <li><a href="{{ url_for('contact') }}"><i class="fas fa-envelope"></i> Contact Us</a></li>
                     <li><a href="{{ url_for('cart.view_cart') }}"><i class="fas fa-shopping-cart"></i> Cart 
