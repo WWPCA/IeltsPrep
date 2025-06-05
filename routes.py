@@ -239,7 +239,7 @@ def assess_conversation():
         if not conversation_history:
             return jsonify({'success': False, 'error': 'No conversation data provided'})
         
-        nova_sonic = NovaSonicProperService()
+        nova_service = ComprehensiveNovaService()
         
         # Generate final assessment using enhanced service
         from enhanced_nova_assessment import enhanced_nova_assessment
