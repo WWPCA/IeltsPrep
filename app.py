@@ -111,7 +111,6 @@ def add_security_headers(response):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     
-    # CORS protection - only allow requests from our own domain
     origin = request.headers.get('Origin')
     if origin:
         # Get allowed domains

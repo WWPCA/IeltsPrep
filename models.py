@@ -144,7 +144,6 @@ class User(UserMixin, db.Model):
                     # Check if taken during current assessment package period
                     if self.assessment_package_expiry:
                         assessment_date = datetime.fromisoformat(assessment['date'])
-                        # Get assessment package duration from assessment_history
                         package_days = 30  # Default to 30 days
                         
                         for history_item in self.assessment_history:
@@ -678,7 +677,6 @@ class UserAssessmentAssignment(db.Model):
     def __repr__(self):
         return f'<UserAssessmentAssignment User:{self.user_id} Type:{self.assessment_type} Assessments:{self.assigned_assessment_ids}>'
 
-# UserTestAssignment class has been removed - no backward compatibility needed
 
 class UserTestAttempt(db.Model):
     """Model for tracking assessment attempts with recovery capabilities"""

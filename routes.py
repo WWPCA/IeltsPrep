@@ -5,6 +5,7 @@ import uuid
 import base64
 import urllib
 import logging
+from response_helpers import success_response, error_response, validation_error
 import random
 import requests
 import hashlib
@@ -28,7 +29,6 @@ import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation
 from comprehensive_nova_service import ComprehensiveNovaService
-import logging
 
 logger = logging.getLogger(__name__)
 # Using only get_country_from_ip since we've moved to fixed pricing
@@ -82,10 +82,10 @@ def generate_speech():
         
         # Enhanced input validation
         if not question_text:
-            return jsonify({'success': False, 'error': 'No text provided'}), 400
+            return error_response("No text provided"), 400
         
         if len(question_text) > 1000:
-            return jsonify({'success': False, 'error': 'Text must be less than 1000 characters'}), 400
+            return error_response("Text must be less than 1000 characters"), 400
         
         # Initialize comprehensive Nova service
         nova_service = ComprehensiveNovaService()
@@ -109,11 +109,11 @@ def generate_speech():
         return jsonify({'success': False, 'error': f'AWS Nova Sonic error: {e.response.get("Error", {}).get("Message", "Unknown error")}'}), 500
     except BotoCoreError as e:
         app.logger.error(f"AWS SDK BotoCoreError: {e}")
-        return jsonify({'success': False, 'error': 'AWS SDK error'}), 500
+        return error_response("AWS SDK error"), 500
     except Exception as e:
         app.logger.error(f"Unexpected error in Nova Sonic speech generation: {e}")
         app.logger.error(f"Exception type: {type(e).__name__}")
-        return jsonify({'success': False, 'error': 'Nova Sonic speech generation service unavailable'}), 500
+        return error_response("Nova Sonic speech generation service unavailable"), 500
 
 # Real-time conversation API endpoints
 @app.route('/api/start_conversation', methods=['POST'])
@@ -180,7 +180,7 @@ def start_conversation():
             logger.error(f"Failed to log conversation error: {log_error}")
             db.session.rollback()
             
-        return jsonify({'success': False, 'error': 'Internal server error. Please try again later.'})
+        return error_response("Internal server error. Please try again later.")
 
 @app.route('/api/continue_conversation', methods=['POST'])
 @login_required
@@ -193,7 +193,7 @@ def continue_conversation():
         current_part = data.get('current_part', 1)
         
         if not user_message:
-            return jsonify({'success': False, 'error': 'No user message provided'})
+            return error_response("No user message provided")
         
         nova_service = ComprehensiveNovaService()
         
@@ -223,7 +223,7 @@ def continue_conversation():
             
     except Exception as e:
         print(f"Conversation continuation error: {e}")
-        return jsonify({'success': False, 'error': 'Conversation service unavailable'})
+        return error_response("Conversation service unavailable")
 
 # Speech transcription route removed - using browser-based speech recognition for enhanced privacy
 
@@ -237,14 +237,13 @@ def assess_conversation():
         total_time = data.get('total_time', 0)
         
         if not conversation_history:
-            return jsonify({'success': False, 'error': 'No conversation data provided'})
+            return error_response("No conversation data provided")
         
         nova_service = ComprehensiveNovaService()
         
         # Generate final assessment using enhanced service
         from enhanced_nova_assessment import enhanced_nova_assessment
         
-        # Create transcript from conversation history
         transcript = "\n".join([
             f"{msg.get('speaker', 'User')}: {msg.get('message', '')}"
             for msg in conversation_history
@@ -268,7 +267,7 @@ def assess_conversation():
             
     except Exception as e:
         print(f"Conversation assessment error: {e}")
-        return jsonify({'success': False, 'error': 'Assessment service unavailable'})
+        return error_response("Assessment service unavailable")
 
 # Conversational speaking assessment route with assessment numbers
 @app.route('/assessments/<assessment_type>/conversational/<int:assessment_number>')
@@ -306,7 +305,6 @@ def conversational_speaking_assessment(assessment_type, assessment_id):
     """Access the new conversational speaking assessment interface"""
     # Check if user has access to this assessment using the full assessment type
     # Convert route format to database format for assessment service
-    from assessment_type_converters import convert_route_to_db_type
     db_assessment_type = convert_route_to_db_type(assessment_type)
     accessible_assessments = assessment_assignment_service.get_user_accessible_assessments(
         current_user.id, db_assessment_type
