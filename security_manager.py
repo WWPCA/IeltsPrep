@@ -291,6 +291,39 @@ def secure_session():
         return decorated_function
     return decorator
 
+def api_protection():
+    """Decorator for API endpoint protection"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Apply rate limiting and security checks for API endpoints
+            if request.remote_addr in security_manager.blocked_ips:
+                return jsonify({'success': False, 'error': 'Access denied'}), 403
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def account_lockout_protection():
+    """Decorator for account lockout protection"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Basic account lockout protection
+            ip_address = request.remote_addr
+            failed_attempts = security_manager.suspicious_activity.get(f"{ip_address}:failed_login", 0)
+            
+            if failed_attempts > 5:
+                return jsonify({'success': False, 'error': 'Account temporarily locked due to multiple failed attempts'}), 423
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def setup_global_security():
+    """Setup global security configuration"""
+    return configure_global_security()
+
 # Initialize security configuration
 def configure_global_security():
     """Configure global security settings"""

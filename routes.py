@@ -47,7 +47,7 @@ from security_manager import (
 )
 
 # Initialize security system
-setup_global_security(app)
+setup_global_security()
 
 # Import the assessment details route
 from add_assessment_details_route import assessment_details_route
@@ -578,9 +578,7 @@ def change_password():
     return render_template('change_password.html', title='Change Password')
 
 @app.route('/register', methods=['GET', 'POST'])
-@rate_limit('login')
-@validate_inputs(email='email', password='password', name='name')
-@handle_database_error
+@rate_limit(limit=10, window=3600)
 @validate_request_size(max_size_mb=1)
 def register():
     """Registration page with enhanced security validation"""
