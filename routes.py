@@ -677,9 +677,6 @@ def assessment_package_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Remove this after all routes are updated
-# Legacy name mapping for backward compatibility with any old code
-# Removed legacy backward compatibility line
 
 # Streak tracking removed as requested
 

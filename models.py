@@ -419,9 +419,7 @@ class AssessmentStructure(db.Model):
     format_details = db.Column(db.Text, nullable=False)
     sample_image_url = db.Column(db.String(256), nullable=True)
     
-    def __repr__(self):
-        return f'<AssessmentStructure {self.test_type}>'  # test_type is the database column name
-
+    
 class Assessment(db.Model):
     """Enhanced model for IELTS assessments with validation"""
     id = db.Column(db.Integer, primary_key=True)
@@ -453,9 +451,7 @@ class Assessment(db.Model):
             raise ValueError("Questions must be a list or dictionary")
         self._questions = json.dumps(value)
     
-    def __repr__(self):
-        return f'<Assessment {self.assessment_type}: {self.title}>'
-
+    
 class UserAssessmentAttempt(db.Model):
     """Enhanced model for user assessment attempts with indexes"""
     id = db.Column(db.Integer, primary_key=True)
@@ -493,9 +489,7 @@ class UserAssessmentAttempt(db.Model):
     def genai_assessment(self, value):
         self._genai_assessment = json.dumps(value)
     
-    def __repr__(self):
-        return f'<UserAssessmentAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
-
+    
 class UserPackage(db.Model):
     """Individual assessment package purchased by a user with quantity tracking."""
     __tablename__ = 'user_package'
@@ -518,38 +512,7 @@ class UserPackage(db.Model):
         db.Index('idx_user_package_expiry', 'expiry_date'),
     )
     
-    def __repr__(self):
-        return f'<UserPackage {self.package_name} for User {self.user_id} ({self.quantity_remaining}/{self.quantity_purchased})>'
     
-    @property
-    def is_active(self):
-        """Check if this package is currently active and has remaining quantity."""
-        if self.status not in ['active']:
-            return False
-        if self.quantity_remaining <= 0:
-            return False
-        if self.expiry_date and self.expiry_date <= datetime.utcnow():
-            return False
-        return True
-    
-    def use_one_package(self):
-        """Use one package from this purchase (for assessment consumption)."""
-        if self.quantity_remaining > 0:
-            self.quantity_remaining -= 1
-            if self.quantity_remaining == 0:
-                self.status = 'depleted'
-            db.session.commit()
-            return True
-        return False
-    
-    def add_more_packages(self, additional_quantity):
-        """Add more packages to an existing purchase."""
-        self.quantity_purchased += additional_quantity
-        self.quantity_remaining += additional_quantity
-        if self.status == 'depleted' and self.quantity_remaining > 0:
-            self.status = 'active'
-        db.session.commit()
-
 class WritingResponse(db.Model):
     """Enhanced model for IELTS writing responses with TrueScore® validation"""
     id = db.Column(db.Integer, primary_key=True)
@@ -581,9 +544,7 @@ class WritingResponse(db.Model):
             
         self.assessment_data = data
     
-    def __repr__(self):
-        return f'<WritingResponse {self.id}: Task {self.task_number} for Attempt {self.attempt_id}>'
-
+    
 class AssessmentSpeakingResponse(db.Model):
     """Enhanced model for IELTS speaking responses with ClearScore® validation"""
     id = db.Column(db.Integer, primary_key=True)
@@ -603,49 +564,15 @@ class AssessmentSpeakingResponse(db.Model):
     
     @property
     def assessment_data(self):
-        return json.loads(self._assessment_data) if self._assessment_data else {}
+        """Get assessment data as dictionary"""
+        if self._assessment_data:
+            return json.loads(self._assessment_data)
+        return {}
     
     @assessment_data.setter
     def assessment_data(self, value):
-        self._assessment_data = json.dumps(value)
-    
-    def set_clearscore_assessment(self, data):
-        """Validate and set ClearScore® assessment data from AWS Sonic + Nova Micro"""
-        required_fields = ['score', 'feedback', 'pronunciation', 'fluency', 'grammar', 'vocabulary']
-        if not all(field in data for field in required_fields):
-            raise ValueError("Invalid ClearScore® assessment data - missing required fields")
-        
-        # Validate score range (IELTS bands 0-9)
-        if not (0 <= data.get('score', 0) <= 9):
-            raise ValueError("Score must be between 0 and 9")
-            
-        self.assessment_data = data
-    
-    def set_gcp_urls(self, audio_url, transcript_url, assessment_url):
-        """Validate and set GCP URLs"""
-        from urllib.parse import urlparse
-        
-        urls = [
-            ('audio_url', audio_url),
-            ('transcript_url', transcript_url), 
-            ('assessment_url', assessment_url)
-        ]
-        
-        for name, url in urls:
-            if url:
-                parsed = urlparse(url)
-                if not parsed.scheme in ['http', 'https']:
-                    raise ValueError(f"Invalid {name}: {url}")
-                if not parsed.netloc:
-                    raise ValueError(f"Invalid {name} - missing domain: {url}")
-        
-        self.gcp_audio_url = audio_url
-        self.gcp_transcript_url = transcript_url
-        self.gcp_assessment_url = assessment_url
-    
-    def __repr__(self):
-        return f'<AssessmentSpeakingResponse {self.id}: Part {self.part_number} for Attempt {self.attempt_id}>'
-
+        """Set assessment data from dictionary"""
+        self._assessment_data = json.dumps(value) if value else None
 
 class UserAssessmentAssignment(db.Model):
     """Enhanced assessment assignment tracking with normalized structure"""
@@ -668,10 +595,7 @@ class UserAssessmentAssignment(db.Model):
             raise ValueError("Assessment IDs must be a list")
         self.assigned_assessment_ids = json.dumps(value)
         
-    def __repr__(self):
-        return f'<UserAssessmentAssignment User:{self.user_id} Type:{self.assessment_type} Assessments:{self.assigned_assessment_ids}>'
-
-
+    
 class UserTestAttempt(db.Model):
     """Model for tracking assessment attempts with recovery capabilities"""
     id = db.Column(db.Integer, primary_key=True)
@@ -703,22 +627,15 @@ class UserTestAttempt(db.Model):
     
     @property
     def results(self):
-        return json.loads(self._results) if self._results else {}
+        """Get results as dictionary"""
+        if self._results:
+            return json.loads(self._results)
+        return {}
     
     @results.setter
     def results(self, value):
-        self._results = json.dumps(value)
-        
-    @property
-    def conversation_transcript(self):
-        return json.loads(self._conversation_transcript) if self._conversation_transcript else []
-    
-    @conversation_transcript.setter
-    def conversation_transcript(self, value):
-        self._conversation_transcript = json.dumps(value)
-    
-    def __repr__(self):
-        return f'<UserTestAttempt {self.id}: {self.assessment_type} by User {self.user_id}>'
+        """Set results from dictionary"""
+        self._results = json.dumps(value) if value else None
 
 class ConnectionIssueLog(db.Model):
     """Enhanced connection issue tracking with GDPR compliance"""
@@ -748,57 +665,7 @@ class ConnectionIssueLog(db.Model):
             import hashlib
             self.ip_address_hash = hashlib.sha256(ip_address.encode()).hexdigest()
     
-    def __repr__(self):
-        return f'<ConnectionIssueLog {self.id} - User {self.user_id} - {self.issue_type}>'
     
-    @classmethod
-    def log_issue(cls, user_id, issue_type, request_obj=None, **kwargs):
-        """Enhanced issue logging with privacy protection"""
-        log_entry = cls(
-            user_id=user_id,
-            issue_type=issue_type,
-            assessment_id=kwargs.get('assessment_id'),
-            product_id=kwargs.get('product_id'),
-            session_id=kwargs.get('session_id'),
-            user_local_time=kwargs.get('user_local_time')
-        )
-        
-        # Capture request data if available
-        if request_obj:
-            # Hash IP address for privacy
-            log_entry.set_ip_address(request_obj.remote_addr)
-            log_entry.user_agent = str(request_obj.user_agent.string)
-            
-            # Store browser info safely
-            browser_info = {
-                'browser': str(request_obj.user_agent.browser),
-                'version': str(request_obj.user_agent.version),
-                'platform': str(request_obj.user_agent.platform)
-            }
-            log_entry.browser_info = json.dumps(browser_info)
-            
-            # Store connection info if provided
-            if 'connection_info' in kwargs:
-                log_entry.connection_info = json.dumps(kwargs.get('connection_info'))
-        
-        # Removed geoip functionality for privacy compliance
-            
-        db.session.add(log_entry)
-        db.session.commit()
-        return log_entry
-        
-    @classmethod
-    def mark_resolved(cls, issue_id, resolution_method="auto_restart"):
-        """Mark a connection issue as resolved"""
-        log_entry = cls.query.get(issue_id)
-        if log_entry:
-            log_entry.resolved = True
-            log_entry.resolved_at = datetime.utcnow()
-            log_entry.resolution_method = resolution_method
-            db.session.add(log_entry)
-            db.session.commit()
-        return log_entry
-
 class AssessmentSession(db.Model):
     """Enhanced session management with unique constraints and indexes"""
     id = db.Column(db.Integer, primary_key=True)
@@ -818,69 +685,7 @@ class AssessmentSession(db.Model):
         db.Index('idx_active_session', 'user_id', 'product_id', 'completed'),
     )
     
-    def __repr__(self):
-        status = "Completed" if self.completed else "In Progress"
-        if self.submission_failed:
-            status = "Failed"
-        return f'<AssessmentSession {self.product_id} for User:{self.user_id}, Status:{status}>'
     
-    def update_last_activity(self):
-        """Update the last activity timestamp"""
-        self.last_activity = datetime.utcnow()
-        db.session.commit()
-    
-    def mark_complete(self):
-        """Mark this session as completed"""
-        self.completed = True
-        self.marked_complete_at = datetime.utcnow()
-        db.session.commit()
-    
-    def mark_submitted(self):
-        """Mark this session as submitted"""
-        self.submitted = True
-        db.session.commit()
-    
-    def mark_failed(self, reason=None):
-        """Mark this session as failed with an optional reason"""
-        self.submission_failed = True
-        self.failure_reason = reason
-        db.session.commit()
-    
-    @classmethod
-    def get_active_session(cls, user_id, product_id):
-        """Get the active session for a user and product"""
-        return cls.query.filter_by(
-            user_id=user_id,
-            product_id=product_id,
-            completed=False,
-            submitted=False
-        ).order_by(cls.started_at.desc()).first()
-    
-    @classmethod
-    def has_unfinished_session(cls, user_id, product_id):
-        """Check if a user has an unfinished session for a product"""
-        return cls.query.filter_by(
-            user_id=user_id,
-            product_id=product_id,
-            completed=False
-        ).count() > 0
-    
-    @classmethod
-    def create_session(cls, user_id, product_id, assessment_id=None):
-        """Create a new session for a user and product"""
-        session = cls(
-            user_id=user_id,
-            product_id=product_id,
-            assessment_id=assessment_id
-        )
-        db.session.add(session)
-        db.session.commit()
-        return session
-
-
-# CompleteTestProgress model has been removed
-# Assessment results are now stored directly in the User model's assessment_history
-
 class PaymentRecord(db.Model):
     """Tracks payment details and transaction records"""
     id = db.Column(db.Integer, primary_key=True)
@@ -903,12 +708,7 @@ class PaymentRecord(db.Model):
     # Relationship to user
     user = db.relationship('User', backref=db.backref('payment_records', lazy=True))
     
-    def __repr__(self):
-        return f'<PaymentRecord {self.id} User:{self.user_id} Amount:{self.amount}>'
-
-# UserTestAttempt model has been removed
-# Assessment results are now stored in the User model's assessment_history
-
+    
 class SpeakingPrompt(db.Model):
     """Enhanced speaking prompts for ClearScore® assessments with indexing"""
     id = db.Column(db.Integer, primary_key=True)
@@ -919,12 +719,7 @@ class SpeakingPrompt(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.Boolean, default=True, index=True)
     
-    def __repr__(self):
-        return f'<SpeakingPrompt Part:{self.part} Topic:{self.topic_category}>'
-
-# SpeakingResponse model has been replaced by AssessmentSpeakingResponse
-# Keeping as a commented reference for backward compatibility
-"""
+    
 class SpeakingResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -943,10 +738,7 @@ class SpeakingResponse(db.Model):
     def scores(self, value):
         self._scores = json.dumps(value) if value else None
     
-    def __repr__(self):
-        return f'<SpeakingResponse User:{self.user_id} Prompt:{self.prompt_id}>'
-"""
-
+    
 class PaymentMethod(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
@@ -954,9 +746,7 @@ class PaymentMethod(db.Model):
     api_endpoint = db.Column(db.String(256), nullable=True)
     display_order = db.Column(db.Integer, default=2)  # 1 for regional, 2 for global
     
-    def __repr__(self):
-        return f'<PaymentMethod {self.name} Region:{self.region or "Global"}>'
-
+    
 class ConsentRecord(db.Model):
     """GDPR-compliant consent tracking with versioning and audit trails"""
     id = db.Column(db.Integer, primary_key=True)
@@ -976,9 +766,7 @@ class ConsentRecord(db.Model):
         db.Index('idx_user_consent_type', 'user_id', 'consent_type'),
     )
     
-    def __repr__(self):
-        return f'<ConsentRecord User:{self.user_id} Type:{self.consent_type} Given:{self.consent_given}>'
-
+    
 class Translation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     page = db.Column(db.String(50), nullable=False)
@@ -986,8 +774,4 @@ class Translation(db.Model):
     language = db.Column(db.String(10), nullable=False)
     text = db.Column(db.Text, nullable=False)
     
-    def __repr__(self):
-        return f'<Translation {self.language}:{self.page}.{self.element}>'
-
-
-# CountryPricing model removed - we no longer use country-specific pricing tiers
+    
