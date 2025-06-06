@@ -113,16 +113,27 @@
     z-index: 1000;
   }
   
-  /* Fix data processing consent overlap */
+  /* Fix data processing consent overlap - force clear separation */
   .gdpr-section {
-    margin-bottom: 40px !important;
+    margin-bottom: 60px !important;
+    padding-bottom: 30px !important;
     position: relative;
     z-index: 1;
+    overflow: hidden;
+  }
+  
+  /* Force reCAPTCHA container to be completely separate */
+  .recaptcha-container {
+    margin-top: 60px !important;
+    margin-bottom: 40px !important;
+    padding-top: 40px !important;
+    border-top: 1px solid #dee2e6;
+    background-color: #f8f9fa;
   }
   
   /* Ensure submit button stays below reCAPTCHA */
   .submit-section {
-    margin-top: 30px;
+    margin-top: 40px !important;
     clear: both;
     position: relative;
     z-index: 1;
@@ -378,7 +389,7 @@
                         </div>
                         
                         <!-- GDPR-Specific Consent -->
-                        <div class="card mb-5 bg-light gdpr-section" style="margin-bottom: 3rem !important;">
+                        <div class="card mb-5 bg-light gdpr-section">
                             <div class="card-header">
                                 <h5 class="mb-0 fs-6">Data Processing Consent</h5>
                             </div>
@@ -415,6 +426,9 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Visual Separator -->
+                        <hr class="my-5" style="border-top: 2px solid #dee2e6; margin: 4rem 0 !important;">
                         
                         <!-- Google reCAPTCHA v2 Widget -->
                         <div class="form-group mb-4 text-center recaptcha-container">
