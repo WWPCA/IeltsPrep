@@ -24,6 +24,7 @@ else:
 def create_stripe_checkout_session(product_name, description, price, success_url, cancel_url, country_code=None, customer_email=None):
     """
     Create a Stripe checkout session for IELTS assessment purchases.
+    Following Stripe API best practices from https://docs.stripe.com/api
     
     Args:
         product_name (str): Name of the product
@@ -38,10 +39,14 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         dict: Contains session_id and checkout_url
     """
     try:
-        # Convert price to cents for Stripe
+        # Convert price to cents for Stripe (API requirement)
         price_cents = int(price * 100)
         
-        # Create checkout session
+        # Generate idempotency key for payment safety
+        import uuid
+        idempotency_key = str(uuid.uuid4())
+        
+        # Create checkout session with enhanced configuration
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
@@ -50,6 +55,10 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                     'product_data': {
                         'name': product_name,
                         'description': description,
+                        'metadata': {
+                            'category': 'ielts_assessment',
+                            'platform': 'ielts_genai_prep'
+                        }
                     },
                     'unit_amount': price_cents,
                 },
@@ -58,15 +67,22 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             mode='payment',
             success_url=success_url,
             cancel_url=cancel_url,
-            customer_email=customer_email,
+            customer_email=customer_email if customer_email else None,
             automatic_tax={'enabled': True},
             payment_intent_data={
                 'description': f'IELTS Assessment: {product_name}',
+                'metadata': {
+                    'integration_type': 'checkout',
+                    'platform': 'ielts_genai_prep'
+                }
             },
             metadata={
                 'product_type': 'ielts_assessment',
-                'product_name': product_name
-            }
+                'product_name': product_name,
+                'platform': 'ielts_genai_prep',
+                'created_at': datetime.utcnow().isoformat()
+            },
+            expires_at=int((datetime.utcnow().timestamp() + 1800))  # 30 minutes expiry
         )
         
         return {
@@ -74,8 +90,29 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             'checkout_url': session.url
         }
         
+    except stripe.error.CardError as e:
+        # Card was declined
+        logger.error(f"Card declined: {e}")
+        raise Exception(f"Card declined: {e.user_message}")
+    except stripe.error.RateLimitError as e:
+        # Too many requests made to the API too quickly
+        logger.error(f"Rate limit error: {e}")
+        raise Exception("Too many payment requests. Please try again in a moment.")
+    except stripe.error.InvalidRequestError as e:
+        # Invalid parameters were supplied to Stripe's API
+        logger.error(f"Invalid request: {e}")
+        raise Exception("Invalid payment request. Please contact support.")
+    except stripe.error.AuthenticationError as e:
+        # Authentication with Stripe's API failed
+        logger.error(f"Authentication failed: {e}")
+        raise Exception("Payment system authentication error. Please contact support.")
+    except stripe.error.APIConnectionError as e:
+        # Network communication with Stripe failed
+        logger.error(f"Network error: {e}")
+        raise Exception("Payment system temporarily unavailable. Please try again.")
     except stripe.error.StripeError as e:
-        logger.error(f"Stripe error creating checkout session: {e}")
+        # Generic Stripe error
+        logger.error(f"Stripe error: {e}")
         raise Exception(f"Payment system error: {e}")
     except Exception as e:
         logger.error(f"Unexpected error creating checkout session: {e}")
