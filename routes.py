@@ -650,7 +650,11 @@ def register():
     
     return render_template('register.html', title='Register')
 
-# Note: Assessment products route is defined in add_assessment_routes.py
+@app.route('/assessment-products')
+def assessment_products_page():
+    """Assessment products page for purchasing packages"""
+    return render_template('assessment_products.html', 
+                         title='IELTS Assessment Packages')
 
 # Custom cache buster to force browsers to reload CSS, JS on new deployments
 @app.context_processor

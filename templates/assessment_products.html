@@ -169,10 +169,13 @@ stripe-buy-button {
                     </div>
                     <div class="card-footer">
                         <div class="d-grid">
-                            <!-- Regular Add to Cart button as a fallback -->
-                            <a href="{{ url_for('cart.add_to_cart', product_id='academic_writing') }}" class="btn btn-success">
-                                <i class="fas fa-cart-plus me-2"></i>Add to Cart - $25
-                            </a>
+                            <!-- Direct Stripe Checkout -->
+                            <form action="/create-checkout-session" method="POST">
+                                <input type="hidden" name="assessment_type" value="academic_writing">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
+                                </button>
+                            </form>
                         </div>
                         <!-- Hidden Stripe Buy Button (not working yet) -->
                         <div class="stripe-buy-button-container d-none">
@@ -204,9 +207,12 @@ stripe-buy-button {
                     <div class="card-footer">
                         <div class="d-grid">
                             <!-- Regular Add to Cart button as a fallback -->
-                            <a href="{{ url_for('cart.add_to_cart', product_id='general_writing') }}" class="btn btn-success">
-                                <i class="fas fa-cart-plus me-2"></i>Add to Cart - $25
-                            </a>
+                            <form action="/create-checkout-session" method="POST">
+                                <input type="hidden" name="assessment_type" value="general_writing">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
+                                </button>
+                            </form>
                         </div>
                         <!-- Hidden Stripe Buy Button (not working yet) -->
                         <div class="stripe-buy-button-container d-none">
@@ -251,9 +257,12 @@ stripe-buy-button {
                     <div class="card-footer">
                         <div class="d-grid">
                             <!-- Regular Add to Cart button as a fallback -->
-                            <a href="{{ url_for('cart.add_to_cart', product_id='academic_speaking') }}" class="btn btn-primary">
-                                <i class="fas fa-cart-plus me-2"></i>Add to Cart - $25
-                            </a>
+                            <form action="/create-checkout-session" method="POST">
+                                <input type="hidden" name="assessment_type" value="academic_speaking">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
+                                </button>
+                            </form>
                         </div>
                         <!-- Hidden Stripe Buy Button (not working yet) -->
                         <div class="stripe-buy-button-container d-none">
