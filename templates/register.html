@@ -98,6 +98,21 @@
 
 <!-- reCAPTCHA v2 automatic rendering -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+<script>
+   // reCAPTCHA callback functions
+   function enableSubmitBtn() {
+     document.getElementById('submitBtn').disabled = false;
+     // Copy the reCAPTCHA response to hidden field
+     document.getElementById('g-recaptcha-response').value = grecaptcha.getResponse();
+   }
+   
+   function disableSubmitBtn() {
+     document.getElementById('submitBtn').disabled = true;
+     document.getElementById('g-recaptcha-response').value = '';
+   }
+</script>
+
 <script>
    // This handles form validation and registration
    document.addEventListener('DOMContentLoaded', function() {
@@ -369,8 +384,14 @@
                             </div>
                         </div>
                         
+                        <!-- Google reCAPTCHA v2 Widget -->
+                        <div class="form-group mb-4 text-center">
+                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn"></div>
+                            <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+                        </div>
+                        
                         <div class="d-grid gap-2 mb-4">
-                            <button type="submit" class="btn btn-primary btn-lg" style="min-height: 50px; visibility: visible !important; display: block !important; z-index: 1000;">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled style="min-height: 50px; visibility: visible !important; display: block !important; z-index: 1000;">
                                 <i class="fas fa-user-plus me-2"></i>Create My Account
                             </button>
                             <p class="text-muted small mt-2">This site is protected by Google reCAPTCHA v2 and the Google <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.</p>

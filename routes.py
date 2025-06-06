@@ -603,7 +603,19 @@ def register():
         name = request.form.get('name', '').strip()
         age_verified = request.form.get('age_verified')
         
-        # Basic validation first
+        # reCAPTCHA validation first
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response:
+            flash('Please complete the reCAPTCHA verification', 'danger')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+        
+        # Verify reCAPTCHA with Google
+        from recaptcha_helper import verify_recaptcha
+        if not verify_recaptcha(recaptcha_response):
+            flash('reCAPTCHA verification failed. Please try again.', 'danger')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+        
+        # Basic validation
         if not email or not password:
             flash('Email and password are required', 'danger')
             return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
@@ -674,7 +686,7 @@ def register():
         
         return redirect(url_for('login'))
     
-    return render_template('register.html', title='Register')
+    return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
 
 @app.route('/verify-email/<token>')
 def verify_email(token):
