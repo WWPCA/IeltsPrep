@@ -171,6 +171,7 @@ stripe-buy-button {
                         <div class="d-grid">
                             <!-- Direct Stripe Checkout -->
                             <form action="/create-checkout-session" method="POST">
+                                {{ csrf_token() }}
                                 <input type="hidden" name="assessment_type" value="academic_writing">
                                 <button type="submit" class="btn btn-success">
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
@@ -208,6 +209,7 @@ stripe-buy-button {
                         <div class="d-grid">
                             <!-- Regular Add to Cart button as a fallback -->
                             <form action="/create-checkout-session" method="POST">
+                                {{ csrf_token() }}
                                 <input type="hidden" name="assessment_type" value="general_writing">
                                 <button type="submit" class="btn btn-success">
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
@@ -258,6 +260,7 @@ stripe-buy-button {
                         <div class="d-grid">
                             <!-- Regular Add to Cart button as a fallback -->
                             <form action="/create-checkout-session" method="POST">
+                                {{ csrf_token() }}
                                 <input type="hidden" name="assessment_type" value="academic_speaking">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
@@ -295,6 +298,7 @@ stripe-buy-button {
                         <div class="d-grid">
                             <!-- Regular Add to Cart button as a fallback -->
                             <form action="/create-checkout-session" method="POST">
+                                {{ csrf_token() }}
                                 <input type="hidden" name="assessment_type" value="general_speaking">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25

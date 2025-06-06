@@ -43,7 +43,7 @@ body {
   color: var(--text-color);
   background-color: #f9f9f9;
   min-height: 100vh;
-  padding-bottom: 200px; /* Add bottom padding to prevent console overlap */
+  margin-bottom: 50px; /* Reduced margin for better layout */
 }
 
 a {
