@@ -651,9 +651,8 @@ def register():
     return render_template('register.html', title='Register')
 
 @app.route('/assessment-products')
-@login_required
 def assessment_products_page():
-    """Assessment products page for purchasing packages"""
+    """Assessment products page for viewing packages (login required for purchase)"""
     return render_template('assessment_products.html', 
                          title='IELTS Assessment Packages')
 

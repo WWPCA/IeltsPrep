@@ -169,7 +169,8 @@ stripe-buy-button {
                     </div>
                     <div class="card-footer">
                         <div class="d-grid">
-                            <!-- Direct Stripe Checkout -->
+                            {% if current_user.is_authenticated %}
+                            <!-- Authenticated user - show purchase button -->
                             <form action="/create-checkout-session" method="POST">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="assessment_type" value="academic_writing">
@@ -177,6 +178,15 @@ stripe-buy-button {
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
                                 </button>
                             </form>
+                            {% else %}
+                            <!-- Non-authenticated user - show login prompt -->
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-success">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Purchase - $25
+                            </a>
+                            <p class="text-center mt-2 mb-0 small text-muted">
+                                New user? <a href="{{ url_for('register') }}" class="text-decoration-none">Create account</a>
+                            </p>
+                            {% endif %}
                         </div>
                         <!-- Hidden Stripe Buy Button (not working yet) -->
                         <div class="stripe-buy-button-container d-none">
@@ -207,7 +217,8 @@ stripe-buy-button {
                     </div>
                     <div class="card-footer">
                         <div class="d-grid">
-                            <!-- Regular Add to Cart button as a fallback -->
+                            {% if current_user.is_authenticated %}
+                            <!-- Authenticated user - show purchase button -->
                             <form action="/create-checkout-session" method="POST">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="assessment_type" value="general_writing">
@@ -215,6 +226,15 @@ stripe-buy-button {
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
                                 </button>
                             </form>
+                            {% else %}
+                            <!-- Non-authenticated user - show login prompt -->
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-success">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Purchase - $25
+                            </a>
+                            <p class="text-center mt-2 mb-0 small text-muted">
+                                New user? <a href="{{ url_for('register') }}" class="text-decoration-none">Create account</a>
+                            </p>
+                            {% endif %}
                         </div>
                         <!-- Hidden Stripe Buy Button (not working yet) -->
                         <div class="stripe-buy-button-container d-none">
@@ -258,7 +278,8 @@ stripe-buy-button {
                     </div>
                     <div class="card-footer">
                         <div class="d-grid">
-                            <!-- Regular Add to Cart button as a fallback -->
+                            {% if current_user.is_authenticated %}
+                            <!-- Authenticated user - show purchase button -->
                             <form action="/create-checkout-session" method="POST">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="assessment_type" value="academic_speaking">
@@ -266,6 +287,15 @@ stripe-buy-button {
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
                                 </button>
                             </form>
+                            {% else %}
+                            <!-- Non-authenticated user - show login prompt -->
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Purchase - $25
+                            </a>
+                            <p class="text-center mt-2 mb-0 small text-muted">
+                                New user? <a href="{{ url_for('register') }}" class="text-decoration-none">Create account</a>
+                            </p>
+                            {% endif %}
                         </div>
                         <!-- Hidden Stripe Buy Button (not working yet) -->
                         <div class="stripe-buy-button-container d-none">
@@ -296,7 +326,8 @@ stripe-buy-button {
                     </div>
                     <div class="card-footer">
                         <div class="d-grid">
-                            <!-- Regular Add to Cart button as a fallback -->
+                            {% if current_user.is_authenticated %}
+                            <!-- Authenticated user - show purchase button -->
                             <form action="/create-checkout-session" method="POST">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="assessment_type" value="general_speaking">
@@ -304,6 +335,15 @@ stripe-buy-button {
                                     <i class="fas fa-credit-card me-2"></i>Purchase Now - $25
                                 </button>
                             </form>
+                            {% else %}
+                            <!-- Non-authenticated user - show login prompt -->
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Purchase - $25
+                            </a>
+                            <p class="text-center mt-2 mb-0 small text-muted">
+                                New user? <a href="{{ url_for('register') }}" class="text-decoration-none">Create account</a>
+                            </p>
+                            {% endif %}
                         </div>
                         <!-- Hidden Stripe Buy Button (not working yet) -->
                         <div class="stripe-buy-button-container d-none">
