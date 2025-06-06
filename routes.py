@@ -660,6 +660,7 @@ def assessment_products_page():
 def create_checkout_session():
     """Create Stripe checkout session for assessment purchases"""
     try:
+        # CSRF token is automatically validated by Flask-WTF
         assessment_type = request.form.get('assessment_type')
         if not assessment_type:
             flash('Assessment type is required', 'error')
