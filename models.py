@@ -35,6 +35,11 @@ class User(UserMixin, db.Model):
     deletion_requested_at = db.Column(db.DateTime, nullable=True)
     deletion_scheduled_for = db.Column(db.DateTime, nullable=True)
     reactivation_token = db.Column(db.String(255), nullable=True)
+    
+    # Account cleanup tracking
+    deletion_warning_sent = db.Column(db.Boolean, default=False, nullable=False)
+    deletion_warning_date = db.Column(db.DateTime, nullable=True)
+    last_login = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     # target_score field removed as it doesn't exist in database
     # Admin check based on email address
     @property

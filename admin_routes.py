@@ -8,6 +8,8 @@ from flask_login import login_required, current_user
 from models import db, User, ConnectionIssueLog, AssessmentSession, Assessment
 from api_issues import APIIssueLog, get_api_issue_statistics
 from auth_issues import AuthIssueLog, get_auth_issue_statistics
+from account_cleanup_service import AccountCleanupService
+from analytics_segmentation_service import AnalyticsSegmentationService
 from sqlalchemy import func, distinct, and_
 from datetime import datetime, timedelta
 import json
@@ -620,3 +622,68 @@ def mark_issue_resolved(issue_id):
         flash(f'Error resolving issue: {str(e)}', 'error')
     
     return redirect(url_for('system_issues'))
+
+@admin_bp.route('/account-cleanup')
+@login_required
+@admin_required
+def account_cleanup():
+    """Account cleanup management dashboard."""
+    try:
+        cleanup_stats = AccountCleanupService.get_cleanup_statistics()
+        return render_template('admin/account_cleanup.html', 
+                             title='Account Cleanup Management',
+                             stats=cleanup_stats)
+    except Exception as e:
+        flash(f'Error loading cleanup data: {str(e)}', 'error')
+        return redirect(url_for('admin.admin_dashboard'))
+
+@admin_bp.route('/account-cleanup/send-warnings', methods=['POST'])
+@login_required
+@admin_required
+def send_cleanup_warnings():
+    """Send deletion warnings to inactive accounts."""
+    try:
+        warnings_sent = AccountCleanupService.send_deletion_warnings()
+        flash(f'Sent deletion warnings to {warnings_sent} inactive accounts', 'success')
+    except Exception as e:
+        flash(f'Error sending warnings: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.account_cleanup'))
+
+@admin_bp.route('/account-cleanup/execute', methods=['POST'])
+@login_required
+@admin_required
+def execute_cleanup():
+    """Execute account cleanup for warned accounts."""
+    try:
+        deleted_count = AccountCleanupService.cleanup_inactive_accounts()
+        flash(f'Deleted {deleted_count} inactive accounts', 'success')
+    except Exception as e:
+        flash(f'Error during cleanup: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.account_cleanup'))
+
+@admin_bp.route('/analytics-dashboard')
+@login_required
+@admin_required
+def analytics_dashboard():
+    """Analytics dashboard with user segmentation."""
+    try:
+        analytics_report = AnalyticsSegmentationService.get_comprehensive_report()
+        return render_template('admin/analytics_dashboard.html',
+                             title='Analytics Dashboard',
+                             report=analytics_report)
+    except Exception as e:
+        flash(f'Error loading analytics: {str(e)}', 'error')
+        return redirect(url_for('admin.admin_dashboard'))
+
+@admin_bp.route('/analytics-api')
+@login_required
+@admin_required
+def analytics_api():
+    """API endpoint for analytics data."""
+    try:
+        report = AnalyticsSegmentationService.get_comprehensive_report()
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
