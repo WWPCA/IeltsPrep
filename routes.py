@@ -532,6 +532,10 @@ def login():
             security_manager.clear_failed_attempts(identifier)
             security_manager.log_security_event('successful_login', user.id, {'email': email})
             
+            # Update last login timestamp for cleanup tracking
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            
             login_user(user)
             
             # Enhanced session security

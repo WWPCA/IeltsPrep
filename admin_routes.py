@@ -10,6 +10,7 @@ from api_issues import APIIssueLog, get_api_issue_statistics
 from auth_issues import AuthIssueLog, get_auth_issue_statistics
 from account_cleanup_service import AccountCleanupService
 from analytics_segmentation_service import AnalyticsSegmentationService
+from scheduled_tasks import execute_daily_tasks_now, execute_weekly_tasks_now
 from sqlalchemy import func, distinct, and_
 from datetime import datetime, timedelta
 import json
@@ -687,3 +688,43 @@ def analytics_api():
         return jsonify(report)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/scheduled-tasks')
+@login_required
+@admin_required
+def scheduled_tasks():
+    """Scheduled tasks management dashboard."""
+    return render_template('admin/scheduled_tasks.html',
+                         title='Scheduled Tasks Management')
+
+@admin_bp.route('/scheduled-tasks/execute-daily', methods=['POST'])
+@login_required
+@admin_required
+def execute_daily_tasks():
+    """Manually execute daily tasks."""
+    try:
+        result = execute_daily_tasks_now()
+        if result['status'] == 'success':
+            flash(f"Daily tasks completed successfully. Warnings sent: {result['cleanup_results']['warnings_sent']}, Accounts deleted: {result['cleanup_results']['accounts_deleted']}", 'success')
+        else:
+            flash(f"Daily tasks failed: {result['error']}", 'error')
+    except Exception as e:
+        flash(f'Error executing daily tasks: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.scheduled_tasks'))
+
+@admin_bp.route('/scheduled-tasks/execute-weekly', methods=['POST'])
+@login_required
+@admin_required
+def execute_weekly_tasks():
+    """Manually execute weekly tasks."""
+    try:
+        result = execute_weekly_tasks_now()
+        if result['status'] == 'success':
+            flash('Weekly analytics report generated successfully', 'success')
+        else:
+            flash(f"Weekly tasks failed: {result['error']}", 'error')
+    except Exception as e:
+        flash(f'Error executing weekly tasks: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.scheduled_tasks'))
