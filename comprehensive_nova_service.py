@@ -150,28 +150,27 @@ class ComprehensiveNovaService:
     def _call_nova_micro(self, system_prompt, user_prompt):
         """Call Nova Micro model for assessments"""
         try:
-            request_body = {
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": user_prompt
-                    }
-                ],
-                "inferenceConfig": {
-                    "max_new_tokens": 2000,
-                    "temperature": 0.3,
-                    "top_p": 0.9
+            messages = [
+                {
+                    "role": "system",
+                    "content": [{"text": system_prompt}]
+                },
+                {
+                    "role": "user",
+                    "content": [{"text": user_prompt}]
                 }
+            ]
+            
+            inference_config = {
+                "maxTokens": 2000,
+                "temperature": 0.3,
+                "topP": 0.9
             }
             
             response = self.bedrock_client.converse(
                 modelId="amazon.nova-micro-v1:0",
-                messages=request_body["messages"],
-                inferenceConfig=request_body["inferenceConfig"]
+                messages=messages,
+                inferenceConfig=inference_config
             )
             
             if response.get('output') and response['output'].get('message'):
