@@ -28,6 +28,7 @@ from payment_services import create_stripe_checkout_session, create_payment_reco
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation
+from maya_conversation_service import start_maya_conversation
 from comprehensive_nova_service import ComprehensiveNovaService
 
 logger = logging.getLogger(__name__)
