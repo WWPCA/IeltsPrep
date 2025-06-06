@@ -13,13 +13,18 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Set Stripe API key
-stripe_api_key = os.environ.get('STRIPE_SECRET_KEY', '')
-if stripe_api_key:
-    stripe.api_key = stripe_api_key
-    logger.info("Stripe API key configured successfully")
+# Set Stripe API key - prefer test keys for development
+stripe_test_key = os.environ.get('STRIPE_TEST_SECRET_KEY', '')
+stripe_live_key = os.environ.get('STRIPE_SECRET_KEY', '')
+
+if stripe_test_key:
+    stripe.api_key = stripe_test_key
+    logger.info("Stripe TEST API key configured successfully")
+elif stripe_live_key:
+    stripe.api_key = stripe_live_key
+    logger.info("Stripe LIVE API key configured successfully")
 else:
-    logger.warning("STRIPE_SECRET_KEY not found in environment variables")
+    logger.warning("No Stripe API keys found in environment variables")
 
 def create_stripe_checkout_session(product_name, description, price, success_url, cancel_url, country_code=None, customer_email=None):
     """
