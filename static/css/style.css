@@ -43,6 +43,7 @@ body {
   color: var(--text-color);
   background-color: #f9f9f9;
   min-height: 100vh;
+  padding-bottom: 200px; /* Add bottom padding to prevent console overlap */
 }
 
 a {
@@ -362,8 +363,8 @@ body.menu-open {
 .site-footer {
   background-color: var(--dark-color);
   color: white;
-  padding: 3rem 0;
-  margin-top: 4rem;
+  padding: 1.5rem 0;
+  margin-top: 2rem;
 }
 
 .footer-grid {
