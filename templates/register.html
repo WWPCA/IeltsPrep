@@ -102,11 +102,30 @@
   
   /* Ensure reCAPTCHA container has proper spacing */
   .recaptcha-container {
-    min-height: 80px;
+    min-height: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 20px 0;
+    margin: 40px 0 30px 0;
+    padding: 20px;
+    clear: both;
+    position: relative;
+    z-index: 1000;
+  }
+  
+  /* Fix data processing consent overlap */
+  .gdpr-section {
+    margin-bottom: 40px !important;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Ensure submit button stays below reCAPTCHA */
+  .submit-section {
+    margin-top: 30px;
+    clear: both;
+    position: relative;
+    z-index: 1;
   }
 </style>
 {% endblock %}
@@ -359,7 +378,7 @@
                         </div>
                         
                         <!-- GDPR-Specific Consent -->
-                        <div class="card mb-5 bg-light" style="margin-bottom: 3rem !important;">
+                        <div class="card mb-5 bg-light gdpr-section" style="margin-bottom: 3rem !important;">
                             <div class="card-header">
                                 <h5 class="mb-0 fs-6">Data Processing Consent</h5>
                             </div>
@@ -403,7 +422,7 @@
                             <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
                         </div>
                         
-                        <div class="d-grid gap-2 mb-4">
+                        <div class="d-grid gap-2 mb-4 submit-section">
                             <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled style="min-height: 50px; visibility: visible !important; display: block !important; z-index: 1000;">
                                 <i class="fas fa-user-plus me-2"></i>Create My Account
                             </button>
