@@ -528,6 +528,13 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
+            # Check if email is verified
+            if not user.email_verified:
+                flash('Please verify your email address before logging in. Check your email for the verification link.', 'warning')
+                return render_template('login.html', title='Login', form=form, 
+                                     recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'),
+                                     show_resend_verification=True, user_email=email)
+            
             # Successful login - clear failed attempts
             security_manager.clear_failed_attempts(identifier)
             security_manager.log_security_event('successful_login', user.id, {'email': email})
@@ -642,17 +649,107 @@ def register():
             print(f"Warning: Could not get user region: {e}")
             new_user.region = "unknown"
         
-        # Set account as activated (auto-activation for now)
-        new_user.account_activated = True
-        new_user.email_verified = True  # Auto-verify for simplicity
+        # Require email verification
+        new_user.account_activated = False
+        new_user.email_verified = False
+        
+        # Generate email verification token
+        import secrets
+        verification_token = secrets.token_urlsafe(32)
+        new_user.email_verification_token = verification_token
+        new_user.email_verification_sent_at = datetime.utcnow()
         
         db.session.add(new_user)
         db.session.commit()
         
-        flash('Registration successful! You can now log in.', 'success')
+        # Send verification email
+        try:
+            from enhanced_email_service import send_verification_email
+            verification_url = url_for('verify_email', token=verification_token, _external=True)
+            send_verification_email(email, verification_url)
+            flash('Registration successful! Please check your email and click the verification link before logging in.', 'success')
+        except Exception as e:
+            print(f"Failed to send verification email: {e}")
+            flash('Registration successful! However, we could not send the verification email. Please contact support.', 'warning')
+        
         return redirect(url_for('login'))
     
     return render_template('register.html', title='Register')
+
+@app.route('/verify-email/<token>')
+def verify_email(token):
+    """Email verification endpoint"""
+    try:
+        # Find user with this verification token
+        user = User.query.filter_by(email_verification_token=token).first()
+        
+        if not user:
+            flash('Invalid or expired verification link.', 'danger')
+            return redirect(url_for('login'))
+        
+        # Check if token is expired (24 hours)
+        if user.email_verification_sent_at and \
+           (datetime.utcnow() - user.email_verification_sent_at).total_seconds() > 86400:
+            flash('Verification link has expired. Please register again.', 'danger')
+            return redirect(url_for('register'))
+        
+        # Verify the email
+        user.email_verified = True
+        user.account_activated = True
+        user.email_verification_token = None
+        user.email_verification_sent_at = None
+        
+        db.session.commit()
+        
+        flash('Email verified successfully! You can now log in.', 'success')
+        return redirect(url_for('login'))
+        
+    except Exception as e:
+        print(f"Email verification error: {e}")
+        flash('An error occurred during verification. Please try again.', 'danger')
+        return redirect(url_for('login'))
+
+@app.route('/resend-verification', methods=['GET', 'POST'])
+def resend_verification():
+    """Resend email verification"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        if not email:
+            flash('Please provide your email address.', 'danger')
+            return render_template('resend_verification.html')
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            flash('No account found with this email address.', 'danger')
+            return render_template('resend_verification.html')
+        
+        if user.email_verified:
+            flash('Your email is already verified. You can log in.', 'info')
+            return redirect(url_for('login'))
+        
+        # Generate new verification token
+        import secrets
+        verification_token = secrets.token_urlsafe(32)
+        user.email_verification_token = verification_token
+        user.email_verification_sent_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        # Send verification email
+        try:
+            from enhanced_email_service import send_verification_email
+            verification_url = url_for('verify_email', token=verification_token, _external=True)
+            send_verification_email(email, verification_url)
+            flash('Verification email sent! Please check your email.', 'success')
+        except Exception as e:
+            print(f"Failed to resend verification email: {e}")
+            flash('Failed to send verification email. Please contact support.', 'danger')
+        
+        return redirect(url_for('login'))
+    
+    return render_template('resend_verification.html')
 
 @app.route('/assessment-products')
 def assessment_products_page():
