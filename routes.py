@@ -651,12 +651,14 @@ def register():
     return render_template('register.html', title='Register')
 
 @app.route('/assessment-products')
+@login_required
 def assessment_products_page():
     """Assessment products page for purchasing packages"""
     return render_template('assessment_products.html', 
                          title='IELTS Assessment Packages')
 
 @app.route('/create-checkout-session', methods=['POST'])
+@login_required
 def create_checkout_session():
     """Create Stripe checkout session for assessment purchases"""
     try:
@@ -719,6 +721,7 @@ def create_checkout_session():
         return redirect(url_for('assessment_products_page'))
 
 @app.route('/payment-success')
+@login_required
 def payment_success():
     """Handle successful payment completion"""
     session_id = request.args.get('session_id')
