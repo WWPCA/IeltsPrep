@@ -1,553 +1,275 @@
 {% extends "layout.html" %}
 
-{% block head %}
-{{ super() }}
-<!-- Load error suppressor script manually with the highest priority -->
-<script src="{{ url_for('static', filename='js/error_suppressor.js') }}?v={{ cache_buster }}"></script>
-<script>
-  // Additional aggressive error cleanup specifically for register page with checkout param
-  (function() {
-    function aggressiveErrorCleanup() {
-      // Handle fixed-position error messages
-      document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
-        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
-          console.log("Register page - Removing error element:", el.textContent);
-          el.remove();
-        }
-      });
-      
-      // Handle any elements with error classes that are not part of our validation
-      document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
-        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
-          if (!el.closest('.password-feedback') && !el.closest('.confirm-feedback')) {
-            console.log("Register page - Removing error alert:", el.textContent);
-            el.remove();
-          }
-        }
-      });
-      
-      // Handle any toast messages (which often appear at the bottom of the page)
-      document.querySelectorAll('div[style*="bottom:"], div[style*="bottom: "]').forEach(function(el) {
-        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
-          console.log("Register page - Removing toast error:", el.textContent);
-          el.remove();
-        }
-      });
-      
-      // Handle any alert messages
-      document.querySelectorAll('.alert').forEach(function(el) {
-        if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
-          if (!el.closest('.password-feedback') && !el.closest('.confirm-feedback') && !el.classList.contains('alert-info')) {
-            console.log("Register page - Removing alert:", el.textContent);
-            el.remove();
-          }
-        }
-      });
-    }
-    
-    // Run immediately
-    aggressiveErrorCleanup();
-    
-    // Run again when DOM content is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-      aggressiveErrorCleanup();
-      // Also run cleanup periodically
-      setInterval(aggressiveErrorCleanup, 100); // Faster interval (100ms)
-    });
-    
-    // Run at regular intervals anyway
-    setInterval(aggressiveErrorCleanup, 100); // Faster interval (100ms)
-  })();
-</script>
-{% endblock %}
+{% block title %}Register - IELTS GenAI Prep{% endblock %}
 
-{% block styles %}
+{% block head %}
 <style>
-  .password-feedback, .confirm-feedback {
-    font-size: 0.85rem;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    background-color: #f8f9fa;
-    margin-top: 0.5rem;
+  .registration-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   }
   
-  .password-feedback div, .confirm-feedback div {
-    margin: 0.25rem 0;
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
   }
   
-  /* Bootstrap validation styles */
-  .is-valid {
-    border-color: #198754 !important;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right calc(0.375em + 0.1875rem) center;
-    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  .form-section:last-child {
+    border-bottom: none;
   }
   
-  .is-invalid {
-    border-color: #dc3545 !important;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right calc(0.375em + 0.1875rem) center;
-    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-  }
-  
-  /* reCAPTCHA styling fixes */
-  .g-recaptcha {
-    z-index: 999 !important;
-    position: relative !important;
-    display: inline-block !important;
-    transform: scale(1) !important;
-  }
-  
-  /* Ensure reCAPTCHA container has proper spacing */
-  .recaptcha-container {
-    min-height: 100px;
+  .section-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
     display: flex;
-    justify-content: center;
     align-items: center;
-    margin: 40px 0 30px 0;
-    padding: 20px;
-    clear: both;
-    position: relative;
-    z-index: 1000;
+    gap: 0.5rem;
   }
   
-  /* Fix data processing consent overlap - force clear separation */
   .gdpr-section {
-    margin-bottom: 60px !important;
-    padding-bottom: 30px !important;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
   }
   
-  /* Force reCAPTCHA container to be completely separate */
+  .recaptcha-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin: 3rem 0;
+    color: white;
+  }
+  
   .recaptcha-container {
-    margin-top: 60px !important;
-    margin-bottom: 40px !important;
-    padding-top: 40px !important;
-    border-top: 1px solid #dee2e6;
-    background-color: #f8f9fa;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    display: inline-block;
+    margin: 1rem 0;
   }
   
-  /* Ensure submit button stays below reCAPTCHA */
   .submit-section {
-    margin-top: 40px !important;
-    clear: both;
-    position: relative;
-    z-index: 1;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e9ecef;
+  }
+  
+  .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
   }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="registration-container">
+        <div class="text-center mb-4">
+            <h2 class="text-primary">Create Your Account</h2>
+            <p class="text-muted">Join IELTS GenAI Prep for personalized test preparation</p>
+        </div>
+
+        <form method="POST" id="registration-form">
+            {{ form.hidden_tag() }}
+            
+            <!-- Personal Information -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    Personal Information
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address *</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label">Password *</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="form-text">Minimum 8 characters with letters and numbers</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password *</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal Agreements -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-check-circle"></i>
+                    Legal Agreements
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="age_verification" name="age_verification" required>
+                    <label class="form-check-label" for="age_verification">
+                        I confirm that I am at least 16 years of age *
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="agree_terms" name="agree_terms" required>
+                    <label class="form-check-label" for="agree_terms">
+                        I agree to the <a href="{{ url_for('gdpr_routes.terms_of_service') }}" target="_blank">Terms of Service</a> and <a href="{{ url_for('gdpr_routes.privacy_policy') }}" target="_blank">Privacy Policy</a> *
+                    </label>
+                </div>
+            </div>
+
+            <!-- GDPR Data Processing Consent -->
+            <div class="gdpr-section">
+                <div class="section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Data Processing Consent
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="data_processing_consent" name="data_processing_consent" required>
+                    <label class="form-check-label" for="data_processing_consent">
+                        I consent to the collection and processing of my personal data as described in the Privacy Policy *
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="assessment_data_consent" name="assessment_data_consent" required>
+                    <label class="form-check-label" for="assessment_data_consent">
+                        I understand that my assessment results will be stored to track my progress *
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="speaking_data_consent" name="speaking_data_consent" required>
+                    <label class="form-check-label" for="speaking_data_consent">
+                        I consent to the temporary processing of my speaking recordings for assessment purposes only (recordings are not stored permanently) *
+                    </label>
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="marketing_consent" name="marketing_consent">
+                    <label class="form-check-label" for="marketing_consent">
+                        I agree to receive updates, tips, and promotional information about IELTS preparation (optional)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Security Verification -->
+            <div class="recaptcha-section">
+                <h4><i class="fas fa-lock"></i> Security Verification</h4>
+                <p>Complete the verification below to secure your account</p>
+                <div class="recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn"></div>
+                </div>
+                <small>Protected by Google reCAPTCHA v2</small>
+                <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+            </div>
+
+            <!-- Submit Section -->
+            <div class="submit-section text-center">
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                    <i class="fas fa-user-plus me-2"></i>Create My Account
+                </button>
+                <div class="mt-3">
+                    <p class="text-muted small">
+                        Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
-   // Global callback functions for reCAPTCHA
-   function enableSubmitBtn() {
-     document.getElementById('submitBtn').disabled = false;
-     document.getElementById('g-recaptcha-response').value = grecaptcha.getResponse();
-   }
-   
-   function disableSubmitBtn() {
-     document.getElementById('submitBtn').disabled = true;
-     document.getElementById('g-recaptcha-response').value = '';
-   }
+function enableSubmitBtn() {
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('g-recaptcha-response').value = grecaptcha.getResponse();
+}
+
+function disableSubmitBtn() {
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('g-recaptcha-response').value = '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registration-form');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    function validatePassword() {
+        const passwordValue = password.value;
+        const minLength = passwordValue.length >= 8;
+        const hasLetter = /[a-zA-Z]/.test(passwordValue);
+        const hasNumber = /\d/.test(passwordValue);
+        
+        if (passwordValue && (!minLength || !hasLetter || !hasNumber)) {
+            password.classList.add('is-invalid');
+            return false;
+        } else {
+            password.classList.remove('is-invalid');
+            return true;
+        }
+    }
+    
+    function validateConfirmPassword() {
+        if (confirmPassword.value && confirmPassword.value !== password.value) {
+            confirmPassword.classList.add('is-invalid');
+            return false;
+        } else {
+            confirmPassword.classList.remove('is-invalid');
+            return true;
+        }
+    }
+    
+    password.addEventListener('input', validatePassword);
+    confirmPassword.addEventListener('input', validateConfirmPassword);
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const passwordValid = validatePassword();
+        const confirmValid = validateConfirmPassword();
+        const recaptchaResponse = document.getElementById('g-recaptcha-response').value;
+        
+        if (!passwordValid || !confirmValid) {
+            alert('Please fix the password validation errors before submitting.');
+            return false;
+        }
+        
+        if (!recaptchaResponse) {
+            alert('Please complete the reCAPTCHA verification.');
+            return false;
+        }
+        
+        form.submit();
+    });
+});
 </script>
-
-<script>
-   // This handles form validation and registration
-   document.addEventListener('DOMContentLoaded', function() {
-     // Find the registration form
-     const form = document.getElementById('registration-form');
-     const password = document.getElementById('password');
-     const confirmPassword = document.getElementById('confirm_password');
-     const passwordFeedback = document.createElement('div');
-     const confirmFeedback = document.createElement('div');
-     
-     // Fix for "ERROR: Invalid details" message that appears in bottom-right corner
-     // Remove any error notifications that might be showing
-     const cleanupErrors = function() {
-       // Find and remove any elements with error messages
-       document.querySelectorAll('div[style*="position:fixed"], div[style*="position: fixed"]').forEach(function(el) {
-         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
-           el.remove();
-         }
-       });
-       
-       // Also remove any elements with error classes that are not part of our validation
-       document.querySelectorAll('.alert-danger, .alert-error').forEach(function(el) {
-         if (el.textContent && (el.textContent.includes('ERROR') || el.textContent.includes('Invalid details'))) {
-           // Make sure this is not one of our validation elements
-           if (!el.closest('.password-feedback') && !el.closest('.confirm-feedback')) {
-             el.remove();
-           }
-         }
-       });
-     };
-     
-     // Run cleanup immediately
-     cleanupErrors();
-     
-     // Also run cleanup periodically
-     setInterval(cleanupErrors, 1000);
-     
-     // Add feedback elements after password fields
-     passwordFeedback.className = 'password-feedback mt-2';
-     confirmFeedback.className = 'confirm-feedback mt-2';
-     password.parentNode.appendChild(passwordFeedback);
-     confirmPassword.parentNode.appendChild(confirmFeedback);
-     
-     // Function to validate password complexity
-     function validatePassword() {
-       const value = password.value;
-       let valid = true;
-       let feedback = '';
-       
-       // Create check marks or X marks for each requirement
-       const lengthCheck = value.length >= 8;
-       const uppercaseCheck = /[A-Z]/.test(value);
-       const lowercaseCheck = /[a-z]/.test(value);
-       const numberCheck = /\d/.test(value);
-       const specialCheck = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-       
-       // Build feedback message
-       feedback += `<div class="${lengthCheck ? 'text-success' : 'text-danger'}">
-         <i class="fas fa-${lengthCheck ? 'check' : 'times'}"></i> At least 8 characters
-       </div>`;
-       feedback += `<div class="${uppercaseCheck ? 'text-success' : 'text-danger'}">
-         <i class="fas fa-${uppercaseCheck ? 'check' : 'times'}"></i> At least one uppercase letter
-       </div>`;
-       feedback += `<div class="${lowercaseCheck ? 'text-success' : 'text-danger'}">
-         <i class="fas fa-${lowercaseCheck ? 'check' : 'times'}"></i> At least one lowercase letter
-       </div>`;
-       feedback += `<div class="${numberCheck ? 'text-success' : 'text-danger'}">
-         <i class="fas fa-${numberCheck ? 'check' : 'times'}"></i> At least one number
-       </div>`;
-       feedback += `<div class="${specialCheck ? 'text-success' : 'text-danger'}">
-         <i class="fas fa-${specialCheck ? 'check' : 'times'}"></i> At least one special character
-       </div>`;
-       
-       // Update password border and feedback
-       if (value.length > 0) {
-         valid = lengthCheck && uppercaseCheck && lowercaseCheck && numberCheck && specialCheck;
-         password.classList.remove('is-valid', 'is-invalid');
-         password.classList.add(valid ? 'is-valid' : 'is-invalid');
-         passwordFeedback.innerHTML = feedback;
-       } else {
-         passwordFeedback.innerHTML = '';
-         password.classList.remove('is-valid', 'is-invalid');
-       }
-       
-       // Also check confirm password if it has a value
-       if (confirmPassword.value.length > 0) {
-         validateConfirmPassword();
-       }
-       
-       return valid;
-     }
-     
-     // Function to validate confirmation password
-     function validateConfirmPassword() {
-       const match = password.value === confirmPassword.value;
-       
-       if (confirmPassword.value.length > 0) {
-         confirmPassword.classList.remove('is-valid', 'is-invalid');
-         confirmPassword.classList.add(match ? 'is-valid' : 'is-invalid');
-         
-         if (match) {
-           confirmFeedback.innerHTML = '<div class="text-success"><i class="fas fa-check"></i> Passwords match</div>';
-         } else {
-           confirmFeedback.innerHTML = '<div class="text-danger"><i class="fas fa-times"></i> Passwords do not match</div>';
-         }
-       } else {
-         confirmFeedback.innerHTML = '';
-         confirmPassword.classList.remove('is-valid', 'is-invalid');
-       }
-       
-       return match;
-     }
-     
-     // Add event listeners to password fields
-     password.addEventListener('input', validatePassword);
-     confirmPassword.addEventListener('input', validateConfirmPassword);
-     
-     // Mark form as requiring reCAPTCHA
-     form.setAttribute('data-requires-recaptcha', 'true');
-     
-     // Add event listener to form submission
-     form.addEventListener('submit', function(e) {
-       e.preventDefault(); // Prevent the form from submitting immediately
-       
-       // Validate password and confirmation before submission
-       const passwordValid = validatePassword();
-       const confirmValid = validateConfirmPassword();
-       
-       if (!passwordValid || !confirmValid) {
-         // Don't submit if validation fails
-         return;
-       }
-       
-       // Use the robust reCAPTCHA loader
-       if (window.submitFormWithRecaptcha) {
-         window.submitFormWithRecaptcha(form, 'register')
-           .then(() => {
-             console.log('reCAPTCHA verification successful, submitting registration form');
-             form.submit();
-           })
-           .catch(error => {
-             console.error('reCAPTCHA verification failed:', error);
-             // Show user-friendly error message
-             const errorDiv = document.createElement('div');
-             errorDiv.className = 'alert alert-danger mt-3';
-             errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Security verification failed. Please refresh the page and try again.';
-             
-             // Remove any existing error messages
-             const existingErrors = form.querySelectorAll('.alert-danger');
-             existingErrors.forEach(err => err.remove());
-             
-             form.appendChild(errorDiv);
-           });
-       } else {
-         // Fallback if reCAPTCHA loader not available
-         console.warn('reCAPTCHA loader not available, submitting without verification');
-         form.submit();
-       }
-     });
-   });
-</script>
-{% endblock %}
-
-{% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Create Your IELTS GenAI Prep Account</h2>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info mb-4">
-                        <strong>Welcome to IELTS GenAI Prep!</strong> Our platform uses advanced Generative AI technology to provide personalized feedback and assessment for your IELTS practice.
-                    </div>
-
-                    <form method="POST" action="{{ url_for('register') }}" id="registration-form">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        
-                        <div class="form-group mb-3">
-                            <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="your.email@example.com" value="{{ pre_filled_email if pre_filled_email }}" required>
-                            <div class="form-text">This will be used as your login ID.</div>
-                        </div>
-                        
-
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <div class="form-text">Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Country selection removed as requested -->
-                        
-                        <!-- IELTS Test Type removed - will be determined by product purchase -->
-                        
-                        <div class="alert alert-info mt-3">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Your test type (Academic or General Training) will be determined by your product purchase.
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="age_verification" name="age_verification" required>
-                                <label class="form-check-label" for="age_verification">
-                                    I confirm that I am at least 16 years of age
-                                    <span class="text-danger">*</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agree_terms" name="agree_terms" required>
-                                <label class="form-check-label" for="agree_terms">
-                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
-                                    <span class="text-danger">*</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- GDPR-Specific Consent -->
-                        <div class="card mb-5 bg-light gdpr-section">
-                            <div class="card-header">
-                                <h5 class="mb-0 fs-6">Data Processing Consent</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="data_processing_consent" name="data_processing_consent" required>
-                                    <label class="form-check-label" for="data_processing_consent">
-                                        I consent to the collection and processing of my personal data as described in the Privacy Policy
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="assessment_data_consent" name="assessment_data_consent" required>
-                                    <label class="form-check-label" for="assessment_data_consent">
-                                        I understand that my assessment results will be stored to track my progress
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="speaking_data_consent" name="speaking_data_consent" required>
-                                    <label class="form-check-label" for="speaking_data_consent">
-                                        I consent to the temporary processing of my speaking recordings for assessment purposes only (recordings are not stored permanently)
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="marketing_consent" name="marketing_consent">
-                                    <label class="form-check-label" for="marketing_consent">
-                                        I agree to receive updates, tips, and promotional information about IELTS preparation (optional)
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- SECURITY CHECKPOINT - UPDATED 2025 -->
-                        <div style="background: linear-gradient(135deg, #1976d2, #42a5f5); border: 3px solid #0d47a1; border-radius: 12px; padding: 40px; margin: 60px 0; text-align: center; box-shadow: 0 8px 24px rgba(25,118,210,0.3);">
-                            <h4 style="color: white; margin-bottom: 15px; font-weight: bold;">
-                                🛡️ SECURITY VERIFICATION CHECKPOINT
-                            </h4>
-                            <p style="color: #e3f2fd; margin-bottom: 30px; font-size: 16px;">Complete the verification below to proceed with registration:</p>
-                            <div style="background: white; padding: 15px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">
-                                <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn" style="display: inline-block;"></div>
-                            </div>
-                            <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
-                            <div style="color: #e1f5fe; font-size: 14px; margin-top: 10px;">
-                                Protected by Google reCAPTCHA v2
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2 mb-4 submit-section">
-                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled style="min-height: 50px; visibility: visible !important; display: block !important; z-index: 1000;">
-                                <i class="fas fa-user-plus me-2"></i>Create My Account
-                            </button>
-                            <p class="text-muted small mt-2">This site is protected by Google reCAPTCHA v2 and the Google <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.</p>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-footer bg-light">
-                    <div class="text-center">
-                        <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-sm">Login here</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Terms of Service Modal -->
-<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="termsModalLabel">Terms of Service</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h5>IELTS GenAI Prep Terms of Service</h5>
-                <p>Last Updated: May 2025</p>
-                
-                <h6>1. Acceptance of Terms</h6>
-                <p>By accessing or using the IELTS GenAI Prep platform, you agree to be bound by these Terms of Service.</p>
-                
-                <h6>2. Service Description</h6>
-                <p>IELTS GenAI Prep provides online language assessment services using GenAI technology for IELTS test preparation.</p>
-                
-                <h6>3. User Accounts</h6>
-                <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
-                
-                <h6>4. Payment Terms</h6>
-                <p>Assessment products purchased are non-refundable once used. Each assessment can only be used once.</p>
-                
-                <h6>5. Product Access</h6>
-                <p>Users have access to assessment modules until they are used. Once an assessment is completed, users retain permanent access to their results and feedback.</p>
-                
-                <h6>6. Content Usage</h6>
-                <p>All content on the platform is owned by IELTS GenAI Prep and protected by copyright.</p>
-                
-                <h6>7. Privacy</h6>
-                <p>Your use of our service is also governed by our Privacy Policy.</p>
-                
-                <h6>8. Termination</h6>
-                <p>We reserve the right to terminate or suspend access to our service immediately, without prior notice or liability.</p>
-                
-                <h6>9. Limitation of Liability</h6>
-                <p>IELTS GenAI Prep shall not be liable for any indirect, incidental, special, consequential or punitive damages.</p>
-                
-                <h6>10. Changes to Terms</h6>
-                <p>We reserve the right to modify these terms at any time. Your continued use of the platform after changes constitutes acceptance.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Privacy Policy Modal -->
-<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h5>IELTS GenAI Prep Privacy Policy</h5>
-                <p>Last Updated: May 2025</p>
-                
-                <h6>1. Information We Collect</h6>
-                <p>We collect personal information such as name, email address, country, and optionally phone number during registration. We also collect test responses and usage data to improve your experience.</p>
-                
-                <h6>2. How We Use Your Information</h6>
-                <p>We use your information to provide and improve our services, personalize your experience, process payments, and communicate with you about your account.</p>
-                
-                <h6>3. Data Protection</h6>
-                <p>We implement enterprise-grade security measures including rate limiting, account lockout protection, enhanced input validation, session monitoring, and comprehensive attack prevention to protect your personal data against unauthorized access or disclosure.</p>
-                
-                <h6>4. Data Sharing</h6>
-                <p>We do not sell your information to third parties. We may share data with service providers who help us deliver our services.</p>
-                
-                <h6>5. Audio Recording Privacy</h6>
-                <p>During microphone testing and speaking assessments, we implement strict privacy controls: recordings are automatically deleted after 30 seconds maximum, immediately deleted after playback, processed only in your browser's memory, and never stored on our servers.</p>
-                
-                <h6>6. GenAI Technology</h6>
-                <p>Our GenAI assessment technology analyzes your responses to provide personalized feedback and scoring. Your responses may be used to improve our assessment algorithms.</p>
-                
-                <h6>6. Cookies and Tracking</h6>
-                <p>We use cookies to enhance your experience and analyze usage patterns.</p>
-                
-                <h6>7. Changes to Privacy Policy</h6>
-                <p>We may update this policy periodically without notice. It is your responsibility to review this Privacy Policy occasionally to stay informed about our information practices.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
