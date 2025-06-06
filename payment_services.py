@@ -77,7 +77,6 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             # Use existing test product
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
-                automatic_payment_methods={'enabled': True},
                 line_items=[{
                     'price_data': {
                         'currency': 'usd',
@@ -110,7 +109,6 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             # Fallback to dynamic product creation
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
-                automatic_payment_methods={'enabled': True},
                 line_items=[{
                     'price_data': {
                         'currency': 'usd',
