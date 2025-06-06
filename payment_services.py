@@ -51,57 +51,8 @@ def create_stripe_checkout_session(product_name, description, price, success_url
         import uuid
         idempotency_key = str(uuid.uuid4())
         
-        # Map assessment types to your existing Stripe product IDs
-        product_mapping = {
-            'academic_writing': 'prod_SRFpXW9UbuxpIK',
-            'general_writing': 'prod_SRFqAHrX1gAjOO', 
-            'academic_speaking': 'prod_SRFsfHFnzTki3N',
-            'general_speaking': 'prod_SRFt035asxEgTK'
-        }
-        
-        # Get the appropriate product ID
-        product_id = None
-        for key, pid in product_mapping.items():
-            if key in product_name.lower().replace(' ', '_').replace('-', '_'):
-                product_id = pid
-                break
-        
-        if product_id:
-            # Use existing product with $25 price
-            session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'usd',
-                        'product': product_id,
-                        'unit_amount': 2500,  # $25.00
-                    },
-                    'quantity': 1,
-                }],
-                mode='payment',
-                success_url=success_url,
-                cancel_url=cancel_url,
-                customer_email=customer_email if customer_email else None,
-                # Disable automatic tax for test mode - requires business address setup
-                # automatic_tax={'enabled': True},
-                payment_intent_data={
-                    'description': f'IELTS Assessment: {product_name}',
-                    'metadata': {
-                        'integration_type': 'checkout',
-                        'platform': 'ielts_genai_prep'
-                    }
-                },
-                metadata={
-                    'product_type': 'ielts_assessment',
-                    'product_name': product_name,
-                    'platform': 'ielts_genai_prep',
-                    'created_at': datetime.utcnow().isoformat()
-                },
-                expires_at=int((datetime.utcnow().timestamp() + 1800))  # 30 minutes expiry
-            )
-        else:
-            # Fallback to dynamic product creation
-            session = stripe.checkout.Session.create(
+        # Use dynamic product creation for test mode compatibility
+        session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
                     'price_data': {
