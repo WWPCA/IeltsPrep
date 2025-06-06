@@ -96,22 +96,32 @@
 
 {% block scripts %}
 
-<!-- reCAPTCHA v2 automatic rendering -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
+<!-- reCAPTCHA v2 script -->
 <script>
-   // reCAPTCHA callback functions
-   function enableSubmitBtn() {
+   // reCAPTCHA callback functions - must be global
+   window.enableSubmitBtn = function() {
      document.getElementById('submitBtn').disabled = false;
-     // Copy the reCAPTCHA response to hidden field
      document.getElementById('g-recaptcha-response').value = grecaptcha.getResponse();
    }
    
-   function disableSubmitBtn() {
+   window.disableSubmitBtn = function() {
      document.getElementById('submitBtn').disabled = true;
      document.getElementById('g-recaptcha-response').value = '';
    }
+   
+   // Explicitly render reCAPTCHA widget
+   window.onRecaptchaLoad = function() {
+     console.log('reCAPTCHA API loaded, rendering widget');
+     if (typeof grecaptcha !== 'undefined') {
+       grecaptcha.render('recaptcha-container', {
+         'sitekey': '{{ recaptcha_site_key }}',
+         'callback': 'enableSubmitBtn',
+         'expired-callback': 'disableSubmitBtn'
+       });
+     }
+   }
 </script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 
 <script>
    // This handles form validation and registration
@@ -386,7 +396,7 @@
                         
                         <!-- Google reCAPTCHA v2 Widget -->
                         <div class="form-group mb-4 text-center">
-                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn"></div>
+                            <div id="recaptcha-container"></div>
                             <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
                         </div>
                         
