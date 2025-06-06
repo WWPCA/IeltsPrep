@@ -59,6 +59,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             success_url=success_url,
             cancel_url=cancel_url,
             customer_email=customer_email,
+            automatic_tax={'enabled': True},
             payment_intent_data={
                 'description': f'IELTS Assessment: {product_name}',
             },
