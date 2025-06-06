@@ -91,6 +91,23 @@
     background-position: right calc(0.375em + 0.1875rem) center;
     background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
   }
+  
+  /* reCAPTCHA styling fixes */
+  .g-recaptcha {
+    z-index: 999 !important;
+    position: relative !important;
+    display: inline-block !important;
+    transform: scale(1) !important;
+  }
+  
+  /* Ensure reCAPTCHA container has proper spacing */
+  .recaptcha-container {
+    min-height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+  }
 </style>
 {% endblock %}
 
@@ -341,7 +358,7 @@
                         </div>
                         
                         <!-- GDPR-Specific Consent -->
-                        <div class="card mb-4 bg-light">
+                        <div class="card mb-5 bg-light" style="margin-bottom: 3rem !important;">
                             <div class="card-header">
                                 <h5 class="mb-0 fs-6">Data Processing Consent</h5>
                             </div>
@@ -380,8 +397,8 @@
                         </div>
                         
                         <!-- Google reCAPTCHA v2 Widget -->
-                        <div class="form-group mb-4 text-center">
-                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn"></div>
+                        <div class="form-group mb-4 text-center" style="margin-top: 30px; padding-top: 20px; clear: both;">
+                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn" style="margin: 0 auto; display: inline-block;"></div>
                             <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
                         </div>
                         
