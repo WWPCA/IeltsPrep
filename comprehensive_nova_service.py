@@ -38,45 +38,39 @@ class ComprehensiveNovaService:
             # Configure Maya's conversation prompt based on speaking part
             system_prompt = self._get_maya_conversation_prompt(part_number, context)
             
-            # Nova Sonic speech-to-speech conversation
-            conversation_request = {
-                "modelId": "amazon.nova-sonic-v1:0",
-                "contentType": "application/json",
-                "accept": "application/json",
-                "body": json.dumps({
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": system_prompt
-                        },
-                        {
-                            "role": "user", 
-                            "content": user_message
-                        }
-                    ],
-                    "inferenceConfig": {
-                        "temperature": 0.7,
-                        "maxTokens": 300
-                    },
-                    "speechConfig": {
-                        "voice": "amy",  # British English for IELTS
-                        "audioFormat": "mp3",
-                        "speed": "medium"
-                    }
-                })
+            # Use Converse API for speaking conversation with Nova Micro
+            combined_prompt = f"{system_prompt}\n\nUser: {user_message}\n\nMaya (IELTS Examiner):"
+            
+            messages = [
+                {
+                    "role": "user",
+                    "content": [{"text": combined_prompt}]
+                }
+            ]
+            
+            inference_config = {
+                "maxTokens": 300,
+                "temperature": 0.7,
+                "topP": 0.9
             }
             
-            response = self.bedrock_client.invoke_model(**conversation_request)
-            response_body = json.loads(response['body'].read())
+            response = self.bedrock_client.converse(
+                modelId="amazon.nova-micro-v1:0",
+                messages=messages,
+                inferenceConfig=inference_config
+            )
             
-            logger.info(f"Nova Sonic conversation completed for Part {part_number}")
+            maya_response = ""
+            if response.get('output') and response['output'].get('message'):
+                maya_response = response['output']['message']['content'][0]['text']
+            
+            logger.info(f"Maya conversation completed for Part {part_number}")
             return {
                 "success": True,
-                "maya_response": response_body.get('output', {}).get('message', ''),
-                "audio_response": response_body.get('output', {}).get('audio', ''),
+                "maya_response": maya_response,
                 "conversation_feedback": self._generate_conversation_feedback(user_message, part_number),
                 "part_number": part_number,
-                "service": "nova_sonic",
+                "service": "nova_micro",
                 "timestamp": datetime.utcnow().isoformat()
             }
             
@@ -150,14 +144,13 @@ class ComprehensiveNovaService:
     def _call_nova_micro(self, system_prompt, user_prompt):
         """Call Nova Micro model for assessments"""
         try:
+            # Combine system and user prompts since Bedrock Converse doesn't support system role
+            combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+            
             messages = [
                 {
-                    "role": "system",
-                    "content": [{"text": system_prompt}]
-                },
-                {
                     "role": "user",
-                    "content": [{"text": user_prompt}]
+                    "content": [{"text": combined_prompt}]
                 }
             ]
             
