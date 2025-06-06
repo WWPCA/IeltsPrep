@@ -95,10 +95,8 @@
 {% endblock %}
 
 {% block scripts %}
-
-<!-- reCAPTCHA v2 script -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
-   // reCAPTCHA callback functions - must be global
    function enableSubmitBtn() {
      document.getElementById('submitBtn').disabled = false;
      document.getElementById('g-recaptcha-response').value = grecaptcha.getResponse();
@@ -109,7 +107,6 @@
      document.getElementById('g-recaptcha-response').value = '';
    }
 </script>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 <script>
    // This handles form validation and registration
