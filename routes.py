@@ -681,4 +681,46 @@ def assessment_package_required(f):
 
 # Note: Restricted access page is now handled by country_access_control.py via the /access-restricted route
 
+# Maya Conversation Routes for Nova Sonic Speech-to-Speech
+@app.route('/maya-conversation', methods=['POST'])
+@login_required
+def maya_conversation():
+    """Handle Maya conversation using Nova Sonic"""
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        part_number = data.get('part_number', 1)
+        context = data.get('context', '')
+        
+        if not user_message:
+            return jsonify({'success': False, 'error': 'Message required'})
+        
+        # Start conversation with Maya using Nova Sonic
+        result = start_maya_conversation(user_message, part_number, context)
+        
+        if result.get('success'):
+            return jsonify({
+                'success': True,
+                'maya_response': result['maya_response'],
+                'audio_available': result.get('audio_available', False),
+                'part_number': result['part_number'],
+                'timestamp': result['timestamp']
+            })
+        
+        return jsonify({
+            'success': False,
+            'error': result.get('error', 'Maya conversation failed'),
+            'maya_available': result.get('maya_available', False)
+        })
+    
+    except Exception as e:
+        logger.error(f"Maya conversation error: {e}")
+        return jsonify({'success': False, 'error': 'Conversation service error'})
+
+@app.route('/maya-test')
+@login_required
+def maya_test():
+    """Test page for Maya conversations"""
+    return render_template('maya_test.html', title='Maya Conversation Test')
+
 # Test route for country restrictions (admin only)
