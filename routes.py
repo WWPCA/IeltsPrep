@@ -600,8 +600,13 @@ def register():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
-        name = request.form.get('name', '').strip()
-        age_verified = request.form.get('age_verified')
+        confirm_password = request.form.get('confirm_password', '')
+        age_verification = request.form.get('age_verification')
+        agree_terms = request.form.get('agree_terms')
+        data_processing_consent = request.form.get('data_processing_consent')
+        assessment_data_consent = request.form.get('assessment_data_consent')
+        speaking_data_consent = request.form.get('speaking_data_consent')
+        marketing_consent = request.form.get('marketing_consent')
         
         # reCAPTCHA validation first
         recaptcha_response = request.form.get('g-recaptcha-response')
@@ -620,14 +625,35 @@ def register():
             flash('Email and password are required', 'danger')
             return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
+        # Password confirmation validation
+        if password != confirm_password:
+            flash('Passwords do not match', 'danger')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+        
         # Enhanced validation using InputValidator
         if not InputValidator.validate_email(email):
             flash('Please provide a valid email address', 'danger')
             return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
-        # Age verification check
-        if not age_verified:
+        # Required consent validations
+        if not age_verification:
             flash('You must confirm that you are 16 years or older to register', 'danger')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+        
+        if not agree_terms:
+            flash('You must agree to the Terms of Service and Privacy Policy', 'danger')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+        
+        if not data_processing_consent:
+            flash('You must consent to data processing to use our services', 'danger')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+        
+        if not assessment_data_consent:
+            flash('You must consent to assessment data storage to track your progress', 'danger')
+            return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
+        
+        if not speaking_data_consent:
+            flash('You must consent to speaking recording processing for assessments', 'danger')
             return render_template('register.html', title='Register', recaptcha_site_key=app.config.get('RECAPTCHA_SITE_KEY'))
         
         # Check password complexity using new validator
@@ -645,8 +671,6 @@ def register():
         # Create new user
         new_user = User()
         new_user.email = email
-        # Name field removed from User model - storing only email
-        new_user.assessment_preference = 'academic'  # Default value
         new_user.set_password(password)
         
         # Store region information safely
