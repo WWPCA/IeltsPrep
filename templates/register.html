@@ -427,12 +427,13 @@
                             </div>
                         </div>
                         
-                        <!-- Visual Separator -->
-                        <hr class="my-5" style="border-top: 2px solid #dee2e6; margin: 4rem 0 !important;">
-                        
-                        <!-- Google reCAPTCHA v2 Widget -->
-                        <div class="form-group mb-4 text-center recaptcha-container">
-                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn"></div>
+                        <!-- RECAPTCHA SECURITY VERIFICATION -->
+                        <div style="background-color: #e3f2fd; border: 2px solid #2196f3; border-radius: 8px; padding: 30px; margin: 50px 0; text-align: center;">
+                            <h5 style="color: #1976d2; margin-bottom: 20px;">
+                                <i class="fas fa-shield-alt"></i> Security Verification Required
+                            </h5>
+                            <p style="color: #555; margin-bottom: 25px;">Please complete the reCAPTCHA verification below to continue:</p>
+                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="enableSubmitBtn" data-expired-callback="disableSubmitBtn" style="display: inline-block;"></div>
                             <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
                         </div>
                         
