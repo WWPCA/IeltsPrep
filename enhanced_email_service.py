@@ -77,14 +77,17 @@ def send_notification_email(to_email, subject, content):
 def send_verification_email(user_email, verification_url):
     """Send email verification email to user"""
     try:
-        # Use SendGrid for email sending
-        from sendgrid import SendGridAPIClient
-        from sendgrid.helpers.mail import Mail
+        # Use Amazon SES for email sending
+        import boto3
+        from botocore.exceptions import ClientError
         
-        api_key = os.environ.get('SENDGRID_API_KEY')
-        if not api_key:
-            print("SendGrid API key not configured")
-            return False
+        # Initialize SES client
+        ses_client = boto3.client(
+            'ses',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            region_name=os.environ.get('AWS_REGION', 'us-east-1')
+        )
         
         # Email content
         subject = "Verify Your IELTS GenAI Prep Account"
@@ -96,34 +99,35 @@ def send_verification_email(user_email, verification_url):
             <title>Verify Your Email</title>
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }}
-                .container {{ max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
                 .header {{ text-align: center; margin-bottom: 30px; }}
                 .logo {{ color: #007bff; font-size: 24px; font-weight: bold; }}
-                .button {{ display: inline-block; padding: 15px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                .button {{ display: inline-block; padding: 15px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }}
                 .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }}
+                .url-box {{ word-break: break-all; background-color: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 4px solid #007bff; }}
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="header">
                     <div class="logo">IELTS GenAI Prep</div>
-                    <h1>Verify Your Email Address</h1>
+                    <h1 style="color: #333; margin-top: 20px;">Verify Your Email Address</h1>
                 </div>
                 
-                <p>Thank you for registering with IELTS GenAI Prep!</p>
+                <p style="font-size: 16px; line-height: 1.6;">Thank you for registering with IELTS GenAI Prep!</p>
                 
-                <p>To complete your account setup and start accessing our AI-powered IELTS preparation tools, please verify your email address by clicking the button below:</p>
+                <p style="font-size: 16px; line-height: 1.6;">To complete your account setup and start accessing our AI-powered IELTS preparation tools, please verify your email address by clicking the button below:</p>
                 
-                <div style="text-align: center;">
+                <div style="text-align: center; margin: 30px 0;">
                     <a href="{verification_url}" class="button">Verify My Email</a>
                 </div>
                 
-                <p>Or copy and paste this link into your browser:</p>
-                <p style="word-break: break-all; background-color: #f8f9fa; padding: 10px; border-radius: 4px;">
+                <p style="font-size: 14px;">Or copy and paste this link into your browser:</p>
+                <div class="url-box">
                     {verification_url}
-                </p>
+                </div>
                 
-                <p><strong>This verification link will expire in 24 hours.</strong></p>
+                <p style="font-size: 16px; font-weight: bold; color: #e74c3c; margin-top: 20px;">This verification link will expire in 24 hours.</p>
                 
                 <div class="footer">
                     <p>If you didn't create an account with IELTS GenAI Prep, you can safely ignore this email.</p>
@@ -150,24 +154,38 @@ def send_verification_email(user_email, verification_url):
         © 2025 IELTS GenAI Prep. All rights reserved.
         """
         
-        message = Mail(
-            from_email='noreply@ieltsaiprep.com',
-            to_emails=user_email,
-            subject=subject,
-            html_content=html_content,
-            plain_text_content=text_content
+        # Send email using SES
+        response = ses_client.send_email(
+            Source='noreply@ieltsaiprep.com',
+            Destination={
+                'ToAddresses': [user_email]
+            },
+            Message={
+                'Subject': {
+                    'Data': subject,
+                    'Charset': 'UTF-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': text_content,
+                        'Charset': 'UTF-8'
+                    },
+                    'Html': {
+                        'Data': html_content,
+                        'Charset': 'UTF-8'
+                    }
+                }
+            }
         )
         
-        sg = SendGridAPIClient(api_key)
-        response = sg.send(message)
+        print(f"Verification email sent successfully to {user_email}, MessageId: {response.get('MessageId')}")
+        return True
         
-        if response.status_code == 202:
-            print(f"Verification email sent successfully to {user_email}")
-            return True
-        else:
-            print(f"Failed to send verification email: {response.status_code}")
-            return False
-            
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        error_message = e.response['Error']['Message']
+        print(f"SES Client Error: {error_code} - {error_message}")
+        return False
     except Exception as e:
         print(f"Error sending verification email: {e}")
         return False
