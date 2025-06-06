@@ -93,7 +93,7 @@
         </div>
 
         <form method="POST" id="registration-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}"/>
             
             <!-- Personal Information -->
             <div class="form-section">
