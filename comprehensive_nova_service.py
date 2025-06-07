@@ -30,36 +30,27 @@ class ComprehensiveNovaService:
             logger.error(f"Failed to initialize Nova service: {e}")
     
     def conduct_speaking_conversation(self, user_message, context, part_number=1, audio_input=None):
-        """Conduct speaking conversation using Nova Sonic speech-to-speech"""
+        """Conduct speaking conversation - Nova Sonic requires real audio input"""
         try:
             if not self.bedrock_client:
                 return self._error_response("Nova service unavailable")
             
-            # Configure Maya's conversation prompt
             system_prompt = self._get_maya_conversation_prompt(part_number, context)
             
-            # Nova Sonic requires actual audio input for speech-to-speech
-            if audio_input:
-                # Real audio processing with Nova Sonic
+            # Nova Sonic only works with actual audio input
+            if audio_input and isinstance(audio_input, (bytes, str)) and len(str(audio_input)) > 100:
+                # Real audio data provided - use Nova Sonic
                 try:
-                    # Convert text to audio for Nova Sonic input if needed
-                    if isinstance(audio_input, str):
-                        # Generate synthetic audio from text for Nova Sonic
-                        audio_data = self._text_to_audio_for_nova(user_message)
-                    else:
-                        audio_data = audio_input
-                    
-                    # Nova Sonic speech-to-speech request
                     request_body = {
                         "inputAudio": {
-                            "format": "wav",
-                            "data": audio_data
+                            "format": "pcm",
+                            "data": audio_input if isinstance(audio_input, str) else base64.b64encode(audio_input).decode()
                         },
+                        "systemPrompt": system_prompt,
                         "inferenceConfig": {
                             "temperature": 0.7,
                             "topP": 0.9
-                        },
-                        "systemPrompt": system_prompt
+                        }
                     }
                     
                     response = self.bedrock_client.invoke_model(
@@ -75,7 +66,7 @@ class ComprehensiveNovaService:
                     maya_audio = response_body.get('outputAudio', None)
                     user_transcript = response_body.get('inputTranscript', user_message)
                     
-                    logger.info(f"Nova Sonic speech-to-speech completed for Part {part_number}")
+                    logger.info(f"Nova Sonic speech-to-speech active for Part {part_number}")
                     return {
                         "success": True,
                         "user_transcript": user_transcript,
@@ -90,12 +81,11 @@ class ComprehensiveNovaService:
                     }
                     
                 except Exception as sonic_error:
-                    logger.error(f"Nova Sonic speech error: {sonic_error}")
-                    # For development, use text-based Nova for conversation quality
-                    return self._conduct_text_conversation(user_message, system_prompt, part_number)
+                    logger.error(f"Nova Sonic error: {sonic_error}")
+                    return self._error_response(f"Nova Sonic requires valid audio input: {str(sonic_error)}")
             
             else:
-                # No audio input - use text-based conversation for development
+                # Development mode - text conversation until audio is integrated
                 return self._conduct_text_conversation(user_message, system_prompt, part_number)
             
         except Exception as e:
