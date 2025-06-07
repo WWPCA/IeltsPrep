@@ -16,6 +16,10 @@ import password_reset_routes  # noqa: F401
 from gdpr_routes import gdpr_bp
 app.register_blueprint(gdpr_bp)
 
+# Import admin routes
+from admin_routes import admin_bp
+app.register_blueprint(admin_bp)
+
 # Configure Talisman with tightened Content Security Policy
 Talisman(app, 
          force_https=False,  # Let Replit handle HTTPS
