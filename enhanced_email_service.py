@@ -1,13 +1,103 @@
 """
 Enhanced Email Service Module
-Provides email functionality for password reset and other notifications
+Provides email functionality for password reset and other notifications using Amazon SES
 """
 
 import os
 import logging
+import boto3
 from flask import current_app, url_for
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
+
+class SESEmailService:
+    """Amazon SES email service implementation"""
+    
+    def __init__(self):
+        """Initialize SES client"""
+        self.ses_client = boto3.client(
+            'ses',
+            region_name=os.environ.get('AWS_REGION', 'us-east-1'),
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+        )
+        self.from_email = "noreply@ieltsaiprep.com"
+        self.domain = "ieltsaiprep.com"
+    
+    def send_email(self, to_email, subject, html_content, text_content):
+        """Send email via Amazon SES"""
+        try:
+            response = self.ses_client.send_email(
+                Source=self.from_email,
+                Destination={'ToAddresses': [to_email]},
+                Message={
+                    'Subject': {'Data': subject, 'Charset': 'UTF-8'},
+                    'Body': {
+                        'Html': {'Data': html_content, 'Charset': 'UTF-8'},
+                        'Text': {'Data': text_content, 'Charset': 'UTF-8'}
+                    }
+                }
+            )
+            
+            logger.info(f"Email sent successfully to {to_email}, MessageId: {response['MessageId']}")
+            return {
+                'success': True,
+                'message_id': response['MessageId'],
+                'message': 'Email sent successfully'
+            }
+            
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            error_message = e.response['Error']['Message']
+            
+            if error_code == 'MessageRejected':
+                logger.warning(f"Email rejected for {to_email}: {error_message}")
+                return {
+                    'success': False,
+                    'error': 'Email address not verified or domain not verified',
+                    'fallback': True
+                }
+            else:
+                logger.error(f"SES error sending to {to_email}: {error_message}")
+                return {
+                    'success': False,
+                    'error': f'Email service error: {error_message}'
+                }
+        except Exception as e:
+            logger.error(f"Unexpected error sending email to {to_email}: {e}")
+            return {
+                'success': False,
+                'error': 'Email service temporarily unavailable'
+            }
+    
+    def check_domain_verification(self):
+        """Check if domain is verified for sending emails"""
+        try:
+            response = self.ses_client.get_identity_verification_attributes(
+                Identities=[self.domain]
+            )
+            
+            attributes = response.get('VerificationAttributes', {})
+            domain_attributes = attributes.get(self.domain, {})
+            verification_status = domain_attributes.get('VerificationStatus', 'NotStarted')
+            
+            return {
+                'domain': self.domain,
+                'verified': verification_status == 'Success',
+                'status': verification_status
+            }
+            
+        except ClientError as e:
+            logger.error(f"Error checking domain verification: {e}")
+            return {
+                'domain': self.domain,
+                'verified': False,
+                'status': 'Error'
+            }
+
+# Initialize global email service
+email_service = SESEmailService()
 
 def send_password_reset_email(user_email, reset_token):
     """Send password reset email to user"""
@@ -18,22 +108,43 @@ def send_password_reset_email(user_email, reset_token):
         # Email content
         subject = "Password Reset - IELTS GenAI Prep"
         html_content = f"""
+        <!DOCTYPE html>
         <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                .button {{ background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }}
+                .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
+            </style>
+        </head>
         <body>
-            <h2>Password Reset Request</h2>
-            <p>You have requested to reset your password for your IELTS GenAI Prep account.</p>
-            <p>Click the link below to reset your password:</p>
-            <p><a href="{reset_url}">Reset Password</a></p>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you did not request this reset, please ignore this email.</p>
-            <br>
-            <p>Best regards,<br>IELTS GenAI Prep Team</p>
+            <div class="container">
+                <div class="header">
+                    <h2>IELTS GenAI Prep - Password Reset</h2>
+                </div>
+                <div class="content">
+                    <h3>Password Reset Request</h3>
+                    <p>You have requested to reset your password for your IELTS GenAI Prep account.</p>
+                    <p>Click the button below to reset your password:</p>
+                    <a href="{reset_url}" class="button">Reset Password</a>
+                    <p><strong>This link will expire in 1 hour.</strong></p>
+                    <p>If you did not request this reset, please ignore this email. Your password will remain unchanged.</p>
+                    <div class="footer">
+                        <p>Best regards,<br>IELTS GenAI Prep Team</p>
+                        <p>This email was sent from a secure server. Do not reply to this email.</p>
+                    </div>
+                </div>
+            </div>
         </body>
         </html>
         """
         
         text_content = f"""
-        Password Reset Request
+        IELTS GenAI Prep - Password Reset Request
         
         You have requested to reset your password for your IELTS GenAI Prep account.
         
@@ -41,22 +152,43 @@ def send_password_reset_email(user_email, reset_token):
         
         This link will expire in 1 hour.
         
-        If you did not request this reset, please ignore this email.
+        If you did not request this reset, please ignore this email. Your password will remain unchanged.
         
         Best regards,
         IELTS GenAI Prep Team
+        
+        This email was sent from a secure server. Do not reply to this email.
         """
         
-        # Log the email request (in production, this would send actual email)
-        logger.info(f"Password reset email requested for {user_email}")
-        logger.info(f"Reset URL: {reset_url}")
+        # Send email via Amazon SES
+        result = email_service.send_email(
+            to_email=user_email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
         
-        # Return success (email service would be implemented with actual provider)
-        return {
-            'success': True,
-            'message': 'Password reset email sent successfully',
-            'reset_url': reset_url  # For development/testing only
-        }
+        if result['success']:
+            logger.info(f"Password reset email sent successfully to {user_email}")
+            return {
+                'success': True,
+                'message': 'Password reset email sent successfully',
+                'message_id': result.get('message_id')
+            }
+        else:
+            # Fallback for unverified domain - log the reset URL for development
+            if result.get('fallback'):
+                logger.warning(f"Domain not verified, logging reset URL for {user_email}: {reset_url}")
+                return {
+                    'success': True,
+                    'message': 'Password reset initiated (domain verification pending)',
+                    'reset_url': reset_url
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': result.get('error', 'Failed to send email')
+                }
         
     except Exception as e:
         logger.error(f"Failed to send password reset email: {e}")
