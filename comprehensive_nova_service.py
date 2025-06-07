@@ -5,6 +5,7 @@ Unified service for all Nova AI interactions including speech-to-speech and writ
 
 import json
 import boto3
+import base64
 import logging
 from datetime import datetime
 from botocore.exceptions import ClientError, BotoCoreError
@@ -30,15 +31,15 @@ class ComprehensiveNovaService:
             logger.error(f"Failed to initialize Nova service: {e}")
     
     def conduct_speaking_conversation(self, user_message, context, part_number=1, audio_input=None):
-        """Conduct speaking conversation - Nova Sonic requires real audio input"""
+        """Conduct speaking conversation using Nova Sonic speech-to-speech"""
         try:
             if not self.bedrock_client:
                 return self._error_response("Nova service unavailable")
             
             system_prompt = self._get_maya_conversation_prompt(part_number, context)
             
-            # Nova Sonic only works with actual audio input
-            if audio_input and isinstance(audio_input, (bytes, str)) and len(str(audio_input)) > 100:
+            # Nova Sonic requires audio input for speech-to-speech
+            if audio_input:
                 # Real audio data provided - use Nova Sonic
                 try:
                     request_body = {
@@ -66,7 +67,7 @@ class ComprehensiveNovaService:
                     maya_audio = response_body.get('outputAudio', None)
                     user_transcript = response_body.get('inputTranscript', user_message)
                     
-                    logger.info(f"Nova Sonic speech-to-speech active for Part {part_number}")
+                    logger.info(f"Nova Sonic speech-to-speech completed for Part {part_number}")
                     return {
                         "success": True,
                         "user_transcript": user_transcript,
@@ -82,15 +83,51 @@ class ComprehensiveNovaService:
                     
                 except Exception as sonic_error:
                     logger.error(f"Nova Sonic error: {sonic_error}")
-                    return self._error_response(f"Nova Sonic requires valid audio input: {str(sonic_error)}")
+                    return self._error_response(f"Nova Sonic error: {str(sonic_error)}")
             
             else:
-                # Development mode - text conversation until audio is integrated
-                return self._conduct_text_conversation(user_message, system_prompt, part_number)
+                # No audio input - return instruction for proper usage
+                return {
+                    "success": False,
+                    "error": "Nova Sonic requires audio input for speech-to-speech conversations",
+                    "instruction": "Please provide audio_input parameter with PCM audio data",
+                    "service": "nova_sonic_ready",
+                    "model": "amazon.nova-sonic-v1:0"
+                }
             
         except Exception as e:
             logger.error(f"Speaking conversation error: {e}")
             return self._error_response(f"Speaking conversation error: {str(e)}")
+    
+    def _generate_audio_for_nova_sonic(self, text):
+        """Generate audio input for Nova Sonic with proper format"""
+        try:
+            # Create minimal PCM audio data for Nova Sonic testing
+            # 16kHz mono PCM format as required by Nova Sonic
+            import struct
+            import math
+            
+            sample_rate = 16000
+            duration = 2.0  # 2 seconds
+            frequency = 440  # A4 note
+            
+            # Generate simple sine wave PCM data
+            samples = []
+            for i in range(int(sample_rate * duration)):
+                sample = int(32767 * math.sin(2 * math.pi * frequency * i / sample_rate))
+                samples.append(struct.pack('<h', sample))  # Little-endian 16-bit
+            
+            audio_data = b''.join(samples)
+            audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+            
+            logger.info(f"Generated PCM audio for Nova Sonic: {len(audio_data)} bytes")
+            return audio_base64
+            
+        except Exception as e:
+            logger.error(f"Audio generation error: {e}")
+            # Create minimal audio placeholder
+            audio_data = b'\x00' * 32000  # 1 second of silence at 16kHz mono
+            return base64.b64encode(audio_data).decode('utf-8')
     
     def _conduct_text_conversation(self, user_message, system_prompt, part_number):
         """Text-based conversation using Nova Micro for development"""
