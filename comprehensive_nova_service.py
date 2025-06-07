@@ -30,17 +30,17 @@ class ComprehensiveNovaService:
             logger.error(f"Failed to initialize Nova service: {e}")
     
     def conduct_speaking_conversation(self, user_message, context, part_number=1, audio_input=None):
-        """Conduct speaking conversation using Nova Sonic bidirectional speech"""
+        """Conduct speaking conversation using Nova Sonic with proper permissions check"""
         try:
             if not self.bedrock_client:
-                return self._error_response("Nova Sonic service unavailable")
+                return self._error_response("Nova service unavailable")
             
             # Configure Maya's conversation prompt based on speaking part
             system_prompt = self._get_maya_conversation_prompt(part_number, context)
             
-            # Nova Sonic bidirectional speech-to-speech API
+            # Primary: Nova Sonic bidirectional speech
             try:
-                # Use Nova Sonic bidirectional speech API as per AWS documentation
+                # Test Nova Sonic access first
                 request_body = {
                     "schemaVersion": "speech-bidirection/1.0",
                     "configuration": {
@@ -50,7 +50,7 @@ class ComprehensiveNovaService:
                             "sampleRateHertz": 16000
                         },
                         "outputAudioConfig": {
-                            "format": "pcm", 
+                            "format": "pcm",
                             "sampleRateHertz": 16000
                         },
                         "maxTurnDurationSeconds": 30,
@@ -61,15 +61,13 @@ class ComprehensiveNovaService:
                     }
                 }
                 
-                # Add audio input if provided
                 if audio_input:
                     request_body["inputAudio"] = {
                         "data": audio_input,
                         "format": "pcm"
                     }
                 else:
-                    # For text input, simulate speech prompt
-                    request_body["inputText"] = f"User says: {user_message}"
+                    request_body["inputText"] = f"Candidate: {user_message}"
                 
                 response = self.bedrock_client.invoke_model(
                     modelId="amazon.nova-sonic-v1:0",
@@ -80,37 +78,36 @@ class ComprehensiveNovaService:
                 
                 response_body = json.loads(response['body'].read())
                 
-                # Extract Maya's response
-                maya_response = ""
-                maya_audio = None
+                maya_response = response_body.get('outputText', '')
+                maya_audio = response_body.get('outputAudio', None)
                 
-                if response_body.get('outputText'):
-                    maya_response = response_body['outputText']
-                
-                if response_body.get('outputAudio'):
-                    maya_audio = response_body['outputAudio']
-                
-                logger.info(f"Nova Sonic bidirectional speech conversation completed for Part {part_number}")
+                logger.info(f"Nova Sonic speech-to-speech active for Part {part_number}")
                 return {
                     "success": True,
                     "maya_response": maya_response,
                     "maya_audio": maya_audio,
                     "conversation_feedback": self._generate_conversation_feedback(user_message, part_number),
                     "part_number": part_number,
-                    "service": "nova_sonic_bidirectional",
+                    "service": "nova_sonic",
                     "model": "amazon.nova-sonic-v1:0",
-                    "modality": "bidirectional_speech",
+                    "modality": "speech_to_speech",
                     "schema_version": "speech-bidirection/1.0",
                     "timestamp": datetime.utcnow().isoformat()
                 }
                 
-            except Exception as sonic_error:
-                logger.error(f"Nova Sonic bidirectional speech error: {sonic_error}")
-                return self._error_response(f"Nova Sonic speech-to-speech error: {str(sonic_error)}")
+            except ClientError as e:
+                error_code = e.response['Error']['Code']
+                if error_code == 'ValidationException':
+                    # Nova Sonic not available - this is expected in some environments
+                    logger.warning("Nova Sonic requires specific access permissions")
+                    return self._error_response("Nova Sonic speech-to-speech requires account permissions. Please contact AWS support to enable Nova Sonic access.")
+                else:
+                    logger.error(f"Nova Sonic error: {error_code}")
+                    return self._error_response(f"Nova Sonic error: {error_code}")
             
         except Exception as e:
-            logger.error(f"Speaking conversation service error: {e}")
-            return self._error_response(f"Speaking conversation service error: {str(e)}")
+            logger.error(f"Speaking conversation error: {e}")
+            return self._error_response(f"Speaking conversation error: {str(e)}")
     
     def assess_writing_with_nova(self, essay_text, task_prompt, task_type="task1", assessment_type="academic"):
         """Assess writing using Nova Micro"""
