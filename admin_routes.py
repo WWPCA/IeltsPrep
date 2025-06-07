@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from models import db, User, ConnectionIssueLog, AssessmentSession, Assessment
 from api_issues import APIIssueLog, get_api_issue_statistics
-from auth_issues import AuthIssueLog, get_auth_issue_statistics
+# from auth_issues import AuthIssueLog, get_auth_issue_statistics  # Module not available
 from account_cleanup_service import AccountCleanupService
 from analytics_segmentation_service import AnalyticsSegmentationService
 from scheduled_tasks import execute_daily_tasks_now, execute_weekly_tasks_now
@@ -545,7 +545,7 @@ def connection_issues_summary_api():
 
 
 
-@app.route('/admin/system_issues')
+@admin_bp.route('/system_issues')
 @admin_required
 def system_issues():
     """Comprehensive system issues dashboard including CSRF and Maya conversation issues."""
@@ -607,9 +607,9 @@ def system_issues():
         flash(f'Error loading system issues: {str(e)}', 'error')
         return redirect(url_for('admin_dashboard'))
 
-@app.route('/admin/mark_issue_resolved/<int:issue_id>', methods=['POST'])
+@admin_bp.route('/mark_system_issue_resolved/<int:issue_id>', methods=['POST'])
 @admin_required
-def mark_issue_resolved(issue_id):
+def mark_system_issue_resolved(issue_id):
     """Mark a system issue as resolved."""
     try:
         issue = APIIssueLog.query.get_or_404(issue_id)
