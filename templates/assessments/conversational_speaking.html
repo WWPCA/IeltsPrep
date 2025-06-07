@@ -944,7 +944,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 conversationStatus.innerHTML = '<div class="h5 text-info">🔊 Maya is speaking...</div>';
                 
                 return new Promise((resolve) => {
+                    audio.onplay = () => {
+                        console.log('Maya is speaking - activating particle globe');
+                        // Ensure particle globe is active when Maya speaks
+                        if (globeSettings.enabled && isGlobeInitialized) {
+                            animate();
+                        }
+                    };
+                    
                     audio.onended = () => {
+                        console.log('Maya finished speaking');
                         resolve();
                     };
                     audio.onerror = () => {
