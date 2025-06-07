@@ -11,6 +11,7 @@ from auth_issues import AuthIssueLog, get_auth_issue_statistics
 from account_cleanup_service import AccountCleanupService
 from analytics_segmentation_service import AnalyticsSegmentationService
 from scheduled_tasks import execute_daily_tasks_now, execute_weekly_tasks_now
+from enhanced_email_service import email_service
 from sqlalchemy import func, distinct, and_
 from datetime import datetime, timedelta
 import json
@@ -728,3 +729,67 @@ def execute_weekly_tasks():
         flash(f'Error executing weekly tasks: {str(e)}', 'error')
     
     return redirect(url_for('admin.scheduled_tasks'))
+
+@admin_bp.route('/domain-verification')
+@login_required
+@admin_required
+def domain_verification():
+    """Domain verification status dashboard."""
+    try:
+        verification_status = email_service.check_domain_verification()
+        return render_template('admin/domain_verification.html', 
+                             verification_status=verification_status)
+    except Exception as e:
+        flash(f"Error loading domain verification dashboard: {e}", "danger")
+        return render_template('admin/domain_verification.html', 
+                             error="Unable to load verification status")
+
+@admin_bp.route('/api/domain-verification-status')
+@login_required
+@admin_required
+def domain_verification_status_api():
+    """API endpoint for domain verification status."""
+    try:
+        verification_status = email_service.check_domain_verification()
+        return jsonify({
+            'success': True,
+            'data': verification_status
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': 'Unable to check verification status'
+        }), 500
+
+@admin_bp.route('/test-email', methods=['POST'])
+@login_required
+@admin_required
+def test_email_sending():
+    """Test email sending functionality."""
+    try:
+        test_email = request.json.get('email', 'test@example.com')
+        
+        result = email_service.send_email(
+            to_email=test_email,
+            subject="IELTS GenAI Prep - Email Test",
+            html_content="""
+            <html>
+            <body style="font-family: Arial, sans-serif;">
+                <h2 style="color: #667eea;">Email Test Successful</h2>
+                <p>This is a test email from IELTS GenAI Prep.</p>
+                <p>If you receive this, your email service is working correctly.</p>
+                <hr>
+                <p><small>Sent from IELTS GenAI Prep Admin Panel</small></p>
+            </body>
+            </html>
+            """,
+            text_content="Email Test Successful\n\nThis is a test email from IELTS GenAI Prep.\nIf you receive this, your email service is working correctly.\n\nSent from IELTS GenAI Prep Admin Panel"
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': 'Email test failed'
+        }), 500
