@@ -30,7 +30,7 @@ class ComprehensiveNovaService:
             logger.error(f"Failed to initialize Nova service: {e}")
     
     def conduct_speaking_conversation(self, user_message, context, part_number=1):
-        """Conduct speaking conversation using Nova Sonic"""
+        """Conduct speaking conversation using Nova Sonic with fallback"""
         try:
             if not self.bedrock_client:
                 return self._error_response("Nova service unavailable")
@@ -38,45 +38,91 @@ class ComprehensiveNovaService:
             # Configure Maya's conversation prompt based on speaking part
             system_prompt = self._get_maya_conversation_prompt(part_number, context)
             
-            # Use Converse API for speaking conversation with Nova Micro
-            combined_prompt = f"{system_prompt}\n\nUser: {user_message}\n\nMaya (IELTS Examiner):"
-            
-            messages = [
-                {
-                    "role": "user",
-                    "content": [{"text": combined_prompt}]
+            # Try Nova Sonic first (speech-to-speech model)
+            try:
+                request_body = {
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": f"{system_prompt}\n\nUser: {user_message}\n\nMaya (IELTS Examiner):"
+                        }
+                    ],
+                    "max_tokens": 300,
+                    "temperature": 0.7,
+                    "top_p": 0.9
                 }
-            ]
-            
-            inference_config = {
-                "maxTokens": 300,
-                "temperature": 0.7,
-                "topP": 0.9
-            }
-            
-            response = self.bedrock_client.converse(
-                modelId="amazon.nova-micro-v1:0",
-                messages=messages,
-                inferenceConfig=inference_config
-            )
-            
-            maya_response = ""
-            if response.get('output') and response['output'].get('message'):
-                maya_response = response['output']['message']['content'][0]['text']
-            
-            logger.info(f"Maya conversation completed for Part {part_number}")
-            return {
-                "success": True,
-                "maya_response": maya_response,
-                "conversation_feedback": self._generate_conversation_feedback(user_message, part_number),
-                "part_number": part_number,
-                "service": "nova_micro",
-                "timestamp": datetime.utcnow().isoformat()
-            }
+                
+                response = self.bedrock_client.invoke_model(
+                    modelId="amazon.nova-sonic-v1:0",
+                    contentType="application/json",
+                    accept="application/json",
+                    body=json.dumps(request_body)
+                )
+                
+                response_body = json.loads(response['body'].read())
+                maya_response = ""
+                
+                if response_body.get('content') and len(response_body['content']) > 0:
+                    maya_response = response_body['content'][0].get('text', '')
+                elif response_body.get('completion'):
+                    maya_response = response_body['completion']
+                
+                logger.info(f"Nova Sonic Maya conversation completed for Part {part_number}")
+                return {
+                    "success": True,
+                    "maya_response": maya_response,
+                    "conversation_feedback": self._generate_conversation_feedback(user_message, part_number),
+                    "part_number": part_number,
+                    "service": "nova_sonic",
+                    "model": "amazon.nova-sonic-v1:0",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+                
+            except Exception as sonic_error:
+                logger.warning(f"Nova Sonic unavailable, using Nova Micro for speaking: {sonic_error}")
+                
+                # Fallback to Nova Micro with speaking-optimized prompts
+                combined_prompt = f"{system_prompt}\n\nUser: {user_message}\n\nMaya (IELTS Examiner):"
+                
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [{"text": combined_prompt}]
+                    }
+                ]
+                
+                inference_config = {
+                    "maxTokens": 300,
+                    "temperature": 0.7,
+                    "topP": 0.9
+                }
+                
+                response = self.bedrock_client.converse(
+                    modelId="amazon.nova-micro-v1:0",
+                    messages=messages,
+                    inferenceConfig=inference_config
+                )
+                
+                maya_response = ""
+                if response.get('output') and response['output'].get('message'):
+                    maya_response = response['output']['message']['content'][0]['text']
+                
+                logger.info(f"Nova Micro speaking conversation completed for Part {part_number}")
+                return {
+                    "success": True,
+                    "maya_response": maya_response,
+                    "conversation_feedback": self._generate_conversation_feedback(user_message, part_number),
+                    "part_number": part_number,
+                    "service": "nova_micro_speaking",
+                    "model": "amazon.nova-micro-v1:0",
+                    "intended_service": "nova_sonic",
+                    "note": "Nova Sonic configured but using Nova Micro fallback",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
             
         except Exception as e:
-            logger.error(f"Nova Sonic conversation error: {e}")
-            return self._error_response(f"Conversation service error: {str(e)}")
+            logger.error(f"Speaking conversation error: {e}")
+            return self._error_response(f"Speaking conversation service error: {str(e)}")
     
     def assess_writing_with_nova(self, essay_text, task_prompt, task_type="task1", assessment_type="academic"):
         """Assess writing using Nova Micro"""
