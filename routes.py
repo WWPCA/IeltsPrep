@@ -93,7 +93,7 @@ def generate_speech():
         nova_service = ComprehensiveNovaService()
         
         # Generate speech with best available Nova model
-        result = nova_service.generate_speech_only(question_text)
+        result = nova_service.conduct_speaking_conversation(question_text, "", part_number=1)
         
         if result.get('success'):
             return jsonify({
@@ -243,8 +243,7 @@ def assess_conversation():
         
         nova_service = ComprehensiveNovaService()
         
-        # Generate final assessment using enhanced service
-        from enhanced_nova_assessment import enhanced_nova_assessment
+        # Generate final assessment using comprehensive Nova service
         
         transcript = "\n".join([
             f"{msg.get('speaker', 'User')}: {msg.get('message', '')}"

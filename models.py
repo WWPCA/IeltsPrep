@@ -698,7 +698,7 @@ class PaymentRecord(db.Model):
     amount = db.Column(db.Float, nullable=False)
     package_name = db.Column(db.String(50), nullable=False)
     payment_date = db.Column(db.DateTime, default=datetime.utcnow)
-    stripe_session_id = db.Column(db.String(100), nullable=True)
+    # stripe_session_id removed - using mobile in-app purchases only
     is_successful = db.Column(db.Boolean, default=True)
     transaction_details = db.Column(db.Text, nullable=True)
     
