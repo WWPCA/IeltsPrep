@@ -198,16 +198,73 @@ class SecurityManager:
         new_hash = hashlib.pbkdf2_hmac('sha256', data.encode('utf-8'), salt, 100000)
         return new_hash == stored_hash
     
+    def clear_failed_attempts(self, identifier):
+        """Clear failed login attempts for identifier"""
+        try:
+            if self.redis_available:
+                self.redis_client.delete(f"failed_attempts:{identifier}")
+            else:
+                # Clear from memory storage
+                key = f"failed_attempts:{identifier}"
+                if key in self.suspicious_activity:
+                    del self.suspicious_activity[key]
+            logger.info(f"Cleared failed attempts for {identifier}")
+        except Exception as e:
+            logger.error(f"Error clearing failed attempts: {e}")
+    
+    def record_failed_login(self, identifier):
+        """Record failed login attempt"""
+        try:
+            if self.redis_available:
+                key = f"failed_attempts:{identifier}"
+                self.redis_client.incr(key)
+                self.redis_client.expire(key, 3600)  # Expire after 1 hour
+            else:
+                # Store in memory
+                self.suspicious_activity[f"failed_attempts:{identifier}"] += 1
+            
+            # Check if account should be locked
+            failed_count = self.get_failed_attempts(identifier)
+            if failed_count >= 5:
+                self.blocked_ips.add(identifier)
+                logger.warning(f"Account locked due to failed attempts: {identifier}")
+            
+        except Exception as e:
+            logger.error(f"Error recording failed login: {e}")
+    
+    def get_failed_attempts(self, identifier):
+        """Get number of failed login attempts"""
+        try:
+            if self.redis_available:
+                count = self.redis_client.get(f"failed_attempts:{identifier}")
+                return int(count) if count else 0
+            else:
+                return self.suspicious_activity.get(f"failed_attempts:{identifier}", 0)
+        except Exception as e:
+            logger.error(f"Error getting failed attempts: {e}")
+            return 0
+    
     def log_security_event(self, event_type, details=None):
         """Log security events for monitoring"""
         try:
-            log_entry = {
-                'timestamp': datetime.utcnow().isoformat(),
+            timestamp = datetime.utcnow().isoformat()
+            event_data = {
+                'timestamp': timestamp,
                 'event_type': event_type,
-                'ip_address': request.remote_addr if request else 'system',
-                'user_agent': request.headers.get('User-Agent') if request else 'system',
+                'ip_address': request.remote_addr if request else 'unknown',
+                'user_agent': request.headers.get('User-Agent', 'unknown') if request else 'unknown',
                 'details': details or {}
             }
+            
+            logger.info(f"Security event: {event_type} - {event_data}")
+            
+            # Store in Redis if available
+            if self.redis_available:
+                event_key = f"security_event:{timestamp}:{event_type}"
+                self.redis_client.setex(event_key, 86400, str(event_data))  # 24 hour retention
+                
+        except Exception as e:
+            logger.error(f"Error logging security event: {e}")
             
             logger.info(f"Security Event: {event_type} - {log_entry}")
             
