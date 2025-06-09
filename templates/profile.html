@@ -20,19 +20,13 @@
                     
                     <div class="profile-details">
                         <div class="row mb-2">
-                            <div class="col-5 text-muted">Joined:</div>
-                            <div class="col-7">{{ current_user.join_date.strftime('%B %d, %Y') }}</div>
-                        </div>
-                        {% if current_user.has_active_assessment_package() %}
-                        <div class="row mb-2">
-                            <div class="col-5 text-muted">Plan:</div>
-                            <div class="col-7">{{ current_user.test_preference|capitalize }} Tests</div>
+                            <div class="col-5 text-muted">Last Login:</div>
+                            <div class="col-7">{{ current_user.last_login.strftime('%B %d, %Y') }}</div>
                         </div>
                         <div class="row mb-2">
-                            <div class="col-5 text-muted">Expires:</div>
-                            <div class="col-7">{{ current_user.assessment_package_expiry.strftime('%B %d, %Y') if current_user.assessment_package_expiry else 'N/A' }}</div>
+                            <div class="col-5 text-muted">Account Status:</div>
+                            <div class="col-7">{{ 'Active' if current_user.account_activated else 'Pending Verification' }}</div>
                         </div>
-                        {% endif %}
                     </div>
                     
                     <!-- Account settings -->
