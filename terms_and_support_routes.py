@@ -52,6 +52,13 @@ def privacy_policy():
                           title='Privacy Policy')
 
 
+@app.route('/contact')
+def contact():
+    """Display the contact support page."""
+    return render_template('contact.html', 
+                          title='Contact Support')
+
+
 
 # Note: Assessment product routes are defined in add_assessment_routes.py
 # This file focuses on terms, support, and profile routes only
