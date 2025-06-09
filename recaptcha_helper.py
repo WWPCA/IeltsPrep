@@ -11,11 +11,12 @@ logger = logging.getLogger(__name__)
 
 def get_recaptcha_keys():
     """Get appropriate reCAPTCHA v2 keys based on environment"""
-    # Use development keys in development, production keys in production
-    if os.environ.get('REPLIT_DEPLOYMENT') == 'production':
-        site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY')
-        secret_key = os.environ.get('RECAPTCHA_V2_SECRET_KEY')
-    else:
+    # Use production keys as fallback since dev keys aren't configured
+    site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY')
+    secret_key = os.environ.get('RECAPTCHA_V2_SECRET_KEY')
+    
+    # If production keys aren't available, try development keys
+    if not site_key or not secret_key:
         site_key = os.environ.get('RECAPTCHA_DEV_PUBLIC_KEY')
         secret_key = os.environ.get('RECAPTCHA_DEV_PRIVATE_KEY')
     
