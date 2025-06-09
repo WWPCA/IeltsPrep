@@ -30,6 +30,7 @@ from nova_writing_assessment import assess_writing_task1, assess_writing_task2, 
 from aws_services import analyze_speaking_response, analyze_pronunciation
 from maya_conversation_service import start_maya_conversation
 from comprehensive_nova_service import ComprehensiveNovaService
+from mobile_purchase_api import validate_mobile_purchase, get_user_purchase_status
 
 logger = logging.getLogger(__name__)
 # Using only get_country_from_ip since we've moved to fixed pricing
@@ -965,5 +966,18 @@ def maya_conversation():
 def maya_test():
     """Test page for Maya conversations"""
     return render_template('maya_test.html', title='Maya Conversation Test')
+
+# Mobile Purchase API Routes
+@app.route('/api/validate-purchase', methods=['POST'])
+@api_protection
+def api_validate_mobile_purchase():
+    """Validate mobile in-app purchases and grant access"""
+    return validate_mobile_purchase()
+
+@app.route('/api/purchase-status', methods=['GET'])
+@api_protection
+def api_get_purchase_status():
+    """Get user's current purchase status"""
+    return get_user_purchase_status()
 
 # Test route for country restrictions (admin only)
