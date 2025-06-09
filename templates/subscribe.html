@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/qr-purchase-modal.css') }}">
+{% endblock %}
+
 {% block content %}
 <style>
     /* Custom styles for assessment packages page */
@@ -115,14 +119,12 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('checkout_review') }}" enctype="application/x-www-form-urlencoded">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="assessment_type" value="academic">
-                            <input type="hidden" name="assessment_package" value="single">
-                            <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-primary w-100">Select Package</button>
-                        </form>
+                        <button onclick="initiatePurchaseFlow('Academic Single')" class="btn btn-primary w-100">
+                            Purchase via Mobile App
+                        </button>
+                        <div class="tax-compliance-badge mt-2">
+                            <i class="fas fa-shield-alt me-1"></i> Tax Compliant Globally
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -147,14 +149,12 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-primary w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('checkout_review') }}">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="assessment_type" value="academic">
-                            <input type="hidden" name="assessment_package" value="double">
-                            <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-primary w-100">Select Package</button>
-                        </form>
+                        <button onclick="initiatePurchaseFlow('Academic Double')" class="btn btn-primary w-100">
+                            Purchase via Mobile App
+                        </button>
+                        <div class="tax-compliance-badge mt-2">
+                            <i class="fas fa-shield-alt me-1"></i> Tax Compliant Globally
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -233,14 +233,12 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('checkout_review') }}">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="assessment_type" value="general">
-                            <input type="hidden" name="assessment_package" value="single">
-                            <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-success w-100">Select Package</button>
-                        </form>
+                        <button onclick="initiatePurchaseFlow('General Training Single')" class="btn btn-success w-100">
+                            Purchase via Mobile App
+                        </button>
+                        <div class="tax-compliance-badge mt-2">
+                            <i class="fas fa-shield-alt me-1"></i> Tax Compliant Globally
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -265,14 +263,12 @@
                     {% if not current_user.is_authenticated %}
                         <a href="{{ url_for('register') }}" class="btn btn-success w-100">Register to Purchase</a>
                     {% else %}
-                        <form method="POST" action="{{ url_for('checkout_review') }}">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="plan" value="purchase">
-                            <input type="hidden" name="assessment_type" value="general">
-                            <input type="hidden" name="assessment_package" value="double">
-                            <input type="hidden" name="payment_method" value="stripe">
-                            <button type="submit" class="btn btn-success w-100">Select Package</button>
-                        </form>
+                        <button onclick="initiatePurchaseFlow('General Training Double')" class="btn btn-success w-100">
+                            Purchase via Mobile App
+                        </button>
+                        <div class="tax-compliance-badge mt-2">
+                            <i class="fas fa-shield-alt me-1"></i> Tax Compliant Globally
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -798,4 +794,5 @@
         }
     });
 </script>
+<script src="{{ url_for('static', filename='js/qr-purchase-redirect.js') }}"></script>
 {% endblock %}
