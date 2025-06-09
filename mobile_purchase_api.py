@@ -13,50 +13,50 @@ from assessment_assignment_service import assign_assessment_package
 
 logger = logging.getLogger(__name__)
 
-# Product ID mapping for validation
+# Product ID mapping for validation - aligned with actual 4 assessment products
 VALID_PRODUCT_IDS = {
     # iOS Product IDs
-    'com.ieltsaiprep.academic.single': {
+    'com.ieltsaiprep.academic.writing': {
         'assessment_type': 'academic_writing',
-        'package_type': 'single',
+        'package_type': 'individual',
         'assessment_count': 1
     },
-    'com.ieltsaiprep.academic.double': {
-        'assessment_type': 'academic_writing', 
-        'package_type': 'double',
-        'assessment_count': 2
-    },
-    'com.ieltsaiprep.general.single': {
-        'assessment_type': 'general_writing',
-        'package_type': 'single', 
+    'com.ieltsaiprep.academic.speaking': {
+        'assessment_type': 'academic_speaking',
+        'package_type': 'individual',
         'assessment_count': 1
     },
-    'com.ieltsaiprep.general.double': {
+    'com.ieltsaiprep.general.writing': {
         'assessment_type': 'general_writing',
-        'package_type': 'double',
-        'assessment_count': 2
+        'package_type': 'individual', 
+        'assessment_count': 1
+    },
+    'com.ieltsaiprep.general.speaking': {
+        'assessment_type': 'general_speaking',
+        'package_type': 'individual',
+        'assessment_count': 1
     },
     
     # Android Product IDs
-    'academic_single_assessment': {
+    'academic_writing_assessment': {
         'assessment_type': 'academic_writing',
-        'package_type': 'single',
+        'package_type': 'individual',
         'assessment_count': 1
     },
-    'academic_double_assessment': {
-        'assessment_type': 'academic_writing',
-        'package_type': 'double', 
-        'assessment_count': 2
-    },
-    'general_single_assessment': {
-        'assessment_type': 'general_writing',
-        'package_type': 'single',
+    'academic_speaking_assessment': {
+        'assessment_type': 'academic_speaking',
+        'package_type': 'individual', 
         'assessment_count': 1
     },
-    'general_double_assessment': {
+    'general_writing_assessment': {
         'assessment_type': 'general_writing',
-        'package_type': 'double',
-        'assessment_count': 2
+        'package_type': 'individual',
+        'assessment_count': 1
+    },
+    'general_speaking_assessment': {
+        'assessment_type': 'general_speaking',
+        'package_type': 'individual',
+        'assessment_count': 1
     }
 }
 
