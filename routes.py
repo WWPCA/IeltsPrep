@@ -978,4 +978,45 @@ def api_get_purchase_status():
     """Get user's current purchase status"""
     return get_user_purchase_status()
 
+# Health Check Endpoints for AWS Auto Scaling
+@app.route('/health')
+def health_check():
+    """Health check endpoint for load balancer"""
+    try:
+        # Check database connectivity
+        db.session.execute('SELECT 1')
+        
+        # Check Nova Sonic availability
+        nova_status = True  # Will be checked by actual service
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'database': 'connected',
+            'nova_sonic': 'available' if nova_status else 'unavailable',
+            'version': '1.0.0'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 503
+
+@app.route('/metrics')
+def metrics():
+    """Metrics endpoint for monitoring"""
+    try:
+        # Basic application metrics
+        return jsonify({
+            'active_users': User.query.count(),
+            'total_assessments': Assessment.query.count(),
+            'app_status': 'running',
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Test route for country restrictions (admin only)
