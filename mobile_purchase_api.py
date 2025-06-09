@@ -179,7 +179,7 @@ def validate_mobile_purchase():
         assessment_type = product_config['assessment_type']
         assessment_count = product_config['assessment_count']
         
-        # Assign assessment package to user
+        # Grant assessment access to user
         try:
             assign_assessment_package(
                 user_id=user_id,
@@ -187,7 +187,7 @@ def validate_mobile_purchase():
                 assessment_count=assessment_count
             )
             
-            logger.info(f"Successfully assigned {assessment_type} package to user {user_id}")
+            logger.info(f"Successfully granted {assessment_type} access to user {user_id}")
             
             return jsonify({
                 'success': True,
@@ -229,8 +229,7 @@ def get_user_purchase_status():
         
         # Get user's active assignments
         assignments = UserAssessmentAssignment.query.filter(
-            UserAssessmentAssignment.user_id == user_id,
-            UserAssessmentAssignment.expires_at > datetime.utcnow()
+            UserAssessmentAssignment.user_id == user_id
         ).all()
         
         purchase_status = []
@@ -238,8 +237,7 @@ def get_user_purchase_status():
             purchase_status.append({
                 'assessment_type': assignment.assessment_type,
                 'assigned_at': assignment.assigned_at.isoformat(),
-                'expires_at': assignment.expires_at.isoformat(),
-                'is_active': assignment.expires_at > datetime.utcnow()
+                'is_active': True
             })
         
         return jsonify({
