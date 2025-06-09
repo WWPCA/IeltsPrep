@@ -73,60 +73,22 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 product_id = pid
                 break
         
-        if product_id:
-            # Use existing test product
-            session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'usd',
-                        'product': product_id,
-                        'unit_amount': 2500,  # $25.00
-                    },
-                    'quantity': 1,
-                }],
-                mode='payment',
-                success_url=success_url,
-                cancel_url=cancel_url,
-                customer_email=customer_email if customer_email else None,
-                # Collect billing address for tax compliance
-                billing_address_collection='required',
-                # Enable automatic tax calculation
-                automatic_tax={'enabled': True},
-                payment_intent_data={
-                    'description': f'IELTS Assessment: {product_name}',
-                    'metadata': {
-                        'integration_type': 'checkout',
-                        'platform': 'ielts_genai_prep'
-                    }
+        if not product_id:
+            # Security: Only allow payments for pre-configured, authorized products
+            logger.error(f"Unauthorized product payment attempt: {product_name}")
+            raise Exception("Product not authorized for purchase. Please contact support.")
+        
+        # Use only pre-configured authorized products
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product': product_id,
+                    'unit_amount': 2500,  # $25.00
                 },
-                metadata={
-                    'product_type': 'ielts_assessment',
-                    'product_name': product_name,
-                    'platform': 'ielts_genai_prep',
-                    'created_at': datetime.utcnow().isoformat()
-                },
-                expires_at=int((datetime.utcnow().timestamp() + 1800))  # 30 minutes expiry
-            )
-        else:
-            # Fallback to dynamic product creation
-            session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'usd',
-                        'product_data': {
-                            'name': product_name,
-                            'description': description,
-                            'metadata': {
-                                'category': 'ielts_assessment',
-                                'platform': 'ielts_genai_prep'
-                            }
-                        },
-                        'unit_amount': price_cents,
-                    },
-                    'quantity': 1,
-                }],
+                'quantity': 1,
+            }],
             mode='payment',
             success_url=success_url,
             cancel_url=cancel_url,
