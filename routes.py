@@ -24,7 +24,7 @@ from api_issues import APIIssueLog
 from utils import get_user_region, get_translation
 from input_validation import InputValidator, validate_registration_data, validate_api_request, validate_assessment_input
 from enhanced_error_handling import handle_database_error, handle_api_error, validate_request_size
-from payment_services import create_stripe_checkout_session, create_payment_record, verify_stripe_payment, create_stripe_checkout_speaking
+# Payment services removed - using mobile in-app purchases only
 import assessment_assignment_service
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation
@@ -794,107 +794,9 @@ def assessment_products_page():
     return render_template('assessment_products.html', 
                          title='IELTS Assessment Packages')
 
-@app.route('/create-checkout-session', methods=['POST'])
-@login_required
-def create_checkout_session():
-    """Create Stripe checkout session for assessment purchases"""
-    try:
-        # CSRF token is automatically validated by Flask-WTF
-        assessment_type = request.form.get('assessment_type')
-        if not assessment_type:
-            flash('Assessment type is required', 'error')
-            return redirect(url_for('assessment_products_page'))
-        
-        # Assessment package details
-        package_details = {
-            'academic_writing': {
-                'name': 'Academic Writing Assessment Package',
-                'description': 'IELTS Academic Writing assessment with AI feedback',
-                'price': 25
-            },
-            'general_writing': {
-                'name': 'General Training Writing Assessment Package', 
-                'description': 'IELTS General Training Writing assessment with AI feedback',
-                'price': 25
-            },
-            'academic_speaking': {
-                'name': 'Academic Speaking Assessment Package',
-                'description': 'IELTS Academic Speaking assessment with AI examiner Maya',
-                'price': 25
-            },
-            'general_speaking': {
-                'name': 'General Training Speaking Assessment Package',
-                'description': 'IELTS General Training Speaking assessment with AI examiner Maya', 
-                'price': 25
-            }
-        }
-        
-        if assessment_type not in package_details:
-            flash('Invalid assessment type', 'error')
-            return redirect(url_for('assessment_products_page'))
-        
-        package = package_details[assessment_type]
-        
-        # Create Stripe checkout session
-        domain = request.host_url.rstrip('/')
-        success_url = f"{domain}/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
-        cancel_url = f"{domain}/assessment-products"
-        
-        checkout_data = create_stripe_checkout_session(
-            product_name=package['name'],
-            description=package['description'],
-            price=package['price'],
-            success_url=success_url,
-            cancel_url=cancel_url,
-            customer_email=current_user.email if current_user.is_authenticated else None
-        )
-        
-        # Redirect to Stripe checkout
-        return redirect(checkout_data['checkout_url'])
-        
-    except Exception as e:
-        logger.error(f"Checkout session creation error: {e}")
-        flash('Payment processing error. Please try again.', 'error')
-        return redirect(url_for('assessment_products_page'))
+# Stripe checkout session removed - using mobile in-app purchases only
 
-@app.route('/payment-success')
-@login_required
-def payment_success():
-    """Handle successful payment completion"""
-    session_id = request.args.get('session_id')
-    if not session_id:
-        flash('Payment session not found', 'error')
-        return redirect(url_for('assessment_products_page'))
-    
-    try:
-        # Verify payment with Stripe
-        payment_data = verify_stripe_payment(session_id)
-        
-        if payment_data.get('verified'):
-            # Payment successful - assign assessment package to user
-            if current_user.is_authenticated:
-                # Create payment record
-                create_payment_record(
-                    user_id=current_user.id,
-                    amount=payment_data['amount'],
-                    currency=payment_data['currency'],
-                    stripe_session_id=session_id,
-                    product_name=payment_data.get('metadata', {}).get('product_name', 'IELTS Assessment')
-                )
-                
-                flash('Payment successful! Your assessment package has been activated.', 'success')
-                return redirect(url_for('profile'))
-            else:
-                flash('Payment successful! Please log in to access your assessments.', 'info')
-                return redirect(url_for('login'))
-        else:
-            flash('Payment verification failed. Please contact support.', 'error')
-            return redirect(url_for('assessment_products_page'))
-            
-    except Exception as e:
-        logger.error(f"Payment verification error: {e}")
-        flash('Payment verification error. Please contact support if payment was successful.', 'error')
-        return redirect(url_for('assessment_products_page'))
+# Payment success route removed - using mobile in-app purchases only
 
 # Custom cache buster to force browsers to reload CSS, JS on new deployments
 @app.context_processor
