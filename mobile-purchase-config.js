@@ -9,7 +9,7 @@ export const PURCHASE_PRODUCTS = {
   ACADEMIC_WRITING: {
     ios: 'com.ieltsaiprep.academic.writing',
     android: 'academic_writing_assessment',
-    price: '$18.00',
+    price: '$36.00',
     title: 'Academic Writing Assessment',
     description: 'IELTS Academic Writing assessment with Task 1 (graphs/charts) and Task 2 (essays)'
   },
@@ -17,7 +17,7 @@ export const PURCHASE_PRODUCTS = {
   ACADEMIC_SPEAKING: {
     ios: 'com.ieltsaiprep.academic.speaking',
     android: 'academic_speaking_assessment',
-    price: '$18.00',
+    price: '$36.00',
     title: 'Academic Speaking Assessment',
     description: 'IELTS Academic Speaking assessment with Maya AI examiner covering all 3 parts'
   },
@@ -26,7 +26,7 @@ export const PURCHASE_PRODUCTS = {
   GENERAL_WRITING: {
     ios: 'com.ieltsaiprep.general.writing',
     android: 'general_writing_assessment',
-    price: '$18.00',
+    price: '$36.00',
     title: 'General Writing Assessment',
     description: 'IELTS General Training Writing assessment with Task 1 (letters) and Task 2 (essays)'
   },
@@ -34,7 +34,7 @@ export const PURCHASE_PRODUCTS = {
   GENERAL_SPEAKING: {
     ios: 'com.ieltsaiprep.general.speaking',
     android: 'general_speaking_assessment',
-    price: '$18.00',
+    price: '$36.00',
     title: 'General Speaking Assessment',
     description: 'IELTS General Training Speaking assessment with Maya AI examiner covering all 3 parts'
   }
