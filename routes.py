@@ -903,22 +903,7 @@ def inject_cache_buster():
     cache_buster = int(time.time())
     return dict(cache_buster=cache_buster)
 
-def assessment_package_required(f):
-    """
-    Decorator to check if user has active assessment packages
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            flash('Please log in to access this feature.', 'warning')
-            return redirect(url_for('login'))
-            
-        if not current_user.has_active_assessment_package():
-            flash('This feature requires an active assessment package. Please purchase a package to access this feature.', 'warning')
-            return redirect(url_for('assessment_products_page'))
-            
-        return f(*args, **kwargs)
-    return decorated_function
+# Individual assessment access system - no longer using package decorators
 
 
 # Streak tracking removed as requested
