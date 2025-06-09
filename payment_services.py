@@ -85,7 +85,7 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 'price_data': {
                     'currency': 'usd',
                     'product': product_id,
-                    'unit_amount': 2500,  # $25.00
+                    'unit_amount': 3600,  # $36.00
                 },
                 'quantity': 1,
             }],
