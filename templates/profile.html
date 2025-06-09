@@ -196,7 +196,7 @@ $(document).ready(function() {
     // Handle delete confirmation
     $('#confirmDeleteButton').click(function() {
         if ($('#confirmDeletion').is(':checked')) {
-            window.location.href = "{{ url_for('gdpr.confirm_deletion') }}";
+            window.location.href = "{{ url_for('gdpr.delete_account') }}";
         }
     });
 });
