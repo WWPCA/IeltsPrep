@@ -969,13 +969,11 @@ def maya_test():
 
 # Mobile Purchase API Routes
 @app.route('/api/validate-purchase', methods=['POST'])
-@api_protection
 def api_validate_mobile_purchase():
     """Validate mobile in-app purchases and grant access"""
     return validate_mobile_purchase()
 
 @app.route('/api/purchase-status', methods=['GET'])
-@api_protection
 def api_get_purchase_status():
     """Get user's current purchase status"""
     return get_user_purchase_status()
