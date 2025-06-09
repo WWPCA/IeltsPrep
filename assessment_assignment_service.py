@@ -112,3 +112,32 @@ def assign_assessment_package(user_id, package_type, assessment_count=4):
     return AssessmentAssignmentService.assign_assessment_package(
         user_id, package_type, assessment_count
     )
+
+def get_user_accessible_assessments(user_id, assessment_type):
+    """Get user's accessible assessments for a specific type"""
+    try:
+        # For mobile in-app purchases, users have access to all 4 assessments of their purchased type
+        from models import UserAssessmentAssignment
+        
+        assignment = UserAssessmentAssignment.query.filter_by(
+            user_id=user_id,
+            assessment_type=assessment_type
+        ).filter(
+            UserAssessmentAssignment.expiry_date > datetime.utcnow()
+        ).first()
+        
+        if assignment:
+            # Return mock assessment objects for the 4 available assessments
+            class MockAssessment:
+                def __init__(self, assessment_id):
+                    self.id = assessment_id
+                    self.assessment_type = assessment_type
+                    self.title = f"{assessment_type.replace('_', ' ').title()} Assessment {assessment_id}"
+            
+            return [MockAssessment(i) for i in range(1, 5)]
+        
+        return []
+        
+    except Exception as e:
+        print(f"Error getting accessible assessments: {e}")
+        return []

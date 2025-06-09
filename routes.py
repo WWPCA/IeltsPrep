@@ -26,6 +26,7 @@ from input_validation import InputValidator, validate_registration_data, validat
 from enhanced_error_handling import handle_database_error, handle_api_error, validate_request_size
 # Payment services removed - using mobile in-app purchases only
 import assessment_assignment_service
+from assessment_type_converters import convert_route_to_db_type
 from nova_writing_assessment import assess_writing_task1, assess_writing_task2, assess_complete_writing_test
 from aws_services import analyze_speaking_response, analyze_pronunciation
 from maya_conversation_service import start_maya_conversation
@@ -133,9 +134,10 @@ def start_conversation():
         nova_service = ComprehensiveNovaService()
         
         # Start Maya conversation using comprehensive Nova service
-        result = nova_service.start_maya_conversation(
-            assessment_type=assessment_type,
-            part=part
+        result = nova_service.conduct_speaking_conversation(
+            "Hello, I'm ready to begin my IELTS speaking assessment.",
+            assessment_type,
+            part_number=part
         )
         
         if result.get('success'):
@@ -200,10 +202,10 @@ def continue_conversation():
         nova_service = ComprehensiveNovaService()
         
         # Continue Maya conversation using comprehensive Nova service
-        conversation_id = f"conv_{current_user.id}_{current_part}"
-        result = nova_service.continue_maya_conversation(
-            conversation_id=conversation_id,
-            user_input=user_message
+        result = nova_service.conduct_speaking_conversation(
+            user_message,
+            f"IELTS Speaking Part {current_part}",
+            part_number=current_part
         )
         
         if result.get('success'):
@@ -870,7 +872,8 @@ def health_check():
     """Health check endpoint for load balancer"""
     try:
         # Check database connectivity
-        db.session.execute('SELECT 1')
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
         
         # Check Nova Sonic availability
         nova_status = True  # Will be checked by actual service
