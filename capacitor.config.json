@@ -15,6 +15,17 @@
     },
     "StatusBar": {
       "style": "dark"
+    },
+    "App": {
+      "launchUrl": "https://ieltsaiprep.com"
     }
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "allowsLinkPreview": false
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true
   }
 }

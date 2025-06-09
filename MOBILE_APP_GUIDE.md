@@ -106,10 +106,16 @@ npx cap open android
 - IELTS speaking
 - IELTS writing
 
+## Revenue Protection Strategy
+- **Payment Processing**: Uses existing Stripe web payments (2.9% + 30¢ fees)
+- **No App Store Commissions**: Users purchase on website, access content in mobile app
+- **Seamless Experience**: Login syncs purchases across web and mobile platforms
+- **Revenue Maintained**: Avoid 30% Apple/Google commission fees
+
 ## Technical Features Maintained
 - All Nova Sonic speech-to-speech functionality preserved
-- Stripe payment processing works seamlessly
-- User authentication and profiles
+- Stripe payment processing works seamlessly via web
+- User authentication and profiles synchronized
 - Assessment recovery system
 - Real-time progress tracking
 - Particle globe visualization for speech
