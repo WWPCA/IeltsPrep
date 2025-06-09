@@ -89,7 +89,10 @@ def create_stripe_checkout_session(product_name, description, price, success_url
                 success_url=success_url,
                 cancel_url=cancel_url,
                 customer_email=customer_email if customer_email else None,
-                # Disable automatic tax for test mode
+                # Collect billing address for tax compliance
+                billing_address_collection='required',
+                # Enable automatic tax calculation
+                automatic_tax={'enabled': True},
                 payment_intent_data={
                     'description': f'IELTS Assessment: {product_name}',
                     'metadata': {
@@ -128,8 +131,10 @@ def create_stripe_checkout_session(product_name, description, price, success_url
             success_url=success_url,
             cancel_url=cancel_url,
             customer_email=customer_email if customer_email else None,
-            # Disable automatic tax for test mode - requires business address setup
-            # automatic_tax={'enabled': True},
+            # Collect billing address for tax compliance
+            billing_address_collection='required',
+            # Enable automatic tax calculation
+            automatic_tax={'enabled': True},
             payment_intent_data={
                 'description': f'IELTS Assessment: {product_name}',
                 'metadata': {
