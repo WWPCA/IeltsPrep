@@ -53,8 +53,8 @@ No additional tax registration required for global sales.
 /**
  * App Store Connect Configuration Steps:
  * 1. Create products with above iOS product IDs
- * 2. Set pricing tier for $36 and $50 USD
- * 3. Configure auto-renewable or non-consumable products
+ * 2. Set pricing tier for $36.00 USD for all products
+ * 3. Configure as non-consumable products
  * 4. Add localized descriptions
  * 5. Submit for review
  */
@@ -62,7 +62,7 @@ No additional tax registration required for global sales.
 /**
  * Google Play Console Configuration Steps:  
  * 1. Create managed products with above Android product IDs
- * 2. Set base price in USD ($36.00 and $50.00)
+ * 2. Set base price in USD ($36.00 for all products)
  * 3. Google automatically converts to local currencies
  * 4. Add product descriptions
  * 5. Activate products
