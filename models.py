@@ -265,32 +265,11 @@ class User(UserMixin, db.Model):
                 if not self.assessment_package_expiry or self.assessment_package_expiry > datetime.utcnow():
                     return True
         
-        # Check new UserPackage table
-        active_package = UserPackage.query.filter_by(
-            user_id=self.id,
-            package_name=package_name,
-            status='active'
-        ).filter(
-            db.or_(
-                UserPackage.expiry_date.is_(None),
-                UserPackage.expiry_date > datetime.utcnow()
-            )
-        ).filter(
-            UserPackage.quantity_remaining > 0
-        ).first()
-        
-        return active_package is not None
+        # Mobile app store purchases only - legacy package system removed
+        return False
     
     def get_package_quantity_remaining(self, package_name):
-        """Get the number of remaining packages for a specific type."""
-        package = UserPackage.query.filter_by(
-            user_id=self.id,
-            package_name=package_name,
-            status='active'
-        ).first()
-        
-        if package and package.is_active:
-            return package.quantity_remaining
+        """Mobile app store purchases only - legacy package system removed."""
         return 0
         
     def is_speaking_only_user(self):
