@@ -452,29 +452,7 @@ class UserAssessmentAttempt(db.Model):
         self._genai_assessment = json.dumps(value)
     
     
-class UserPackage(db.Model):
-    """Individual assessment package purchased by a user with quantity tracking."""
-    __tablename__ = 'user_package'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    package_name = db.Column(db.String(50), nullable=False)  # e.g., "Academic Speaking"
-    quantity_purchased = db.Column(db.Integer, default=1)  # Number of packages purchased
-    quantity_remaining = db.Column(db.Integer, default=1)  # Number of packages remaining
-    purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
-    expiry_date = db.Column(db.DateTime, nullable=True)
-    status = db.Column(db.String(20), default='active')  # active, expired, cancelled, depleted
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Allow multiple purchases but track them efficiently
-    __table_args__ = (
-        db.UniqueConstraint('user_id', 'package_name', name='unique_user_package'),
-        db.Index('idx_user_package_user_id', 'user_id'),
-        db.Index('idx_user_package_status', 'status'),
-        db.Index('idx_user_package_expiry', 'expiry_date'),
-    )
-    
-    
+# UserPackage model removed - mobile app store purchases only
 class WritingResponse(db.Model):
     """Enhanced model for IELTS writing responses with TrueScore® validation"""
     id = db.Column(db.Integer, primary_key=True)

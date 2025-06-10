@@ -509,7 +509,14 @@ def login():
             
             try:
                 # Attempt verification with Google's API
-                success, score, errors = recaptcha_helper.verify_recaptcha(recaptcha_response)
+                verification_result = recaptcha_helper.verify_recaptcha(recaptcha_response)
+                if isinstance(verification_result, tuple) and len(verification_result) >= 2:
+                    success, score = verification_result[0], verification_result[1]
+                    errors = verification_result[2] if len(verification_result) > 2 else []
+                else:
+                    success = bool(verification_result)
+                    score = 0.5
+                    errors = []
                 logging.info(f"Google verification result: success={success}, errors={errors}")
                 
                 if success:

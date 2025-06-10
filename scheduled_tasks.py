@@ -6,8 +6,8 @@ Provides automated daily/weekly tasks for account cleanup and analytics reportin
 import os
 import logging
 from datetime import datetime
-from account_cleanup_service import run_daily_cleanup
-from analytics_segmentation_service import generate_daily_analytics_report
+# Account cleanup service removed - mobile app purchases only
+# Analytics segmentation service removed - mobile app purchases only
 from models import db
 
 logger = logging.getLogger(__name__)
