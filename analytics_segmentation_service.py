@@ -17,21 +17,21 @@ class AnalyticsSegmentationService:
     def get_user_segments(cls):
         """Get basic user segmentation data"""
         try:
-            # Users with purchases
+            from models import UserAssessmentAssignment
+            
+            # Users with mobile app purchases
             purchasing_users = db.session.query(User).filter(
                 User.id.in_(
-                    db.session.query(text('user_package.user_id'))
-                    .select_from(text('user_package'))
-                    .filter(text('user_package.user_id IS NOT NULL'))
+                    db.session.query(UserAssessmentAssignment.user_id)
+                    .filter(UserAssessmentAssignment.user_id.isnot(None))
                 )
             ).all()
             
             # Users without purchases
             non_purchasing_users = db.session.query(User).filter(
                 ~User.id.in_(
-                    db.session.query(text('user_package.user_id'))
-                    .select_from(text('user_package'))
-                    .filter(text('user_package.user_id IS NOT NULL'))
+                    db.session.query(UserAssessmentAssignment.user_id)
+                    .filter(UserAssessmentAssignment.user_id.isnot(None))
                 )
             ).all()
             

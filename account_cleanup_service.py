@@ -23,12 +23,13 @@ class AccountCleanupService:
         """Identify accounts that haven't purchased anything and are inactive"""
         cutoff_date = datetime.utcnow() - timedelta(days=cls.INACTIVE_THRESHOLD_DAYS)
         
-        # Find users with no purchases who haven't logged in recently
+        # Find users with no mobile purchases who haven't logged in recently
+        from models import UserAssessmentAssignment
+        
         inactive_users = db.session.query(User).filter(
             ~User.id.in_(
-                db.session.query(db.distinct(db.text('user_package.user_id')))
-                .select_from(db.text('user_package'))
-                .filter(db.text('user_package.user_id IS NOT NULL'))
+                db.session.query(UserAssessmentAssignment.user_id)
+                .filter(UserAssessmentAssignment.user_id.isnot(None))
             ),
             User.last_login < cutoff_date
         ).all()
@@ -42,11 +43,12 @@ class AccountCleanupService:
             days=cls.INACTIVE_THRESHOLD_DAYS - cls.WARNING_PERIOD_DAYS
         )
         
+        from models import UserAssessmentAssignment
+        
         inactive_users = db.session.query(User).filter(
             ~User.id.in_(
-                db.session.query(db.distinct(db.text('user_package.user_id')))
-                .select_from(db.text('user_package'))
-                .filter(db.text('user_package.user_id IS NOT NULL'))
+                db.session.query(UserAssessmentAssignment.user_id)
+                .filter(UserAssessmentAssignment.user_id.isnot(None))
             ),
             User.last_login < warning_date,
             User.last_login >= datetime.utcnow() - timedelta(days=cls.INACTIVE_THRESHOLD_DAYS),
