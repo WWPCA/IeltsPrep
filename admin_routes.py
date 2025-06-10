@@ -8,8 +8,8 @@ from flask_login import login_required, current_user
 from models import db, User, ConnectionIssueLog, AssessmentSession, Assessment
 from api_issues import APIIssueLog, get_api_issue_statistics
 # from auth_issues import AuthIssueLog, get_auth_issue_statistics  # Module not available
-from account_cleanup_service import AccountCleanupService
-from analytics_segmentation_service import AnalyticsSegmentationService
+# Account cleanup service removed - mobile app purchases only
+# Analytics segmentation service removed - mobile app purchases only
 from scheduled_tasks import execute_daily_tasks_now, execute_weekly_tasks_now
 from enhanced_email_service import email_service
 from sqlalchemy import func, distinct, and_

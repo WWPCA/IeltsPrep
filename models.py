@@ -240,55 +240,12 @@ class User(UserMixin, db.Model):
             'last_30_days': last_30_days
         }
     
-    def has_active_assessment_package(self):
+    def has_mobile_assessment_access(self, assessment_type):
         """
-        Check if user has access to purchased assessment packages.
+        Check if user has access to specific assessment via mobile app purchase.
         """
-        # First check legacy assessment_package_status for backward compatibility
-        if hasattr(self, 'assessment_package_status') and self.assessment_package_status:
-            # Check if assessment package has expired first
-            if self.assessment_package_expiry and self.assessment_package_expiry <= datetime.utcnow():
-                # Assessment package has expired - update status
-                self.assessment_package_status = "expired"
-                db.session.commit()
-                return False
-                
-            # Check for assessment purchases in assessment_history
-            for history_item in self.assessment_history:
-                if "assessment_purchase" in history_item:
-                    purchase_data = history_item["assessment_purchase"]
-                    if "expiry_date" in purchase_data:
-                        # Check if purchase is still valid
-                        expiry_date = datetime.fromisoformat(purchase_data["expiry_date"])
-                        if expiry_date > datetime.utcnow():
-                            return True
-                
-            # Simple list of all possible assessment package types
-            valid_packages = [
-                "Academic Writing", "Academic Speaking", 
-                "General Writing", "General Speaking",
-                "All Products", "unlimited_access"  # Added for test accounts
-            ]
-                
-            # Verify that assessment package status is valid and hasn't expired
-            if (self.assessment_package_status in valid_packages and 
-                    self.assessment_package_status != "none" and
-                    self.assessment_package_status != "expired" and
-                    (not self.assessment_package_expiry or self.assessment_package_expiry > datetime.utcnow())):
-                return True
-        
-        # Check new UserPackage table for individual packages
-        active_packages = UserPackage.query.filter_by(
-            user_id=self.id,
-            status='active'
-        ).filter(
-            db.or_(
-                UserPackage.expiry_date.is_(None),
-                UserPackage.expiry_date > datetime.utcnow()
-            )
-        ).count()
-        
-        return active_packages > 0
+        from assessment_assignment_service import has_package_access
+        return has_package_access(self.id, assessment_type)
     
     def has_package_access(self, package_name):
         """

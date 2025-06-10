@@ -53,7 +53,7 @@ from security_manager import (
 setup_global_security()
 
 # Import the assessment details route
-from add_assessment_details_route import assessment_details_route
+# Mobile app store purchases only - web assessment details removed
 
 # Maya conversation service handles all speech generation
 
