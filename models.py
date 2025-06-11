@@ -669,7 +669,7 @@ class PaymentMethod(db.Model):
 class ConsentRecord(db.Model):
     """GDPR-compliant consent tracking with versioning and audit trails"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=True, index=True)
     consent_type = db.Column(db.String(50), nullable=False, index=True)
     consent_given = db.Column(db.Boolean, nullable=False)
     version = db.Column(db.String(10), nullable=False, default='1.0')

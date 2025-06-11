@@ -22,6 +22,12 @@ from cookie_consent_routes import cookie_consent_bp
 app.register_blueprint(admin_bp)
 app.register_blueprint(cookie_consent_bp)
 
+# Cookie policy route
+@app.route('/cookie-policy')
+def cookie_policy():
+    """Cookie policy page"""
+    return render_template('cookie_policy.html')
+
 # Configure Talisman with tightened Content Security Policy
 Talisman(app, 
          force_https=False,  # Let Replit handle HTTPS
