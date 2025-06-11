@@ -44,15 +44,14 @@ def save_cookie_consent():
         ua_hash = hashlib.sha256(user_agent.encode()).hexdigest() if user_agent else None
         
         # Create consent record
-        consent_record = ConsentRecord(
-            user_id=user_id,
-            consent_type=consent_type,
-            consent_given=consent_given,
-            version=version,
-            timestamp=datetime.utcnow(),
-            ip_address_hash=ip_hash,
-            user_agent_hash=ua_hash
-        )
+        consent_record = ConsentRecord()
+        consent_record.user_id = user_id
+        consent_record.consent_type = consent_type
+        consent_record.consent_given = consent_given
+        consent_record.version = version
+        consent_record.timestamp = datetime.utcnow()
+        consent_record.ip_address_hash = ip_hash
+        consent_record.user_agent_hash = ua_hash
         
         db.session.add(consent_record)
         
@@ -137,13 +136,12 @@ def withdraw_cookie_consent():
             })
         
         # Create withdrawal record for authenticated users
-        withdrawal_record = ConsentRecord(
-            user_id=user_id,
-            consent_type='cookie_preferences_withdrawal',
-            consent_given=False,
-            version='1.0',
-            timestamp=datetime.utcnow()
-        )
+        withdrawal_record = ConsentRecord()
+        withdrawal_record.user_id = user_id
+        withdrawal_record.consent_type = 'cookie_preferences_withdrawal'
+        withdrawal_record.consent_given = False
+        withdrawal_record.version = '1.0'
+        withdrawal_record.timestamp = datetime.utcnow()
         
         db.session.add(withdrawal_record)
         db.session.commit()

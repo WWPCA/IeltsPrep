@@ -26,6 +26,7 @@ app.register_blueprint(cookie_consent_bp)
 @app.route('/cookie-policy')
 def cookie_policy():
     """Cookie policy page"""
+    from flask import render_template
     return render_template('cookie_policy.html')
 
 # Configure Talisman with tightened Content Security Policy
