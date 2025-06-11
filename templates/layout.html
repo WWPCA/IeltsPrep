@@ -27,6 +27,9 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ cache_buster }}">
     
+    <!-- Cookie Consent CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cookie-consent.css') }}?v={{ cache_buster }}">
+    
     <!-- Global Styles -->
     <style>
         /* Hide error messages */
@@ -304,6 +307,9 @@
     
     <!-- Robust reCAPTCHA Loader -->
 
+    
+    <!-- Cookie Consent JavaScript -->
+    <script src="{{ url_for('static', filename='js/cookie-consent.js') }}?v={{ cache_buster }}"></script>
     
     <!-- Custom JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

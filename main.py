@@ -18,7 +18,9 @@ app.register_blueprint(gdpr_bp)
 
 # Import admin routes
 from admin_routes import admin_bp
+from cookie_consent_routes import cookie_consent_bp
 app.register_blueprint(admin_bp)
+app.register_blueprint(cookie_consent_bp)
 
 # Configure Talisman with tightened Content Security Policy
 Talisman(app, 
