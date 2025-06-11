@@ -9,11 +9,11 @@ from flask import request, jsonify, flash, redirect, url_for, abort
 
 logger = logging.getLogger(__name__)
 
-# Allowed countries for access (Canada-only restriction)
-ALLOWED_COUNTRIES = ['CA', 'CAN', 'CANADA']
+# Global access enabled - no country restrictions for app store launch
+ALLOWED_COUNTRIES = []  # Empty list means all countries allowed
 
-# Restriction message for users from non-allowed countries
-RESTRICTION_MESSAGE = "IELTS GenAI Prep is currently available only to users in Canada. We apologize for any inconvenience."
+# Message for any edge cases (should not be used with global access)
+RESTRICTION_MESSAGE = "IELTS GenAI Prep is available globally through mobile app stores."
 
 def get_user_country():
     """Get user's country from request headers or IP geolocation"""
@@ -37,13 +37,8 @@ def get_user_country():
 
 def is_country_restricted(country_code=None):
     """Check if a country is restricted from accessing the platform"""
-    if country_code is None:
-        country_code = get_user_country()
-    
-    if not country_code:
-        return False  # Allow if unable to determine country
-    
-    return country_code.upper() not in ALLOWED_COUNTRIES
+    # Global access enabled - no restrictions
+    return False
 
 def get_allowed_countries():
     """Get list of allowed countries"""
@@ -89,29 +84,18 @@ def log_country_access(user_id=None):
 
 def validate_country_for_payment(country_code):
     """Validate country for payment processing"""
-    if is_country_restricted(country_code):
-        return False, RESTRICTION_MESSAGE
-    
-    return True, "Country allowed for payment processing"
+    # Global access enabled - all countries allowed
+    return True, "Global access enabled for payment processing"
 
 def get_country_specific_content(country_code=None):
     """Get country-specific content or configuration"""
     if country_code is None:
         country_code = get_user_country()
     
-    # Canada-specific configuration
-    if country_code in ALLOWED_COUNTRIES:
-        return {
-            'currency': 'CAD',
-            'tax_rate': 0.13,  # HST for Ontario
-            'support_email': 'support@ieltsaiprep.com',
-            'privacy_policy_url': '/privacy-policy-ca'
-        }
-    
-    # Default configuration for restricted countries (for error pages)
+    # Global configuration for all countries
     return {
         'currency': 'USD',
-        'tax_rate': 0.0,
-        'support_email': 'info@ieltsaiprep.com',
+        'tax_rate': 0.0,  # App store handles taxes
+        'support_email': 'support@ieltsaiprep.com',
         'privacy_policy_url': '/privacy-policy'
     }
