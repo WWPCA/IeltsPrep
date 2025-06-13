@@ -26,6 +26,8 @@ from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
+app.jinja_env.globals['csrf_token'] = csrf_token
+app.jinja_env.globals['config'] = MockConfig()
 
 # In-memory storage for testing (simulates DynamoDB and ElastiCache)
 qr_tokens = {}  # Simulates AuthTokens DynamoDB table
@@ -267,6 +269,50 @@ def test_mobile():
         <a href="/qr-login">Go to QR Login</a>
         """
 
+@app.route('/test-dashboard')
+def test_dashboard():
+    """Serve comprehensive QR authentication test dashboard"""
+    return render_template('test_dashboard.html')
+
+@app.route('/api/health', methods=['GET', 'POST'])
+def health_check():
+    """Lambda health check endpoint simulation"""
+    try:
+        # Check system components
+        health_data = {
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'services': {
+                'dynamodb': {
+                    'auth_tokens': len(qr_tokens),
+                    'active_sessions': len(sessions)
+                },
+                'elasticache': {
+                    'session_cache': 'operational'
+                },
+                'lambda': {
+                    'memory_usage': '128MB',
+                    'cold_starts': 0
+                }
+            },
+            'metrics': {
+                'total_qr_tokens': len(qr_tokens),
+                'active_sessions': len([s for s in sessions.values() if time.time() < s['expires_at']]),
+                'purchased_products': sum(len(products) for products in mock_purchases.values())
+            }
+        }
+        
+        print(f"[CLOUDWATCH] Health check: {health_data['status']}")
+        return jsonify(health_data)
+        
+    except Exception as e:
+        print(f"[CLOUDWATCH] Health check failed: {str(e)}")
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
+
 def generate_qr_code(data):
     """Generate QR code image as base64 string"""
     qr = qrcode.make(data)
@@ -376,8 +422,11 @@ def verify_qr_token():
         current_time = int(time.time())
         
         # Check token expiry (DynamoDB TTL simulation)
-        if current_time > token_data['expires_at']:
+        expires_at = token_data.get('expires_at', 0)
+        if current_time > expires_at:
             print(f"[CLOUDWATCH] QR Verification failed: Expired token {token_id}")
+            # Remove expired token from storage
+            del qr_tokens[token_id]
             return jsonify({
                 'success': False,
                 'error': 'QR code expired. Please generate a new one from your mobile app.'
