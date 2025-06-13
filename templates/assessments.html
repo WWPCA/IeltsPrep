@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS GenAI Prep - Your Assessments</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #2563eb;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .user-info {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+        
+        .assessments-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+        
+        .assessment-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            background: #f8fafc;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .assessment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .assessment-type {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2563eb;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+        
+        .assessment-date {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .assessment-score {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .assessment-content {
+            margin-bottom: 15px;
+        }
+        
+        .transcript, .essay-text {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 10px;
+            font-style: italic;
+            color: #475569;
+        }
+        
+        .feedback {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+        
+        .feedback-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #64748b;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #374151;
+        }
+        
+        .retry-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        
+        .retry-btn:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your IELTS Assessments</h1>
+            <div class="user-info" id="user-info">
+                Welcome back! Loading your information...
+            </div>
+            <a href="/" class="logout-btn">Logout</a>
+        </div>
+        
+        <div class="assessments-section">
+            <h2 class="section-title">Assessment History</h2>
+            
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading your assessments...</p>
+            </div>
+            
+            <div id="error-message" class="error" style="display: none;">
+                <p>Failed to load assessments. Please try again.</p>
+                <button class="retry-btn" onclick="loadAssessments()">Retry</button>
+            </div>
+            
+            <div id="assessments-container" style="display: none;">
+                <div id="assessments-grid" class="assessment-grid">
+                    <!-- Assessments will be loaded here -->
+                </div>
+                
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <h3>No Assessments Yet</h3>
+                    <p>Complete assessments in the mobile app to see your results here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lambda backend endpoint
+        const LAMBDA_BASE_URL = 'https://your-lambda-url.amazonaws.com/prod';
+        
+        let currentSession = null;
+        let currentUser = null;
+        
+        async function loadAssessments() {
+            try {
+                showLoading(true);
+                hideError();
+                
+                // Get session from localStorage
+                currentSession = localStorage.getItem('qr_session_id');
+                currentUser = localStorage.getItem('qr_user_email');
+                
+                if (!currentSession || !currentUser) {
+                    // Redirect to login if no session
+                    window.location.href = '/';
+                    return;
+                }
+                
+                // Update user info
+                document.getElementById('user-info').textContent = `Welcome back, ${currentUser}!`;
+                
+                // Fetch assessments from Lambda backend
+                const response = await fetch(`${LAMBDA_BASE_URL}/api/assessment/${currentUser}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${currentSession}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Session expired, redirect to login
+                        localStorage.removeItem('qr_session_id');
+                        localStorage.removeItem('qr_user_email');
+                        window.location.href = '/';
+                        return;
+                    }
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                showLoading(false);
+                displayAssessments(data.assessments || []);
+                
+            } catch (error) {
+                console.error('Assessment loading error:', error);
+                showLoading(false);
+                showError('Failed to load assessments. Please check your connection and try again.');
+            }
+        }
+        
+        function displayAssessments(assessments) {
+            const container = document.getElementById('assessments-container');
+            const grid = document.getElementById('assessments-grid');
+            const emptyState = document.getElementById('empty-state');
+            
+            container.style.display = 'block';
+            
+            if (assessments.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+            
+            // Clear existing content
+            grid.innerHTML = '';
+            
+            // Create assessment cards
+            assessments.forEach(assessment => {
+                const card = createAssessmentCard(assessment);
+                grid.appendChild(card);
+            });
+        }
+        
+        function createAssessmentCard(assessment) {
+            const card = document.createElement('div');
+            card.className = 'assessment-card';
+            
+            const date = new Date(assessment.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const typeDisplay = assessment.assessment_type.replace('_', ' ').toUpperCase();
+            const score = assessment.score || 0;
+            
+            let contentHtml = '';
+            
+            // Add transcript for speaking assessments
+            if (assessment.transcript) {
+                contentHtml += `
+                    <div class="assessment-content">
+                        <strong>Transcript:</strong>
+                        <div class="transcript">${assessment.transcript}</div>
+                    </div>
+                `;
+            }
+            
+            // Add essay text for writing assessments
+            if (assessment.essay_text) {
+                contentHtml += `
+                    <div class="assessment-content">
+                        <strong>Essay:</strong>
+                        <div class="essay-text">${assessment.essay_text.substring(0, 200)}${assessment.essay_text.length > 200 ? '...' : ''}</div>
+                    </div>
+                `;
+            }
+            
+            // Add feedback
+            if (assessment.feedback) {
+                contentHtml += `
+                    <div class="feedback">
+                        <div class="feedback-title">Assessment Feedback:</div>
+                        ${assessment.feedback}
+                    </div>
+                `;
+            }
+            
+            card.innerHTML = `
+                <div class="assessment-type">${typeDisplay}</div>
+                <div class="assessment-date">${date}</div>
+                <div class="assessment-score">Score: ${score}/9.0</div>
+                ${contentHtml}
+            `;
+            
+            return card;
+        }
+        
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'block' : 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.querySelector('p').textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function hideError() {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.style.display = 'none';
+        }
+        
+        // Load assessments when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAssessments();
+        });
+        
+        // Check for session data from QR authentication
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'qr_session_id' || e.key === 'qr_user_email') {
+                if (e.newValue) {
+                    loadAssessments();
+                } else {
+                    window.location.href = '/';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

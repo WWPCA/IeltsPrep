@@ -10,7 +10,9 @@ import asyncio
 import base64
 import requests
 import hashlib
-from datetime import datetime
+import uuid
+import time
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import logging
 
@@ -26,6 +28,7 @@ bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
 users_table = dynamodb.Table(os.environ.get('DYNAMODB_USERS_TABLE', 'ielts-genai-prep-users-prod'))
 assessments_table = dynamodb.Table(os.environ.get('DYNAMODB_ASSESSMENTS_TABLE', 'ielts-genai-prep-assessments-prod'))
 sessions_table = dynamodb.Table(os.environ.get('DYNAMODB_SESSIONS_TABLE', 'ielts-genai-prep-sessions-prod'))
+qr_tokens_table = dynamodb.Table(os.environ.get('DYNAMODB_QR_TOKENS_TABLE', 'ielts-genai-prep-qr-tokens-prod'))
 
 class NovaSonicBidirectionalService:
     """
@@ -167,6 +170,12 @@ class LambdaAPIHandler:
                 return self._handle_user_registration(request_data)
             elif path == '/api/auth/login':
                 return self._handle_user_login(request_data)
+            elif path == '/api/auth/generate-qr':
+                return self._handle_qr_generation(request_data)
+            elif path == '/auth/verify-qr':
+                return self._handle_qr_verification(request_data)
+            elif path.startswith('/api/assessment/'):
+                return self._handle_assessment_access(path, request_data, event)
             elif path.startswith('/api/nova-sonic/'):
                 return asyncio.run(self._handle_nova_sonic_request(path, request_data))
             elif path.startswith('/api/nova-micro/'):
@@ -475,6 +484,164 @@ class LambdaAPIHandler:
         except Exception as e:
             logger.error(f"Assessment save error: {str(e)}")
     
+    def _handle_qr_generation(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate QR code token after purchase verification"""
+        try:
+            user_email = data.get('user_email')
+            purchase_verified = data.get('purchase_verified', False)
+            
+            if not user_email:
+                return self._error_response('User email required', 400)
+            
+            if not purchase_verified:
+                return self._error_response('Purchase verification required', 400)
+            
+            # Generate unique token
+            token_id = str(uuid.uuid4())
+            created_at = datetime.utcnow()
+            expires_at = created_at + timedelta(minutes=10)
+            
+            # Store token in DynamoDB
+            token_data = {
+                'token_id': token_id,
+                'user_email': user_email,
+                'created_at': created_at.isoformat(),
+                'expires_at': int(expires_at.timestamp()),
+                'used': False,
+                'purpose': 'website_authentication'
+            }
+            
+            qr_tokens_table.put_item(Item=token_data)
+            
+            # Generate QR code data
+            qr_data = {
+                'token': token_id,
+                'domain': 'ieltsaiprep.com',
+                'timestamp': int(created_at.timestamp())
+            }
+            
+            return self._success_response({
+                'token_id': token_id,
+                'qr_data': json.dumps(qr_data),
+                'expires_in_minutes': 10,
+                'expires_at': expires_at.isoformat()
+            })
+            
+        except Exception as e:
+            logger.error(f"QR token generation error: {str(e)}")
+            return self._error_response('Token generation failed', 500)
+    
+    def _handle_qr_verification(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Verify QR code token and create website session"""
+        try:
+            token_id = data.get('token')
+            
+            if not token_id:
+                return self._error_response('Token required', 400)
+            
+            # Get token from DynamoDB
+            response = qr_tokens_table.get_item(Key={'token_id': token_id})
+            
+            if 'Item' not in response:
+                return self._error_response('Invalid token', 401)
+            
+            token_data = response['Item']
+            
+            # Check if token is already used
+            if token_data.get('used', False):
+                return self._error_response('Token already used', 401)
+            
+            # Check if token is expired
+            if time.time() > token_data['expires_at']:
+                return self._error_response('Token expired', 401)
+            
+            # Mark token as used (single-use)
+            qr_tokens_table.update_item(
+                Key={'token_id': token_id},
+                UpdateExpression='SET used = :used, used_at = :used_at',
+                ExpressionAttributeValues={
+                    ':used': True,
+                    ':used_at': datetime.utcnow().isoformat()
+                }
+            )
+            
+            # Create website session
+            session_id = self._create_qr_session(token_data['user_email'])
+            
+            logger.info(f"QR authentication successful for {token_data['user_email']}")
+            
+            return self._success_response({
+                'user_email': token_data['user_email'],
+                'session_id': session_id,
+                'message': 'Authentication successful',
+                'redirect_url': '/assessments'
+            })
+            
+        except Exception as e:
+            logger.error(f"QR token verification error: {str(e)}")
+            return self._error_response('Token verification failed', 500)
+    
+    def _handle_assessment_access(self, path: str, data: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle assessment access with session verification"""
+        try:
+            # Extract user_id from path
+            path_parts = path.split('/')
+            if len(path_parts) < 4:
+                return self._error_response('Invalid path format', 400)
+            
+            user_id = path_parts[3]
+            
+            # Get session from headers or query parameters
+            headers = event.get('headers', {})
+            query_params = event.get('queryStringParameters', {}) or {}
+            
+            session_id = (headers.get('Authorization', '').replace('Bearer ', '') or 
+                         query_params.get('session_id'))
+            
+            if not session_id:
+                return self._error_response('Session required', 401)
+            
+            # Verify session
+            session_data = self._verify_qr_session(session_id)
+            if not session_data:
+                return self._error_response('Invalid or expired session', 401)
+            
+            # Verify user can access this assessment
+            if session_data['user_email'] != user_id:
+                return self._error_response('Access denied', 403)
+            
+            # Get user assessments
+            response = assessments_table.scan(
+                FilterExpression='user_email = :email',
+                ExpressionAttributeValues={':email': user_id}
+            )
+            
+            assessments = response.get('Items', [])
+            
+            # Filter out audio data, only return text assessments
+            filtered_assessments = []
+            for assessment in assessments:
+                filtered_assessment = {
+                    'assessment_id': assessment.get('assessment_id'),
+                    'assessment_type': assessment.get('assessment_type'),
+                    'created_at': assessment.get('created_at'),
+                    'transcript': assessment.get('transcript', ''),
+                    'essay_text': assessment.get('essay_text', ''),
+                    'assessment_result': assessment.get('assessment_result', {}),
+                    'feedback': assessment.get('feedback', ''),
+                    'score': assessment.get('overall_score', 0)
+                }
+                filtered_assessments.append(filtered_assessment)
+            
+            return self._success_response({
+                'assessments': filtered_assessments,
+                'total_count': len(filtered_assessments)
+            })
+            
+        except Exception as e:
+            logger.error(f"Assessment access error: {str(e)}")
+            return self._error_response('Failed to retrieve assessments', 500)
+
     def _create_session(self, email: str) -> str:
         """Create user session"""
         session_id = f"session_{int(datetime.now().timestamp())}_{hash(email) % 10000}"
@@ -488,6 +655,42 @@ class LambdaAPIHandler:
         
         sessions_table.put_item(Item=session_data)
         return session_id
+    
+    def _create_qr_session(self, user_email: str) -> str:
+        """Create QR-based website session"""
+        session_id = f"qr_session_{hashlib.md5(user_email.encode()).hexdigest()}_{int(time.time())}"
+        
+        session_data = {
+            'session_id': session_id,
+            'user_email': user_email,
+            'authenticated': True,
+            'created_at': datetime.utcnow().isoformat(),
+            'expires_at': int(time.time() + 3600),  # 1 hour
+            'source': 'qr_authentication'
+        }
+        
+        sessions_table.put_item(Item=session_data)
+        return session_id
+    
+    def _verify_qr_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Verify QR-based website session"""
+        try:
+            response = sessions_table.get_item(Key={'session_id': session_id})
+            
+            if 'Item' not in response:
+                return None
+            
+            session = response['Item']
+            
+            # Check if session is expired
+            if time.time() > session.get('expires_at', 0):
+                return None
+            
+            return session
+            
+        except Exception as e:
+            logger.error(f"QR session verification error: {str(e)}")
+            return None
     
     def _verify_session(self, session_id: str) -> Optional[str]:
         """Verify session and return user email"""
