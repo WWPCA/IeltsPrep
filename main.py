@@ -209,7 +209,16 @@ def logout():
 @app.route('/test-mobile')
 def test_mobile():
     """Serve mobile purchase simulator for testing"""
-    return send_from_directory('.', 'test_mobile_simulator.html')
+    try:
+        with open('test_mobile_simulator.html', 'r') as f:
+            content = f.read()
+        return content
+    except FileNotFoundError:
+        return """
+        <h1>Mobile Simulator Not Found</h1>
+        <p>Please create the mobile simulator file first.</p>
+        <a href="/qr-login">Go to QR Login</a>
+        """
 
 def generate_qr_code(data):
     """Generate QR code image as base64 string"""
