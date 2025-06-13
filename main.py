@@ -99,6 +99,11 @@ def home():
     """Serve QR login page"""
     return render_template('qr_login.html')
 
+@app.route('/qr-login')
+def qr_login():
+    """Alternative QR login route - redirects to home"""
+    return redirect(url_for('home'))
+
 @app.route('/api/generate-website-qr')
 def generate_website_qr():
     """Generate QR code for website authentication"""
