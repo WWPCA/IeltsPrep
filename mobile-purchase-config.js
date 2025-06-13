@@ -1,69 +1,87 @@
 /**
- * IELTS GenAI Prep - Mobile In-App Purchase Configuration
- * Defines products for Apple App Store and Google Play Store
+ * Mobile Purchase Configuration for App Store Integration
+ * Handles iOS and Android in-app purchase setup
  */
 
-// Product IDs for App Store Connect and Google Play Console - 4 Individual Assessment Products
-export const PURCHASE_PRODUCTS = {
-  // Academic Assessment Products
-  ACADEMIC_WRITING: {
-    ios: 'com.ieltsaiprep.academic.writing',
-    android: 'academic_writing_assessment',
-    price: '$36.00',
-    title: 'Academic Writing Assessment',
-    description: 'IELTS Academic Writing assessment with Task 1 (graphs/charts) and Task 2 (essays)'
-  },
-  
-  ACADEMIC_SPEAKING: {
-    ios: 'com.ieltsaiprep.academic.speaking',
-    android: 'academic_speaking_assessment',
-    price: '$36.00',
-    title: 'Academic Speaking Assessment',
-    description: 'IELTS Academic Speaking assessment with Maya AI examiner covering all 3 parts'
-  },
-  
-  // General Training Assessment Products
-  GENERAL_WRITING: {
-    ios: 'com.ieltsaiprep.general.writing',
-    android: 'general_writing_assessment',
-    price: '$36.00',
-    title: 'General Writing Assessment',
-    description: 'IELTS General Training Writing assessment with Task 1 (letters) and Task 2 (essays)'
-  },
-  
-  GENERAL_SPEAKING: {
-    ios: 'com.ieltsaiprep.general.speaking',
-    android: 'general_speaking_assessment',
-    price: '$36.00',
-    title: 'General Speaking Assessment',
-    description: 'IELTS General Training Speaking assessment with Maya AI examiner covering all 3 parts'
-  }
+const PURCHASE_CONFIG = {
+    // Product definitions for both Apple and Google stores
+    products: {
+        academic_speaking: {
+            apple_id: 'com.ieltsaiprep.academic_speaking',
+            google_id: 'com.ieltsaiprep.academic_speaking',
+            price: 36.00,
+            currency: 'USD',
+            title: 'Academic Speaking Assessment',
+            description: 'AI-powered speaking assessment with Maya examiner using Nova Sonic technology'
+        },
+        academic_writing: {
+            apple_id: 'com.ieltsaiprep.academic_writing',
+            google_id: 'com.ieltsaiprep.academic_writing', 
+            price: 36.00,
+            currency: 'USD',
+            title: 'Academic Writing Assessment',
+            description: 'Comprehensive writing evaluation with detailed feedback and scoring'
+        },
+        general_speaking: {
+            apple_id: 'com.ieltsaiprep.general_speaking',
+            google_id: 'com.ieltsaiprep.general_speaking',
+            price: 36.00,
+            currency: 'USD',
+            title: 'General Training Speaking Assessment',
+            description: 'Speaking practice and assessment for General Training IELTS'
+        },
+        general_writing: {
+            apple_id: 'com.ieltsaiprep.general_writing',
+            google_id: 'com.ieltsaiprep.general_writing',
+            price: 36.00,
+            currency: 'USD', 
+            title: 'General Training Writing Assessment',
+            description: 'Writing assessment and feedback for General Training IELTS'
+        }
+    },
+    
+    // API endpoints for purchase verification
+    verification_endpoints: {
+        apple: '/api/purchase/verify-apple',
+        google: '/api/purchase/verify-google'
+    },
+    
+    // Purchase flow configuration
+    flow_config: {
+        timeout: 30000, // 30 seconds for purchase completion
+        retry_attempts: 3,
+        show_loading: true,
+        auto_unlock: true // Automatically unlock content after successful purchase
+    },
+    
+    // Localization for different markets
+    localization: {
+        en: {
+            purchase_loading: 'Processing your purchase...',
+            purchase_success: 'Purchase successful! Assessment unlocked.',
+            purchase_failed: 'Purchase failed. Please try again.',
+            verification_loading: 'Verifying purchase...',
+            network_error: 'Network error. Please check your connection.',
+            already_owned: 'You already own this assessment.',
+            restore_purchases: 'Restore Purchases'
+        }
+    }
 };
 
-// Purchase validation endpoint
-export const PURCHASE_VALIDATION_ENDPOINT = 'https://ieltsaiprep.com/api/validate-purchase';
+// Initialize purchase manager with configuration
+function initializePurchaseSystem() {
+    if (window.purchaseManager) {
+        window.purchaseManager.configure(PURCHASE_CONFIG);
+        console.log('Purchase system initialized with Lambda backend');
+    }
+}
 
-// Tax compliance note
-export const TAX_COMPLIANCE_NOTE = `
-All purchases are processed through Apple App Store or Google Play Store.
-Platform fees and taxes are automatically calculated and collected.
-No additional tax registration required for global sales.
-`;
+// Export configuration
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = PURCHASE_CONFIG;
+}
 
-/**
- * App Store Connect Configuration Steps:
- * 1. Create products with above iOS product IDs
- * 2. Set pricing tier for $36.00 USD for all products
- * 3. Configure as non-consumable products
- * 4. Add localized descriptions
- * 5. Submit for review
- */
-
-/**
- * Google Play Console Configuration Steps:  
- * 1. Create managed products with above Android product IDs
- * 2. Set base price in USD ($36.00 for all products)
- * 3. Google automatically converts to local currencies
- * 4. Add product descriptions
- * 5. Activate products
- */
+// Initialize when DOM is ready
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', initializePurchaseSystem);
+}
