@@ -102,6 +102,11 @@ def home():
     """Serve QR login page"""
     return render_template('qr_login.html')
 
+@app.route('/index')
+def index():
+    """Index route for template compatibility"""
+    return redirect(url_for('home'))
+
 @app.route('/qr-login')
 def qr_login():
     """Alternative QR login route - redirects to home"""
