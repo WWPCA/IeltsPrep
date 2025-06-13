@@ -1,0 +1,130 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: IELTS GenAI Prep - Lambda Backend for QR Authentication
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.11
+    Environment:
+      Variables:
+        DYNAMODB_QR_TOKENS_TABLE: !Ref QRTokensTable
+        DYNAMODB_SESSIONS_TABLE: !Ref SessionsTable
+        DYNAMODB_USERS_TABLE: !Ref UsersTable
+        DYNAMODB_ASSESSMENTS_TABLE: !Ref AssessmentsTable
+
+Resources:
+  # Lambda Functions
+  IELTSGenAIPrepAPI:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: lambda_handler.lambda_handler
+      Events:
+        GenerateQR:
+          Type: Api
+          Properties:
+            Path: /api/auth/generate-qr
+            Method: post
+        VerifyQR:
+          Type: Api
+          Properties:
+            Path: /api/auth/verify-qr
+            Method: post
+        AssessmentAccess:
+          Type: Api
+          Properties:
+            Path: /assessment/{assessment_type}
+            Method: get
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /api/health
+            Method: get
+        StaticFiles:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: get
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref QRTokensTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SessionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AssessmentsTable
+
+  # DynamoDB Tables
+  QRTokensTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ielts-genai-prep-qr-tokens-local
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: token_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: token_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  SessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ielts-genai-prep-sessions-local
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ielts-genai-prep-users-local
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: email-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  AssessmentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ielts-genai-prep-assessments-local
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: assessment_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: assessment_id
+          KeyType: RANGE
+
+Outputs:
+  ApiGatewayApi:
+    Description: "API Gateway endpoint URL for IELTS GenAI Prep"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/"

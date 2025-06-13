@@ -1,17 +1,17 @@
 """
 AWS Lambda Handler for IELTS GenAI Prep
-Pure serverless architecture with bi-directional Nova Sonic streaming
+Pure serverless architecture with QR authentication and assessment access
 """
 
 import json
 import os
 import boto3
-import asyncio
 import base64
-import requests
 import hashlib
 import uuid
 import time
+import qrcode
+from io import BytesIO
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import logging
@@ -20,15 +20,55 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Initialize AWS clients
-dynamodb = boto3.resource('dynamodb')
-bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+# Use AWS mock services for .replit environment
+if os.environ.get('REPLIT_ENVIRONMENT'):
+    from aws_mock_config import aws_mock
+    
+    # Mock DynamoDB and ElastiCache for .replit
+    class MockDynamoDBTable:
+        def __init__(self, table_name):
+            self.table_name = table_name
+            self.mock_service = aws_mock
+        
+        def put_item(self, **kwargs):
+            item = kwargs.get('Item', {})
+            if self.table_name == 'qr-tokens':
+                return self.mock_service.store_qr_token(item)
+            elif self.table_name == 'sessions':
+                return self.mock_service.create_session(item)
+            return {'ResponseMetadata': {'HTTPStatusCode': 200}}
+        
+        def get_item(self, **kwargs):
+            key = kwargs.get('Key', {})
+            if self.table_name == 'qr-tokens':
+                token_id = key.get('token_id')
+                item = self.mock_service.get_qr_token(token_id)
+                return {'Item': item} if item else {}
+            elif self.table_name == 'sessions':
+                session_id = key.get('session_id')
+                item = self.mock_service.get_session(session_id)
+                return {'Item': item} if item else {}
+            return {}
+    
+    qr_tokens_table = MockDynamoDBTable('qr-tokens')
+    sessions_table = MockDynamoDBTable('sessions')
+    users_table = MockDynamoDBTable('users')
+    assessments_table = MockDynamoDBTable('assessments')
+else:
+    # Production AWS clients
+    dynamodb = boto3.resource('dynamodb')
+    qr_tokens_table = dynamodb.Table(os.environ.get('DYNAMODB_QR_TOKENS_TABLE', 'ielts-genai-prep-qr-tokens-prod'))
+    sessions_table = dynamodb.Table(os.environ.get('DYNAMODB_SESSIONS_TABLE', 'ielts-genai-prep-sessions-prod'))
+    users_table = dynamodb.Table(os.environ.get('DYNAMODB_USERS_TABLE', 'ielts-genai-prep-users-prod'))
+    assessments_table = dynamodb.Table(os.environ.get('DYNAMODB_ASSESSMENTS_TABLE', 'ielts-genai-prep-assessments-prod'))
 
-# DynamoDB tables
-users_table = dynamodb.Table(os.environ.get('DYNAMODB_USERS_TABLE', 'ielts-genai-prep-users-prod'))
-assessments_table = dynamodb.Table(os.environ.get('DYNAMODB_ASSESSMENTS_TABLE', 'ielts-genai-prep-assessments-prod'))
-sessions_table = dynamodb.Table(os.environ.get('DYNAMODB_SESSIONS_TABLE', 'ielts-genai-prep-sessions-prod'))
-qr_tokens_table = dynamodb.Table(os.environ.get('DYNAMODB_QR_TOKENS_TABLE', 'ielts-genai-prep-qr-tokens-prod'))
+# Mock purchase data for testing
+MOCK_PURCHASES = {
+    'test.user@example.com': ['general_speaking_assessment', 'general_writing_assessment'],
+    'demo.user@example.com': ['academic_speaking_assessment'],
+    'complete.test@example.com': ['academic_speaking_assessment'],
+    'final.test@example.com': ['academic_speaking_assessment'],
+}
 
 class NovaSonicBidirectionalService:
     """
