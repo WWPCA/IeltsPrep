@@ -27,19 +27,37 @@
             color: #64748b;
             font-size: 1.1rem;
         }
-        .qr-scanner-container {
+        .qr-display-container {
             margin: 30px 0;
             padding: 20px;
             background: #f8fafc;
             border-radius: 8px;
             border: 2px dashed #cbd5e1;
         }
-        .qr-scanner {
+        .qr-code-display {
             width: 100%;
-            max-width: 400px;
+            max-width: 300px;
             height: 300px;
             margin: 0 auto;
-            background: #000;
+            background: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e5e7eb;
+        }
+        .qr-placeholder-content {
+            text-align: center;
+            color: #6b7280;
+        }
+        .qr-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #9ca3af;
+        }
+        .qr-code-image {
+            max-width: 280px;
+            max-height: 280px;
             border-radius: 8px;
         }
         .scanner-info {
@@ -145,10 +163,16 @@
         </div>
         {% endif %}
 
-        <div class="qr-scanner-container">
-            <div id="qr-scanner" class="qr-scanner"></div>
+        <!-- QR Code Display Area -->
+        <div class="qr-display-container">
+            <div id="qr-code-area" class="qr-code-display">
+                <div class="qr-placeholder-content">
+                    <i class="fas fa-qrcode qr-icon"></i>
+                    <p>Generating QR Code...</p>
+                </div>
+            </div>
             <div class="scanner-info">
-                <p>Position the QR code from your mobile app within the scanner area</p>
+                <p>Scan this QR code with your IELTS GenAI Prep mobile app</p>
             </div>
         </div>
 
@@ -162,8 +186,7 @@
             <ol>
                 <li>Open the IELTS GenAI Prep mobile app</li>
                 <li>Complete a purchase verification for any assessment module ($36)</li>
-                <li>The app will display a QR code after successful purchase</li>
-                <li>Scan the QR code using this page</li>
+                <li>Use your mobile app to scan the QR code displayed above</li>
                 <li>You'll be automatically logged in to access your assessments</li>
             </ol>
             <p><strong>Note:</strong> QR codes expire after 10 minutes for security.</p>
@@ -186,52 +209,83 @@
         </div>
     </div>
 
-    <!-- QR Code Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    
     <script>
-        let html5QrCode;
+        let currentQRToken = null;
+        let qrRefreshInterval = null;
         
-        function onScanSuccess(decodedText, decodedResult) {
-            console.log(`QR Code scanned: ${decodedText}`);
+        // Generate and display QR code on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            generateWebsiteQR();
             
+            // Refresh QR code every 9 minutes (before 10-minute expiration)
+            qrRefreshInterval = setInterval(generateWebsiteQR, 9 * 60 * 1000);
+        });
+        
+        async function generateWebsiteQR() {
             try {
-                // Parse QR code data
-                const qrData = JSON.parse(decodedText);
+                const response = await fetch('/api/generate-website-qr');
+                const data = await response.json();
                 
-                if (qrData.token && qrData.domain === 'ieltsaiprep.com') {
-                    verifyQRToken(qrData.token);
+                if (data.success) {
+                    currentQRToken = data.token_id;
+                    
+                    // Display the QR code image
+                    const qrArea = document.getElementById('qr-code-area');
+                    qrArea.innerHTML = `<img src="${data.qr_code_image}" alt="QR Code" class="qr-code-image">`;
+                    
+                    // Start polling for authentication
+                    startAuthenticationPolling();
+                    
+                    showMessage(`QR code generated. Expires in ${data.expires_in_minutes} minutes.`, 'info');
                 } else {
-                    showMessage('Invalid QR code format', 'error');
+                    showMessage('Failed to generate QR code: ' + data.error, 'error');
                 }
             } catch (error) {
-                showMessage('Invalid QR code data', 'error');
+                console.error('Error generating QR code:', error);
+                showMessage('Failed to generate QR code', 'error');
             }
         }
         
-        function onScanFailure(error) {
-            // Handle scan failure - usually just means no QR code in view
-            // Don't log every failure to avoid spam
-        }
+        let authPollingInterval = null;
         
-        function startQRScanner() {
-            html5QrCode = new Html5Qrcode("qr-scanner");
+        function startAuthenticationPolling() {
+            // Clear any existing polling
+            if (authPollingInterval) {
+                clearInterval(authPollingInterval);
+            }
             
-            const config = {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            };
-            
-            html5QrCode.start(
-                { facingMode: "environment" }, // Use back camera
-                config,
-                onScanSuccess,
-                onScanFailure
-            ).catch(err => {
-                console.error('QR Scanner start failed:', err);
-                showMessage('Camera access failed. Please allow camera permissions and refresh the page.', 'error');
-            });
+            // Poll every 2 seconds to check if mobile app has authenticated
+            authPollingInterval = setInterval(async () => {
+                if (currentQRToken) {
+                    try {
+                        const response = await fetch('/auth/verify-qr', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                token: currentQRToken
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            clearInterval(authPollingInterval);
+                            
+                            // Set authentication cookie
+                            document.cookie = `qr_session_id=${data.session_id}; path=/; max-age=3600`;
+                            
+                            showMessage('Authentication successful! Redirecting...', 'success');
+                            setTimeout(() => {
+                                window.location.href = data.redirect_url || '/profile';
+                            }, 1500);
+                        }
+                    } catch (error) {
+                        // Ignore polling errors, continue polling
+                    }
+                }
+            }, 2000);
         }
         
         function verifyQRToken(token) {
