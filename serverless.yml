@@ -1,0 +1,143 @@
+service: ielts-genai-prep
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${opt:stage, 'prod'}
+  region: ${opt:region, 'us-east-1'}
+  
+  environment:
+    DYNAMODB_TABLE: IELTSUsers-${self:provider.stage}
+    ASSESSMENTS_TABLE: IELTSAssessments-${self:provider.stage}
+    ELASTICACHE_ENDPOINT: ${env:ELASTICACHE_ENDPOINT}
+    FLASK_SECRET_KEY: ${env:FLASK_SECRET_KEY}
+    
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/IELTSUsers-${self:provider.stage}"
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/IELTSAssessments-${self:provider.stage}"
+    - Effect: Allow
+      Action:
+        - bedrock:InvokeModel
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - elasticache:*
+      Resource: "*"
+
+functions:
+  app:
+    handler: lambda_app.lambda_handler
+    timeout: 30
+    memorySize: 1024
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /
+          method: ANY
+          cors: true
+
+  # Nova Sonic endpoint (us-east-1 only)
+  nova-sonic:
+    handler: lambda_app.lambda_handler
+    timeout: 60  # Extended timeout for speech processing
+    memorySize: 2048
+    region: us-east-1
+    events:
+      - http:
+          path: /api/nova-sonic/{proxy+}
+          method: ANY
+          cors: true
+
+resources:
+  Resources:
+    # DynamoDB Tables
+    IELTSUsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: IELTSUsers-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: region
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        GlobalSecondaryIndexes:
+          - IndexName: RegionIndex
+            KeySchema:
+              - AttributeName: region
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    IELTSAssessmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: IELTSAssessments-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: assessment_id
+            AttributeType: S
+          - AttributeName: user_email
+            AttributeType: S
+          - AttributeName: assessment_type
+            AttributeType: S
+        KeySchema:
+          - AttributeName: assessment_id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        GlobalSecondaryIndexes:
+          - IndexName: UserEmailIndex
+            KeySchema:
+              - AttributeName: user_email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: AssessmentTypeIndex
+            KeySchema:
+              - AttributeName: assessment_type
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    # API Gateway with Route 53 for regional routing
+    ApiGatewayDomainName:
+      Type: AWS::ApiGateway::DomainName
+      Properties:
+        DomainName: api.ieltsaiprep.com
+        CertificateArn: ${env:SSL_CERTIFICATE_ARN}
+        SecurityPolicy: TLS_1_2
+        EndpointConfiguration:
+          Types:
+            - REGIONAL
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    layer: true
+  warmup:
+    enabled: true
+    events:
+      - schedule: rate(5 minutes)
+    timeout: 20
