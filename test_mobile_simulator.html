@@ -345,23 +345,63 @@
 
         function simulatePurchase(productId) {
             if (purchasedProducts.has(productId)) {
-                showStatus('Product already purchased!', 'error');
+                showToast('Product already purchased!', 'long', 'center');
                 return;
             }
 
-            // Simulate purchase processing
+            // Simulate Capacitor purchase processing with realistic delays
+            showToast('Connecting to App Store...', 'short', 'bottom');
             showStatus('Processing purchase...', 'info');
             
+            // Phase 1: App Store connection (1 second)
             setTimeout(() => {
-                // Mark as purchased
-                purchasedProducts.add(productId);
-                updateProductUI(productId);
+                showToast('Verifying payment...', 'short', 'bottom');
                 
-                // Generate QR code for website authentication
-                generateQRCode(productId);
-                
-                showStatus('Purchase completed successfully!', 'success');
-            }, 2000);
+                // Phase 2: Payment verification (1.5 seconds)
+                setTimeout(() => {
+                    showToast('Purchase successful!', 'long', 'center');
+                    
+                    // Mark as purchased
+                    purchasedProducts.add(productId);
+                    updateProductUI(productId);
+                    
+                    // Generate QR code with enhanced data
+                    generateQRCodeWithMockPurchase(productId);
+                    
+                    showStatus('Purchase completed successfully!', 'success');
+                    
+                    // Log to CloudWatch simulation
+                    console.log(`[CLOUDWATCH] Mock purchase completed: ${productId} for test.user@example.com`);
+                }, 1500);
+            }, 1000);
+        }
+
+        function showToast(message, duration = 'short', position = 'bottom') {
+            // Simulate Capacitor Toast plugin
+            const toast = document.createElement('div');
+            toast.className = 'capacitor-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 25px;
+                font-size: 14px;
+                z-index: 10000;
+                max-width: 300px;
+                text-align: center;
+                ${position === 'top' ? 'top: 50px;' : position === 'center' ? 'top: 50%; transform: translateY(-50%);' : 'bottom: 100px;'}
+                left: 50%;
+                transform: translateX(-50%) ${position === 'center' ? 'translateY(-50%)' : ''};
+            `;
+            
+            document.body.appendChild(toast);
+            
+            const displayTime = duration === 'long' ? 3500 : 2000;
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, displayTime);
         }
 
         function updateProductUI(productId) {
@@ -375,8 +415,25 @@
             button.disabled = true;
         }
 
-        function generateQRCode(productId) {
-            // Simulate QR code generation API call
+        function generateQRCodeWithMockPurchase(productId) {
+            // Generate UUID for mock purchase token
+            const mockToken = 'mock_' + generateUUID();
+            
+            // Simulate Capacitor in-app purchase receipt data
+            const mockReceiptData = {
+                transaction_id: mockToken,
+                product_id: productId,
+                purchase_date: new Date().toISOString(),
+                receipt_data: btoa(JSON.stringify({
+                    product_id: productId,
+                    transaction_id: mockToken,
+                    purchase_token: mockToken
+                }))
+            };
+            
+            console.log(`[CLOUDWATCH] Generating QR for mock purchase: ${JSON.stringify(mockReceiptData)}`);
+            
+            // Call Lambda endpoint with mock purchase verification
             fetch('/api/auth/generate-qr', {
                 method: 'POST',
                 headers: {
@@ -385,20 +442,33 @@
                 body: JSON.stringify({
                     user_email: 'test.user@example.com',
                     product_id: productId,
-                    purchase_verified: true
+                    purchase_verified: true,
+                    receipt_data: mockReceiptData.receipt_data,
+                    transaction_id: mockToken
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     showQRModal(productId, data.qr_code_image, data.expires_at);
+                    showToast('QR code ready for website scan', 'long', 'center');
                 } else {
-                    showStatus('Failed to generate QR code', 'error');
+                    showStatus('Failed to generate QR code: ' + data.error, 'error');
+                    showToast('QR generation failed', 'short', 'center');
                 }
             })
             .catch(error => {
                 console.error('QR generation failed:', error);
                 showStatus('Failed to generate QR code', 'error');
+                showToast('Network error during QR generation', 'long', 'center');
+            });
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
             });
         }
 

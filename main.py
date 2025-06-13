@@ -27,9 +27,10 @@ import os
 
 app = Flask(__name__)
 
-# In-memory storage for testing
-qr_tokens = {}
-sessions = {}
+# In-memory storage for testing (simulates DynamoDB and ElastiCache)
+qr_tokens = {}  # Simulates AuthTokens DynamoDB table
+sessions = {}   # Simulates ElastiCache session storage
+mock_purchases = {}  # Simulates user purchase records
 # Actual assessment data structure to match existing templates
 user_assessments = {
     "test@ieltsaiprep.com": {
@@ -191,13 +192,43 @@ def profile():
 
 @app.route('/assessment/<assessment_type>')
 def assessment_list(assessment_type):
-    """Assessment list page with Lambda integration"""
-    # Check QR session
+    """Lambda /assessment/<user_id> endpoint simulation with session verification"""
+    # Verify ElastiCache session
     session_id = request.cookies.get('qr_session_id')
     if not session_id or session_id not in sessions:
+        print(f"[CLOUDWATCH] Assessment access denied: No valid session for {assessment_type}")
         return redirect(url_for('home'))
     
-    # Use existing templates
+    session_data = sessions[session_id]
+    user_email = session_data['user_email']
+    purchased_products = session_data.get('purchased_products', [])
+    
+    # Check if user has purchased this assessment type
+    if assessment_type not in purchased_products:
+        print(f"[CLOUDWATCH] Assessment access denied: {user_email} has not purchased {assessment_type}")
+        return render_template('access_restricted.html', 
+                             assessment_type=assessment_type,
+                             message="This assessment requires a purchase to access.")
+    
+    print(f"[CLOUDWATCH] Assessment access granted: {user_email} accessing {assessment_type}")
+    
+    # Create mock user for template compatibility
+    class MockUser:
+        def __init__(self, email, products):
+            self.email = email
+            self.id = hash(email) % 1000
+            self.purchased_products = products
+            
+        def has_active_assessment_package(self):
+            return len(self.purchased_products) > 0
+    
+    current_user = MockUser(user_email, purchased_products)
+    
+    # Get user's assessment history for this type
+    user_data = user_assessments.get(user_email, {})
+    assessments = user_data.get(assessment_type, [])
+    
+    # Use existing assessment templates
     if 'speaking' in assessment_type:
         template = 'assessments/speaking_selection.html'
     else:
@@ -207,7 +238,9 @@ def assessment_list(assessment_type):
     
     return render_template(template,
                          assessment_type=assessment_type,
-                         title=title)
+                         title=title,
+                         current_user=current_user,
+                         assessments=assessments)
 
 @app.route('/logout')
 def logout():
@@ -248,10 +281,11 @@ def generate_qr_code(data):
 # Test endpoints that simulate Lambda backend
 @app.route('/api/auth/generate-qr', methods=['POST'])
 def generate_qr_token():
-    """Test endpoint - Generate QR token (simulates Lambda)"""
+    """Mock Lambda endpoint - Generate QR token after purchase verification"""
     try:
         data = request.get_json()
         user_email = data.get('user_email', 'test@ieltsaiprep.com')
+        product_id = data.get('product_id')
         purchase_verified = data.get('purchase_verified', True)
         
         if not purchase_verified:
@@ -260,39 +294,55 @@ def generate_qr_token():
                 'error': 'Purchase verification required'
             }), 400
         
-        # Generate token
+        # Simulate DynamoDB AuthTokens table storage
         token_id = str(uuid.uuid4())
         created_at = datetime.utcnow()
         expires_at = created_at + timedelta(minutes=10)
         
+        # Store in mock AuthTokens table
         qr_tokens[token_id] = {
             'token_id': token_id,
             'user_email': user_email,
+            'product_id': product_id,
             'created_at': created_at.isoformat(),
             'expires_at': int(expires_at.timestamp()),
-            'used': False
+            'used': False,
+            'ttl': int(expires_at.timestamp())  # DynamoDB TTL format
         }
         
-        # Create QR code data for scanning
+        # Record mock purchase for user
+        if user_email not in mock_purchases:
+            mock_purchases[user_email] = []
+        if product_id and product_id not in mock_purchases[user_email]:
+            mock_purchases[user_email].append(product_id)
+        
+        # Create QR code data for mobile app display
         qr_data = {
             'token': token_id,
             'domain': 'ieltsaiprep.com',
+            'user_email': user_email,
+            'product_id': product_id,
             'timestamp': int(created_at.timestamp())
         }
         
-        # Generate actual QR code image
+        # Generate QR code image
         qr_code_image = generate_qr_code(json.dumps(qr_data))
+        
+        # CloudWatch logging simulation
+        print(f"[CLOUDWATCH] QR Token Generated: {token_id} for {user_email} - Product: {product_id}")
         
         return jsonify({
             'success': True,
             'token_id': token_id,
-            'qr_data': json.dumps(qr_data),
             'qr_code_image': qr_code_image,
             'expires_in_minutes': 10,
-            'expires_at': expires_at.isoformat()
+            'expires_at': expires_at.isoformat(),
+            'user_email': user_email,
+            'product_id': product_id
         })
         
     except Exception as e:
+        print(f"[CLOUDWATCH] QR Generation Error: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -300,53 +350,75 @@ def generate_qr_token():
 
 @app.route('/api/auth/verify-qr', methods=['POST'])
 def verify_qr_token():
-    """Test endpoint - Verify QR token (simulates Lambda)"""
+    """Mock Lambda endpoint - Verify QR token and create ElastiCache session"""
     try:
         data = request.get_json()
         token_id = data.get('token')
         
-        if not token_id or token_id not in qr_tokens:
+        print(f"[CLOUDWATCH] QR Verification attempt: {token_id}")
+        
+        if not token_id:
+            print(f"[CLOUDWATCH] QR Verification failed: No token provided")
+            return jsonify({
+                'success': False,
+                'error': 'Token required'
+            }), 400
+        
+        # Check AuthTokens table (simulated)
+        if token_id not in qr_tokens:
+            print(f"[CLOUDWATCH] QR Verification failed: Invalid token {token_id}")
             return jsonify({
                 'success': False,
                 'error': 'Invalid token'
             }), 401
         
         token_data = qr_tokens[token_id]
+        current_time = int(time.time())
         
-        # Check if expired
-        if time.time() > token_data['expires_at']:
+        # Check token expiry (DynamoDB TTL simulation)
+        if current_time > token_data['expires_at']:
+            print(f"[CLOUDWATCH] QR Verification failed: Expired token {token_id}")
             return jsonify({
                 'success': False,
-                'error': 'Token expired'
+                'error': 'QR code expired. Please generate a new one from your mobile app.'
             }), 401
         
-        # Check if already used
+        # Check if token already used
         if token_data.get('used'):
+            print(f"[CLOUDWATCH] QR Verification failed: Token already used {token_id}")
             return jsonify({
                 'success': False,
-                'error': 'Token already used'
+                'error': 'QR code already used. Please generate a new one.'
             }), 401
         
-        # Mark as used
+        # Mark token as used in AuthTokens table
         token_data['used'] = True
+        token_data['used_at'] = datetime.utcnow().isoformat()
         
-        # Create session
+        # Create ElastiCache session (1-hour expiry)
         session_id = f"session_{int(time.time())}_{token_id[:8]}"
         sessions[session_id] = {
+            'session_id': session_id,
             'user_email': token_data['user_email'],
+            'product_id': token_data.get('product_id'),
             'created_at': datetime.utcnow().isoformat(),
-            'expires_at': time.time() + 3600
+            'expires_at': time.time() + 3600,
+            'authenticated_via': 'qr_token',
+            'purchased_products': mock_purchases.get(token_data['user_email'], [])
         }
+        
+        print(f"[CLOUDWATCH] QR Verification successful: {token_id} -> Session: {session_id}")
+        print(f"[CLOUDWATCH] User {token_data['user_email']} authenticated with products: {mock_purchases.get(token_data['user_email'], [])}")
         
         response = jsonify({
             'success': True,
-            'user_email': token_data['user_email'],
-            'session_id': session_id,
             'message': 'Authentication successful',
+            'session_id': session_id,
+            'user_email': token_data['user_email'],
             'redirect_url': '/profile'
         })
         
-        # Set session cookie
+        # Set session cookie for browser compatibility
         response.set_cookie('qr_session_id', session_id, max_age=3600)
         
         return response
