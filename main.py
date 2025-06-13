@@ -209,7 +209,7 @@ def logout():
 @app.route('/test-mobile')
 def test_mobile():
     """Serve mobile purchase simulator for testing"""
-    return render_template('test_mobile.html')
+    return send_from_directory('.', 'test_mobile_simulator.html')
 
 def generate_qr_code(data):
     """Generate QR code image as base64 string"""
