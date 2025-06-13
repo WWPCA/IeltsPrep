@@ -377,7 +377,7 @@
 
         function generateQRCode(productId) {
             // Simulate QR code generation API call
-            fetch('/generate_qr_token', {
+            fetch('/api/auth/generate-qr', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

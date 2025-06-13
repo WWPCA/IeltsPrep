@@ -298,7 +298,7 @@ def generate_qr_token():
             'error': str(e)
         }), 500
 
-@app.route('/auth/verify-qr', methods=['POST'])
+@app.route('/api/auth/verify-qr', methods=['POST'])
 def verify_qr_token():
     """Test endpoint - Verify QR token (simulates Lambda)"""
     try:
