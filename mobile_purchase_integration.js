@@ -248,6 +248,9 @@ class MobilePurchaseManager {
                 // Unlock content in app and update DynamoDB
                 await this.unlockAssessmentModule(purchaseData.productId, verification.data);
                 
+                // Generate QR code for website authentication
+                await this.generateQRCodeForWebsite(verification.user_email || window.apiClient.currentUserEmail);
+                
                 // Log success to CloudWatch via Lambda
                 console.log('Apple purchase verified successfully:', {
                     productId: purchaseData.productId,
@@ -479,6 +482,64 @@ class MobilePurchaseManager {
         return product && this.purchaseState.ownedProducts.includes(product.id);
     }
     
+    // Generate QR code for website authentication after purchase
+    async generateQRCodeForWebsite(userEmail) {
+        try {
+            // Generate QR code token via Lambda backend
+            const qrResponse = await window.apiClient.makeAPICall('/api/auth/generate-qr', 'POST', {
+                user_email: userEmail,
+                purchase_verified: true
+            });
+            
+            if (qrResponse.success) {
+                // Display QR code to user
+                await this.showQRCodeModal(qrResponse.qr_data, qrResponse.expires_in_minutes);
+                
+                console.log('QR code generated for website authentication:', {
+                    token_id: qrResponse.token_id,
+                    expires_at: qrResponse.expires_at
+                });
+            } else {
+                console.error('QR code generation failed:', qrResponse.error);
+                await window.apiClient.showToastNotification(
+                    'QR code generation failed. Please try again.',
+                    'long',
+                    'bottom'
+                );
+            }
+        } catch (error) {
+            console.error('QR code generation error:', error);
+            await window.apiClient.showToastNotification(
+                'Failed to generate QR code for website access',
+                'long',
+                'bottom'
+            );
+        }
+    }
+    
+    async showQRCodeModal(qrData, expiresInMinutes) {
+        try {
+            const { Toast } = await import('@capacitor/toast');
+            
+            // Show QR code instructions
+            await Toast.show({
+                text: `QR code generated! Scan it on ieltsaiprep.com to access your assessments. Expires in ${expiresInMinutes} minutes.`,
+                duration: 'long',
+                position: 'center'
+            });
+            
+            // Store QR data for display in the app
+            console.log('QR Code Data for scanning:', qrData);
+            
+            // For testing in .replit environment, also show the token
+            const qrDataObj = JSON.parse(qrData);
+            console.log('QR Token for manual entry:', qrDataObj.token);
+            
+        } catch (error) {
+            console.error('QR code display error:', error);
+        }
+    }
+
     // Get all available products
     getAvailableProducts() {
         return Object.keys(this.products).map(key => ({

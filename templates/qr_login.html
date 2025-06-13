@@ -227,7 +227,10 @@
         function verifyQRToken(token) {
             showLoading(true);
             
-            fetch('/auth/verify-qr', {
+            // Use Lambda backend endpoint
+            const LAMBDA_BASE_URL = 'https://your-lambda-url.amazonaws.com/prod';
+            
+            fetch(`${LAMBDA_BASE_URL}/auth/verify-qr`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -239,6 +242,10 @@
                 showLoading(false);
                 
                 if (data.success) {
+                    // Store session data in localStorage for the frontend
+                    localStorage.setItem('qr_session_id', data.session_id);
+                    localStorage.setItem('qr_user_email', data.user_email);
+                    
                     showMessage('Authentication successful! Redirecting...', 'success');
                     setTimeout(() => {
                         window.location.href = data.redirect_url || '/assessments';
