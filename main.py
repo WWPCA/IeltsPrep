@@ -15,25 +15,68 @@ app = Flask(__name__)
 # In-memory storage for testing
 qr_tokens = {}
 sessions = {}
-sample_assessments = {
-    "test@ieltsaiprep.com": [
-        {
-            'assessment_id': 'test_speaking_1',
-            'assessment_type': 'academic_speaking',
-            'created_at': '2024-12-01T10:00:00Z',
-            'transcript': 'User discussed education systems with good fluency and vocabulary.',
-            'feedback': 'Excellent pronunciation and natural conversation flow. Good use of complex structures.',
-            'score': 7.5
-        },
-        {
-            'assessment_id': 'test_writing_1',
-            'assessment_type': 'academic_writing',
-            'created_at': '2024-12-01T14:30:00Z',
-            'essay_text': 'Education plays a crucial role in shaping society. Universities should focus on both theoretical knowledge and practical skills to prepare graduates for the modern workplace...',
-            'feedback': 'Well-structured essay with clear arguments and good academic vocabulary.',
-            'score': 7.0
-        }
-    ]
+# Actual assessment data structure to match existing templates
+user_assessments = {
+    "test@ieltsaiprep.com": {
+        "academic_speaking": [
+            {
+                'id': 1,
+                'title': 'Academic Speaking Assessment 1',
+                'description': 'Comprehensive IELTS Academic Speaking test with AI examiner Maya',
+                'assessment_type': 'academic_speaking',
+                'created_at': '2024-12-01T10:00:00Z',
+                'completed': True,
+                'score': 7.5,
+                'transcript': 'User discussed education systems with excellent fluency and vocabulary range.',
+                'feedback': 'Strong performance with natural conversation flow and appropriate register.',
+                'audio_available': False
+            }
+        ],
+        "academic_writing": [
+            {
+                'id': 2,
+                'title': 'Academic Writing Assessment 1',
+                'description': 'IELTS Academic Writing Tasks 1 & 2 with TrueScore feedback',
+                'assessment_type': 'academic_writing',
+                'created_at': '2024-12-01T14:30:00Z',
+                'completed': True,
+                'score': 7.0,
+                'essay_text': 'Education plays a crucial role in shaping society. Universities should balance theoretical knowledge with practical skills to prepare graduates for evolving workplace demands...',
+                'feedback': 'Well-structured response with clear task achievement and coherent organization.',
+                'task1_score': 7.0,
+                'task2_score': 7.0
+            }
+        ],
+        "general_speaking": [
+            {
+                'id': 3,
+                'title': 'General Training Speaking Assessment 1',
+                'description': 'IELTS General Training Speaking test focusing on everyday situations',
+                'assessment_type': 'general_speaking',
+                'created_at': '2024-12-02T09:15:00Z',
+                'completed': True,
+                'score': 6.5,
+                'transcript': 'Discussed daily routines, travel experiences, and future plans with natural flow.',
+                'feedback': 'Good interaction skills with appropriate use of informal language.',
+                'audio_available': False
+            }
+        ],
+        "general_writing": [
+            {
+                'id': 4,
+                'title': 'General Training Writing Assessment 1',
+                'description': 'IELTS General Training Writing Tasks 1 & 2',
+                'assessment_type': 'general_writing',
+                'created_at': '2024-12-02T16:45:00Z',
+                'completed': True,
+                'score': 6.5,
+                'essay_text': 'Letter writing task completed with appropriate tone and format, followed by opinion essay on technology in education...',
+                'feedback': 'Clear communication with good task fulfillment and appropriate language use.',
+                'task1_score': 6.5,
+                'task2_score': 6.5
+            }
+        ]
+    }
 }
 
 @app.route('/')
@@ -54,7 +97,7 @@ def profile():
         return redirect(url_for('home'))
     
     user_email = session_data['user_email']
-    assessments = sample_assessments.get(user_email, [])
+    user_data = user_assessments.get(user_email, {})
     
     # Mock user data for template compatibility
     class MockUser:
@@ -62,13 +105,23 @@ def profile():
             self.email = email
             self.account_activated = True
             self.last_login = datetime.utcnow()
+            self.assessment_package_status = "active"
+            self.assessment_package_expiry = datetime.utcnow() + timedelta(days=30)
         
         def has_active_assessment_package(self):
             return True
     
+    # Prepare assessment data for profile template
+    all_assessments = []
+    for assessment_type, assessments in user_data.items():
+        for assessment in assessments:
+            assessment['assessment_type'] = assessment_type
+            all_assessments.append(assessment)
+    
     return render_template('profile.html', 
                          current_user=MockUser(user_email),
-                         assessments=assessments)
+                         assessments=all_assessments,
+                         assessment_types=['academic_speaking', 'academic_writing', 'general_speaking', 'general_writing'])
 
 @app.route('/assessment/<assessment_type>')
 def assessment_list(assessment_type):
@@ -227,13 +280,19 @@ def get_assessments(user_email):
                 'error': 'Session expired'
             }), 401
         
-        # Get assessments
-        assessments = sample_assessments.get(user_email, [])
+        # Get assessments from proper data structure
+        user_data = user_assessments.get(user_email, {})
+        all_assessments = []
+        for assessment_type, assessments in user_data.items():
+            for assessment in assessments:
+                assessment_copy = assessment.copy()
+                assessment_copy['assessment_type'] = assessment_type
+                all_assessments.append(assessment_copy)
         
         return jsonify({
             'success': True,
-            'assessments': assessments,
-            'total_count': len(assessments)
+            'assessments': all_assessments,
+            'total_count': len(all_assessments)
         })
         
     except Exception as e:
