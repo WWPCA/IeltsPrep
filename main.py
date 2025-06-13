@@ -83,12 +83,61 @@ def run_server():
         print(f"[INFO] Server stopped")
         server.shutdown()
 
-# Flask-like app interface for .replit compatibility
-class App:
-    def run(self, host='0.0.0.0', port=5000):
-        run_server()
+# WSGI-compatible app interface for Gunicorn
+def application(environ, start_response):
+    """WSGI application interface"""
+    try:
+        # Extract request information from WSGI environ
+        method = environ['REQUEST_METHOD']
+        path = environ['PATH_INFO']
+        
+        # Read request body
+        content_length = int(environ.get('CONTENT_LENGTH', 0))
+        body = environ['wsgi.input'].read(content_length).decode('utf-8') if content_length > 0 else '{}'
+        
+        # Extract headers
+        headers = {}
+        for key, value in environ.items():
+            if key.startswith('HTTP_'):
+                header_name = key[5:].replace('_', '-').title()
+                headers[header_name] = value
+        
+        # Add content type if present
+        if 'CONTENT_TYPE' in environ:
+            headers['Content-Type'] = environ['CONTENT_TYPE']
+        
+        # Create Lambda event
+        event = {
+            'path': path,
+            'httpMethod': method,
+            'headers': headers,
+            'body': body
+        }
+        
+        # Call Lambda handler
+        response = lambda_handler(event, None)
+        
+        # Extract response data
+        status_code = response.get('statusCode', 200)
+        response_headers = response.get('headers', {})
+        response_body = response.get('body', '')
+        
+        # Format response headers for WSGI
+        response_headers_list = [(name, value) for name, value in response_headers.items()]
+        
+        # Start response
+        start_response(f'{status_code} OK', response_headers_list)
+        
+        return [response_body.encode('utf-8')]
+        
+    except Exception as e:
+        print(f"[ERROR] WSGI handling failed: {str(e)}")
+        start_response('500 Internal Server Error', [('Content-Type', 'application/json')])
+        error_response = json.dumps({'error': str(e)})
+        return [error_response.encode('utf-8')]
 
-app = App()
+# Gunicorn expects 'app' to be callable
+app = application
 
 if __name__ == "__main__":
     run_server()
