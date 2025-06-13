@@ -320,6 +320,51 @@ def verify_qr_token():
             'error': str(e)
         }), 500
 
+@app.route('/api/mobile-authenticate', methods=['POST'])
+def mobile_authenticate():
+    """Simulate mobile app scanning and authenticating QR code"""
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        user_email = data.get('user_email', 'test@ieltsaiprep.com')
+        
+        if not token:
+            return jsonify({
+                'success': False,
+                'error': 'Token required'
+            }), 400
+        
+        # Check if token exists
+        if token not in qr_tokens:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid token'
+            }), 400
+        
+        token_data = qr_tokens[token]
+        
+        # Check if token is expired
+        if time.time() > token_data['expires_at']:
+            return jsonify({
+                'success': False,
+                'error': 'Token expired'
+            }), 400
+        
+        # Update token with user email (mobile app authenticated)
+        qr_tokens[token]['user_email'] = user_email
+        
+        return jsonify({
+            'success': True,
+            'message': 'Mobile authentication successful',
+            'token': token
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/assessment/<user_email>')
 def get_assessments(user_email):
     """Test endpoint - Get user assessments (simulates Lambda)"""
