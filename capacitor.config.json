@@ -2,6 +2,10 @@
   "appId": "com.ieltsaiprep.app",
   "appName": "IELTS GenAI Prep",
   "webDir": "static",
+  "server": {
+    "url": "https://api.ieltsaiprep.com",
+    "cleartext": false
+  },
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 2000,
@@ -11,13 +15,24 @@
     },
     "StatusBar": {
       "style": "dark"
+    },
+    "Device": {
+      "enabled": true
+    },
+    "Network": {
+      "enabled": true
+    },
+    "App": {
+      "enabled": true
     }
   },
   "ios": {
-    "contentInset": "automatic"
+    "contentInset": "automatic",
+    "scheme": "https"
   },
   "android": {
-    "allowMixedContent": true,
-    "captureInput": true
+    "allowMixedContent": false,
+    "captureInput": true,
+    "scheme": "https"
   }
 }

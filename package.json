@@ -18,6 +18,7 @@
     "@capacitor/ios": "^7.3.0",
     "@capacitor/network": "^7.0.1",
     "@capacitor/splash-screen": "^7.0.1",
-    "@capacitor/status-bar": "^7.0.1"
+    "@capacitor/status-bar": "^7.0.1",
+    "@capacitor/toast": "^7.0.1"
   }
 }

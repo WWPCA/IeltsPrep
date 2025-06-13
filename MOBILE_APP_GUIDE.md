@@ -1,134 +1,116 @@
-# IELTS GenAI Prep Mobile App Setup Guide
+# Mobile App Integration Guide
+## Capacitor 7.3.0 with AWS Lambda Backend
 
-## Current Status
-✅ Capacitor successfully installed and configured
-✅ iOS and Android platforms added
-✅ Mobile plugins integrated (splash screen, status bar, app, device, network)
-✅ App icon created
-✅ Configuration optimized for production
+### Architecture Overview
+Your Capacitor mobile app now connects to AWS Lambda API Gateway endpoints instead of the Flask server. The app maintains native functionality while communicating with the serverless backend across multiple regions.
 
-## App Configuration
-- **App ID**: com.ieltsaiprep.app
-- **App Name**: IELTS GenAI Prep
-- **Server URL**: https://ieltsaiprep.com
-- **Platform**: Capacitor 7.3.0
+### Key Files Updated
+- `capacitor.config.json` - Updated server configuration
+- `mobile_api_client.js` - Regional API routing client
+- `mobile_purchase_integration.js` - In-app purchase verification
+- Native iOS/Android configurations for app store distribution
 
-## Building Your Mobile Apps
+### Regional API Routing
+The mobile app automatically detects user region and routes requests to the nearest Lambda endpoint:
 
-### For iOS (Apple App Store)
-```bash
-# Sync latest changes
-npx cap sync ios
-
-# Open Xcode project
-npx cap open ios
+```javascript
+// Regional endpoints automatically selected
+US/Americas: https://api-us-east-1.ieltsaiprep.com
+Europe: https://api-eu-west-1.ieltsaiprep.com
+Asia-Pacific: https://api-ap-southeast-1.ieltsaiprep.com
 ```
 
-**In Xcode:**
-1. Select your development team
-2. Set deployment target to iOS 13.0+
-3. Configure app signing & capabilities
-4. Build and archive for App Store distribution
+### Nova Sonic Global Access
+All speech assessment requests route to us-east-1 regardless of user location:
+- Extended timeout (20 seconds) for global latency
+- Exponential backoff retry (1s, 2s, 4s)
+- User notification about North America routing
+- Only transcript stored (no voice data)
 
-### For Android (Google Play Store)
-```bash
-# Sync latest changes
-npx cap sync android
+### In-App Purchase Integration
+Products available at $36 each:
+- `academic_speaking` - Academic Speaking Assessment
+- `academic_writing` - Academic Writing Assessment  
+- `general_speaking` - General Training Speaking
+- `general_writing` - General Training Writing
 
-# Open Android Studio
-npx cap open android
+### Apple App Store Setup
+1. Configure products in App Store Connect:
+   - Product IDs: `com.ieltsaiprep.academic_speaking`, etc.
+   - Pricing: $36.00 USD
+   - Availability: Global
+2. Add shared secret to Replit Secrets: `APPLE_SHARED_SECRET`
+3. Receipt verification handled by Lambda backend
+
+### Google Play Store Setup
+1. Configure products in Google Play Console:
+   - Product IDs match Apple equivalents
+   - Pricing: $36.00 USD equivalent
+   - Global distribution enabled
+2. Add service account JSON to Replit Secrets: `GOOGLE_SERVICE_ACCOUNT_JSON`
+3. Purchase verification via Play Billing API
+
+### Capacitor Configuration Changes
+```json
+{
+  "server": {
+    "url": "https://api.ieltsaiprep.com",
+    "cleartext": false
+  },
+  "plugins": {
+    "Device": { "enabled": true },
+    "Network": { "enabled": true },
+    "Toast": { "enabled": true }
+  }
+}
 ```
 
-**In Android Studio:**
-1. Build → Generate Signed Bundle/APK
-2. Choose Android App Bundle (AAB)
-3. Create/use your keystore
-4. Select release build variant
+### Session Management
+- Sessions stored in device localStorage
+- Session tokens verified with Lambda backend
+- Regional session synchronization via DynamoDB Global Tables
 
-## App Store Submission Requirements
+### Data Storage Policy
+- User assessments: Written text only in DynamoDB
+- Voice data: Processed by Nova Sonic but not stored
+- Purchase receipts: Verified and logged for audit
+- Session data: Cached in regional ElastiCache Redis
 
-### Apple App Store
-1. **Developer Account**: $99/year
-2. **App Store Connect**: Upload your .ipa file
-3. **Required Info**:
-   - App description highlighting Nova Sonic speech technology
-   - Screenshots (6.7", 6.5", 5.5" iPhone sizes)
-   - Privacy policy URL: https://ieltsaiprep.com/privacy-policy
-   - Support URL: https://ieltsaiprep.com/contact
-   - App category: Education
-   - Age rating: 4+ (Educational content)
+### Native Features Maintained
+- Microphone access for speech assessments
+- Device information and network detection
+- Native splash screen and status bar
+- Toast notifications for user feedback
+- In-app purchase flows (Apple/Google)
 
-### Google Play Store
-1. **Developer Account**: $25 one-time fee
-2. **Play Console**: Upload your .aab file
-3. **Required Info**:
-   - App description emphasizing AI assessment features
-   - Screenshots (Phone, 7" tablet, 10" tablet)
-   - Privacy policy URL: https://ieltsaiprep.com/privacy-policy
-   - Contact email: support@ieltsaiprep.com
-   - Content rating: Everyone (Educational)
+### Testing Procedures
+1. Test regional API routing with VPN from different countries
+2. Verify Nova Sonic routing to us-east-1 from all regions
+3. Test in-app purchase flows on both iOS and Android
+4. Validate session persistence across app restarts
+5. Check error handling for network issues and Lambda cold starts
 
-## App Store Optimization (ASO)
+### Performance Optimizations
+- Automatic region detection based on device timezone
+- Retry logic for Lambda cold starts
+- Local caching of user preferences
+- Progressive loading for assessment content
+- Offline capability for completed assessments
 
-### Title & Description Template
-**Title**: "IELTS GenAI Prep - AI Speaking & Writing Assessment"
+### Security Features
+- HTTPS-only communication with Lambda endpoints
+- Receipt verification prevents purchase fraud
+- Session tokens with expiration
+- Input validation before API calls
+- No sensitive data stored locally
 
-**Description**:
-"Master IELTS with the world's only GenAI-powered assessment platform featuring Nova Sonic speech-to-speech technology.
+### Deployment Checklist
+- [ ] Configure regional API Gateway endpoints
+- [ ] Set up app store product configurations
+- [ ] Add payment verification secrets to environment
+- [ ] Test purchase flows in sandbox environments
+- [ ] Validate global Nova Sonic routing
+- [ ] Submit apps to Apple App Store and Google Play
+- [ ] Monitor CloudWatch logs for issues
 
-🎯 Features:
-• TrueScore® & ClearScore® AI assessment technology
-• Maya AI examiner for realistic speaking practice
-• Real-time bidirectional speech conversations
-• Detailed feedback for writing and speaking
-• Academic and General Training modules
-
-📱 Assessment Types:
-• Academic Speaking with Maya AI examiner
-• Academic Writing with instant AI feedback
-• General Training Speaking practice
-• General Training Writing assessment
-
-🌟 Why Choose IELTS GenAI Prep:
-• Industry-leading Nova Sonic speech technology
-• Authentic IELTS test simulation
-• Secure payment processing
-• Progress tracking and analytics
-• Mobile-optimized learning experience"
-
-### Keywords
-- IELTS preparation
-- AI English assessment
-- Speaking practice
-- Writing feedback
-- English test prep
-- Language learning
-- IELTS speaking
-- IELTS writing
-
-## Revenue Protection Strategy
-- **Payment Processing**: Uses existing Stripe web payments (2.9% + 30¢ fees)
-- **No App Store Commissions**: Users purchase on website, access content in mobile app
-- **Seamless Experience**: Login syncs purchases across web and mobile platforms
-- **Revenue Maintained**: Avoid 30% Apple/Google commission fees
-
-## Technical Features Maintained
-- All Nova Sonic speech-to-speech functionality preserved
-- Stripe payment processing works seamlessly via web
-- User authentication and profiles synchronized
-- Assessment recovery system
-- Real-time progress tracking
-- Particle globe visualization for speech
-
-## Web App Independence
-Your web application at https://ieltsaiprep.com continues to function independently. The mobile apps are essentially native containers that load your existing web platform.
-
-## Next Steps for App Store Release
-1. Set up Apple Developer and Google Play Developer accounts
-2. Complete app store listing information
-3. Generate production builds using the commands above
-4. Submit for review (typically 1-7 days approval time)
-5. Launch and monitor user feedback
-
-## Support
-For technical assistance with mobile app deployment, contact your development team or refer to Capacitor documentation at https://capacitorjs.com/docs
+Your mobile app now leverages the full power of AWS Lambda's global infrastructure while maintaining the native user experience expected from premium app store applications.
