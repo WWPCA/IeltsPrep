@@ -29,6 +29,53 @@ def cookie_policy():
     from flask import render_template
     return render_template('cookie_policy.html')
 
+# Test reCAPTCHA v2 route
+@app.route('/test-recaptcha-v2')
+def test_recaptcha_v2():
+    """Test reCAPTCHA v2 functionality"""
+    from flask import render_template_string
+    from recaptcha_helper import get_recaptcha_keys
+    
+    site_key, _ = get_recaptcha_keys()
+    
+    html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test reCAPTCHA v2</title>
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    </head>
+    <body>
+        <h2>Test Standard reCAPTCHA v2</h2>
+        {% if site_key %}
+        <form action="/verify-recaptcha-test" method="POST">
+            <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+            <br/>
+            <input type="submit" value="Submit">
+        </form>
+        {% else %}
+        <p>reCAPTCHA keys not configured</p>
+        {% endif %}
+    </body>
+    </html>
+    """
+    
+    return render_template_string(html_template, site_key=site_key)
+
+@app.route('/verify-recaptcha-test', methods=['POST'])
+def verify_recaptcha_test():
+    """Verify reCAPTCHA test submission"""
+    from flask import request, jsonify
+    from recaptcha_helper import verify_recaptcha
+    
+    recaptcha_response = request.form.get('g-recaptcha-response')
+    user_ip = request.remote_addr
+    
+    if verify_recaptcha(recaptcha_response, user_ip):
+        return jsonify({'success': True, 'message': 'reCAPTCHA verification successful!'})
+    else:
+        return jsonify({'success': False, 'message': 'reCAPTCHA verification failed'})
+
 # Configure Talisman with tightened Content Security Policy
 Talisman(app, 
          force_https=False,  # Let Replit handle HTTPS

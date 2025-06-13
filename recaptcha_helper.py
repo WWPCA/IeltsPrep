@@ -10,15 +10,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 def get_recaptcha_keys():
-    """Get appropriate reCAPTCHA v2 keys based on environment"""
-    # Use production keys as fallback since dev keys aren't configured
+    """Get reCAPTCHA v2 keys for standard API (not Enterprise)"""
+    # Use standard reCAPTCHA v2 keys to avoid Google Cloud Enterprise API permissions
     site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY')
     secret_key = os.environ.get('RECAPTCHA_V2_SECRET_KEY')
     
-    # If production keys aren't available, try development keys
     if not site_key or not secret_key:
-        site_key = os.environ.get('RECAPTCHA_DEV_PUBLIC_KEY')
-        secret_key = os.environ.get('RECAPTCHA_DEV_PRIVATE_KEY')
+        logger.warning("reCAPTCHA v2 keys not configured - CAPTCHA will be disabled")
+        return None, None
     
     return site_key, secret_key
 
@@ -53,20 +52,26 @@ def verify_recaptcha(recaptcha_response, user_ip=None):
         data['remoteip'] = user_ip
     
     try:
-        # Send verification request to Google
+        # Send verification request to Google's standard reCAPTCHA v2 API
         response = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
             data=data,
-            timeout=10
+            timeout=10,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'}
         )
+        
+        if response.status_code != 200:
+            logger.error(f"reCAPTCHA API returned status {response.status_code}")
+            return False
         
         result = response.json()
         
         if result.get('success'):
-            logger.info("reCAPTCHA verification successful")
+            logger.info("reCAPTCHA v2 verification successful")
             return True
         else:
-            logger.warning(f"reCAPTCHA verification failed: {result.get('error-codes', [])}")
+            error_codes = result.get('error-codes', [])
+            logger.warning(f"reCAPTCHA v2 verification failed: {error_codes}")
             return False
             
     except requests.RequestException as e:
