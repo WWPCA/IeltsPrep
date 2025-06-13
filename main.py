@@ -5,12 +5,17 @@ Serves frontend and provides local test endpoints that simulate Lambda backend
 
 from flask import Flask, send_from_directory, render_template, request, jsonify, redirect, url_for
 
-# Mock csrf_token function for template compatibility
+# Mock functions for template compatibility
 def csrf_token():
     return "mock-csrf-token"
 
+class MockConfig:
+    RECAPTCHA_SITE_KEY = "mock-recaptcha-key"
+
 app = Flask(__name__)
 app.jinja_env.globals['csrf_token'] = csrf_token
+app.jinja_env.globals['config'] = MockConfig()
+app.secret_key = 'dev-secret-key-for-testing'
 import json
 import uuid
 import time
@@ -143,8 +148,27 @@ def profile():
     """Serve profile/assessments page with QR authentication"""
     # Check QR session
     session_id = request.cookies.get('qr_session_id')
+    
+    # For testing, create a temporary session if none exists
     if not session_id or session_id not in sessions:
-        return redirect(url_for('home'))
+        # Create test session for demonstration
+        test_session_id = str(uuid.uuid4())
+        test_user_email = 'test@ieltsaiprep.com'
+        created_at = datetime.utcnow()
+        expires_at = created_at + timedelta(hours=1)
+        
+        sessions[test_session_id] = {
+            'session_id': test_session_id,
+            'user_email': test_user_email,
+            'created_at': created_at.isoformat(),
+            'expires_at': int(expires_at.timestamp()),
+            'test_session': True
+        }
+        
+        # Set session cookie and redirect
+        response = redirect('/profile')
+        response.set_cookie('qr_session_id', test_session_id, max_age=3600)
+        return response
     
     session_data = sessions[session_id]
     if time.time() > session_data['expires_at']:

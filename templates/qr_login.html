@@ -363,10 +363,7 @@
             loading.style.display = show ? 'block' : 'none';
         }
         
-        // Initialize QR scanner when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            startQRScanner();
-        });
+        // QR code display is handled by generateWebsiteQR() function above
         
         // Handle manual token input on Enter key
         document.getElementById('manual-token').addEventListener('keypress', function(e) {
