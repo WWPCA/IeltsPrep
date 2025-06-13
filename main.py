@@ -107,6 +107,11 @@ def index():
     """Index route for template compatibility"""
     return redirect(url_for('home'))
 
+@app.route('/assessment-products')
+def assessment_products_page():
+    """Assessment products page for template compatibility"""
+    return redirect(url_for('test_mobile'))
+
 @app.route('/qr-login')
 def qr_login():
     """Alternative QR login route - redirects to home"""
