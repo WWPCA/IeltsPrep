@@ -218,7 +218,14 @@ class MobilePurchaseManager {
         try {
             this.purchaseState.loading = false;
             
-            // Verify purchase with Lambda backend
+            // Show verification in progress
+            await window.apiClient.showToastNotification(
+                'Verifying your purchase with Apple...',
+                'short',
+                'center'
+            );
+            
+            // Verify purchase with Lambda backend using Apple App Store Connect API
             const verification = await window.apiClient.verifyApplePurchase(
                 purchaseData.receiptData,
                 purchaseData.productId
@@ -229,11 +236,24 @@ class MobilePurchaseManager {
                 this.purchaseState.ownedProducts.push(purchaseData.productId);
                 this.purchaseState.lastPurchase = purchaseData;
                 
-                // Show success message
-                await this.showPurchaseSuccess(verification.data);
+                // Get product title for notification
+                const productKey = Object.keys(this.products).find(
+                    key => this.products[key].id === purchaseData.productId
+                );
+                const productTitle = this.products[productKey]?.title || 'Assessment';
                 
-                // Unlock content in app
-                await this.unlockAssessmentModule(purchaseData.productId);
+                // Show success notification with Toast
+                await window.apiClient.showPurchaseConfirmation(productTitle);
+                
+                // Unlock content in app and update DynamoDB
+                await this.unlockAssessmentModule(purchaseData.productId, verification.data);
+                
+                // Log success to CloudWatch via Lambda
+                console.log('Apple purchase verified successfully:', {
+                    productId: purchaseData.productId,
+                    transactionId: purchaseData.transactionId,
+                    timestamp: new Date().toISOString()
+                });
                 
                 return verification.data;
             } else {
@@ -243,6 +263,14 @@ class MobilePurchaseManager {
         } catch (error) {
             console.error('Apple purchase verification failed:', error);
             await this.showPurchaseError(error.message);
+            
+            // Log error to CloudWatch
+            console.error('Apple purchase error:', {
+                error: error.message,
+                productId: purchaseData.productId,
+                timestamp: new Date().toISOString()
+            });
+            
             throw error;
         }
     }
@@ -251,7 +279,14 @@ class MobilePurchaseManager {
         try {
             this.purchaseState.loading = false;
             
-            // Verify purchase with Lambda backend
+            // Show verification in progress
+            await window.apiClient.showToastNotification(
+                'Verifying your purchase with Google Play...',
+                'short',
+                'center'
+            );
+            
+            // Verify purchase with Lambda backend using Google Play Billing API
             const verification = await window.apiClient.verifyGooglePurchase(
                 purchaseData.purchaseToken,
                 purchaseData.productId
@@ -262,11 +297,25 @@ class MobilePurchaseManager {
                 this.purchaseState.ownedProducts.push(purchaseData.productId);
                 this.purchaseState.lastPurchase = purchaseData;
                 
-                // Show success message
-                await this.showPurchaseSuccess(verification.data);
+                // Get product title for notification
+                const productKey = Object.keys(this.products).find(
+                    key => this.products[key].id === purchaseData.productId
+                );
+                const productTitle = this.products[productKey]?.title || 'Assessment';
                 
-                // Unlock content in app
-                await this.unlockAssessmentModule(purchaseData.productId);
+                // Show success notification with Toast
+                await window.apiClient.showPurchaseConfirmation(productTitle);
+                
+                // Unlock content in app and update DynamoDB
+                await this.unlockAssessmentModule(purchaseData.productId, verification.data);
+                
+                // Log success to CloudWatch via Lambda
+                console.log('Google purchase verified successfully:', {
+                    productId: purchaseData.productId,
+                    orderId: purchaseData.orderId,
+                    purchaseToken: purchaseData.purchaseToken.substring(0, 20) + '...',
+                    timestamp: new Date().toISOString()
+                });
                 
                 return verification.data;
             } else {
@@ -276,6 +325,14 @@ class MobilePurchaseManager {
         } catch (error) {
             console.error('Google purchase verification failed:', error);
             await this.showPurchaseError(error.message);
+            
+            // Log error to CloudWatch
+            console.error('Google purchase error:', {
+                error: error.message,
+                productId: purchaseData.productId,
+                timestamp: new Date().toISOString()
+            });
+            
             throw error;
         }
     }
@@ -310,20 +367,62 @@ class MobilePurchaseManager {
         }
     }
     
-    async unlockAssessmentModule(productId) {
+    async unlockAssessmentModule(productId, verificationData) {
         // Find the assessment type from product ID
         const assessmentType = Object.keys(this.products).find(
             key => this.products[key].id === productId
         );
         
         if (assessmentType) {
-            // Enable assessment in app
-            console.log(`Unlocking assessment module: ${assessmentType}`);
-            
-            // Update app state to show purchased content
-            document.dispatchEvent(new CustomEvent('assessmentUnlocked', {
-                detail: { assessmentType, productId }
-            }));
+            try {
+                // Update user's profile in DynamoDB via Lambda API
+                const unlockResponse = await window.apiClient.makeAPICall('/api/user/unlock-module', 'POST', {
+                    product_id: productId,
+                    assessment_type: assessmentType,
+                    verification_data: verificationData
+                });
+                
+                if (unlockResponse.success) {
+                    // Show unlock confirmation with Toast
+                    await window.apiClient.showToastNotification(
+                        `${this.products[assessmentType].title} is now available!`,
+                        'long',
+                        'center'
+                    );
+                    
+                    // Enable assessment in app
+                    console.log(`Assessment module unlocked in DynamoDB: ${assessmentType}`);
+                    
+                    // Update app state to show purchased content
+                    document.dispatchEvent(new CustomEvent('assessmentUnlocked', {
+                        detail: { 
+                            assessmentType, 
+                            productId, 
+                            unlocked: true,
+                            timestamp: new Date().toISOString()
+                        }
+                    }));
+                    
+                    // Log to CloudWatch via Lambda
+                    console.log('Module unlocked successfully:', {
+                        assessmentType,
+                        productId,
+                        userId: unlockResponse.user_id,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                } else {
+                    throw new Error('Failed to unlock module in database');
+                }
+                
+            } catch (error) {
+                console.error('Module unlock failed:', error);
+                await window.apiClient.showToastNotification(
+                    'Purchase verified but module unlock failed. Contact support.',
+                    'long',
+                    'center'
+                );
+            }
         }
     }
     
