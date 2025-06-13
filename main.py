@@ -151,24 +151,7 @@ def profile():
     
     # For testing, create a temporary session if none exists
     if not session_id or session_id not in sessions:
-        # Create test session for demonstration
-        test_session_id = str(uuid.uuid4())
-        test_user_email = 'test@ieltsaiprep.com'
-        created_at = datetime.utcnow()
-        expires_at = created_at + timedelta(hours=1)
-        
-        sessions[test_session_id] = {
-            'session_id': test_session_id,
-            'user_email': test_user_email,
-            'created_at': created_at.isoformat(),
-            'expires_at': int(expires_at.timestamp()),
-            'test_session': True
-        }
-        
-        # Set session cookie and redirect
-        response = redirect('/profile')
-        response.set_cookie('qr_session_id', test_session_id, max_age=3600)
-        return response
+        return redirect(url_for('home'))
     
     session_data = sessions[session_id]
     if time.time() > session_data['expires_at']:
@@ -196,7 +179,7 @@ def profile():
             assessment['assessment_type'] = assessment_type
             all_assessments.append(assessment)
     
-    return render_template('profile.html', 
+    return render_template('simple_profile.html', 
                          current_user=MockUser(user_email),
                          assessments=all_assessments,
                          assessment_types=['academic_speaking', 'academic_writing', 'general_speaking', 'general_writing'])

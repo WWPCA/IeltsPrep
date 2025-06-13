@@ -26,24 +26,24 @@ Successfully integrated QR code authentication system with existing IELTS GenAI 
 
 ## Test Flow Verification
 
-### Step 1: Mobile Purchase Simulation
-```
-URL: /test-mobile
-Status: ✅ Working
-- Simulates Apple/Google app store purchases
-- Generates QR tokens automatically after "purchase"
-- Displays tokens for manual entry testing
-- 10-minute token expiration implemented
-```
-
-### Step 2: QR Authentication
+### Step 1: Website QR Code Display
 ```
 URL: / (QR Login Page)
 Status: ✅ Working
-- QR scanner interface (camera permissions required)
-- Manual token entry for .replit testing
-- Token validation against Lambda backend
-- Session creation and cookie management
+- Automatically generates and displays visual QR codes on page load
+- QR codes refresh every 9 minutes before expiration
+- Base64-encoded PNG images for mobile scanning
+- 10-minute token expiration implemented
+```
+
+### Step 2: Mobile App Authentication
+```
+URL: /test-qr-flow (Complete Test Interface)
+Status: ✅ Working
+- Simulates mobile app scanning website QR codes
+- Mobile authentication endpoint: /api/mobile-authenticate
+- Token validation and user binding
+- Real-time authentication status updates
 ```
 
 ### Step 3: Assessment Access
