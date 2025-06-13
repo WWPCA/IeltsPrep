@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Lambda Handler HTTP Server Wrapper for .replit Environment
-Provides HTTP interface to AWS Lambda handlers for testing
+Pure AWS Lambda Entry Point for .replit Environment
+Uses app.py lambda_handler for SAM CLI compatibility
 """
 
 import json
-import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-from lambda_main import lambda_handler
+from app import lambda_handler
 
 class LambdaHTTPHandler(BaseHTTPRequestHandler):
     def do_GET(self):
