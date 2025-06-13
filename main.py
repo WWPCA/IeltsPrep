@@ -4,6 +4,13 @@ Serves frontend and provides local test endpoints that simulate Lambda backend
 """
 
 from flask import Flask, send_from_directory, render_template, request, jsonify, redirect, url_for
+
+# Mock csrf_token function for template compatibility
+def csrf_token():
+    return "mock-csrf-token"
+
+app = Flask(__name__)
+app.jinja_env.globals['csrf_token'] = csrf_token
 import json
 import uuid
 import time
@@ -408,6 +415,11 @@ def get_assessments(user_email):
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/test-qr-flow')
+def test_qr_flow():
+    """Serve QR authentication test page"""
+    return send_from_directory('.', 'test_qr_authentication.html')
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
