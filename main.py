@@ -7,6 +7,9 @@ from flask import Flask, send_from_directory, render_template, request, jsonify,
 import json
 import uuid
 import time
+import qrcode
+import io
+import base64
 from datetime import datetime, timedelta
 import os
 
@@ -84,6 +87,50 @@ def home():
     """Serve QR login page"""
     return render_template('qr_login.html')
 
+@app.route('/api/generate-website-qr')
+def generate_website_qr():
+    """Generate QR code for website authentication"""
+    try:
+        # Generate a temporary token for website QR display
+        token_id = str(uuid.uuid4())
+        created_at = datetime.utcnow()
+        expires_at = created_at + timedelta(minutes=10)
+        
+        # Store the token for later verification
+        qr_tokens[token_id] = {
+            'token_id': token_id,
+            'user_email': None,  # Will be set when mobile app scans
+            'created_at': created_at.isoformat(),
+            'expires_at': int(expires_at.timestamp()),
+            'used': False,
+            'website_generated': True
+        }
+        
+        # Create QR code data
+        qr_data = {
+            'token': token_id,
+            'domain': 'ieltsaiprep.com',
+            'type': 'website_auth',
+            'timestamp': int(created_at.timestamp())
+        }
+        
+        # Generate QR code image
+        qr_code_image = generate_qr_code(json.dumps(qr_data))
+        
+        return jsonify({
+            'success': True,
+            'token_id': token_id,
+            'qr_code_image': qr_code_image,
+            'expires_in_minutes': 10,
+            'expires_at': expires_at.isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/profile')
 def profile():
     """Serve profile/assessments page with QR authentication"""
@@ -150,6 +197,17 @@ def test_mobile():
     """Serve mobile purchase simulator for testing"""
     return render_template('test_mobile.html')
 
+def generate_qr_code(data):
+    """Generate QR code image as base64 string"""
+    qr = qrcode.make(data)
+    
+    # Convert to base64
+    buffer = io.BytesIO()
+    qr.save(buffer, format='PNG')
+    img_str = base64.b64encode(buffer.getvalue()).decode()
+    
+    return f"data:image/png;base64,{img_str}"
+
 # Test endpoints that simulate Lambda backend
 @app.route('/api/auth/generate-qr', methods=['POST'])
 def generate_qr_token():
@@ -178,16 +236,21 @@ def generate_qr_token():
             'used': False
         }
         
+        # Create QR code data for scanning
         qr_data = {
             'token': token_id,
             'domain': 'ieltsaiprep.com',
             'timestamp': int(created_at.timestamp())
         }
         
+        # Generate actual QR code image
+        qr_code_image = generate_qr_code(json.dumps(qr_data))
+        
         return jsonify({
             'success': True,
             'token_id': token_id,
             'qr_data': json.dumps(qr_data),
+            'qr_code_image': qr_code_image,
             'expires_in_minutes': 10,
             'expires_at': expires_at.isoformat()
         })
