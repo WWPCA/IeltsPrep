@@ -117,6 +117,48 @@ def login():
     """Login route for template compatibility"""
     return redirect(url_for('home'))
 
+@app.route('/register')
+def register():
+    """Register route for template compatibility"""
+    return redirect(url_for('home'))
+
+@app.route('/about')
+def about():
+    """About route for template compatibility"""
+    return redirect(url_for('home'))
+
+@app.route('/contact')
+def contact():
+    """Contact route for template compatibility"""
+    return redirect(url_for('home'))
+
+@app.route('/assessment/<assessment_type>/<int:assessment_number>/start')
+def assessment_start(assessment_type, assessment_number):
+    """Assessment start route for template compatibility"""
+    # Verify session
+    session_id = request.cookies.get('qr_session_id')
+    if not session_id or session_id not in sessions:
+        return redirect(url_for('home'))
+    
+    session_data = sessions[session_id]
+    user_email = session_data['user_email']
+    
+    return f"""
+    <html><head><title>Assessment Started</title></head>
+    <body style="font-family: Arial; padding: 40px; background: #f5f5f5;">
+        <div style="background: white; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto;">
+            <h2>Assessment {assessment_number} Started</h2>
+            <p><strong>Type:</strong> {assessment_type.replace('_', ' ').title()}</p>
+            <p><strong>User:</strong> {user_email}</p>
+            <p><strong>Session:</strong> {session_id}</p>
+            <div style="margin: 20px 0; padding: 15px; background: #e8f5e8; border-radius: 5px;">
+                Assessment module would load here with Nova Sonic AI integration
+            </div>
+            <a href="/assessment/{assessment_type}" style="background: #6c757d; color: white; padding: 10px 20px; text-decoration: none;">Back to Assessments</a>
+        </div>
+    </body></html>
+    """
+
 @app.route('/qr-login')
 def qr_login():
     """Alternative QR login route - redirects to home"""
