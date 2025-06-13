@@ -167,6 +167,16 @@
                 <li>You'll be automatically logged in to access your assessments</li>
             </ol>
             <p><strong>Note:</strong> QR codes expire after 10 minutes for security.</p>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+                <p style="color: #1e40af; font-weight: 600; margin-bottom: 10px;">For Testing in .replit Environment:</p>
+                <p style="color: #475569; margin-bottom: 15px;">
+                    Use the mobile purchase simulator to generate test QR tokens:
+                </p>
+                <a href="/test-mobile" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+                    Open Mobile Simulator
+                </a>
+            </div>
         </div>
 
         <div class="manual-token">
@@ -227,10 +237,8 @@
         function verifyQRToken(token) {
             showLoading(true);
             
-            // Use Lambda backend endpoint
-            const LAMBDA_BASE_URL = 'https://your-lambda-url.amazonaws.com/prod';
-            
-            fetch(`${LAMBDA_BASE_URL}/auth/verify-qr`, {
+            // Use local test endpoint for .replit environment
+            fetch('/auth/verify-qr', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

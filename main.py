@@ -46,6 +46,11 @@ def assessments():
     """Serve assessments page"""
     return render_template('assessments.html')
 
+@app.route('/test-mobile')
+def test_mobile():
+    """Serve mobile purchase simulator for testing"""
+    return render_template('test_mobile.html')
+
 # Test endpoints that simulate Lambda backend
 @app.route('/api/auth/generate-qr', methods=['POST'])
 def generate_qr_token():
