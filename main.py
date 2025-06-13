@@ -192,8 +192,17 @@ def assessment_list(assessment_type):
     if not session_id or session_id not in sessions:
         return redirect(url_for('home'))
     
-    return render_template(f'assessments/{assessment_type}_selection.html',
-                         assessment_type=assessment_type)
+    # Use existing templates
+    if 'speaking' in assessment_type:
+        template = 'assessments/speaking_selection.html'
+    else:
+        template = f'assessments/{assessment_type}_selection.html'
+    
+    title = f"{assessment_type.replace('_', ' ').title()} Assessments"
+    
+    return render_template(template,
+                         assessment_type=assessment_type,
+                         title=title)
 
 @app.route('/logout')
 def logout():
