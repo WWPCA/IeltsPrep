@@ -915,4 +915,10 @@ def metrics():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Test route for mobile purchase flow
+@app.route('/mobile-test')
+def mobile_test():
+    """Mobile purchase flow test page with AWS Lambda integration"""
+    return render_template('mobile_test.html')
+
 # Test route for country restrictions (admin only)

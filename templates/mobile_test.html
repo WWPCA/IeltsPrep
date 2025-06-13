@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS GenAI Prep - Mobile Purchase Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-ready { background: #10b981; }
+        .status-loading { background: #f59e0b; }
+        .status-error { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>AWS Lambda Purchase Flow Test</h1>
+        <p>Test the complete purchase verification system with Toast notifications and DynamoDB integration.</p>
+        
+        <div class="test-section">
+            <h3>System Status</h3>
+            <div id="systemStatus">
+                <div><span class="status-indicator status-loading"></span>Mobile API Client: Loading...</div>
+                <div><span class="status-indicator status-loading"></span>Purchase Manager: Loading...</div>
+                <div><span class="status-indicator status-loading"></span>AWS Lambda Backend: Checking...</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Toast Notification Tests</h3>
+            <button class="test-button" onclick="testLatencyNotification()">Test Nova Sonic Latency Warning</button>
+            <button class="test-button" onclick="testPurchaseConfirmation()">Test Purchase Success</button>
+            <button class="test-button" onclick="testNetworkError()">Test Network Error</button>
+            <button class="test-button" onclick="testGenericToast()">Test Generic Toast</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Purchase Verification Tests</h3>
+            <button class="test-button" onclick="testApplePurchase()">Test Apple Purchase Flow</button>
+            <button class="test-button" onclick="testGooglePurchase()">Test Google Purchase Flow</button>
+            <button class="test-button" onclick="testModuleUnlock()">Test Module Unlock</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>AWS Lambda Integration Tests</h3>
+            <button class="test-button" onclick="testHealthCheck()">Test Lambda Health Check</button>
+            <button class="test-button" onclick="testRegionalRouting()">Test Regional Routing</button>
+            <button class="test-button" onclick="testNovaSonicRouting()">Test Nova Sonic us-east-1 Routing</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Comprehensive Test Suite</h3>
+            <button class="test-button" onclick="runAllTests()" style="background: #059669; font-weight: bold;">Run All Tests</button>
+            <button class="test-button" onclick="clearResults()">Clear Results</button>
+        </div>
+        
+        <div class="test-results" id="testResults">
+            <div>Test results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="{{ url_for('static', filename='js/mobile_api_client.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobile_purchase_integration.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobile-purchase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/test_purchase_flow.js') }}"></script>
+    
+    <script>
+        let testLog = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            testLog.push(logEntry);
+            
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = testLog.join('\n');
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            console.log(logEntry);
+        }
+        
+        function clearResults() {
+            testLog = [];
+            document.getElementById('testResults').innerHTML = 'Test results cleared...';
+        }
+        
+        function updateSystemStatus() {
+            const statusDiv = document.getElementById('systemStatus');
+            let html = '';
+            
+            // Check Mobile API Client
+            const apiReady = window.apiClient ? 'ready' : 'loading';
+            html += `<div><span class="status-indicator status-${apiReady}"></span>Mobile API Client: ${apiReady}</div>`;
+            
+            // Check Purchase Manager
+            const purchaseReady = window.purchaseManager ? 'ready' : 'loading';
+            html += `<div><span class="status-indicator status-${purchaseReady}"></span>Purchase Manager: ${purchaseReady}</div>`;
+            
+            // Check Test Suite
+            const testReady = window.purchaseFlowTester ? 'ready' : 'loading';
+            html += `<div><span class="status-indicator status-${testReady}"></span>Test Suite: ${testReady}</div>`;
+            
+            statusDiv.innerHTML = html;
+        }
+        
+        // Individual test functions
+        async function testLatencyNotification() {
+            log('Testing Nova Sonic latency notification...');
+            try {
+                await window.apiClient.showLatencyNotification();
+                log('✓ Latency notification displayed successfully', 'success');
+            } catch (error) {
+                log(`✗ Latency notification failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testPurchaseConfirmation() {
+            log('Testing purchase confirmation notification...');
+            try {
+                await window.apiClient.showPurchaseConfirmation('Academic Speaking Assessment');
+                log('✓ Purchase confirmation displayed successfully', 'success');
+            } catch (error) {
+                log(`✗ Purchase confirmation failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testNetworkError() {
+            log('Testing network error notification...');
+            try {
+                await window.apiClient.showNetworkError();
+                log('✓ Network error notification displayed successfully', 'success');
+            } catch (error) {
+                log(`✗ Network error notification failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testGenericToast() {
+            log('Testing generic toast notification...');
+            try {
+                await window.apiClient.showToastNotification(
+                    'This is a test of the generic toast system',
+                    'long',
+                    'center'
+                );
+                log('✓ Generic toast displayed successfully', 'success');
+            } catch (error) {
+                log(`✗ Generic toast failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testApplePurchase() {
+            log('Testing Apple purchase verification...');
+            try {
+                const result = await window.apiClient.verifyApplePurchase(
+                    'test_receipt_data',
+                    'com.ieltsaiprep.academic_speaking'
+                );
+                log(`Apple purchase test result: ${JSON.stringify(result)}`, 'info');
+            } catch (error) {
+                log(`Apple purchase test completed: ${error.message}`, 'info');
+            }
+        }
+        
+        async function testGooglePurchase() {
+            log('Testing Google purchase verification...');
+            try {
+                const result = await window.apiClient.verifyGooglePurchase(
+                    'test_purchase_token',
+                    'com.ieltsaiprep.academic_writing'
+                );
+                log(`Google purchase test result: ${JSON.stringify(result)}`, 'info');
+            } catch (error) {
+                log(`Google purchase test completed: ${error.message}`, 'info');
+            }
+        }
+        
+        async function testModuleUnlock() {
+            log('Testing module unlock functionality...');
+            try {
+                const result = await window.apiClient.makeAPICall('/api/user/unlock-module', 'POST', {
+                    product_id: 'com.ieltsaiprep.academic_speaking',
+                    assessment_type: 'academic_speaking',
+                    verification_data: { test: true }
+                });
+                log(`Module unlock test result: ${JSON.stringify(result)}`, 'info');
+            } catch (error) {
+                log(`Module unlock test completed: ${error.message}`, 'info');
+            }
+        }
+        
+        async function testHealthCheck() {
+            log('Testing AWS Lambda health check...');
+            try {
+                const result = await window.apiClient.checkHealth();
+                log(`Health check result: ${JSON.stringify(result)}`, 'success');
+            } catch (error) {
+                log(`Health check failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testRegionalRouting() {
+            log('Testing regional API routing...');
+            log(`Current region: ${window.apiClient.userRegion}`);
+            log(`Regional endpoint: ${window.apiClient.getRegionalEndpoint()}`);
+        }
+        
+        async function testNovaSonicRouting() {
+            log('Testing Nova Sonic routing to us-east-1...');
+            log(`Nova Sonic endpoint: ${window.apiClient.novaSonicEndpoint}`);
+            
+            try {
+                await window.apiClient.showLatencyNotification();
+                log('✓ Nova Sonic latency warning displayed', 'success');
+            } catch (error) {
+                log(`Nova Sonic routing test completed: ${error.message}`, 'info');
+            }
+        }
+        
+        async function runAllTests() {
+            log('Starting comprehensive test suite...', 'info');
+            if (window.runPurchaseTests) {
+                await window.runPurchaseTests();
+                log('✓ Comprehensive test suite completed', 'success');
+            } else {
+                log('✗ Test suite not available', 'error');
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Mobile purchase test page loaded');
+            
+            // Update system status every 2 seconds
+            setInterval(updateSystemStatus, 2000);
+            updateSystemStatus();
+            
+            // Log when components are ready
+            setTimeout(() => {
+                if (window.apiClient) {
+                    log('✓ Mobile API client ready');
+                }
+                if (window.purchaseManager) {
+                    log('✓ Purchase manager ready');
+                }
+                if (window.purchaseFlowTester) {
+                    log('✓ Test suite ready');
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
