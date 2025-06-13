@@ -256,7 +256,7 @@
                     
                     showMessage('Authentication successful! Redirecting...', 'success');
                     setTimeout(() => {
-                        window.location.href = data.redirect_url || '/assessments';
+                        window.location.href = data.redirect_url || '/profile';
                     }, 1500);
                 } else {
                     showMessage(data.error || 'Authentication failed', 'error');

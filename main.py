@@ -3,7 +3,7 @@ QR Authentication Test Server for .replit environment
 Serves frontend and provides local test endpoints that simulate Lambda backend
 """
 
-from flask import Flask, send_from_directory, render_template, request, jsonify
+from flask import Flask, send_from_directory, render_template, request, jsonify, redirect, url_for
 import json
 import uuid
 import time
@@ -41,10 +41,56 @@ def home():
     """Serve QR login page"""
     return render_template('qr_login.html')
 
-@app.route('/assessments')
-def assessments():
-    """Serve assessments page"""
-    return render_template('assessments.html')
+@app.route('/profile')
+def profile():
+    """Serve profile/assessments page with QR authentication"""
+    # Check QR session
+    session_id = request.cookies.get('qr_session_id')
+    if not session_id or session_id not in sessions:
+        return redirect(url_for('home'))
+    
+    session_data = sessions[session_id]
+    if time.time() > session_data['expires_at']:
+        return redirect(url_for('home'))
+    
+    user_email = session_data['user_email']
+    assessments = sample_assessments.get(user_email, [])
+    
+    # Mock user data for template compatibility
+    class MockUser:
+        def __init__(self, email):
+            self.email = email
+            self.account_activated = True
+            self.last_login = datetime.utcnow()
+        
+        def has_active_assessment_package(self):
+            return True
+    
+    return render_template('profile.html', 
+                         current_user=MockUser(user_email),
+                         assessments=assessments)
+
+@app.route('/assessment/<assessment_type>')
+def assessment_list(assessment_type):
+    """Assessment list page with Lambda integration"""
+    # Check QR session
+    session_id = request.cookies.get('qr_session_id')
+    if not session_id or session_id not in sessions:
+        return redirect(url_for('home'))
+    
+    return render_template(f'assessments/{assessment_type}_selection.html',
+                         assessment_type=assessment_type)
+
+@app.route('/logout')
+def logout():
+    """Logout and clear session"""
+    session_id = request.cookies.get('qr_session_id')
+    if session_id and session_id in sessions:
+        del sessions[session_id]
+    
+    response = redirect(url_for('home'))
+    response.set_cookie('qr_session_id', '', expires=0)
+    return response
 
 @app.route('/test-mobile')
 def test_mobile():
@@ -139,13 +185,18 @@ def verify_qr_token():
             'expires_at': time.time() + 3600
         }
         
-        return jsonify({
+        response = jsonify({
             'success': True,
             'user_email': token_data['user_email'],
             'session_id': session_id,
             'message': 'Authentication successful',
-            'redirect_url': '/assessments'
+            'redirect_url': '/profile'
         })
+        
+        # Set session cookie
+        response.set_cookie('qr_session_id', session_id, max_age=3600)
+        
+        return response
         
     except Exception as e:
         return jsonify({
