@@ -10,9 +10,16 @@ class MobileAPIClient {
             'eu-west-1': 'https://api-eu-west-1.ieltsaiprep.com',
             'ap-southeast-1': 'https://api-ap-southeast-1.ieltsaiprep.com'
         };
-        this.novaSonicEndpoint = 'https://api-us-east-1.ieltsaiprep.com'; // Fixed to us-east-1
+        this.novaSonicEndpoint = 'https://api-us-east-1.ieltsaiprep.com';
+        this.websocketEndpoints = {
+            'us-east-1': 'wss://ws-us-east-1.ieltsaiprep.com',
+            'eu-west-1': 'wss://ws-eu-west-1.ieltsaiprep.com',
+            'ap-southeast-1': 'wss://ws-ap-southeast-1.ieltsaiprep.com'
+        };
+        this.novaSonicWebSocket = 'wss://ws-us-east-1.ieltsaiprep.com'; // Fixed to us-east-1 for Nova Sonic
         this.userRegion = null;
         this.sessionId = null;
+        this.activeWebSocket = null;
         
         this.initializeClient();
     }
