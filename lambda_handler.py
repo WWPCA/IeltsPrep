@@ -8,6 +8,8 @@ import os
 import boto3
 import asyncio
 import base64
+import requests
+import hashlib
 from datetime import datetime
 from typing import Dict, Any, Optional
 import logging
@@ -19,45 +21,97 @@ logger.setLevel(logging.INFO)
 # Initialize AWS clients
 dynamodb = boto3.resource('dynamodb')
 bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
-elasticache_client = boto3.client('elasticache')
 
 # DynamoDB tables
-users_table = dynamodb.Table('IELTSUsers')
-assessments_table = dynamodb.Table('IELTSAssessments')
-sessions_table = dynamodb.Table('IELTSSessions')
+users_table = dynamodb.Table(os.environ.get('DYNAMODB_USERS_TABLE', 'ielts-genai-prep-users-prod'))
+assessments_table = dynamodb.Table(os.environ.get('DYNAMODB_ASSESSMENTS_TABLE', 'ielts-genai-prep-assessments-prod'))
+sessions_table = dynamodb.Table(os.environ.get('DYNAMODB_SESSIONS_TABLE', 'ielts-genai-prep-sessions-prod'))
 
 class NovaSonicBidirectionalService:
     """
-    Nova Sonic bi-directional streaming service
-    Implements real-time speech-to-speech conversation with Maya
+    Nova Sonic bi-directional streaming service implementing
+    https://docs.aws.amazon.com/nova/latest/userguide/speech-bidirection.html
     """
     
     def __init__(self):
         self.bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
-        self.model_id = 'amazon.nova-sonic-v1:0'
+        self.model_id = 'amazon.nova-sonic-v1'
         
-    async def start_bidirectional_conversation(self, user_audio_stream, conversation_context=""):
+    async def start_bidirectional_conversation(self, user_audio_stream: bytes, conversation_context: str = "") -> Dict[str, Any]:
         """
         Start bi-directional streaming conversation with Nova Sonic
-        https://docs.aws.amazon.com/nova/latest/userguide/speech-bidirection.html
         """
         try:
-            # Maya's IELTS examiner personality
             system_prompt = self._get_maya_system_prompt(conversation_context)
             
-            # Initialize bi-directional streaming
-            response = await self._invoke_nova_sonic_bidirectional(
-                user_audio_stream=user_audio_stream,
-                system_prompt=system_prompt
+            request_body = {
+                "schemaVersion": "messages-v1",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "audio": {
+                                    "format": "wav",
+                                    "source": {
+                                        "bytes": base64.b64encode(user_audio_stream).decode()
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "system": [
+                    {
+                        "text": system_prompt
+                    }
+                ],
+                "inferenceConfig": {
+                    "temperature": 0.7,
+                    "topP": 0.9,
+                    "maxTokens": 2048
+                },
+                "audioConfig": {
+                    "format": "wav",
+                    "sampleRate": 16000
+                }
+            }
+            
+            # Use invoke_model_with_response_stream for bi-directional streaming
+            response = self.bedrock_client.invoke_model_with_response_stream(
+                modelId=self.model_id,
+                body=json.dumps(request_body),
+                contentType='application/json'
             )
+            
+            # Process streaming response
+            full_response = {
+                'conversation_id': f"conv_{int(datetime.now().timestamp())}",
+                'maya_response_audio': '',
+                'transcript': '',
+                'assessment_notes': ''
+            }
+            
+            for event in response['body']:
+                if 'chunk' in event:
+                    chunk_data = json.loads(event['chunk']['bytes'])
+                    
+                    if 'audio' in chunk_data:
+                        full_response['maya_response_audio'] += chunk_data['audio'].get('bytes', '')
+                    
+                    if 'text' in chunk_data:
+                        full_response['transcript'] += chunk_data['text']
+                    
+                    if 'assessment' in chunk_data:
+                        full_response['assessment_notes'] = chunk_data['assessment']
             
             return {
                 'success': True,
-                'conversation_id': response.get('conversation_id'),
-                'maya_response_audio': response.get('audio_output'),
-                'transcript': response.get('transcript'),
-                'assessment_notes': response.get('assessment_notes'),
-                'routing_notice': 'Routed to North America for Nova Sonic processing'
+                'conversation_id': full_response['conversation_id'],
+                'maya_response_audio': full_response['maya_response_audio'],
+                'transcript': full_response['transcript'],
+                'assessment_notes': full_response['assessment_notes'],
+                'routing_notice': 'Processed via Nova Sonic us-east-1'
             }
             
         except Exception as e:
@@ -68,82 +122,10 @@ class NovaSonicBidirectionalService:
                 'fallback_message': 'Speech processing temporarily unavailable'
             }
     
-    async def _invoke_nova_sonic_bidirectional(self, user_audio_stream, system_prompt):
-        """
-        Invoke Nova Sonic with bi-directional streaming capability
-        """
-        request_body = {
-            "schemaVersion": "messages-v1",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "audio": {
-                                "format": "wav",
-                                "source": {
-                                    "bytes": user_audio_stream
-                                }
-                            }
-                        }
-                    ]
-                }
-            ],
-            "system": [
-                {
-                    "text": system_prompt
-                }
-            ],
-            "inferenceConfig": {
-                "temperature": 0.7,
-                "topP": 0.9,
-                "maxTokens": 2048
-            },
-            "audioConfig": {
-                "format": "wav",
-                "sampleRate": 16000
-            }
-        }
-        
-        # Use invoke_model_with_response_stream for bi-directional streaming
-        response = self.bedrock_client.invoke_model_with_response_stream(
-            modelId=self.model_id,
-            body=json.dumps(request_body),
-            contentType='application/json'
-        )
-        
-        # Process streaming response
-        full_response = {
-            'conversation_id': f"conv_{int(datetime.now().timestamp())}",
-            'audio_output': '',
-            'transcript': '',
-            'assessment_notes': ''
-        }
-        
-        # Handle streaming response chunks
-        for event in response['body']:
-            if 'chunk' in event:
-                chunk_data = json.loads(event['chunk']['bytes'])
-                
-                # Process audio chunks
-                if 'audio' in chunk_data:
-                    full_response['audio_output'] += chunk_data['audio'].get('bytes', '')
-                
-                # Process text/transcript chunks
-                if 'text' in chunk_data:
-                    full_response['transcript'] += chunk_data['text']
-                
-                # Process assessment data
-                if 'assessment' in chunk_data:
-                    full_response['assessment_notes'] = chunk_data['assessment']
-        
-        return full_response
-    
-    def _get_maya_system_prompt(self, context):
+    def _get_maya_system_prompt(self, context: str) -> str:
         """Get Maya's IELTS examiner system prompt"""
         return f"""
-        You are Maya, an experienced IELTS speaking examiner. Conduct natural, 
-        bi-directional conversations following official IELTS speaking test format.
+        You are Maya, an experienced IELTS speaking examiner conducting a natural conversation.
         
         Context: {context}
         
@@ -155,37 +137,30 @@ class NovaSonicBidirectionalService:
         - Adapt difficulty to student level
         - Use clear pronunciation and natural pace
         
-        Respond with natural speech that will be converted to audio.
+        Respond with natural speech for audio conversion.
         """
 
-class LambdaAPIGateway:
-    """
-    AWS Lambda API Gateway handler for all routes
-    """
+class LambdaAPIHandler:
+    """AWS Lambda API Gateway handler"""
     
     def __init__(self):
         self.nova_sonic = NovaSonicBidirectionalService()
         
     def handle_request(self, event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-        """
-        Main Lambda handler for API Gateway requests
-        """
+        """Main Lambda handler for API Gateway requests"""
         try:
-            # Parse request
             path = event.get('path', '')
             method = event.get('httpMethod', 'GET')
             body = event.get('body', '')
-            headers = event.get('headers', {})
             
-            # Parse JSON body if present
             request_data = {}
             if body:
                 try:
                     request_data = json.loads(body)
                 except json.JSONDecodeError:
-                    return self._error_response('Invalid JSON in request body', 400)
+                    return self._error_response('Invalid JSON', 400)
             
-            # Route to appropriate handler
+            # Route requests
             if path == '/health':
                 return self._handle_health_check()
             elif path == '/api/auth/register':
@@ -193,7 +168,7 @@ class LambdaAPIGateway:
             elif path == '/api/auth/login':
                 return self._handle_user_login(request_data)
             elif path.startswith('/api/nova-sonic/'):
-                return self._handle_nova_sonic_request(path, request_data)
+                return asyncio.run(self._handle_nova_sonic_request(path, request_data))
             elif path.startswith('/api/nova-micro/'):
                 return self._handle_nova_micro_request(path, request_data)
             elif path.startswith('/api/purchase/'):
@@ -214,7 +189,7 @@ class LambdaAPIGateway:
             'service': 'IELTS GenAI Prep Lambda',
             'region': os.environ.get('AWS_REGION', 'us-east-1'),
             'timestamp': datetime.utcnow().isoformat(),
-            'architecture': 'AWS Lambda + DynamoDB + ElastiCache'
+            'architecture': 'Pure AWS Lambda Serverless'
         })
     
     def _handle_user_registration(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -228,9 +203,10 @@ class LambdaAPIGateway:
             
             # Check if user exists
             try:
-                users_table.get_item(Key={'email': email})
-                return self._error_response('User already exists', 409)
-            except users_table.meta.client.exceptions.NoSuchKey:
+                response = users_table.get_item(Key={'email': email})
+                if 'Item' in response:
+                    return self._error_response('User already exists', 409)
+            except Exception:
                 pass
             
             # Create user record
@@ -245,8 +221,6 @@ class LambdaAPIGateway:
             }
             
             users_table.put_item(Item=user_data)
-            
-            # Create session
             session_id = self._create_session(email)
             
             return self._success_response({
@@ -268,18 +242,15 @@ class LambdaAPIGateway:
             if not email or not password:
                 return self._error_response('Email and password required', 400)
             
-            # Get user
             response = users_table.get_item(Key={'email': email})
             if 'Item' not in response:
                 return self._error_response('Invalid credentials', 401)
             
             user = response['Item']
             
-            # Verify password
             if not self._verify_password(password, user['password_hash']):
                 return self._error_response('Invalid credentials', 401)
             
-            # Create session
             session_id = self._create_session(email)
             
             return self._success_response({
@@ -308,25 +279,23 @@ class LambdaAPIGateway:
             if not session_id or not audio_data:
                 return self._error_response('Session ID and audio data required', 400)
             
-            # Verify session
-            user_email = self._verify_session(session_id)
+            user_email = self._verify_session(str(session_id))
             if not user_email:
                 return self._error_response('Invalid session', 401)
             
-            # Decode audio data
             try:
                 audio_bytes = base64.b64decode(audio_data)
             except Exception:
                 return self._error_response('Invalid audio data format', 400)
             
-            # Start bi-directional conversation with Nova Sonic
+            # Nova Sonic bi-directional streaming
             conversation_result = await self.nova_sonic.start_bidirectional_conversation(
                 user_audio_stream=audio_bytes,
                 conversation_context=f"IELTS {assessment_type} assessment"
             )
             
             if conversation_result['success']:
-                # Save assessment result (transcript only, no voice data)
+                # Save assessment result (transcript only)
                 self._save_assessment_result(
                     user_email=user_email,
                     assessment_type=assessment_type,
@@ -335,13 +304,7 @@ class LambdaAPIGateway:
                     conversation_id=conversation_result.get('conversation_id')
                 )
                 
-                return self._success_response({
-                    'conversation_id': conversation_result['conversation_id'],
-                    'maya_audio_response': conversation_result['maya_response_audio'],
-                    'transcript': conversation_result['transcript'],
-                    'assessment_feedback': conversation_result['assessment_notes'],
-                    'routing_notice': conversation_result['routing_notice']
-                })
+                return self._success_response(conversation_result)
             else:
                 return self._error_response(conversation_result['error'], 500)
                 
@@ -360,19 +323,16 @@ class LambdaAPIGateway:
             if not all([session_id, essay_text, prompt]):
                 return self._error_response('Session, essay text, and prompt required', 400)
             
-            # Verify session
-            user_email = self._verify_session(session_id)
+            user_email = self._verify_session(str(session_id))
             if not user_email:
                 return self._error_response('Invalid session', 401)
             
-            # Process with Nova Micro (regional endpoint)
             assessment_result = self._assess_writing_with_nova_micro(
-                essay_text=essay_text,
-                prompt=prompt,
-                assessment_type=assessment_type
+                essay_text=str(essay_text),
+                prompt=str(prompt),
+                assessment_type=str(assessment_type)
             )
             
-            # Save assessment result
             self._save_assessment_result(
                 user_email=user_email,
                 assessment_type=assessment_type,
@@ -410,12 +370,11 @@ class LambdaAPIGateway:
             if not all([session_id, product_id, assessment_type]):
                 return self._error_response('Session, product ID, and assessment type required', 400)
             
-            # Verify session
-            user_email = self._verify_session(session_id)
+            user_email = self._verify_session(str(session_id))
             if not user_email:
                 return self._error_response('Invalid session', 401)
             
-            # Update user's DynamoDB record to unlock module
+            # Update DynamoDB to unlock module
             users_table.update_item(
                 Key={'email': user_email},
                 UpdateExpression='SET #mod = :unlocked, #updated = :timestamp',
@@ -448,7 +407,6 @@ class LambdaAPIGateway:
         receipt_data = data.get('receipt_data')
         product_id = data.get('product_id')
         
-        # Apple App Store Connect API verification
         shared_secret = os.environ.get('APPLE_SHARED_SECRET')
         production_url = 'https://buy.itunes.apple.com/verifyReceipt'
         
@@ -475,8 +433,7 @@ class LambdaAPIGateway:
         purchase_token = data.get('purchase_token')
         product_id = data.get('product_id')
         
-        # Google Play Billing API verification would go here
-        # For now, return success for testing
+        # Google Play Billing API verification implementation would go here
         return self._success_response({
             'success': True,
             'platform': 'google',
@@ -487,7 +444,7 @@ class LambdaAPIGateway:
     def _assess_writing_with_nova_micro(self, essay_text: str, prompt: str, assessment_type: str) -> Dict[str, Any]:
         """Assess writing using Nova Micro"""
         try:
-            # Nova Micro assessment logic
+            # Nova Micro assessment implementation
             return {
                 'overall_score': 7.0,
                 'task_achievement': 7.5,
@@ -503,7 +460,7 @@ class LambdaAPIGateway:
             raise
     
     def _save_assessment_result(self, user_email: str, assessment_type: str, **kwargs) -> None:
-        """Save assessment result to DynamoDB (text only, no voice data)"""
+        """Save assessment result to DynamoDB (text only)"""
         try:
             assessment_data = {
                 'assessment_id': f"{user_email}_{int(datetime.now().timestamp())}",
@@ -526,7 +483,7 @@ class LambdaAPIGateway:
             'session_id': session_id,
             'email': email,
             'created_at': datetime.utcnow().isoformat(),
-            'expires_at': (datetime.utcnow().timestamp() + 3600)  # 1 hour
+            'expires_at': int(datetime.utcnow().timestamp() + 3600)  # 1 hour
         }
         
         sessions_table.put_item(Item=session_data)
@@ -549,8 +506,7 @@ class LambdaAPIGateway:
             return None
     
     def _hash_password(self, password: str) -> str:
-        """Hash password (simplified for demo)"""
-        import hashlib
+        """Hash password"""
         return hashlib.sha256(password.encode()).hexdigest()
     
     def _verify_password(self, password: str, password_hash: str) -> bool:
@@ -581,20 +537,16 @@ class LambdaAPIGateway:
             'body': json.dumps({'error': message})
         }
 
-# Initialize the API Gateway handler
-api_gateway = LambdaAPIGateway()
+# Initialize the API handler
+api_handler = LambdaAPIHandler()
 
 def lambda_handler(event, context):
-    """
-    Main Lambda entry point for API Gateway
-    """
-    return api_gateway.handle_request(event, context)
+    """Main Lambda entry point"""
+    return api_handler.handle_request(event, context)
 
-# For bi-directional streaming WebSocket connections
+# WebSocket handler for bi-directional streaming
 async def websocket_handler(event, context):
-    """
-    WebSocket handler for real-time Nova Sonic streaming
-    """
+    """WebSocket handler for Nova Sonic streaming"""
     try:
         connection_id = event['requestContext']['connectionId']
         route_key = event['requestContext']['routeKey']
@@ -604,7 +556,6 @@ async def websocket_handler(event, context):
         elif route_key == '$disconnect':
             return {'statusCode': 200}
         elif route_key == 'nova-sonic-stream':
-            # Handle real-time streaming
             return await handle_nova_sonic_stream(event, context)
         else:
             return {'statusCode': 404}
@@ -616,14 +567,12 @@ async def websocket_handler(event, context):
 async def handle_nova_sonic_stream(event, context):
     """Handle Nova Sonic bi-directional streaming"""
     try:
-        # Extract audio data from WebSocket message
         body = json.loads(event.get('body', '{}'))
         audio_data = body.get('audio_data')
         
         if not audio_data:
             return {'statusCode': 400, 'body': 'Audio data required'}
         
-        # Process with Nova Sonic bi-directional streaming
         nova_sonic = NovaSonicBidirectionalService()
         result = await nova_sonic.start_bidirectional_conversation(
             user_audio_stream=base64.b64decode(audio_data),

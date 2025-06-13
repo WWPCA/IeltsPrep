@@ -173,21 +173,19 @@ class MobileAPIClient {
         }
     }
     
-    // Nova Sonic speech assessment (always routes to us-east-1)
+    // Nova Sonic bi-directional speech assessment (WebSocket to us-east-1)
     async submitSpeechAssessment(audioData, assessmentType = 'academic_speaking') {
         try {
             // Show user notification about potential latency
             await this.showLatencyNotification();
             
-            const response = await this.makeAPICall('/api/nova-sonic/speaking', 'POST', {
-                audio_data: audioData,
-                assessment_type: assessmentType
-            }, { timeout: 20000 });
+            // Use bi-directional WebSocket for real-time Nova Sonic streaming
+            const response = await this.startNovaSonicStream(audioData, assessmentType);
             
             return {
                 success: true,
                 data: response,
-                note: 'Assessment routed to North America - voice data not stored'
+                note: 'Bi-directional speech conversation with Maya - voice data not stored'
             };
         } catch (error) {
             return {
@@ -195,6 +193,105 @@ class MobileAPIClient {
                 error: error.message,
                 retry_suggested: true
             };
+        }
+    }
+    
+    async startNovaSonicStream(audioData, assessmentType) {
+        return new Promise((resolve, reject) => {
+            try {
+                // Always connect to us-east-1 for Nova Sonic
+                const ws = new WebSocket(this.novaSonicWebSocket);
+                this.activeWebSocket = ws;
+                
+                let conversationData = {
+                    maya_audio_response: null,
+                    transcript: '',
+                    assessment_feedback: '',
+                    conversation_id: null
+                };
+                
+                ws.onopen = () => {
+                    console.log('Nova Sonic WebSocket connected to us-east-1');
+                    
+                    // Send audio data for bi-directional processing
+                    ws.send(JSON.stringify({
+                        action: 'nova-sonic-stream',
+                        audio_data: audioData,
+                        assessment_type: assessmentType,
+                        session_id: this.sessionId
+                    }));
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.type === 'maya_response') {
+                            // Real-time Maya audio response
+                            conversationData.maya_audio_response = data.audio_data;
+                            conversationData.transcript += data.transcript || '';
+                            
+                            // Play Maya's response audio if available
+                            if (data.audio_data) {
+                                this.playMayaResponse(data.audio_data);
+                            }
+                        } else if (data.type === 'assessment_complete') {
+                            // Final assessment results
+                            conversationData.assessment_feedback = data.feedback;
+                            conversationData.conversation_id = data.conversation_id;
+                            
+                            ws.close();
+                            resolve(conversationData);
+                        } else if (data.type === 'error') {
+                            ws.close();
+                            reject(new Error(data.message));
+                        }
+                    } catch (parseError) {
+                        console.error('WebSocket message parse error:', parseError);
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    console.error('Nova Sonic WebSocket error:', error);
+                    reject(new Error('WebSocket connection failed'));
+                };
+                
+                ws.onclose = () => {
+                    console.log('Nova Sonic WebSocket closed');
+                    this.activeWebSocket = null;
+                };
+                
+                // Timeout after 30 seconds
+                setTimeout(() => {
+                    if (ws.readyState !== WebSocket.CLOSED) {
+                        ws.close();
+                        reject(new Error('Nova Sonic conversation timeout'));
+                    }
+                }, 30000);
+                
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+    
+    playMayaResponse(audioData) {
+        try {
+            // Convert base64 audio to playable format
+            const audioBlob = new Blob([atob(audioData)], { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            
+            audio.play().catch(error => {
+                console.warn('Audio playback failed:', error);
+            });
+            
+            // Clean up URL after playback
+            audio.onended = () => {
+                URL.revokeObjectURL(audioUrl);
+            };
+        } catch (error) {
+            console.warn('Maya audio response playback failed:', error);
         }
     }
     
