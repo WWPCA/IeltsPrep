@@ -63,6 +63,10 @@ def lambda_handler(event, context):
             return handle_verify_qr(data)
         elif path.startswith('/assessment/') and method == 'GET':
             return handle_assessment_access(path, headers)
+        elif path == '/test_mobile_home_screen.html' and method == 'GET':
+            return handle_static_file('test_mobile_home_screen.html')
+        elif path == '/' and method == 'GET':
+            return handle_home_page()
         else:
             return {
                 'statusCode': 404,
@@ -83,6 +87,46 @@ def lambda_handler(event, context):
             },
             'body': json.dumps({'error': f'Internal server error: {str(e)}'})
         }
+
+def handle_static_file(filename: str) -> Dict[str, Any]:
+    """Handle static file serving"""
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        content_type = 'text/html' if filename.endswith('.html') else 'text/plain'
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': content_type,
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': content
+        }
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': f'File {filename} not found'})
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': str(e)})
+        }
+
+def handle_home_page() -> Dict[str, Any]:
+    """Handle home page - redirect to mobile test"""
+    return {
+        'statusCode': 302,
+        'headers': {
+            'Location': '/test_mobile_home_screen.html',
+            'Access-Control-Allow-Origin': '*'
+        },
+        'body': ''
+    }
 
 def handle_generate_qr(data: Dict[str, Any]) -> Dict[str, Any]:
     """Handle QR token generation after purchase verification"""

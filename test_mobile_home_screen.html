@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS GenAI Prep - Mobile Home Screen Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .mobile-simulator {
+            max-width: 375px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .status-bar {
+            background: #000;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+        #home-screen {
+            height: 100vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-simulator">
+        <div class="status-bar">
+            <div>9:41</div>
+            <div>100%</div>
+        </div>
+        <div id="home-screen"></div>
+    </div>
+
+    <script>
+        // Mock Capacitor APIs for testing
+        window.Device = {
+            getInfo: async () => ({
+                platform: 'ios',
+                locale: 'en-US'
+            })
+        };
+
+        window.Network = {
+            getStatus: async () => ({
+                connected: true,
+                connectionType: 'wifi'
+            }),
+            addListener: () => {}
+        };
+
+        window.Toast = {
+            show: async (options) => {
+                console.log('Toast:', options.text);
+                alert(options.text);
+            }
+        };
+
+        window.App = {
+            addListener: () => {}
+        };
+
+        // Mock mobile API client
+        class MobileAPIClient {
+            constructor() {
+                this.baseURL = 'https://api-us.ieltsaiprep.com';
+                this.region = 'us-east-1';
+                this.sessionToken = null;
+                this.qrAuthToken = null;
+            }
+
+            async makeAPICall(endpoint, method = 'POST', data = null) {
+                console.log(`API Call: ${method} ${endpoint}`, data);
+                return { success: true, message: 'Mock API response' };
+            }
+
+            async registerUser(email, password) {
+                return this.makeAPICall('/auth/register', 'POST', { email, password });
+            }
+
+            async loginUser(email, password) {
+                return this.makeAPICall('/auth/login', 'POST', { email, password });
+            }
+
+            async generateQRTokenAfterPurchase(userEmail, productId) {
+                return this.makeAPICall('/auth/generate-qr', 'POST', { userEmail, productId });
+            }
+
+            async verifyApplePurchase(receiptData, productId) {
+                return this.makeAPICall('/purchase/verify-apple', 'POST', { receiptData, productId });
+            }
+
+            async submitSpeechAssessment(audioData, assessmentType) {
+                return this.makeAPICall('/assessment/speech', 'POST', { audioData, assessmentType });
+            }
+
+            async submitWritingAssessment(essayText, prompt, assessmentType) {
+                return this.makeAPICall('/assessment/writing', 'POST', { essayText, prompt, assessmentType });
+            }
+        }
+
+        // Mock purchase manager
+        class iOSPurchaseManager {
+            constructor(apiClient) {
+                this.apiClient = apiClient;
+                this.products = [
+                    'academic_speaking_assessment',
+                    'academic_writing_assessment', 
+                    'general_speaking_assessment',
+                    'general_writing_assessment'
+                ];
+            }
+
+            async initializePurchases() {
+                console.log('Purchase system initialized');
+            }
+
+            async purchaseProduct(productId, userEmail) {
+                console.log(`Mock purchase: ${productId} for ${userEmail}`);
+                
+                // Simulate purchase success with QR code
+                const qrData = {
+                    success: true,
+                    qr_code_image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                    token_id: 'mock-token-123',
+                    user_email: userEmail,
+                    product_id: productId
+                };
+
+                await this.showPurchaseSuccessWithQR(productId, qrData);
+                return { success: true };
+            }
+
+            async showPurchaseSuccessWithQR(productId, qrData) {
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 350px; width: 100%; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                            <h3 style="font-size: 20px; font-weight: bold; color: #28a745; margin: 0 0 16px 0;">
+                                Purchase Successful!
+                            </h3>
+                            <p style="font-size: 14px; color: #666; margin: 0 0 20px 0;">
+                                ${productId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} purchased successfully
+                            </p>
+                            
+                            <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 16px 0;">
+                                <h4 style="font-size: 16px; color: #333; margin: 0 0 12px 0;">
+                                    🖥️ Access on Desktop/Laptop
+                                </h4>
+                                <div style="background: white; padding: 12px; border-radius: 8px; margin: 12px 0;">
+                                    <div style="width: 120px; height: 120px; background: #ddd; margin: 0 auto 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">
+                                        QR Code
+                                    </div>
+                                </div>
+                                <p style="font-size: 12px; color: #666; margin: 8px 0;">
+                                    1. Visit <strong>ieltsaiprep.com</strong> on your computer<br>
+                                    2. Scan this QR code with your mobile app<br>
+                                    3. Access your assessment on the web
+                                </p>
+                            </div>
+                            
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px;">
+                                Got it!
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            async restorePurchases() {
+                return [];
+            }
+        }
+
+        // Mock QR scanner
+        class QRCodeScanner {
+            constructor(apiClient) {
+                this.apiClient = apiClient;
+                this.isScanning = false;
+            }
+
+            async startScanning() {
+                if (this.isScanning) {
+                    throw new Error('Already scanning');
+                }
+
+                this.isScanning = true;
+                
+                try {
+                    alert('QR Scanner would open here.\n\nIn the real app, this would use the device camera to scan QR codes from ieltsaiprep.com');
+                    return 'mock-qr-token-123';
+                } finally {
+                    this.isScanning = false;
+                }
+            }
+
+            async authenticateWithWebsite(token, userEmail) {
+                console.log(`Authenticating ${userEmail} with token ${token}`);
+                return true;
+            }
+        }
+
+        // Main app class
+        class IELTSGenAIPrepApp {
+            constructor() {
+                this.apiClient = new MobileAPIClient();
+                this.purchaseManager = new iOSPurchaseManager(this.apiClient);
+                this.qrScanner = new QRCodeScanner(this.apiClient);
+                this.currentUser = { email: 'test@example.com' };
+            }
+
+            async initialize() {
+                try {
+                    await this.purchaseManager.initializePurchases();
+                    this.setupHomeScreen();
+                    console.log('IELTS GenAI Prep app initialized successfully');
+                } catch (error) {
+                    console.error('App initialization failed:', error);
+                }
+            }
+
+            setupHomeScreen() {
+                const homeContainer = document.getElementById('home-screen');
+                
+                const homeScreenHTML = `
+                    <div id="ielts-home-screen" style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                        <!-- Top Half: Web Version Access Information -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 20px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">
+                                📱 ➜ 💻 Access Anywhere
+                            </div>
+                            <div style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
+                                Use your mobile purchases on desktop and laptop too!
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                                <div style="font-size: 14px; margin-bottom: 8px;">
+                                    <strong>After purchasing assessments:</strong>
+                                </div>
+                                <div style="font-size: 14px; line-height: 1.4;">
+                                    1. Get your QR code from the purchase confirmation<br>
+                                    2. Visit <strong>ieltsaiprep.com</strong> on your computer<br>
+                                    3. Scan the QR code to access your assessments
+                                </div>
+                            </div>
+                            <button id="learn-more-web-access" style="background: white; color: #667eea; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                                Learn More About Web Access
+                            </button>
+                        </div>
+
+                        <!-- Assessment Products Section -->
+                        <div style="margin-bottom: 20px;">
+                            <h2 style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 16px;">
+                                IELTS Assessment Products
+                            </h2>
+                            <div style="display: grid; gap: 12px;">
+                                ${this.generateProductCards()}
+                            </div>
+                        </div>
+
+                        <!-- QR Scanner Section -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: center;">
+                            <h3 style="font-size: 18px; color: #333; margin-bottom: 12px;">
+                                Already have web access?
+                            </h3>
+                            <p style="font-size: 14px; color: #666; margin-bottom: 16px;">
+                                Scan QR codes from ieltsaiprep.com to authenticate
+                            </p>
+                            <button id="qr-scan-button" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
+                                Scan QR Code
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                homeContainer.innerHTML = homeScreenHTML;
+                this.setupHomeScreenListeners();
+            }
+
+            generateProductCards() {
+                const products = [
+                    {
+                        id: 'academic_speaking_assessment',
+                        title: 'Academic Speaking',
+                        description: 'AI-powered speaking assessment with Maya examiner',
+                        price: '$36.00'
+                    },
+                    {
+                        id: 'academic_writing_assessment', 
+                        title: 'Academic Writing',
+                        description: 'Comprehensive writing evaluation and feedback',
+                        price: '$36.00'
+                    },
+                    {
+                        id: 'general_speaking_assessment',
+                        title: 'General Speaking',
+                        description: 'General IELTS speaking practice and assessment',
+                        price: '$36.00'
+                    },
+                    {
+                        id: 'general_writing_assessment',
+                        title: 'General Writing',
+                        description: 'General IELTS writing tasks and evaluation',
+                        price: '$36.00'
+                    }
+                ];
+
+                return products.map(product => `
+                    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 16px; font-weight: 600; color: #333; margin: 0 0 8px 0;">
+                                    ${product.title}
+                                </h4>
+                                <p style="font-size: 14px; color: #666; margin: 0 0 12px 0;">
+                                    ${product.description}
+                                </p>
+                                <div style="font-size: 18px; font-weight: bold; color: #007bff;">
+                                    ${product.price}
+                                </div>
+                            </div>
+                            <button class="purchase-btn" data-product="${product.id}" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; margin-left: 12px;">
+                                Purchase
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            setupHomeScreenListeners() {
+                const learnMoreBtn = document.getElementById('learn-more-web-access');
+                if (learnMoreBtn) {
+                    learnMoreBtn.addEventListener('click', () => {
+                        this.showWebAccessInfo();
+                    });
+                }
+
+                const qrScanBtn = document.getElementById('qr-scan-button');
+                if (qrScanBtn) {
+                    qrScanBtn.addEventListener('click', () => {
+                        this.handleQRScan();
+                    });
+                }
+
+                const purchaseBtns = document.querySelectorAll('.purchase-btn');
+                purchaseBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = e.target.getAttribute('data-product');
+                        if (productId) {
+                            this.handlePurchase(productId);
+                        }
+                    });
+                });
+            }
+
+            async showWebAccessInfo() {
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 350px; width: 100%; max-height: 80vh; overflow-y: auto;">
+                            <h3 style="font-size: 20px; font-weight: bold; color: #333; margin: 0 0 16px 0; text-align: center;">
+                                🖥️ Web Access Guide
+                            </h3>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="font-size: 16px; font-weight: 600; color: #333; margin: 0 0 8px 0;">
+                                    How it works:
+                                </h4>
+                                <ol style="font-size: 14px; line-height: 1.6; color: #666; padding-left: 20px;">
+                                    <li>Purchase any assessment product in this mobile app</li>
+                                    <li>After successful purchase, you'll receive a QR code</li>
+                                    <li>Go to <strong>ieltsaiprep.com</strong> on your desktop or laptop</li>
+                                    <li>Scan the QR code with this mobile app</li>
+                                    <li>Access your purchased assessments on the web platform</li>
+                                </ol>
+                            </div>
+
+                            <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                                <h4 style="font-size: 14px; font-weight: 600; color: #1976d2; margin: 0 0 8px 0;">
+                                    ✨ Benefits of Web Access:
+                                </h4>
+                                <ul style="font-size: 13px; line-height: 1.5; color: #1976d2; margin: 0; padding-left: 16px;">
+                                    <li>Larger screen for writing assessments</li>
+                                    <li>Full keyboard support</li>
+                                    <li>Better audio quality for speaking tests</li>
+                                    <li>Seamless sync between mobile and web</li>
+                                </ul>
+                            </div>
+
+                            <div style="text-align: center;">
+                                <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
+                                    Got it!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+            }
+
+            async handlePurchase(productId) {
+                try {
+                    await this.purchaseManager.purchaseProduct(productId, this.currentUser.email);
+                } catch (error) {
+                    console.error('Purchase failed:', error);
+                    alert('Purchase failed: ' + error.message);
+                }
+            }
+
+            async handleQRScan() {
+                try {
+                    const token = await this.qrScanner.startScanning();
+                    const success = await this.qrScanner.authenticateWithWebsite(token, this.currentUser.email);
+                    
+                    if (success) {
+                        alert('Successfully authenticated with website!');
+                    } else {
+                        throw new Error('Authentication failed');
+                    }
+                } catch (error) {
+                    alert(`QR authentication failed: ${error.message}`);
+                }
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', async () => {
+            const app = new IELTSGenAIPrepApp();
+            await app.initialize();
+        });
+    </script>
+</body>
+</html>

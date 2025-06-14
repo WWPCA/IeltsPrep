@@ -458,6 +458,9 @@ class IELTSGenAIPrepApp {
       // Initialize all components
       await this.purchaseManager.initializePurchases();
       
+      // Set up the home screen UI
+      this.setupHomeScreen();
+      
       // Set up app state listeners
       App.addListener('appStateChange', ({ isActive }) => {
         if (isActive) {
@@ -477,6 +480,204 @@ class IELTSGenAIPrepApp {
       console.error('App initialization failed:', error);
       throw error;
     }
+  }
+
+  private setupHomeScreen(): void {
+    const homeContainer = document.getElementById('home-screen') || document.body;
+    
+    const homeScreenHTML = `
+      <div id="ielts-home-screen" style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <!-- Top Half: Web Version Access Information -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 20px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">
+            📱 ➜ 💻 Access Anywhere
+          </div>
+          <div style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
+            Use your mobile purchases on desktop and laptop too!
+          </div>
+          <div style="background: rgba(255,255,255,0.2); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+            <div style="font-size: 14px; margin-bottom: 8px;">
+              <strong>After purchasing assessments:</strong>
+            </div>
+            <div style="font-size: 14px; line-height: 1.4;">
+              1. Get your QR code from the purchase confirmation<br>
+              2. Visit <strong>ieltsaiprep.com</strong> on your computer<br>
+              3. Scan the QR code to access your assessments
+            </div>
+          </div>
+          <button id="learn-more-web-access" style="background: white; color: #667eea; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+            Learn More About Web Access
+          </button>
+        </div>
+
+        <!-- Assessment Products Section -->
+        <div style="margin-bottom: 20px;">
+          <h2 style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 16px;">
+            IELTS Assessment Products
+          </h2>
+          <div style="display: grid; gap: 12px;">
+            ${this.generateProductCards()}
+          </div>
+        </div>
+
+        <!-- QR Scanner Section -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: center;">
+          <h3 style="font-size: 18px; color: #333; margin-bottom: 12px;">
+            Already have web access?
+          </h3>
+          <p style="font-size: 14px; color: #666; margin-bottom: 16px;">
+            Scan QR codes from ieltsaiprep.com to authenticate
+          </p>
+          <button id="qr-scan-button" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
+            Scan QR Code
+          </button>
+        </div>
+      </div>
+    `;
+    
+    homeContainer.innerHTML = homeScreenHTML;
+    
+    // Set up event listeners
+    this.setupHomeScreenListeners();
+  }
+
+  private generateProductCards(): string {
+    const products = [
+      {
+        id: 'academic_speaking_assessment',
+        title: 'Academic Speaking',
+        description: 'AI-powered speaking assessment with Maya examiner',
+        price: '$36.00'
+      },
+      {
+        id: 'academic_writing_assessment', 
+        title: 'Academic Writing',
+        description: 'Comprehensive writing evaluation and feedback',
+        price: '$36.00'
+      },
+      {
+        id: 'general_speaking_assessment',
+        title: 'General Speaking',
+        description: 'General IELTS speaking practice and assessment',
+        price: '$36.00'
+      },
+      {
+        id: 'general_writing_assessment',
+        title: 'General Writing',
+        description: 'General IELTS writing tasks and evaluation',
+        price: '$36.00'
+      }
+    ];
+
+    return products.map(product => `
+      <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="flex: 1;">
+            <h4 style="font-size: 16px; font-weight: 600; color: #333; margin: 0 0 8px 0;">
+              ${product.title}
+            </h4>
+            <p style="font-size: 14px; color: #666; margin: 0 0 12px 0;">
+              ${product.description}
+            </p>
+            <div style="font-size: 18px; font-weight: bold; color: #007bff;">
+              ${product.price}
+            </div>
+          </div>
+          <button class="purchase-btn" data-product="${product.id}" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; margin-left: 12px;">
+            Purchase
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  private setupHomeScreenListeners(): void {
+    // Learn more about web access
+    const learnMoreBtn = document.getElementById('learn-more-web-access');
+    if (learnMoreBtn) {
+      learnMoreBtn.addEventListener('click', () => {
+        this.showWebAccessInfo();
+      });
+    }
+
+    // QR scanner button
+    const qrScanBtn = document.getElementById('qr-scan-button');
+    if (qrScanBtn) {
+      qrScanBtn.addEventListener('click', () => {
+        this.handleQRScan();
+      });
+    }
+
+    // Purchase buttons
+    const purchaseBtns = document.querySelectorAll('.purchase-btn');
+    purchaseBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const productId = (e.target as HTMLElement).getAttribute('data-product');
+        if (productId) {
+          this.handlePurchase(productId);
+        }
+      });
+    });
+  }
+
+  private async showWebAccessInfo(): Promise<void> {
+    const modal = document.createElement('div');
+    modal.innerHTML = `
+      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; max-height: 80vh; overflow-y: auto;">
+          <h3 style="font-size: 20px; font-weight: bold; color: #333; margin: 0 0 16px 0; text-align: center;">
+            🖥️ Web Access Guide
+          </h3>
+          
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 16px; font-weight: 600; color: #333; margin: 0 0 8px 0;">
+              How it works:
+            </h4>
+            <ol style="font-size: 14px; line-height: 1.6; color: #666; padding-left: 20px;">
+              <li>Purchase any assessment product in this mobile app</li>
+              <li>After successful purchase, you'll receive a QR code</li>
+              <li>Go to <strong>ieltsaiprep.com</strong> on your desktop or laptop</li>
+              <li>Scan the QR code with this mobile app</li>
+              <li>Access your purchased assessments on the web platform</li>
+            </ol>
+          </div>
+
+          <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <h4 style="font-size: 14px; font-weight: 600; color: #1976d2; margin: 0 0 8px 0;">
+              ✨ Benefits of Web Access:
+            </h4>
+            <ul style="font-size: 13px; line-height: 1.5; color: #1976d2; margin: 0; padding-left: 16px;">
+              <li>Larger screen for writing assessments</li>
+              <li>Full keyboard support</li>
+              <li>Better audio quality for speaking tests</li>
+              <li>Seamless sync between mobile and web</li>
+            </ul>
+          </div>
+
+          <div style="text-align: center;">
+            <button id="close-web-info" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
+              Got it!
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeBtn = modal.querySelector('#close-web-info');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modal.remove();
+      });
+    }
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
   }
 
   async handlePurchase(productId: string): Promise<void> {
