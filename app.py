@@ -75,6 +75,8 @@ def lambda_handler(event, context):
             return handle_mobile_qr_scan(data)
         elif path == '/qr-auth' and method == 'GET':
             return handle_qr_auth_page()
+        elif path == '/profile' and method == 'GET':
+            return handle_profile_page(headers)
         elif path == '/test_mobile_home_screen.html' and method == 'GET':
             return handle_static_file('test_mobile_home_screen.html')
         elif path == '/' and method == 'GET':
@@ -159,6 +161,83 @@ def handle_qr_auth_page() -> Dict[str, Any]:
             'statusCode': 404,
             'headers': {'Content-Type': 'text/html'},
             'body': '<h1>QR Authentication page not found</h1>'
+        }
+
+def handle_profile_page(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Serve user profile page with session verification"""
+    try:
+        # Check for valid session cookie
+        cookie_header = headers.get('cookie', '')
+        session_id = None
+        
+        # Extract session ID from cookies
+        if 'web_session_id=' in cookie_header:
+            for cookie in cookie_header.split(';'):
+                if 'web_session_id=' in cookie:
+                    session_id = cookie.split('=')[1].strip()
+                    break
+        
+        if not session_id:
+            # No session found, redirect to QR auth
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': '/qr-auth',
+                    'Content-Type': 'text/html'
+                },
+                'body': ''
+            }
+        
+        # Verify session exists and is valid
+        session_data = aws_mock.get_session(session_id)
+        if not session_data:
+            # Invalid session, redirect to QR auth
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': '/qr-auth',
+                    'Content-Type': 'text/html'
+                },
+                'body': ''
+            }
+        
+        # Check session expiry
+        if session_data.get('expires_at', 0) < time.time():
+            # Session expired
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': '/qr-auth',
+                    'Content-Type': 'text/html'
+                },
+                'body': ''
+            }
+        
+        # Load profile page template
+        with open('templates/profile.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+        
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Profile page not found</h1>'
+        }
+    except Exception as e:
+        print(f"[CLOUDWATCH] Profile page error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error loading profile: {str(e)}</h1>'
         }
 
 def handle_apple_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:

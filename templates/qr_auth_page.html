@@ -278,6 +278,12 @@
                         statusElement.className = 'status-message status-success';
                         statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Authentication successful! Redirecting...';
                         
+                        // Store user info in session storage for profile page
+                        sessionStorage.setItem('user_info', JSON.stringify({
+                            email: result.user_email,
+                            products: result.products
+                        }));
+                        
                         // Redirect to user's assessments
                         setTimeout(() => {
                             window.location.href = '/profile';

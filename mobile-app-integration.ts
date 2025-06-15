@@ -725,15 +725,40 @@ class IELTSGenAIPrepApp {
 
   async handleQRScan(): Promise<void> {
     try {
-      const token = await this.qrScanner.startScanning();
+      // Check if user is logged in and has purchases
+      if (!this.currentUser?.email) {
+        await Toast.show({
+          text: 'Please log in first to authenticate with website',
+          duration: 'long',
+          position: 'center'
+        });
+        return;
+      }
+
+      // Get user's purchased products
+      const userProducts = this.currentUser.products || [];
+      if (userProducts.length === 0) {
+        await Toast.show({
+          text: 'No purchased products found. Please make a purchase first.',
+          duration: 'long',
+          position: 'center'
+        });
+        return;
+      }
+
+      // Start scanning
+      const qrData = await this.qrScanner.startScanning();
+      
+      // Authenticate with website using user's products
       const success = await this.qrScanner.authenticateWithWebsite(
-        token,
-        this.currentUser?.email || ''
+        qrData,
+        this.currentUser.email,
+        userProducts
       );
 
       if (success) {
         await Toast.show({
-          text: 'Successfully authenticated with website!',
+          text: 'Website authenticated! You can now access your assessments on ieltsaiprep.com',
           duration: 'long',
           position: 'center'
         });
