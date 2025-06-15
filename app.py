@@ -61,6 +61,10 @@ def lambda_handler(event, context):
             return handle_generate_qr(data)
         elif path == '/api/auth/verify-qr' and method == 'POST':
             return handle_verify_qr(data)
+        elif path == '/purchase/verify/apple' and method == 'POST':
+            return handle_apple_purchase_verification(data)
+        elif path == '/purchase/verify/google' and method == 'POST':
+            return handle_google_purchase_verification(data)
         elif path.startswith('/assessment/') and method == 'GET':
             return handle_assessment_access(path, headers)
         elif path == '/test_mobile_home_screen.html' and method == 'GET':
@@ -127,6 +131,124 @@ def handle_home_page() -> Dict[str, Any]:
         },
         'body': ''
     }
+
+def handle_apple_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle Apple App Store in-app purchase verification"""
+    try:
+        receipt_data = data.get('receipt_data')
+        product_id = data.get('product_id')
+        
+        if not receipt_data or not product_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Missing receipt_data or product_id'
+                })
+            }
+        
+        print(f"[CLOUDWATCH] Apple purchase verification: {product_id}")
+        
+        # In development environment, simulate successful verification
+        # In production, this would verify with Apple's App Store servers
+        verification_result = {
+            'success': True,
+            'product_id': product_id,
+            'transaction_id': f"apple_txn_{int(time.time())}",
+            'verified': True,
+            'environment': 'development'
+        }
+        
+        # Store purchase record in DynamoDB
+        purchase_record = {
+            'transaction_id': verification_result['transaction_id'],
+            'product_id': product_id,
+            'platform': 'apple',
+            'verified_at': datetime.utcnow().isoformat(),
+            'receipt_data': receipt_data[:50] + "..." if len(receipt_data) > 50 else receipt_data
+        }
+        
+        # Store in mock DynamoDB purchase records table
+        aws_mock.purchase_records_table.put_item(purchase_record)
+        
+        print(f"[CLOUDWATCH] Apple purchase verified: {verification_result['transaction_id']}")
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps(verification_result)
+        }
+        
+    except Exception as e:
+        print(f"[CLOUDWATCH] Apple purchase verification error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': False, 'error': str(e)})
+        }
+
+def handle_google_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle Google Play Store in-app purchase verification"""
+    try:
+        purchase_token = data.get('purchase_token')
+        product_id = data.get('product_id')
+        
+        if not purchase_token or not product_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Missing purchase_token or product_id'
+                })
+            }
+        
+        print(f"[CLOUDWATCH] Google purchase verification: {product_id}")
+        
+        # In development environment, simulate successful verification
+        # In production, this would verify with Google Play Developer API
+        verification_result = {
+            'success': True,
+            'product_id': product_id,
+            'transaction_id': f"google_txn_{int(time.time())}",
+            'verified': True,
+            'environment': 'development'
+        }
+        
+        # Store purchase record in DynamoDB
+        purchase_record = {
+            'transaction_id': verification_result['transaction_id'],
+            'product_id': product_id,
+            'platform': 'google',
+            'verified_at': datetime.utcnow().isoformat(),
+            'purchase_token': purchase_token[:50] + "..." if len(purchase_token) > 50 else purchase_token
+        }
+        
+        # Store in mock DynamoDB purchase records table
+        aws_mock.purchase_records_table.put_item(purchase_record)
+        
+        print(f"[CLOUDWATCH] Google purchase verified: {verification_result['transaction_id']}")
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps(verification_result)
+        }
+        
+    except Exception as e:
+        print(f"[CLOUDWATCH] Google purchase verification error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': False, 'error': str(e)})
+        }
 
 def handle_generate_qr(data: Dict[str, Any]) -> Dict[str, Any]:
     """Handle QR token generation after purchase verification"""
