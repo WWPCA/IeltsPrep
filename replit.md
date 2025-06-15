@@ -104,7 +104,9 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Added comprehensive ClearScore® GenAI Speaking Assessment section with detailed features
   - Created "Learn More Details" modals with full product information including technology explanations
   - Updated all branding to consistently highlight "GenAI" technology throughout the app
-  - Integrated purchase flow with QR code generation for seamless mobile-to-web transition
+  - Fixed missing in-app purchase verification routes for Apple and Google platforms
+  - Integrated complete purchase flow: mobile purchase → verification → QR generation → web access
+  - Added purchase record storage in DynamoDB for transaction tracking
   - Provided consistent information matching website to help users understand products before purchase
 
 ## Changelog

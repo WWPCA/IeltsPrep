@@ -67,6 +67,14 @@ def lambda_handler(event, context):
             return handle_google_purchase_verification(data)
         elif path.startswith('/assessment/') and method == 'GET':
             return handle_assessment_access(path, headers)
+        elif path == '/api/website/request-qr' and method == 'POST':
+            return handle_website_qr_request(data)
+        elif path == '/api/website/check-auth' and method == 'POST':
+            return handle_website_auth_check(data)
+        elif path == '/api/mobile/scan-qr' and method == 'POST':
+            return handle_mobile_qr_scan(data)
+        elif path == '/qr-auth' and method == 'GET':
+            return handle_static_file('templates/qr_auth_page.html')
         elif path == '/test_mobile_home_screen.html' and method == 'GET':
             return handle_static_file('test_mobile_home_screen.html')
         elif path == '/' and method == 'GET':
@@ -244,6 +252,241 @@ def handle_google_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
         
     except Exception as e:
         print(f"[CLOUDWATCH] Google purchase verification error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': False, 'error': str(e)})
+        }
+
+def handle_website_qr_request(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle website QR authentication request - generates unique QR for website login"""
+    try:
+        # Generate unique website authentication token
+        website_token_id = str(uuid.uuid4())
+        
+        # Create QR data with unique identifier and domain verification
+        qr_data = {
+            'type': 'website_auth',
+            'token_id': website_token_id,
+            'domain': 'ieltsaiprep.com',
+            'timestamp': datetime.utcnow().isoformat(),
+            'expires_at': (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+        }
+        
+        # Store authentication token in DynamoDB with pending status
+        auth_token = {
+            'token_id': website_token_id,
+            'type': 'website_auth',
+            'status': 'pending',
+            'created_at': datetime.utcnow().isoformat(),
+            'expires_at': (datetime.utcnow() + timedelta(minutes=10)).isoformat(),
+            'authenticated_user': None,
+            'user_products': None
+        }
+        
+        aws_mock.store_qr_token(auth_token)
+        
+        # Generate QR code image
+        qr_code_image = generate_qr_code(json.dumps(qr_data))
+        
+        print(f"[CLOUDWATCH] Website QR token generated: {website_token_id}")
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'success': True,
+                'token_id': website_token_id,
+                'qr_code_image': qr_code_image,
+                'expires_at': auth_token['expires_at'],
+                'expires_in_minutes': 10
+            })
+        }
+        
+    except Exception as e:
+        print(f"[CLOUDWATCH] Website QR request error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': False, 'error': str(e)})
+        }
+
+def handle_website_auth_check(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Check if website QR token has been authenticated by mobile app"""
+    try:
+        token_id = data.get('token_id')
+        
+        if not token_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'authenticated': False, 'error': 'Missing token_id'})
+            }
+        
+        # Get token from DynamoDB
+        token_data = aws_mock.get_qr_token(token_id)
+        
+        if not token_data:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'authenticated': False, 'expired': True})
+            }
+        
+        # Check if token has expired
+        expires_at = datetime.fromisoformat(token_data['expires_at'])
+        if datetime.utcnow() > expires_at:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'authenticated': False, 'expired': True})
+            }
+        
+        # Check authentication status
+        if token_data.get('status') == 'authenticated':
+            # Create website session for authenticated user
+            session_id = f"web_session_{int(time.time())}_{token_id[:8]}"
+            session_data = {
+                'session_id': session_id,
+                'user_email': token_data['authenticated_user'],
+                'products': token_data['user_products'],
+                'created_at': datetime.utcnow().isoformat(),
+                'expires_at': time.time() + 3600,  # 1 hour
+                'auth_method': 'mobile_qr'
+            }
+            
+            aws_mock.create_session(session_data)
+            
+            print(f"[CLOUDWATCH] Website session created: {session_id} for {token_data['authenticated_user']}")
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Set-Cookie': f'web_session_id={session_id}; Max-Age=3600; Path=/'
+                },
+                'body': json.dumps({
+                    'authenticated': True,
+                    'user_email': token_data['authenticated_user'],
+                    'products': token_data['user_products'],
+                    'session_id': session_id
+                })
+            }
+        else:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'authenticated': False, 'waiting': True})
+            }
+            
+    except Exception as e:
+        print(f"[CLOUDWATCH] Website auth check error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'authenticated': False, 'error': str(e)})
+        }
+
+def handle_mobile_qr_scan(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle mobile app scanning website QR code - authenticates specific user"""
+    try:
+        qr_data = data.get('qr_data')
+        user_email = data.get('user_email')
+        user_products = data.get('user_products', [])
+        
+        if not qr_data or not user_email:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Missing qr_data or user_email'
+                })
+            }
+        
+        # Parse QR data
+        try:
+            qr_info = json.loads(qr_data)
+        except json.JSONDecodeError:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Invalid QR code format'
+                })
+            }
+        
+        # Validate QR code structure
+        if (qr_info.get('type') != 'website_auth' or 
+            qr_info.get('domain') != 'ieltsaiprep.com' or 
+            not qr_info.get('token_id')):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Invalid QR code - not an IELTS GenAI Prep authentication code'
+                })
+            }
+        
+        token_id = qr_info['token_id']
+        
+        # Get and validate token
+        token_data = aws_mock.get_qr_token(token_id)
+        
+        if not token_data:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'QR code expired or invalid'
+                })
+            }
+        
+        # Check if already used
+        if token_data.get('status') == 'authenticated':
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'QR code already used'
+                })
+            }
+        
+        # Update token with user authentication
+        token_data['status'] = 'authenticated'
+        token_data['authenticated_user'] = user_email
+        token_data['user_products'] = user_products
+        token_data['authenticated_at'] = datetime.utcnow().isoformat()
+        
+        aws_mock.store_qr_token(token_data)
+        
+        print(f"[CLOUDWATCH] Mobile QR scan successful: {user_email} authenticated token {token_id}")
+        print(f"[CLOUDWATCH] User products: {user_products}")
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'success': True,
+                'message': 'Authentication successful',
+                'user_email': user_email,
+                'products': user_products
+            })
+        }
+        
+    except Exception as e:
+        print(f"[CLOUDWATCH] Mobile QR scan error: {str(e)}")
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
