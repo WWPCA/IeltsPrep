@@ -74,7 +74,7 @@ def lambda_handler(event, context):
         elif path == '/api/mobile/scan-qr' and method == 'POST':
             return handle_mobile_qr_scan(data)
         elif path == '/qr-auth' and method == 'GET':
-            return handle_static_file('templates/qr_auth_page.html')
+            return handle_qr_auth_page()
         elif path == '/test_mobile_home_screen.html' and method == 'GET':
             return handle_static_file('test_mobile_home_screen.html')
         elif path == '/' and method == 'GET':
@@ -130,15 +130,36 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
         }
 
 def handle_home_page() -> Dict[str, Any]:
-    """Handle home page - redirect to mobile test"""
+    """Handle home page - redirect to QR authentication"""
     return {
         'statusCode': 302,
         'headers': {
-            'Location': '/test_mobile_home_screen.html',
+            'Location': '/qr-auth',
             'Access-Control-Allow-Origin': '*'
         },
         'body': ''
     }
+
+def handle_qr_auth_page() -> Dict[str, Any]:
+    """Serve QR authentication page"""
+    try:
+        with open('templates/qr_auth_page.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>QR Authentication page not found</h1>'
+        }
 
 def handle_apple_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
     """Handle Apple App Store in-app purchase verification"""

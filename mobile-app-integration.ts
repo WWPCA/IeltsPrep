@@ -410,13 +410,7 @@ class QRCodeScanner {
       const result = await window.BarcodeScanner.startScan();
       
       if (result.hasContent) {
-        const qrData = JSON.parse(result.content);
-        
-        if (qrData.domain === 'ieltsaiprep.com' && qrData.token) {
-          return qrData.token;
-        } else {
-          throw new Error('Invalid QR code format');
-        }
+        return result.content; // Return raw QR content for processing
       } else {
         throw new Error('No QR code detected');
       }
@@ -425,17 +419,41 @@ class QRCodeScanner {
     }
   }
 
-  async authenticateWithWebsite(token: string, userEmail: string): Promise<boolean> {
+  async authenticateWithWebsite(qrData: string, userEmail: string, userProducts: string[]): Promise<boolean> {
     try {
-      const result = await this.apiClient.makeAPICall('/mobile-authenticate', 'POST', {
-        token,
-        user_email: userEmail
+      const response = await this.apiClient.makeAPICall('/api/mobile/scan-qr', 'POST', {
+        qr_data: qrData,
+        user_email: userEmail,
+        user_products: userProducts
       });
 
-      return result.success;
+      if (response.success) {
+        await this.showToast(`Website authenticated for ${userEmail}`, 'center');
+        return true;
+      } else {
+        await this.showToast(response.error || 'Authentication failed', 'center');
+        return false;
+      }
     } catch (error) {
       console.error('Website authentication failed:', error);
+      await this.showToast('Network error during authentication', 'center');
       return false;
+    }
+  }
+
+  private async showToast(message: string, position: 'top' | 'center' | 'bottom' = 'bottom'): Promise<void> {
+    try {
+      if (window.Capacitor && window.Capacitor.Plugins.Toast) {
+        await window.Capacitor.Plugins.Toast.show({
+          text: message,
+          duration: 'short',
+          position: position
+        });
+      } else {
+        console.log(`Toast: ${message}`);
+      }
+    } catch (error) {
+      console.log(`Toast fallback: ${message}`);
     }
   }
 }
