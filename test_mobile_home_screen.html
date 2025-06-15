@@ -284,53 +284,142 @@
             }
 
             generateProductCards() {
-                const products = [
+                const writingProducts = [
                     {
-                        id: 'academic_speaking_assessment',
-                        title: 'Academic Speaking',
-                        description: 'AI-powered speaking assessment with Maya examiner',
-                        price: '$36.00'
-                    },
-                    {
-                        id: 'academic_writing_assessment', 
+                        id: 'academic_writing_assessment',
                         title: 'Academic Writing',
-                        description: 'Comprehensive writing evaluation and feedback',
-                        price: '$36.00'
-                    },
-                    {
-                        id: 'general_speaking_assessment',
-                        title: 'General Speaking',
-                        description: 'General IELTS speaking practice and assessment',
+                        brand: 'TrueScore®',
+                        icon: '📝',
+                        brandColor: '#28a745',
+                        description: 'Professional-grade assessment of IELTS Academic writing tasks',
+                        features: [
+                            'Task 1: Graph/chart description',
+                            'Task 2: Academic essay writing',
+                            'TrueScore® GenAI detailed feedback'
+                        ],
+                        sets: '4 complete assessment sets',
                         price: '$36.00'
                     },
                     {
                         id: 'general_writing_assessment',
                         title: 'General Writing',
-                        description: 'General IELTS writing tasks and evaluation',
+                        brand: 'TrueScore®',
+                        icon: '✍️',
+                        brandColor: '#28a745',
+                        description: 'Expert assessment for IELTS General Training writing',
+                        features: [
+                            'Task 1: Formal & informal letters',
+                            'Task 2: General essay writing',
+                            'TrueScore® GenAI detailed feedback'
+                        ],
+                        sets: '4 complete assessment sets',
                         price: '$36.00'
                     }
                 ];
 
-                return products.map(product => `
-                    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                            <div style="flex: 1;">
-                                <h4 style="font-size: 16px; font-weight: 600; color: #333; margin: 0 0 8px 0;">
-                                    ${product.title}
-                                </h4>
-                                <p style="font-size: 14px; color: #666; margin: 0 0 12px 0;">
-                                    ${product.description}
-                                </p>
-                                <div style="font-size: 18px; font-weight: bold; color: #007bff;">
-                                    ${product.price}
-                                </div>
-                            </div>
-                            <button class="purchase-btn" data-product="${product.id}" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; margin-left: 12px;">
-                                Purchase
-                            </button>
+                const speakingProducts = [
+                    {
+                        id: 'academic_speaking_assessment',
+                        title: 'Academic Speaking',
+                        brand: 'ClearScore®',
+                        icon: '🎤',
+                        brandColor: '#007bff',
+                        description: 'Advanced speech analysis for IELTS Academic speaking',
+                        features: [
+                            'All 3 speaking parts covered',
+                            'ClearScore® GenAI speech analysis',
+                            'Real-time speech feedback'
+                        ],
+                        sets: '4 complete assessment sets',
+                        price: '$36.00'
+                    },
+                    {
+                        id: 'general_speaking_assessment',
+                        title: 'General Speaking',
+                        brand: 'ClearScore®',
+                        icon: '🗣️',
+                        brandColor: '#007bff',
+                        description: 'Professional speaking assessment for General Training',
+                        features: [
+                            'All 3 speaking parts covered',
+                            'ClearScore® GenAI analysis',
+                            'Pronunciation & fluency feedback'
+                        ],
+                        sets: '4 complete assessment sets',
+                        price: '$36.00'
+                    }
+                ];
+
+                const generateSection = (title, products, brandInfo) => `
+                    <div style="margin-bottom: 32px;">
+                        <div style="text-align: center; margin-bottom: 20px; padding: 16px; background: ${brandInfo.bgColor}; border-radius: 12px;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">${brandInfo.icon}</div>
+                            <h3 style="font-size: 20px; font-weight: bold; color: ${brandInfo.color}; margin: 0 0 8px 0;">
+                                ${brandInfo.brand} ${title}
+                            </h3>
+                            <p style="font-size: 14px; color: ${brandInfo.textColor}; margin: 0; line-height: 1.4;">
+                                ${brandInfo.tagline}
+                            </p>
                         </div>
+                        ${products.map(product => `
+                            <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                            <span style="font-size: 20px; margin-right: 8px;">${product.icon}</span>
+                                            <h4 style="font-size: 16px; font-weight: 600; color: #333; margin: 0;">
+                                                ${product.title}
+                                            </h4>
+                                        </div>
+                                        <div style="font-size: 12px; font-weight: 600; color: ${product.brandColor}; margin-bottom: 8px;">
+                                            ${product.brand} Technology
+                                        </div>
+                                        <p style="font-size: 13px; color: #666; margin: 0 0 12px 0; line-height: 1.4;">
+                                            ${product.description}
+                                        </p>
+                                    </div>
+                                    <div style="font-size: 16px; font-weight: bold; color: ${product.brandColor}; margin-left: 12px;">
+                                        ${product.price}
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                                    <div style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 6px;">What's included:</div>
+                                    <ul style="font-size: 11px; color: #666; margin: 0; padding-left: 16px; line-height: 1.3;">
+                                        ${product.features.map(feature => `<li>${feature}</li>`).join('')}
+                                    </ul>
+                                    <div style="font-size: 11px; color: #28a745; font-weight: 600; margin-top: 6px;">
+                                        ✓ ${product.sets}
+                                    </div>
+                                </div>
+                                
+                                <button class="purchase-btn" data-product="${product.id}" style="width: 100%; background: ${product.brandColor}; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                                    Purchase ${product.title}
+                                </button>
+                                
+                                <button class="learn-more-btn" data-product="${product.id}" style="width: 100%; background: transparent; color: ${product.brandColor}; border: 1px solid ${product.brandColor}; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 500; margin-top: 8px;">
+                                    Learn More Details
+                                </button>
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('');
+                `;
+
+                return generateSection('Writing Assessment', writingProducts, {
+                    brand: 'TrueScore®',
+                    icon: '📝',
+                    color: '#28a745',
+                    bgColor: '#e8f5e8',
+                    textColor: '#155724',
+                    tagline: 'Professional-grade assessment with detailed feedback and scoring'
+                }) + generateSection('Speaking Assessment', speakingProducts, {
+                    brand: 'ClearScore®',
+                    icon: '🎤',
+                    color: '#007bff',
+                    bgColor: '#e3f2fd',
+                    textColor: '#1976d2',
+                    tagline: 'Advanced speech analysis to improve your speaking performance'
+                });
             }
 
             setupHomeScreenListeners() {
@@ -356,6 +445,190 @@
                             this.handlePurchase(productId);
                         }
                     });
+                });
+
+                const learnMoreBtns = document.querySelectorAll('.learn-more-btn');
+                learnMoreBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = e.target.getAttribute('data-product');
+                        if (productId) {
+                            this.showProductDetails(productId);
+                        }
+                    });
+                });
+            }
+
+            showProductDetails(productId) {
+                const productDetails = {
+                    academic_writing_assessment: {
+                        title: 'Academic Writing Assessment',
+                        brand: 'TrueScore®',
+                        color: '#28a745',
+                        icon: '📝',
+                        description: 'Professional-grade assessment designed specifically for IELTS Academic Writing tasks',
+                        features: [
+                            'Task 1: Data interpretation from graphs, charts, tables, and diagrams',
+                            'Task 2: Academic essay writing with argumentative structure',
+                            'TrueScore® GenAI provides detailed feedback on all 4 criteria',
+                            'Band score prediction with accuracy explanation',
+                            'Vocabulary enhancement suggestions',
+                            'Grammar and coherence analysis'
+                        ],
+                        whatYouGet: [
+                            '4 complete assessment sets (8 writing tasks total)',
+                            'Detailed feedback report for each task',
+                            'Band score breakdown by criteria',
+                            'Improvement recommendations',
+                            'Sample answers for comparison'
+                        ],
+                        technology: 'Uses advanced AI to analyze your writing across Task Achievement, Coherence & Cohesion, Lexical Resource, and Grammatical Range & Accuracy - the same criteria used by IELTS examiners.'
+                    },
+                    general_writing_assessment: {
+                        title: 'General Writing Assessment',
+                        brand: 'TrueScore®',
+                        color: '#28a745',
+                        icon: '✍️',
+                        description: 'Expert assessment designed for IELTS General Training Writing tasks',
+                        features: [
+                            'Task 1: Formal, semi-formal, and informal letter writing',
+                            'Task 2: General essay writing on everyday topics',
+                            'TrueScore® GenAI detailed feedback on all criteria',
+                            'Tone and register analysis for letters',
+                            'Practical writing improvement tips',
+                            'Real-world writing scenarios'
+                        ],
+                        whatYouGet: [
+                            '4 complete assessment sets (8 writing tasks total)',
+                            'Letter format and structure guidance',
+                            'Essay organization feedback',
+                            'Band score prediction with explanations',
+                            'Practical improvement strategies'
+                        ],
+                        technology: 'Specialized AI trained on General Training writing patterns, analyzing tone appropriateness, task completion, and practical communication effectiveness.'
+                    },
+                    academic_speaking_assessment: {
+                        title: 'Academic Speaking Assessment',
+                        brand: 'ClearScore®',
+                        color: '#007bff',
+                        icon: '🎤',
+                        description: 'Advanced speech analysis technology for IELTS Academic Speaking preparation',
+                        features: [
+                            'Part 1: Personal questions and familiar topics',
+                            'Part 2: Long turn speaking with preparation time',
+                            'Part 3: Abstract discussion and analysis',
+                            'ClearScore® GenAI real-time speech analysis',
+                            'Pronunciation accuracy assessment',
+                            'Fluency and coherence evaluation'
+                        ],
+                        whatYouGet: [
+                            '4 complete speaking test simulations',
+                            'Detailed pronunciation feedback',
+                            'Fluency analysis with timing insights',
+                            'Vocabulary usage assessment',
+                            'Improvement recommendations for each part'
+                        ],
+                        technology: 'State-of-the-art speech recognition analyzes pronunciation, intonation, fluency, and lexical resource usage in real-time, providing immediate feedback.'
+                    },
+                    general_speaking_assessment: {
+                        title: 'General Speaking Assessment',
+                        brand: 'ClearScore®',
+                        color: '#007bff',
+                        icon: '🗣️',
+                        description: 'Professional speaking assessment for IELTS General Training preparation',
+                        features: [
+                            'Part 1: Personal information and everyday topics',
+                            'Part 2: Describe experiences and situations',
+                            'Part 3: Practical discussions and opinions',
+                            'ClearScore® GenAI speech analysis',
+                            'Natural conversation flow assessment',
+                            'Practical communication evaluation'
+                        ],
+                        whatYouGet: [
+                            '4 complete speaking assessments',
+                            'Natural speech pattern analysis',
+                            'Communication effectiveness feedback',
+                            'Confidence building recommendations',
+                            'Real-world speaking practice scenarios'
+                        ],
+                        technology: 'Advanced AI specifically trained on General Training speaking patterns, focusing on everyday communication skills and practical language use.'
+                    }
+                };
+
+                const product = productDetails[productId];
+                if (!product) return;
+
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="background: white; border-radius: 16px; padding: 20px; max-width: 350px; width: 100%; max-height: 85vh; overflow-y: auto;">
+                            <div style="text-align: center; margin-bottom: 16px;">
+                                <div style="font-size: 40px; margin-bottom: 8px;">${product.icon}</div>
+                                <h3 style="font-size: 18px; font-weight: bold; color: ${product.color}; margin: 0 0 4px 0;">
+                                    ${product.brand} Technology
+                                </h3>
+                                <h4 style="font-size: 16px; font-weight: 600; color: #333; margin: 0 0 12px 0;">
+                                    ${product.title}
+                                </h4>
+                                <p style="font-size: 13px; color: #666; line-height: 1.4; margin: 0;">
+                                    ${product.description}
+                                </p>
+                            </div>
+
+                            <div style="margin-bottom: 16px;">
+                                <h5 style="font-size: 14px; font-weight: 600; color: #333; margin: 0 0 8px 0;">
+                                    Assessment Features:
+                                </h5>
+                                <ul style="font-size: 12px; color: #666; margin: 0; padding-left: 16px; line-height: 1.4;">
+                                    ${product.features.map(feature => `<li style="margin-bottom: 4px;">${feature}</li>`).join('')}
+                                </ul>
+                            </div>
+
+                            <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <h5 style="font-size: 14px; font-weight: 600; color: #333; margin: 0 0 8px 0;">
+                                    What You Get:
+                                </h5>
+                                <ul style="font-size: 12px; color: #666; margin: 0; padding-left: 16px; line-height: 1.4;">
+                                    ${product.whatYouGet.map(item => `<li style="margin-bottom: 4px;">${item}</li>`).join('')}
+                                </ul>
+                            </div>
+
+                            <div style="background: ${product.color}15; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <h5 style="font-size: 14px; font-weight: 600; color: ${product.color}; margin: 0 0 8px 0;">
+                                    How It Works:
+                                </h5>
+                                <p style="font-size: 12px; color: #555; line-height: 1.4; margin: 0;">
+                                    ${product.technology}
+                                </p>
+                            </div>
+
+                            <div style="text-align: center;">
+                                <button class="purchase-btn" data-product="${productId}" style="width: 100%; background: ${product.color}; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-bottom: 8px;">
+                                    Purchase Now - $36.00
+                                </button>
+                                <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: transparent; color: #666; border: 1px solid #ddd; padding: 8px 16px; border-radius: 6px; font-size: 12px;">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Add purchase functionality to the modal button
+                const modalPurchaseBtn = modal.querySelector('.purchase-btn');
+                if (modalPurchaseBtn) {
+                    modalPurchaseBtn.addEventListener('click', (e) => {
+                        modal.remove();
+                        this.handlePurchase(productId);
+                    });
+                }
+
+                // Close on backdrop click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
                 });
             }
 
