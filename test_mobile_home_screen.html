@@ -106,8 +106,9 @@
 
         // Mock purchase manager
         class iOSPurchaseManager {
-            constructor(apiClient) {
+            constructor(apiClient, appInstance) {
                 this.apiClient = apiClient;
+                this.appInstance = appInstance;
                 this.products = [
                     'academic_speaking_assessment',
                     'academic_writing_assessment', 
@@ -205,21 +206,19 @@
                 const useWebBtn = modal.querySelector('.btn-use-web');
                 const closeBtn = modal.querySelector('.btn-close-modal');
 
-                // Store reference to 'this' for event handlers
-                const self = this;
-                
+                // Use the app instance to call methods
                 if (startMobileBtn) {
                     startMobileBtn.addEventListener('click', () => {
                         modal.remove();
                         const assessmentType = productId.includes('speaking') ? 'speaking' : 'writing';
-                        self.startAssessmentInApp(productId, assessmentType);
+                        this.appInstance.startAssessmentInApp(productId, assessmentType);
                     });
                 }
 
                 if (useWebBtn) {
                     useWebBtn.addEventListener('click', () => {
                         modal.remove();
-                        self.showWebAccessGuide(productId);
+                        this.appInstance.showWebAccessGuide(productId);
                     });
                 }
 
@@ -268,7 +267,7 @@
         class IELTSGenAIPrepApp {
             constructor() {
                 this.apiClient = new MobileAPIClient();
-                this.purchaseManager = new iOSPurchaseManager(this.apiClient);
+                this.purchaseManager = new iOSPurchaseManager(this.apiClient, this);
                 this.qrScanner = new QRCodeScanner(this.apiClient);
                 this.currentUser = { email: 'test@example.com', products: [] };
                 
