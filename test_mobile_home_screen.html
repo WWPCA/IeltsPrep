@@ -76,11 +76,37 @@
 
             async makeAPICall(endpoint, method = 'POST', data = null) {
                 console.log(`API Call: ${method} ${endpoint}`, data);
+                
+                // Handle authentication endpoints specifically
+                if (endpoint === '/auth/register' && data) {
+                    // Simulate successful registration
+                    return { 
+                        success: true, 
+                        user: { 
+                            name: data.name || data.email.split('@')[0], 
+                            email: data.email, 
+                            products: [] 
+                        } 
+                    };
+                }
+                
+                if (endpoint === '/auth/login' && data) {
+                    // Simulate successful login
+                    return { 
+                        success: true, 
+                        user: { 
+                            name: data.email.split('@')[0], 
+                            email: data.email, 
+                            products: [] 
+                        } 
+                    };
+                }
+                
                 return { success: true, message: 'Mock API response' };
             }
 
-            async registerUser(email, password) {
-                return this.makeAPICall('/auth/register', 'POST', { email, password });
+            async registerUser(name, email, password) {
+                return this.makeAPICall('/auth/register', 'POST', { name, email, password });
             }
 
             async loginUser(email, password) {
@@ -276,7 +302,7 @@
                 this.apiClient = new MobileAPIClient();
                 this.purchaseManager = new iOSPurchaseManager(this.apiClient, this);
                 this.qrScanner = new QRCodeScanner(this.apiClient);
-                this.currentUser = { email: 'test@example.com', products: [] };
+                this.currentUser = null; // No user logged in initially
                 
                 // Store global reference for purchase flow
                 window.appInstance = this;
@@ -285,7 +311,16 @@
             async initialize() {
                 try {
                     await this.purchaseManager.initializePurchases();
-                    this.setupHomeScreen();
+                    
+                    // Check for existing user session
+                    const savedUser = localStorage.getItem('ielts_user');
+                    if (savedUser) {
+                        this.currentUser = JSON.parse(savedUser);
+                        this.setupHomeScreen();
+                    } else {
+                        this.showAuthScreen();
+                    }
+                    
                     console.log('IELTS GenAI Prep app initialized successfully');
                 } catch (error) {
                     console.error('App initialization failed:', error);
@@ -401,6 +436,21 @@
                     <div id="ielts-home-screen" style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                         ${purchasedAssessmentsHTML}
                         
+                        <!-- User Header with Logout -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div>
+                                <h1 style="font-size: 24px; font-weight: bold; color: #333; margin: 0;">
+                                    Hello, ${this.currentUser.name}!
+                                </h1>
+                                <p style="font-size: 14px; color: #666; margin: 4px 0 0 0;">
+                                    ${this.currentUser.email}
+                                </p>
+                            </div>
+                            <button id="logout-button" style="background: #f8f9fa; color: #666; border: 1px solid #ddd; padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer;">
+                                Logout
+                            </button>
+                        </div>
+
                         <!-- Top Half: Web Version Access Information -->
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 20px; text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">
@@ -454,6 +504,14 @@
             }
 
             setupHomeScreenListeners() {
+                // Logout button
+                const logoutBtn = document.getElementById('logout-button');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', () => {
+                        this.logout();
+                    });
+                }
+
                 // Learn more about web access
                 const learnMoreBtn = document.getElementById('learn-more-web-access');
                 if (learnMoreBtn) {
@@ -1035,6 +1093,189 @@
                     </div>
                 `;
                 document.body.appendChild(modal);
+            }
+
+            showAuthScreen() {
+                const appContainer = document.getElementById('home-screen');
+                appContainer.innerHTML = `
+                    <div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="background: white; border-radius: 16px; padding: 24px; margin: 0 auto; max-width: 350px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                            <!-- Logo Section -->
+                            <div style="text-align: center; margin-bottom: 32px;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+                                <h1 style="font-size: 24px; font-weight: bold; color: #333; margin: 0 0 8px 0;">
+                                    IELTS GenAI Prep
+                                </h1>
+                                <p style="font-size: 14px; color: #666; margin: 0;">
+                                    AI-Powered Test Preparation
+                                </p>
+                            </div>
+
+                            <!-- Login/Register Toggle -->
+                            <div style="display: flex; background: #f8f9fa; border-radius: 8px; margin-bottom: 24px; padding: 4px;">
+                                <button id="login-tab" style="flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: 600; background: white; color: #333; transition: all 0.2s;">
+                                    Sign In
+                                </button>
+                                <button id="register-tab" style="flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: 600; background: transparent; color: #666; transition: all 0.2s;">
+                                    Create Account
+                                </button>
+                            </div>
+
+                            <!-- Login Form -->
+                            <div id="login-form">
+                                <form id="login-form-element">
+                                    <div style="margin-bottom: 16px;">
+                                        <label style="display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px;">
+                                            Email
+                                        </label>
+                                        <input type="email" id="login-email" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.2s;" placeholder="Enter your email">
+                                    </div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px;">
+                                            Password
+                                        </label>
+                                        <input type="password" id="login-password" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.2s;" placeholder="Enter your password">
+                                    </div>
+                                    <button type="submit" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                                        Sign In
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Register Form -->
+                            <div id="register-form" style="display: none;">
+                                <form id="register-form-element">
+                                    <div style="margin-bottom: 16px;">
+                                        <label style="display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px;">
+                                            Full Name
+                                        </label>
+                                        <input type="text" id="register-name" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.2s;" placeholder="Enter your full name">
+                                    </div>
+                                    <div style="margin-bottom: 16px;">
+                                        <label style="display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px;">
+                                            Email
+                                        </label>
+                                        <input type="email" id="register-email" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.2s;" placeholder="Enter your email">
+                                    </div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px;">
+                                            Password
+                                        </label>
+                                        <input type="password" id="register-password" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.2s;" placeholder="Create a password (min 6 characters)" minlength="6">
+                                    </div>
+                                    <button type="submit" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                                        Create Account
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Footer -->
+                            <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e1e5e9;">
+                                <p style="font-size: 12px; color: #666; margin: 0;">
+                                    By signing in, you agree to our Terms of Service and Privacy Policy
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.setupAuthListeners();
+            }
+
+            setupAuthListeners() {
+                const loginTab = document.getElementById('login-tab');
+                const registerTab = document.getElementById('register-tab');
+                const loginForm = document.getElementById('login-form');
+                const registerForm = document.getElementById('register-form');
+
+                // Tab switching
+                loginTab.addEventListener('click', () => {
+                    loginTab.style.background = 'white';
+                    loginTab.style.color = '#333';
+                    registerTab.style.background = 'transparent';
+                    registerTab.style.color = '#666';
+                    loginForm.style.display = 'block';
+                    registerForm.style.display = 'none';
+                });
+
+                registerTab.addEventListener('click', () => {
+                    registerTab.style.background = 'white';
+                    registerTab.style.color = '#333';
+                    loginTab.style.background = 'transparent';
+                    loginTab.style.color = '#666';
+                    loginForm.style.display = 'none';
+                    registerForm.style.display = 'block';
+                });
+
+                // Form submissions
+                document.getElementById('login-form-element').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                document.getElementById('register-form-element').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleRegister();
+                });
+            }
+
+            async handleLogin() {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                try {
+                    const response = await this.apiClient.loginUser(email, password);
+                    if (response.success) {
+                        this.currentUser = {
+                            email: email,
+                            name: response.user.name || email.split('@')[0],
+                            products: response.user.products || []
+                        };
+                        
+                        // Save user session
+                        localStorage.setItem('ielts_user', JSON.stringify(this.currentUser));
+                        
+                        // Navigate to home screen
+                        this.setupHomeScreen();
+                    } else {
+                        alert('Login failed: ' + (response.message || 'Invalid credentials'));
+                    }
+                } catch (error) {
+                    alert('Login error: ' + error.message);
+                }
+            }
+
+            async handleRegister() {
+                const name = document.getElementById('register-name').value;
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+
+                try {
+                    const response = await this.apiClient.registerUser(name, email, password);
+                    if (response.success) {
+                        this.currentUser = {
+                            email: email,
+                            name: name,
+                            products: []
+                        };
+                        
+                        // Save user session
+                        localStorage.setItem('ielts_user', JSON.stringify(this.currentUser));
+                        
+                        // Navigate to home screen
+                        this.setupHomeScreen();
+                    } else {
+                        alert('Registration failed: ' + (response.message || 'Please try again'));
+                    }
+                } catch (error) {
+                    alert('Registration error: ' + error.message);
+                }
+            }
+
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem('ielts_user');
+                this.showAuthScreen();
             }
         }
 
