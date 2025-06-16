@@ -553,104 +553,417 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
 </html>
 """
     else:
-        # Writing assessment template with Nova Micro integration
+        # Official IELTS Writing Format with Left/Right Page Divider
         return f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Micro - {assessment_type.replace('_', ' ').title()} Assessment</title>
+    <title>IELTS {assessment_type.replace('_', ' ').title()} - Official Format</title>
     <style>
-        body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
-        .container {{ max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }}
-        .task-prompt {{ background: #f0f8e8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745; }}
-        .writing-area {{ width: 100%; min-height: 400px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; line-height: 1.5; }}
-        .controls {{ display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }}
-        .word-count {{ font-weight: bold; color: #666; }}
-        .btn {{ padding: 12px 24px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }}
-        .btn-primary {{ background: #007bff; color: white; }}
-        .btn-success {{ background: #28a745; color: white; }}
-        .btn-disabled {{ background: #6c757d; color: white; cursor: not-allowed; }}
-        .status {{ text-align: center; margin: 15px 0; font-weight: bold; }}
-        .assessment-result {{ background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; display: none; }}
-        .band-scores {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0; }}
-        .band-item {{ background: #f8f9fa; padding: 15px; border-radius: 5px; text-align: center; }}
-        .overall-score {{ font-size: 24px; font-weight: bold; color: #28a745; }}
-        .feedback-section {{ background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; }}
-        .timer {{ color: #dc3545; font-weight: bold; }}
+        body {{ 
+            font-family: 'Times New Roman', serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #f8f9fa;
+            color: #000;
+        }}
+        
+        .ielts-container {{
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            min-height: 700px;
+        }}
+        
+        /* Official IELTS Left Page - Question Paper */
+        .question-page {{
+            width: 50%;
+            padding: 40px 30px;
+            background: #fff;
+            border-right: 2px solid #ddd;
+            position: relative;
+        }}
+        
+        .question-header {{
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ccc;
+        }}
+        
+        .ielts-logo {{
+            font-size: 24px;
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 10px;
+        }}
+        
+        .test-info {{
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }}
+        
+        .task-box {{
+            border: 2px solid #000;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fafafa;
+        }}
+        
+        .task-title {{
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }}
+        
+        .task-instructions {{
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }}
+        
+        .task-topic {{
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-left: 4px solid #0066cc;
+        }}
+        
+        .word-requirements {{
+            font-weight: bold;
+            font-size: 14px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #e8f4fd;
+        }}
+        
+        /* Official IELTS Right Page - Answer Sheet */
+        .answer-page {{
+            width: 50%;
+            padding: 40px 30px;
+            background: #fff;
+            position: relative;
+        }}
+        
+        .answer-header {{
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ccc;
+        }}
+        
+        .writing-controls {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+        }}
+        
+        .word-counter {{
+            font-weight: bold;
+            color: #dc3545;
+        }}
+        
+        .timer-display {{
+            font-weight: bold;
+            color: #0066cc;
+            font-size: 16px;
+        }}
+        
+        .answer-area {{
+            width: 100%;
+            min-height: 450px;
+            padding: 15px;
+            border: 2px solid #000;
+            font-family: 'Times New Roman', serif;
+            font-size: 16px;
+            line-height: 1.8;
+            resize: none;
+            background: white;
+        }}
+        
+        .answer-area:focus {{
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 5px rgba(0,102,204,0.3);
+        }}
+        
+        .submit-section {{
+            margin-top: 20px;
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+        }}
+        
+        .btn {{
+            padding: 12px 25px;
+            margin: 5px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }}
+        
+        .btn-submit {{
+            background: #28a745;
+            color: white;
+        }}
+        
+        .btn-submit:disabled {{
+            background: #6c757d;
+            cursor: not-allowed;
+        }}
+        
+        .btn-save {{
+            background: #17a2b8;
+            color: white;
+        }}
+        
+        .status-bar {{
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            font-weight: bold;
+            border-radius: 4px;
+        }}
+        
+        .status-waiting {{
+            background: #fff3cd;
+            color: #856404;
+        }}
+        
+        .status-ready {{
+            background: #d4edda;
+            color: #155724;
+        }}
+        
+        .status-processing {{
+            background: #cce7ff;
+            color: #004085;
+        }}
+        
+        /* Nova Micro Assessment Results */
+        .assessment-results {{
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+        }}
+        
+        .results-header {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        
+        .overall-band {{
+            font-size: 36px;
+            font-weight: bold;
+            color: #28a745;
+            text-align: center;
+            margin: 15px 0;
+        }}
+        
+        .band-breakdown {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }}
+        
+        .band-criterion {{
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            text-align: center;
+        }}
+        
+        .criterion-name {{
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }}
+        
+        .criterion-score {{
+            font-size: 24px;
+            font-weight: bold;
+            color: #0066cc;
+        }}
+        
+        .feedback-section {{
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ddd;
+        }}
+        
+        .feedback-text {{
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }}
+        
+        .feedback-details {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }}
+        
+        .feedback-category h5 {{
+            color: #0066cc;
+            margin-bottom: 10px;
+        }}
+        
+        .feedback-category ul {{
+            margin: 0;
+            padding-left: 20px;
+        }}
+        
+        .feedback-category li {{
+            margin-bottom: 5px;
+            font-size: 14px;
+        }}
+        
+        @media (max-width: 768px) {{
+            .ielts-container {{
+                flex-direction: column;
+                margin: 10px;
+            }}
+            
+            .question-page, .answer-page {{
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid #ddd;
+            }}
+            
+            .answer-page {{
+                border-bottom: none;
+            }}
+        }}
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Nova Micro Writing Assessment</h1>
-        
-        <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>{assessment_type.replace('_', ' ').title()} Assessment</h3>
-            <p><strong>User:</strong> {user_email}</p>
-            <p><strong>Session:</strong> {session_id}</p>
-            <p>Nova Micro will evaluate your writing using official IELTS band descriptors from the database.</p>
-        </div>
-
-        <div class="task-prompt">
-            <h3>Writing Task</h3>
-            <p id="taskPrompt">You should spend about 40 minutes on this task. Some people believe that technology has made our lives more complicated, while others argue that it has made life easier. Discuss both views and give your own opinion. Give reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.</p>
-        </div>
-
-        <div class="controls">
-            <div class="word-count">Words: <span id="wordCount">0</span> / <span id="minWords">250</span></div>
-            <div class="timer">Time: <span id="timer">40:00</span></div>
-        </div>
-
-        <textarea 
-            id="essayText" 
-            class="writing-area" 
-            placeholder="Start writing your essay here... Nova Micro will analyze your response against IELTS band criteria."
-        ></textarea>
-
-        <div class="controls">
-            <button class="btn btn-primary" id="submitBtn" disabled>Submit for Nova Micro Assessment</button>
-            <button class="btn btn-success" id="saveBtn">Save Draft</button>
-        </div>
-
-        <div class="status" id="status">Start writing to enable assessment...</div>
-
-        <div class="assessment-result" id="assessmentResult">
-            <h3>Nova Micro Assessment Results</h3>
-            <div class="overall-score" id="overallScore">7.0</div>
-            <p style="text-align: center; margin: 10px 0;">Overall Band Score</p>
+    <div class="ielts-container">
+        <!-- Left Page - Official IELTS Question Paper -->
+        <div class="question-page">
+            <div class="question-header">
+                <div class="ielts-logo">IELTS</div>
+                <div class="test-info">International English Language Testing System</div>
+                <div class="test-info">{assessment_type.replace('_', ' ').title()}</div>
+                <div class="test-info">Time allowed: 60 minutes</div>
+            </div>
             
-            <div class="band-scores" id="bandScores">
-                <div class="band-item">
-                    <strong>Task Achievement</strong>
-                    <div id="taskScore">7.0</div>
+            <div class="task-box">
+                <div class="task-title">WRITING TASK 2</div>
+                
+                <div class="task-instructions">
+                    You should spend about 40 minutes on this task.
                 </div>
-                <div class="band-item">
-                    <strong>Coherence & Cohesion</strong>
-                    <div id="coherenceScore">6.5</div>
+                
+                <div class="word-requirements">
+                    Write at least 250 words.
                 </div>
-                <div class="band-item">
-                    <strong>Lexical Resource</strong>
-                    <div id="lexicalScore">7.0</div>
-                </div>
-                <div class="band-item">
-                    <strong>Grammar & Accuracy</strong>
-                    <div id="grammarScore">6.5</div>
+                
+                <div class="task-topic" id="taskPrompt">
+                    <strong>Write about the following topic:</strong><br><br>
+                    Some people believe that technology has made our lives more complicated, while others argue that it has made life easier.<br><br>
+                    Discuss both views and give your own opinion.<br><br>
+                    Give reasons for your answer and include any relevant examples from your own knowledge or experience.
                 </div>
             </div>
-
-            <div class="feedback-section" id="feedbackSection">
-                <h4>Nova Micro Feedback</h4>
-                <p id="mainFeedback">Loading detailed feedback...</p>
+            
+            <div style="margin-top: 30px; padding: 15px; background: #e8f4fd; border: 1px solid #0066cc;">
+                <h4 style="margin: 0 0 10px 0; color: #0066cc;">Assessment Information</h4>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>User:</strong> {user_email}</p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Session:</strong> {session_id}</p>
+                <p style="margin: 5px 0; font-size: 14px;">Your essay will be evaluated by Nova Micro using official IELTS band descriptors.</p>
+            </div>
+        </div>
+        
+        <!-- Right Page - Official IELTS Answer Sheet -->
+        <div class="answer-page">
+            <div class="answer-header">
+                <div class="ielts-logo">ANSWER SHEET</div>
+                <div class="test-info">Writing Task 2</div>
+            </div>
+            
+            <div class="writing-controls">
+                <div class="word-counter">
+                    Words: <span id="wordCount">0</span> / <span id="minWords">250</span>
+                </div>
+                <div class="timer-display">
+                    Time remaining: <span id="timer">40:00</span>
+                </div>
+            </div>
+            
+            <textarea 
+                id="essayText" 
+                class="answer-area"
+                placeholder="Write your essay here. Use proper paragraphing and ensure you address both sides of the argument before giving your opinion."
+            ></textarea>
+            
+            <div class="status-bar status-waiting" id="statusBar">
+                Write at least 250 words to enable Nova Micro assessment
+            </div>
+            
+            <div class="submit-section">
+                <button class="btn btn-save" id="saveBtn">Save Draft</button>
+                <button class="btn btn-submit" id="submitBtn" disabled>Submit for Assessment</button>
+            </div>
+            
+            <!-- Nova Micro Assessment Results -->
+            <div class="assessment-results" id="assessmentResults">
+                <div class="results-header">
+                    <h3>Nova Micro Assessment Results</h3>
+                    <div class="overall-band" id="overallBand">7.0</div>
+                    <p>Overall Band Score</p>
+                </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
-                    <div>
-                        <h5>Strengths</h5>
-                        <ul id="strengthsList"></ul>
+                <div class="band-breakdown">
+                    <div class="band-criterion">
+                        <div class="criterion-name">Task Response</div>
+                        <div class="criterion-score" id="taskScore">7.0</div>
                     </div>
-                    <div>
-                        <h5>Areas for Improvement</h5>
-                        <ul id="improvementsList"></ul>
+                    <div class="band-criterion">
+                        <div class="criterion-name">Coherence & Cohesion</div>
+                        <div class="criterion-score" id="coherenceScore">6.5</div>
+                    </div>
+                    <div class="band-criterion">
+                        <div class="criterion-name">Lexical Resource</div>
+                        <div class="criterion-score" id="lexicalScore">7.0</div>
+                    </div>
+                    <div class="band-criterion">
+                        <div class="criterion-name">Grammatical Range & Accuracy</div>
+                        <div class="criterion-score" id="grammarScore">6.5</div>
+                    </div>
+                </div>
+                
+                <div class="feedback-section">
+                    <div class="feedback-text" id="mainFeedback">
+                        Loading detailed feedback from Nova Micro...
+                    </div>
+                    
+                    <div class="feedback-details">
+                        <div class="feedback-category">
+                            <h5>Strengths</h5>
+                            <ul id="strengthsList"></ul>
+                        </div>
+                        <div class="feedback-category">
+                            <h5>Areas for Improvement</h5>
+                            <ul id="improvementsList"></ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -658,6 +971,184 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
     </div>
 
     <script>
+        let timeRemaining = 40 * 60; // 40 minutes in seconds
+        let timerInterval = null;
+        let assessmentSubmitted = false;
+        
+        const essayText = document.getElementById('essayText');
+        const wordCount = document.getElementById('wordCount');
+        const minWords = document.getElementById('minWords');
+        const submitBtn = document.getElementById('submitBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const statusBar = document.getElementById('statusBar');
+        const timer = document.getElementById('timer');
+        const assessmentResults = document.getElementById('assessmentResults');
+        
+        // Start 40-minute timer
+        function startTimer() {{
+            timerInterval = setInterval(() => {{
+                timeRemaining--;
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                timer.textContent = `${{minutes}}:${{seconds.toString().padStart(2, '0')}}`;
+                
+                if (timeRemaining <= 300) {{ // Last 5 minutes
+                    timer.style.color = '#dc3545'; // Red warning
+                }}
+                
+                if (timeRemaining <= 0) {{
+                    clearInterval(timerInterval);
+                    timer.textContent = "Time's up!";
+                    timer.style.color = '#dc3545';
+                    if (!assessmentSubmitted) {{
+                        submitEssay();
+                    }}
+                }}
+            }}, 1000);
+        }}
+        
+        // Update word count and submission eligibility
+        essayText.addEventListener('input', function() {{
+            const words = this.value.trim().split(/\\s+/).filter(word => word.length > 0);
+            const currentWordCount = words.length;
+            wordCount.textContent = currentWordCount;
+            
+            // Update status based on word count
+            if (currentWordCount >= parseInt(minWords.textContent)) {{
+                submitBtn.disabled = false;
+                submitBtn.className = 'btn btn-submit';
+                statusBar.className = 'status-bar status-ready';
+                statusBar.textContent = 'Ready for Nova Micro assessment';
+            }} else {{
+                submitBtn.disabled = true;
+                submitBtn.className = 'btn btn-submit';
+                submitBtn.disabled = true;
+                statusBar.className = 'status-bar status-waiting';
+                statusBar.textContent = `Write at least ${{minWords.textContent}} words to enable assessment`;
+            }}
+        }});
+        
+        // Submit essay for Nova Micro assessment
+        async function submitEssay() {{
+            if (assessmentSubmitted) return;
+            
+            assessmentSubmitted = true;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            statusBar.className = 'status-bar status-processing';
+            statusBar.textContent = 'Nova Micro is analyzing your essay using IELTS band descriptors...';
+            
+            try {{
+                const response = await fetch('/api/nova-micro/writing', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        essay_text: essayText.value,
+                        prompt: document.getElementById('taskPrompt').textContent,
+                        assessment_type: '{assessment_type}',
+                        session_id: '{session_id}',
+                        user_email: '{user_email}'
+                    }})
+                }});
+                
+                const result = await response.json();
+                
+                if (result.success) {{
+                    displayAssessmentResults(result.assessment_result);
+                    statusBar.className = 'status-bar status-ready';
+                    statusBar.textContent = 'Assessment completed successfully';
+                    clearInterval(timerInterval); // Stop timer
+                }} else {{
+                    statusBar.className = 'status-bar status-waiting';
+                    statusBar.textContent = 'Assessment error: ' + (result.error || 'Please try again');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Retry Assessment';
+                    assessmentSubmitted = false;
+                }}
+            }} catch (error) {{
+                console.error('Nova Micro assessment error:', error);
+                statusBar.className = 'status-bar status-waiting';
+                statusBar.textContent = 'Connection error. Please check your network and try again.';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Retry Assessment';
+                assessmentSubmitted = false;
+            }}
+        }}
+        
+        // Display Nova Micro assessment results
+        function displayAssessmentResults(result) {{
+            document.getElementById('overallBand').textContent = result.overall_band_score;
+            document.getElementById('taskScore').textContent = result.task_achievement;
+            document.getElementById('coherenceScore').textContent = result.coherence_cohesion;
+            document.getElementById('lexicalScore').textContent = result.lexical_resource;
+            document.getElementById('grammarScore').textContent = result.grammatical_accuracy;
+            document.getElementById('mainFeedback').textContent = result.feedback;
+            
+            // Display detailed feedback
+            const strengthsList = document.getElementById('strengthsList');
+            const improvementsList = document.getElementById('improvementsList');
+            
+            strengthsList.innerHTML = '';
+            improvementsList.innerHTML = '';
+            
+            if (result.detailed_feedback) {{
+                result.detailed_feedback.strengths.forEach(strength => {{
+                    const li = document.createElement('li');
+                    li.textContent = strength;
+                    strengthsList.appendChild(li);
+                }});
+                
+                result.detailed_feedback.improvements.forEach(improvement => {{
+                    const li = document.createElement('li');
+                    li.textContent = improvement;
+                    improvementsList.appendChild(li);
+                }});
+            }}
+            
+            assessmentResults.style.display = 'block';
+            assessmentResults.scrollIntoView({{ behavior: 'smooth' }});
+        }}
+        
+        // Save draft functionality
+        saveBtn.addEventListener('click', function() {{
+            localStorage.setItem('ielts_essay_draft_{session_id}', essayText.value);
+            statusBar.className = 'status-bar status-ready';
+            statusBar.textContent = 'Draft saved successfully';
+            setTimeout(() => {{
+                if (!assessmentSubmitted) {{
+                    const words = essayText.value.trim().split(/\\s+/).filter(word => word.length > 0);
+                    if (words.length >= parseInt(minWords.textContent)) {{
+                        statusBar.className = 'status-bar status-ready';
+                        statusBar.textContent = 'Ready for Nova Micro assessment';
+                    }} else {{
+                        statusBar.className = 'status-bar status-waiting';
+                        statusBar.textContent = `Write at least ${{minWords.textContent}} words to enable assessment`;
+                    }}
+                }}
+            }}, 2000);
+        }});
+        
+        // Submit button event
+        submitBtn.addEventListener('click', submitEssay);
+        
+        // Initialize page
+        window.addEventListener('load', function() {{
+            // Load saved draft if available
+            const savedDraft = localStorage.getItem('ielts_essay_draft_{session_id}');
+            if (savedDraft) {{
+                essayText.value = savedDraft;
+                essayText.dispatchEvent(new Event('input'));
+                statusBar.className = 'status-bar status-ready';
+                statusBar.textContent = 'Draft loaded - continue writing or submit for assessment';
+            }}
+            
+            // Start official IELTS timer
+            startTimer();
+            
+            // Focus on essay area
+            essayText.focus();
+        }});
+    </script>
         let timeRemaining = 40 * 60; // 40 minutes in seconds
         let timerInterval = null;
         let assessmentSubmitted = false;
