@@ -25,9 +25,10 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 ## Key Components
 
 ### Authentication System
-- **QR Code-Based Authentication**: Mobile app generates QR codes for web platform login
-- **Session Management**: 10-minute QR token expiry, 1-hour web session duration
-- **Purchase Verification**: Apple App Store and Google Play Store receipt validation
+- **Mobile-First Authentication**: Users must register and purchase through mobile app first
+- **Cross-Platform Login**: Same credentials work on both mobile app and website
+- **Session Management**: Standard web session with 1-hour duration after mobile app login
+- **Purchase Verification**: Apple App Store and Google Play Store receipt validation in mobile app
 
 ### Assessment Engine
 - **Four Assessment Types**: Academic Speaking, Academic Writing, General Speaking, General Writing
@@ -44,12 +45,12 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 ## Data Flow
 
 ### Purchase-to-Assessment Flow
-1. User purchases assessment in mobile app (iOS/Android)
-2. App Store receipt validation via Lambda backend
-3. QR code generation with encrypted session token
-4. User scans QR code on web platform
-5. Session authentication and assessment access granted
-6. Assessment completion with AI-powered evaluation
+1. User downloads mobile app and creates account (iOS/Android)
+2. User purchases assessment in mobile app with App Store/Google Play billing
+3. App Store receipt validation via Lambda backend
+4. User can complete assessments directly in mobile app OR login to website using same credentials
+5. Website login creates standard web session for desktop access
+6. Assessment completion with AI-powered evaluation on either platform
 
 ### Speech Assessment Flow
 1. User initiates speaking assessment on web platform
@@ -99,14 +100,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- June 16, 2025: Updated public landing page to match original website design with dual-platform access
-  - Recreated public homepage using original Bootstrap layout from templates/index.html
-  - Fixed header layout issues to prevent content overlap on mobile and desktop
-  - Updated "How It Works" section to reflect dual-platform access capabilities
-  - Clarified that users can access assessments directly in mobile app OR via desktop through QR code
-  - Maintained existing authentication flow while allowing public browsing of assessment information
-  - Enhanced mobile responsiveness with proper spacing and navigation
-  - Updated architecture documentation to reflect flexible access options
+- June 16, 2025: Implemented mobile-first authentication architecture replacing QR code system
+  - Created secure mobile-first authentication flow where users register and purchase through mobile app
+  - Users can login to website using same mobile app credentials for cross-platform access
+  - Removed QR code complexity in favor of standard username/password authentication
+  - Built comprehensive login page guiding new users to download mobile app first
+  - Created dashboard page showing purchased assessments with secure session management
+  - Updated "How It Works" section to reflect simplified 3-step process: Download → Purchase → Login Anywhere
+  - Enhanced security by eliminating temporary QR tokens and potential interception risks
+  - Maintained dual-platform access while simplifying authentication architecture
   - Added comprehensive legal compliance with privacy policy and terms of service pages
   - Implemented mandatory terms acceptance modal before mobile app purchases
   - Enhanced purchase flow with clear non-refundable policy communication

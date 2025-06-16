@@ -184,6 +184,72 @@ def handle_login_page() -> Dict[str, Any]:
             'body': '<h1>Login page not found</h1>'
         }
 
+def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Serve dashboard page with session verification"""
+    try:
+        # Check for valid session cookie
+        cookie_header = headers.get('cookie', '')
+        session_id = None
+        
+        # Extract session ID from cookies
+        if 'web_session_id=' in cookie_header:
+            for cookie in cookie_header.split(';'):
+                if 'web_session_id=' in cookie:
+                    session_id = cookie.split('=')[1].strip()
+                    break
+        
+        if not session_id:
+            # No session found, redirect to login
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': '/login',
+                    'Content-Type': 'text/html'
+                },
+                'body': ''
+            }
+        
+        # Verify session with mock services
+        aws_services = get_aws_services()
+        session_data = aws_services.get_session(session_id)
+        
+        if not session_data:
+            # Invalid session, redirect to login
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': '/login',
+                    'Content-Type': 'text/html'
+                },
+                'body': ''
+            }
+        
+        # Valid session, serve dashboard
+        with open('dashboard.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+        
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Dashboard page not found</h1>'
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error loading dashboard: {str(e)}</h1>'
+        }
+
 def handle_qr_auth_page() -> Dict[str, Any]:
     """Serve QR authentication page"""
     try:
