@@ -6,6 +6,7 @@ Simulates DynamoDB, ElastiCache, and CloudWatch for mobile-first authentication
 import os
 import json
 import time
+import uuid
 import bcrypt
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -225,6 +226,9 @@ class AWSMockServices:
         self._setup_assessment_data()
         
         print(f"[AWS_MOCK] Services initialized for region: {self.region}")
+        
+        # Create test user for development
+        self._create_test_user()
     
     def _setup_assessment_data(self):
         """Initialize IELTS assessment rubrics for Nova Sonic and Nova Micro"""
@@ -347,20 +351,66 @@ class AWSMockServices:
             
         print("[AWS_MOCK] IELTS assessment rubrics initialized")
     
-    def store_qr_token(self, token_data: Dict[str, Any]) -> bool:
-        """Store QR token in AuthTokens table"""
-        return self.auth_tokens_table.put_item(token_data)
+    def _create_test_user(self):
+        """Create test user for development and testing"""
+        test_user_data = {
+            'email': 'test@ieltsgenaiprep.com',
+            'password': 'testpassword123'
+        }
+        
+        if self.create_user(test_user_data):
+            # Add test purchases for all assessment types
+            user = self.users_table.get_item('test@ieltsgenaiprep.com')
+            if user:
+                test_purchases = [
+                    {'product_id': 'academic-writing', 'platform': 'mobile'},
+                    {'product_id': 'academic-speaking', 'platform': 'mobile'},
+                    {'product_id': 'general-writing', 'platform': 'mobile'},
+                    {'product_id': 'general-speaking', 'platform': 'mobile'}
+                ]
+                
+                for purchase in test_purchases:
+                    self.add_user_purchase(user['user_id'], purchase)
+                
+                print("[AWS_MOCK] Test user created: test@ieltsgenaiprep.com / testpassword123")
     
-    def get_qr_token(self, token_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieve QR token from AuthTokens table"""
-        return self.auth_tokens_table.get_item(token_id)
+    def create_user(self, user_data: Dict[str, Any]) -> bool:
+        """Create new user with bcrypt password hashing"""
+        email = user_data.get('email')
+        password = user_data.get('password')
+        
+        if not email or not password:
+            return False
+        
+        # Hash password with bcrypt
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        
+        user_record = {
+            'user_id': str(uuid.uuid4()),
+            'email': email,
+            'password_hash': password_hash.decode('utf-8'),
+            'created_at': datetime.utcnow().isoformat(),
+            'purchases': [],
+            'last_login': None
+        }
+        
+        return self.users_table.put_item(user_record)
     
-    def invalidate_qr_token(self, token_id: str) -> bool:
-        """Mark QR token as used"""
-        return self.auth_tokens_table.update_item(token_id, {
-            'used': True,
-            'used_at': datetime.utcnow().isoformat()
-        })
+    def verify_credentials(self, email: str, password: str) -> Optional[Dict[str, Any]]:
+        """Verify user credentials and return user data"""
+        user = self.users_table.get_item(email)
+        
+        if not user:
+            return None
+        
+        # Verify password with bcrypt
+        if bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+            # Update last login
+            user['last_login'] = datetime.utcnow().isoformat()
+            self.users_table.put_item(user)
+            return user
+        
+        return None
     
     def create_session(self, session_data: Dict[str, Any]) -> bool:
         """Create session in ElastiCache"""
@@ -399,13 +449,21 @@ class AWSMockServices:
         """Get all assessments for a user from DynamoDB"""
         return self.assessment_results_table.scan(f"user_email = '{user_email}'")
     
-    def update_user_progress(self, user_email: str, progress_data: Dict[str, Any]) -> bool:
-        """Update user progress in DynamoDB"""
-        return self.user_progress_table.put_item({
-            'user_email': user_email,
-            'progress_data': progress_data,
-            'updated_at': datetime.utcnow().isoformat()
-        })
+    def add_user_purchase(self, user_id: str, purchase_data: Dict[str, Any]) -> bool:
+        """Add purchase to user record"""
+        user = self.users_table.get_item(user_id)
+        if not user:
+            return False
+        
+        purchase_record = {
+            'product_id': purchase_data.get('product_id'),
+            'purchase_date': datetime.utcnow().isoformat(),
+            'platform': purchase_data.get('platform', 'mobile'),
+            'receipt_data': purchase_data.get('receipt_data')
+        }
+        
+        user['purchases'].append(purchase_record)
+        return self.users_table.put_item(user)
     
     def get_nova_sonic_prompts(self, assessment_type: str) -> Optional[Dict[str, Any]]:
         """Get Nova Sonic system prompts from DynamoDB rubrics"""
@@ -421,13 +479,9 @@ class AWSMockServices:
         """Get overall system health"""
         return {
             'dynamodb_tables': {
-                'auth_tokens': len(self.auth_tokens_table.items),
                 'users': len(self.users_table.items),
-                'user_sessions': len(self.user_sessions_table.items),
-                'purchase_records': len(self.purchase_records_table.items),
                 'assessment_results': len(self.assessment_results_table.items),
-                'assessment_rubrics': len(self.assessment_rubrics_table.items),
-                'user_progress': len(self.user_progress_table.items)
+                'assessment_rubrics': len(self.assessment_rubrics_table.items)
             },
             'elasticache': {
                 'active_sessions': len(self.session_cache.cache)
@@ -452,6 +506,6 @@ MOCK_ENV_VARS = {
     'CLOUDWATCH_LOG_GROUP': '/aws/lambda/ielts-genai-prep'
 }
 
-def get_mock_env(key: str, default: str = None) -> str:
+def get_mock_env(key: str, default: Optional[str] = None) -> str:
     """Get environment variable with mock fallback"""
-    return os.environ.get(key, MOCK_ENV_VARS.get(key, default))
+    return os.environ.get(key, MOCK_ENV_VARS.get(key, default or ''))
