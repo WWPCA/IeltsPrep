@@ -225,7 +225,11 @@
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => {
                         modal.remove();
-                        this.renderHomeScreen(); // Refresh to show purchased assessment
+                        // Add the product to purchased list and refresh home screen
+                        if (!this.appInstance.currentUser.products.includes(productId)) {
+                            this.appInstance.currentUser.products.push(productId);
+                        }
+                        this.appInstance.renderHomeScreen(); // Refresh to show purchased assessment
                     });
                 }
             }
@@ -295,12 +299,24 @@
                 }
             }
 
-            async startAssessmentInApp(productId, assessmentType) {
-                if (assessmentType === 'speaking') {
-                    alert(`Starting ${productId} Speaking Assessment in mobile app!`);
-                } else if (assessmentType === 'writing') {
-                    alert(`Starting ${productId} Writing Assessment in mobile app!`);
+            startAssessmentInApp(productId, assessmentType) {
+                const productNames = {
+                    'academic_speaking_assessment': 'Academic Speaking',
+                    'academic_writing_assessment': 'Academic Writing',
+                    'general_speaking_assessment': 'General Speaking',
+                    'general_writing_assessment': 'General Writing'
+                };
+
+                const productName = productNames[productId] || 'Assessment';
+                
+                // Simulate starting assessment in mobile app
+                alert(`Starting ${productName} assessment in mobile app!\n\nThis would launch the native assessment interface with:\n• ${assessmentType === 'speaking' ? 'AI examiner Maya conversation' : 'Writing prompt and editor'}\n• Real-time feedback\n• Progress tracking\n• Offline capability`);
+                
+                // Add the product to purchased list and refresh home screen
+                if (!this.currentUser.products.includes(productId)) {
+                    this.currentUser.products.push(productId);
                 }
+                this.renderHomeScreen();
             }
 
             showWebAccessGuide(productId) {
