@@ -219,6 +219,12 @@ class iOSPurchaseManager {
             productId
           );
 
+          // Add purchased product to user data through main app
+          const appInstance = (window as any).appInstance;
+          if (appInstance) {
+            await appInstance.addPurchasedProduct(userEmail, productId);
+          }
+          
           await this.showPurchaseSuccessWithQR(productId, qrData);
           return { success: true, qrData, verification };
         } else {
@@ -265,12 +271,33 @@ class iOSPurchaseManager {
           <p class="qr-expiry">Code expires in 10 minutes</p>
         </div>
         
+        <div class="mobile-access-section">
+          <h3>Start Assessment Now</h3>
+          <p>Your assessment is ready! Choose how you'd like to begin:</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <button class="btn-start-mobile" data-product="${productId}">
+              Start in App
+            </button>
+            <button class="btn-use-web" data-product="${productId}">
+              Use on Desktop
+            </button>
+          </div>
+        </div>
+        
+        <div class="qr-section" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+          <h4 style="font-size: 16px; margin-bottom: 12px;">Desktop Access</h4>
+          <div class="qr-container">
+            <img src="${qrData.qr_code_image}" alt="QR Code" class="qr-image">
+          </div>
+          <p class="qr-instructions">
+            Scan this QR code on <strong>ieltsaiprep.com</strong> to access your assessment
+          </p>
+          <p class="qr-expiry">Code expires in 10 minutes</p>
+        </div>
+        
         <div class="modal-actions">
           <button class="btn-primary" onclick="this.closest('.purchase-success-modal').remove()">
-            Continue in App
-          </button>
-          <button class="btn-secondary" onclick="this.shareQRCode('${qrData.qr_code_image}')">
-            Share QR Code
+            Got It!
           </button>
         </div>
       </div>
@@ -350,12 +377,40 @@ class iOSPurchaseManager {
     document.head.insertAdjacentHTML('beforeend', styles);
     document.body.appendChild(modal);
 
-    // Auto-close after 2 minutes
+    // Set up event listeners for the new modal buttons
+    const startMobileBtn = modal.querySelector('.btn-start-mobile');
+    const useWebBtn = modal.querySelector('.btn-use-web');
+
+    if (startMobileBtn) {
+      startMobileBtn.addEventListener('click', async () => {
+        modal.remove();
+        const assessmentType = productId.includes('speaking') ? 'speaking' : 'writing';
+        
+        // Get the main app instance and start assessment
+        const appInstance = (window as any).appInstance;
+        if (appInstance) {
+          await appInstance.startAssessmentInApp(productId, assessmentType);
+        }
+      });
+    }
+
+    if (useWebBtn) {
+      useWebBtn.addEventListener('click', () => {
+        modal.remove();
+        // Show web access guide
+        const appInstance = (window as any).appInstance;
+        if (appInstance) {
+          appInstance.showWebAccessGuide(productId);
+        }
+      });
+    }
+
+    // Auto-close after 5 minutes
     setTimeout(() => {
       if (modal.parentNode) {
         modal.remove();
       }
-    }, 120000);
+    }, 300000);
   }
 
   async restorePurchases(): Promise<any[]> {
@@ -823,6 +878,27 @@ class IELTSGenAIPrepApp {
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
+    }
+  }
+
+  async addPurchasedProduct(userEmail: string, productId: string): Promise<void> {
+    try {
+      if (!this.currentUser) {
+        this.currentUser = { email: userEmail, products: [] };
+      }
+      if (!this.currentUser.products) {
+        this.currentUser.products = [];
+      }
+      if (!this.currentUser.products.includes(productId)) {
+        this.currentUser.products.push(productId);
+      }
+      
+      await this.saveUserData();
+      
+      // Refresh the home screen to show purchased assessments
+      this.setupHomeScreen();
+    } catch (error) {
+      console.error('Failed to add purchased product:', error);
     }
   }
 
