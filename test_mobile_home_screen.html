@@ -137,6 +137,15 @@
             }
 
             async showPurchaseSuccessWithQR(productId, qrData) {
+                const productNames = {
+                    'academic_speaking_assessment': 'Academic Speaking Assessment',
+                    'academic_writing_assessment': 'Academic Writing Assessment',
+                    'general_speaking_assessment': 'General Speaking Assessment',
+                    'general_writing_assessment': 'General Writing Assessment'
+                };
+
+                const productName = productNames[productId] || 'Assessment';
+
                 const modal = document.createElement('div');
                 modal.innerHTML = `
                     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;">
@@ -146,32 +155,77 @@
                                 Purchase Successful!
                             </h3>
                             <p style="font-size: 14px; color: #666; margin: 0 0 20px 0;">
-                                ${productId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} purchased successfully
+                                ${productName} is now available
                             </p>
                             
-                            <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 16px 0;">
+                            <div style="background: #e8f5e8; padding: 16px; border-radius: 12px; margin: 16px 0;">
                                 <h4 style="font-size: 16px; color: #333; margin: 0 0 12px 0;">
-                                    🖥️ Access on Desktop/Laptop
+                                    🚀 Start Assessment Now
+                                </h4>
+                                <p style="font-size: 13px; color: #666; margin-bottom: 16px;">
+                                    Your assessment is ready! Choose how you'd like to begin:
+                                </p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+                                    <button class="btn-start-mobile" data-product="${productId}" style="background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;">
+                                        Start in App
+                                    </button>
+                                    <button class="btn-use-web" data-product="${productId}" style="background: white; color: #28a745; border: 2px solid #28a745; padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;">
+                                        Use on Desktop
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 16px 0; border-top: 1px solid #eee;">
+                                <h4 style="font-size: 14px; color: #333; margin: 0 0 12px 0;">
+                                    🖥️ Desktop Access
                                 </h4>
                                 <div style="background: white; padding: 12px; border-radius: 8px; margin: 12px 0;">
-                                    <div style="width: 120px; height: 120px; background: #ddd; margin: 0 auto 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">
+                                    <div style="width: 100px; height: 100px; background: #ddd; margin: 0 auto 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666;">
                                         QR Code
                                     </div>
                                 </div>
-                                <p style="font-size: 12px; color: #666; margin: 8px 0;">
+                                <p style="font-size: 11px; color: #666; margin: 8px 0;">
                                     1. Visit <strong>ieltsaiprep.com</strong> on your computer<br>
                                     2. Scan this QR code with your mobile app<br>
                                     3. Access your assessment on the web
                                 </p>
                             </div>
                             
-                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px;">
+                            <button class="btn-close-modal" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px;">
                                 Got it!
                             </button>
                         </div>
                     </div>
                 `;
+                
                 document.body.appendChild(modal);
+
+                // Add event listeners for the new buttons
+                const startMobileBtn = modal.querySelector('.btn-start-mobile');
+                const useWebBtn = modal.querySelector('.btn-use-web');
+                const closeBtn = modal.querySelector('.btn-close-modal');
+
+                if (startMobileBtn) {
+                    startMobileBtn.addEventListener('click', () => {
+                        modal.remove();
+                        const assessmentType = productId.includes('speaking') ? 'speaking' : 'writing';
+                        this.startAssessmentInApp(productId, assessmentType);
+                    });
+                }
+
+                if (useWebBtn) {
+                    useWebBtn.addEventListener('click', () => {
+                        modal.remove();
+                        this.showWebAccessGuide(productId);
+                    });
+                }
+
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        modal.remove();
+                        this.renderHomeScreen(); // Refresh to show purchased assessment
+                    });
+                }
             }
 
             async restorePurchases() {
@@ -861,6 +915,108 @@
                 } catch (error) {
                     alert(`QR authentication failed: ${error.message}`);
                 }
+            }
+
+            startAssessmentInApp(productId, assessmentType) {
+                const productNames = {
+                    'academic_speaking_assessment': 'Academic Speaking',
+                    'academic_writing_assessment': 'Academic Writing',
+                    'general_speaking_assessment': 'General Speaking',
+                    'general_writing_assessment': 'General Writing'
+                };
+
+                const productName = productNames[productId] || 'Assessment';
+                
+                // Simulate starting assessment in mobile app
+                alert(`Starting ${productName} assessment in mobile app!\n\nThis would launch the native assessment interface with:\n• ${assessmentType === 'speaking' ? 'AI examiner Maya conversation' : 'Writing prompt and editor'}\n• Real-time feedback\n• Progress tracking\n• Offline capability`);
+            }
+
+            showWebAccessGuide(productId) {
+                const productNames = {
+                    'academic_speaking_assessment': 'Academic Speaking',
+                    'academic_writing_assessment': 'Academic Writing',
+                    'general_speaking_assessment': 'General Speaking',
+                    'general_writing_assessment': 'General Writing'
+                };
+
+                const productName = productNames[productId] || 'Assessment';
+
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 350px; width: 100%; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🖥️</div>
+                            <h3 style="font-size: 20px; font-weight: bold; color: #007bff; margin: 0 0 16px 0;">
+                                Desktop Access Guide
+                            </h3>
+                            <p style="font-size: 14px; color: #666; margin: 0 0 20px 0;">
+                                ${productName} - Desktop Access
+                            </p>
+                            
+                            <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 16px 0; text-align: left;">
+                                <h4 style="font-size: 16px; color: #333; margin: 0 0 12px 0;">
+                                    📱 Steps to Access on Desktop:
+                                </h4>
+                                <ol style="font-size: 13px; color: #666; margin: 0; padding-left: 20px;">
+                                    <li style="margin-bottom: 8px;">Open <strong>ieltsaiprep.com</strong> on your computer</li>
+                                    <li style="margin-bottom: 8px;">Click "QR Login" or look for QR code</li>
+                                    <li style="margin-bottom: 8px;">Use this app to scan the QR code</li>
+                                    <li style="margin-bottom: 8px;">Your assessment will be available on desktop!</li>
+                                </ol>
+                            </div>
+
+                            <div style="background: #e8f5e8; padding: 16px; border-radius: 12px; margin: 16px 0;">
+                                <p style="font-size: 12px; color: #666; margin: 0;">
+                                    <strong>💡 Pro Tip:</strong> Desktop access gives you a larger screen for writing assessments and better audio quality for speaking tests.
+                                </p>
+                            </div>
+                            
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px;">
+                                Got it!
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            showWebAccessInfo() {
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 350px; width: 100%; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">💻</div>
+                            <h3 style="font-size: 20px; font-weight: bold; color: #667eea; margin: 0 0 16px 0;">
+                                Why Use Desktop/Laptop?
+                            </h3>
+                            
+                            <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 16px 0; text-align: left;">
+                                <h4 style="font-size: 16px; color: #333; margin: 0 0 12px 0;">
+                                    ✅ Better Experience:
+                                </h4>
+                                <ul style="font-size: 13px; color: #666; margin: 0; padding-left: 20px;">
+                                    <li style="margin-bottom: 6px;">Larger screen for writing tasks</li>
+                                    <li style="margin-bottom: 6px;">Full keyboard for typing</li>
+                                    <li style="margin-bottom: 6px;">Better audio quality for speaking</li>
+                                    <li style="margin-bottom: 6px;">More stable internet connection</li>
+                                    <li style="margin-bottom: 6px;">IELTS test-like environment</li>
+                                </ul>
+                            </div>
+
+                            <div style="background: #e8f5e8; padding: 16px; border-radius: 12px; margin: 16px 0;">
+                                <p style="font-size: 12px; color: #666; margin: 0;">
+                                    <strong>📱 Mobile + 🖥️ Desktop = Perfect Combo!</strong><br>
+                                    Purchase on mobile, take assessments on desktop for the best preparation experience.
+                                </p>
+                            </div>
+                            
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px;">
+                                Understood!
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
             }
         }
 
