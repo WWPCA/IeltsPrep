@@ -38,7 +38,8 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - **In-App Purchases**: $36.00 per assessment product across both platforms
 - **Regional API Routing**: Automatic selection of nearest Lambda endpoint
 - **Native Platform Features**: Leverages Capacitor 7.3.0 for device capabilities
-- **Web Version Access**: Prominent home screen information guiding users to desktop/laptop access via ieltsaiprep.com
+- **Dual-Platform Access**: Users can complete assessments directly in mobile app OR access via desktop/laptop through QR code
+- **Flexible User Experience**: One purchase enables access on both mobile and web platforms
 
 ## Data Flow
 
@@ -97,6 +98,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - **Environment Switching**: Seamless transition between local and serverless modes
 
 ## Recent Changes
+
+- June 16, 2025: Updated public landing page to match original website design with dual-platform access
+  - Recreated public homepage using original Bootstrap layout from templates/index.html
+  - Fixed header layout issues to prevent content overlap on mobile and desktop
+  - Updated "How It Works" section to reflect dual-platform access capabilities
+  - Clarified that users can access assessments directly in mobile app OR via desktop through QR code
+  - Maintained existing authentication flow while allowing public browsing of assessment information
+  - Enhanced mobile responsiveness with proper spacing and navigation
+  - Updated architecture documentation to reflect flexible access options
 
 - June 14, 2025: Successfully enhanced mobile app home screen with comprehensive GenAI assessment information
   - Implemented prominent gradient banner in top half explaining desktop/laptop access
