@@ -205,18 +205,21 @@
                 const useWebBtn = modal.querySelector('.btn-use-web');
                 const closeBtn = modal.querySelector('.btn-close-modal');
 
+                // Store reference to 'this' for event handlers
+                const self = this;
+                
                 if (startMobileBtn) {
                     startMobileBtn.addEventListener('click', () => {
                         modal.remove();
                         const assessmentType = productId.includes('speaking') ? 'speaking' : 'writing';
-                        this.startAssessmentInApp(productId, assessmentType);
+                        self.startAssessmentInApp(productId, assessmentType);
                     });
                 }
 
                 if (useWebBtn) {
                     useWebBtn.addEventListener('click', () => {
                         modal.remove();
-                        this.showWebAccessGuide(productId);
+                        self.showWebAccessGuide(productId);
                     });
                 }
 
