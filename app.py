@@ -210,8 +210,7 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             }
         
         # Verify session with mock services
-        aws_services = get_aws_services()
-        session_data = aws_services.get_session(session_id)
+        session_data = aws_mock.get_session(session_id)
         
         if not session_data:
             # Invalid session, redirect to login
@@ -2501,7 +2500,7 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle user login with DynamoDB authentication"""
+    """Handle user login with bcrypt authentication"""
     try:
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
@@ -2514,8 +2513,9 @@ def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
                 'body': json.dumps({'success': False, 'message': 'Email and password are required'})
             }
         
-        # Get user from DynamoDB
-        user_data = aws_mock.users_table.get_item(email)
+        # Verify credentials using bcrypt
+        user_data = aws_mock.verify_credentials(email, password)
+        
         if not user_data:
             return {
                 'statusCode': 401,
@@ -2523,44 +2523,33 @@ def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
                 'body': json.dumps({'success': False, 'message': 'Invalid email or password'})
             }
         
-        # Verify password
-        import hashlib
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
-        
-        if user_data['password_hash'] != password_hash:
-            return {
-                'statusCode': 401,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': False, 'message': 'Invalid email or password'})
-            }
-        
-        # Update last login
-        aws_mock.users_table.update_item(email, {
-            'last_login': datetime.utcnow().isoformat()
-        })
-        
-        # Create session
-        session_id = f"mobile_session_{int(time.time())}_{email.replace('@', '_').replace('.', '_')}"
+        # Create web session (1 hour TTL)
+        session_id = f"web_session_{int(time.time())}_{str(uuid.uuid4())[:8]}"
         session_data = {
+            'session_id': session_id,
             'user_email': email,
+            'user_id': user_data['user_id'],
             'created_at': time.time(),
-            'type': 'mobile_app'
+            'type': 'web'
         }
         aws_mock.create_session(session_data)
         
-        aws_mock.log_event('UserAuth', f'User logged in: {email}')
+        aws_mock.log_event('UserAuth', f'User logged in via web: {email}')
         
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Set-Cookie': f'web_session_id={session_id}; Path=/; HttpOnly; Max-Age=3600'
+            },
             'body': json.dumps({
                 'success': True,
                 'user': {
-                    'name': user_data['name'],
                     'email': user_data['email'],
-                    'products': user_data.get('products', [])
+                    'purchases': user_data.get('purchases', [])
                 },
-                'session_id': session_id
+                'redirect_url': '/dashboard'
             })
         }
         
