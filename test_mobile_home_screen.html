@@ -1007,10 +1007,23 @@
                             </div>
 
                             <div style="margin-bottom: 20px;">
-                                <label style="display: flex; align-items: flex-start; cursor: pointer; font-size: 14px; color: #333;">
-                                    <input type="checkbox" id="terms-checkbox" style="margin: 4px 8px 0 0; transform: scale(1.2);">
-                                    <span>I have read and agree to the <a href="/terms-of-service" target="_blank" style="color: #007bff; text-decoration: none;">Terms of Service</a> and <a href="/privacy-policy" target="_blank" style="color: #007bff; text-decoration: none;">Privacy Policy</a>. I understand that all purchases are final and non-refundable.</span>
-                                </label>
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: flex; align-items: flex-start; cursor: pointer; font-size: 14px; color: #333;">
+                                        <input type="checkbox" id="terms-checkbox" style="margin: 4px 8px 0 0; transform: scale(1.2);">
+                                        <span>I have read and agree to the <a href="/terms-of-service" target="_blank" style="color: #007bff; text-decoration: none; font-weight: 600;">Terms of Service</a></span>
+                                    </label>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: flex; align-items: flex-start; cursor: pointer; font-size: 14px; color: #333;">
+                                        <input type="checkbox" id="privacy-checkbox" style="margin: 4px 8px 0 0; transform: scale(1.2);">
+                                        <span>I have read and agree to the <a href="/privacy-policy" target="_blank" style="color: #007bff; text-decoration: none; font-weight: 600;">Privacy Policy</a></span>
+                                    </label>
+                                </div>
+                                <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #dc3545;">
+                                    <p style="margin: 0; font-size: 13px; color: #721c24; font-weight: 500;">
+                                        ✓ I understand that all purchases are final and non-refundable
+                                    </p>
+                                </div>
                             </div>
 
                             <div style="display: flex; gap: 12px;">
@@ -1018,7 +1031,7 @@
                                     Cancel
                                 </button>
                                 <button id="proceed-purchase-btn" disabled style="flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; opacity: 0.5; cursor: not-allowed;">
-                                    Proceed to Purchase
+                                    Accept Both Agreements
                                 </button>
                             </div>
                         </div>
@@ -1027,25 +1040,31 @@
 
                 document.body.appendChild(modal);
 
-                // Enable/disable purchase button based on checkbox
-                const checkbox = modal.querySelector('#terms-checkbox');
+                // Enable/disable purchase button based on both checkboxes
+                const termsCheckbox = modal.querySelector('#terms-checkbox');
+                const privacyCheckbox = modal.querySelector('#privacy-checkbox');
                 const proceedBtn = modal.querySelector('#proceed-purchase-btn');
                 
-                checkbox.addEventListener('change', () => {
-                    if (checkbox.checked) {
+                const updatePurchaseButton = () => {
+                    if (termsCheckbox.checked && privacyCheckbox.checked) {
                         proceedBtn.disabled = false;
                         proceedBtn.style.opacity = '1';
                         proceedBtn.style.cursor = 'pointer';
+                        proceedBtn.textContent = 'Proceed to Purchase';
                     } else {
                         proceedBtn.disabled = true;
                         proceedBtn.style.opacity = '0.5';
                         proceedBtn.style.cursor = 'not-allowed';
+                        proceedBtn.textContent = 'Accept Both Agreements';
                     }
-                });
+                };
+
+                termsCheckbox.addEventListener('change', updatePurchaseButton);
+                privacyCheckbox.addEventListener('change', updatePurchaseButton);
 
                 // Handle proceed to purchase
                 proceedBtn.addEventListener('click', () => {
-                    if (checkbox.checked) {
+                    if (termsCheckbox.checked && privacyCheckbox.checked) {
                         modal.remove();
                         this.processPurchase(productId);
                     }
