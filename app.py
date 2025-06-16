@@ -99,6 +99,10 @@ def lambda_handler(event, context):
             return handle_database_schema_page()
         elif path == '/nova-assessment' and method == 'GET':
             return handle_nova_assessment_demo()
+        elif path == '/privacy-policy' and method == 'GET':
+            return handle_privacy_policy()
+        elif path == '/terms-of-service' and method == 'GET':
+            return handle_terms_of_service()
         elif path == '/' and method == 'GET':
             return handle_home_page()
         else:
@@ -281,6 +285,181 @@ def handle_database_schema_page() -> Dict[str, Any]:
             'headers': {'Content-Type': 'text/html'},
             'body': f'<h1>Error loading database schema: {str(e)}</h1>'
         }
+
+def handle_privacy_policy() -> Dict[str, Any]:
+    """Serve privacy policy page"""
+    html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+            <a href="/" class="btn btn-outline-primary">Back to Home</a>
+        </div>
+    </nav>
+    
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h3 mb-0">Privacy Policy</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="last-updated mb-4">
+                            <p><em>Last Updated: June 16, 2025</em></p>
+                        </div>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">1. Introduction</h2>
+                            <p>Welcome to IELTS GenAI Prep, featuring TrueScore® and ClearScore® - the world's ONLY GenAI assessor tools for IELTS test preparation. We respect your privacy and are committed to protecting your personal data.</p>
+                            <p>This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our IELTS preparation services.</p>
+                        </section>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">2. Information We Collect</h2>
+                            <p>We collect information necessary to provide our assessment services:</p>
+                            <ul>
+                                <li>Account information (email address)</li>
+                                <li>Assessment responses and performance data</li>
+                                <li>Voice recordings for speaking assessments (processed in real-time, not stored)</li>
+                                <li>Usage data to improve our AI algorithms</li>
+                            </ul>
+                        </section>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">3. How We Use Your Information</h2>
+                            <p>Your information is used to:</p>
+                            <ul>
+                                <li>Provide personalized IELTS assessment feedback</li>
+                                <li>Process payments through app stores</li>
+                                <li>Improve our AI assessment accuracy</li>
+                                <li>Maintain account security</li>
+                            </ul>
+                        </section>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">4. Data Security</h2>
+                            <p>We implement industry-standard security measures including encryption and access controls. Voice data is processed in real-time and not stored permanently.</p>
+                        </section>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">5. Your Rights</h2>
+                            <p>You have the right to access, correct, or delete your personal data. Contact us through our website for any privacy-related requests.</p>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+    """
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': html_content
+    }
+
+def handle_terms_of_service() -> Dict[str, Any]:
+    """Serve terms of service page"""
+    html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+            <a href="/" class="btn btn-outline-primary">Back to Home</a>
+        </div>
+    </nav>
+    
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h3 mb-0">Terms of Service</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="last-updated mb-4">
+                            <p><em>Last Updated: June 16, 2025</em></p>
+                        </div>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">1. Service Description</h2>
+                            <p>IELTS GenAI Prep provides AI-powered IELTS assessment tools featuring TrueScore® and ClearScore® technologies. Our platform offers personalized feedback for writing and speaking assessments.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">2. Eligibility</h2>
+                            <p>You must be at least 16 years old to use our services. By using our platform, you confirm you meet this requirement.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">3. Payment and Access</h2>
+                            <p>Assessment packages are available for $36.00 per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">4. Intellectual Property</h2>
+                            <p>TrueScore® and ClearScore® are proprietary technologies. All content and features are protected by copyright and trademark laws.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">5. User Responsibilities</h2>
+                            <p>You agree to:</p>
+                            <ul>
+                                <li>Use our services for legitimate IELTS preparation</li>
+                                <li>Maintain account security</li>
+                                <li>Respect intellectual property rights</li>
+                                <li>Not attempt to reverse engineer our technology</li>
+                            </ul>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">6. Limitation of Liability</h2>
+                            <p>Our services are provided "as is" for educational purposes. While our AI provides feedback based on IELTS criteria, we cannot guarantee specific test outcomes.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">7. Contact Information</h2>
+                            <p>For questions about these terms, please contact us through our website.</p>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+    """
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': html_content
+    }
 
 def handle_nova_assessment_demo() -> Dict[str, Any]:
     """Serve Nova AI assessment demonstration page"""
