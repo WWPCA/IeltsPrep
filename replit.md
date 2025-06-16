@@ -107,6 +107,9 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Maintained existing authentication flow while allowing public browsing of assessment information
   - Enhanced mobile responsiveness with proper spacing and navigation
   - Updated architecture documentation to reflect flexible access options
+  - Added comprehensive legal compliance with privacy policy and terms of service pages
+  - Implemented mandatory terms acceptance modal before mobile app purchases
+  - Enhanced purchase flow with clear non-refundable policy communication
 
 - June 14, 2025: Successfully enhanced mobile app home screen with comprehensive GenAI assessment information
   - Implemented prominent gradient banner in top half explaining desktop/laptop access
