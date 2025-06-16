@@ -77,6 +77,10 @@ def lambda_handler(event, context):
             return handle_user_registration(data)
         elif path == '/api/login' and method == 'POST':
             return handle_user_login(data)
+        elif path == '/login' and method == 'GET':
+            return handle_login_page()
+        elif path == '/dashboard' and method == 'GET':
+            return handle_dashboard_page(headers)
         elif path == '/api/maya/introduction' and method == 'POST':
             return handle_maya_introduction(data)
         elif path == '/api/maya/conversation' and method == 'POST':
@@ -158,6 +162,27 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
 def handle_home_page() -> Dict[str, Any]:
     """Handle home page - serve public landing page"""
     return handle_static_file('public_home.html')
+
+def handle_login_page() -> Dict[str, Any]:
+    """Serve mobile-first login page"""
+    try:
+        with open('login.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Login page not found</h1>'
+        }
 
 def handle_qr_auth_page() -> Dict[str, Any]:
     """Serve QR authentication page"""
