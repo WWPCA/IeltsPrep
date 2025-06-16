@@ -1,16 +1,17 @@
 """
 AWS Mock Services Configuration for .replit Environment
-Simulates DynamoDB, ElastiCache, and CloudWatch for local testing
+Simulates DynamoDB, ElastiCache, and CloudWatch for mobile-first authentication
 """
 
 import os
 import json
 import time
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 class MockDynamoDBTable:
-    """Simulates DynamoDB AuthTokens table with TTL support"""
+    """Simulates DynamoDB table with TTL support"""
     
     def __init__(self, table_name: str):
         self.table_name = table_name
@@ -19,7 +20,7 @@ class MockDynamoDBTable:
     
     def put_item(self, item: Dict[str, Any]) -> bool:
         """Store item with automatic TTL cleanup"""
-        item_key = item.get('token_id', item.get('session_id'))
+        item_key = item.get('user_id', item.get('session_id', item.get('email')))
         if not item_key:
             return False
         
@@ -206,13 +207,9 @@ class AWSMockServices:
     
     def __init__(self):
         # DynamoDB Tables
-        self.auth_tokens_table = MockDynamoDBTable('ielts-genai-prep-auth-tokens')
         self.users_table = MockDynamoDBTable('ielts-genai-prep-users')
-        self.user_sessions_table = MockDynamoDBTable('ielts-genai-prep-user-sessions')
-        self.purchase_records_table = MockDynamoDBTable('ielts-genai-prep-purchases')
         self.assessment_results_table = MockDynamoDBTable('ielts-genai-prep-assessment-results')
         self.assessment_rubrics_table = MockDynamoDBTable('ielts-genai-prep-assessment-rubrics')
-        self.user_progress_table = MockDynamoDBTable('ielts-genai-prep-user-progress')
         
         # ElastiCache
         self.session_cache = MockElastiCache()
