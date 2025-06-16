@@ -110,6 +110,8 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Added comprehensive legal compliance with privacy policy and terms of service pages
   - Implemented mandatory terms acceptance modal before mobile app purchases
   - Enhanced purchase flow with clear non-refundable policy communication
+  - Added dual checkbox system requiring separate agreement to Terms of Service AND Privacy Policy
+  - Implemented "By creating an account, you agree to our Terms of Service and Privacy Policy" text in all registration forms
 
 - June 14, 2025: Successfully enhanced mobile app home screen with comprehensive GenAI assessment information
   - Implemented prominent gradient banner in top half explaining desktop/laptop access
