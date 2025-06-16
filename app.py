@@ -417,6 +417,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
                         <section class="terms-section mb-4">
                             <h2 class="h4">3. Payment and Access</h2>
                             <p>Assessment packages are available for $36.00 per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
+                            <p><strong>All purchases are final and non-refundable.</strong> By completing a purchase, you acknowledge that you understand and accept this policy.</p>
                         </section>
 
                         <section class="terms-section mb-4">
