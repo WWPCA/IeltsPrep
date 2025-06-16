@@ -132,15 +132,8 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
         }
 
 def handle_home_page() -> Dict[str, Any]:
-    """Handle home page - redirect to QR authentication"""
-    return {
-        'statusCode': 302,
-        'headers': {
-            'Location': '/qr-auth',
-            'Access-Control-Allow-Origin': '*'
-        },
-        'body': ''
-    }
+    """Handle home page - serve mobile app home screen"""
+    return handle_static_file('test_mobile_home_screen.html')
 
 def handle_qr_auth_page() -> Dict[str, Any]:
     """Serve QR authentication page"""
