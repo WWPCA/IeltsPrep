@@ -124,6 +124,12 @@
             async purchaseProduct(productId, userEmail) {
                 console.log(`Mock purchase: ${productId} for ${userEmail}`);
                 
+                // Add the product to purchased list BEFORE showing modal
+                if (!this.appInstance.currentUser.products.includes(productId)) {
+                    this.appInstance.currentUser.products.push(productId);
+                    console.log(`Added ${productId} to user products`);
+                }
+                
                 // Simulate purchase success with QR code
                 const qrData = {
                     success: true,
@@ -225,11 +231,8 @@
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => {
                         modal.remove();
-                        // Add the product to purchased list and refresh home screen
-                        if (!this.appInstance.currentUser.products.includes(productId)) {
-                            this.appInstance.currentUser.products.push(productId);
-                        }
-                        this.appInstance.renderHomeScreen(); // Refresh to show purchased assessment
+                        // Refresh home screen to show purchased assessment
+                        this.appInstance.renderHomeScreen();
                     });
                 }
             }
@@ -312,10 +315,7 @@
                 // Simulate starting assessment in mobile app
                 alert(`Starting ${productName} assessment in mobile app!\n\nThis would launch the native assessment interface with:\n• ${assessmentType === 'speaking' ? 'AI examiner Maya conversation' : 'Writing prompt and editor'}\n• Real-time feedback\n• Progress tracking\n• Offline capability`);
                 
-                // Add the product to purchased list and refresh home screen
-                if (!this.currentUser.products.includes(productId)) {
-                    this.currentUser.products.push(productId);
-                }
+                // Refresh home screen to show purchased assessment
                 this.renderHomeScreen();
             }
 
