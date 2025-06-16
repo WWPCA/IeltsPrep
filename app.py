@@ -91,6 +91,8 @@ def lambda_handler(event, context):
             return handle_profile_page(headers)
         elif path == '/test_mobile_home_screen.html' and method == 'GET':
             return handle_static_file('test_mobile_home_screen.html')
+        elif path == '/mobile' and method == 'GET':
+            return handle_static_file('test_mobile_home_screen.html')
         elif path == '/nova-assessment.html' and method == 'GET':
             return handle_static_file('nova_assessment_demo.html')
         elif path == '/database-schema' and method == 'GET':
@@ -150,8 +152,8 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
         }
 
 def handle_home_page() -> Dict[str, Any]:
-    """Handle home page - serve mobile app home screen"""
-    return handle_static_file('test_mobile_home_screen.html')
+    """Handle home page - serve public landing page"""
+    return handle_static_file('public_home.html')
 
 def handle_qr_auth_page() -> Dict[str, Any]:
     """Serve QR authentication page"""

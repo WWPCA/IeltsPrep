@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS GenAI Prep - AI-Powered IELTS Assessment Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 4rem 2rem;
+        }
+
+        .hero-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            color: white;
+            margin-bottom: 4rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            background: #28a745;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .features-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .feature-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .assessments-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .assessments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .assessment-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .assessment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 1;
+        }
+
+        .assessment-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .assessment-type {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .assessment-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .price {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .assessment-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .assessment-features li {
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .assessment-features li::before {
+            content: '✓ ';
+            margin-right: 0.5rem;
+        }
+
+        .access-info {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .access-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .step {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 1rem auto;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .main-content {
+                padding: 2rem 1rem;
+            }
+            
+            .features-section,
+            .assessments-section,
+            .access-info {
+                padding: 2rem 1rem;
+                margin: 0 1rem 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">IELTS GenAI Prep</div>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#assessments">Assessments</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="/qr-auth">Access Portal</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="hero-section">
+            <h1 class="hero-title">IELTS GenAI Prep</h1>
+            <p class="hero-subtitle">Master IELTS with AI-powered assessments featuring Nova Sonic speech conversations and Nova Micro writing analysis</p>
+            <a href="#assessments" class="cta-button">Explore Assessments</a>
+        </section>
+
+        <section class="features-section" id="features">
+            <h2 class="section-title">Revolutionary AI-Powered Assessment</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3 class="feature-title">ClearScore® GenAI Speaking</h3>
+                    <p class="feature-description">Real-time conversations with Maya, your AI examiner powered by Nova Sonic. Practice natural speaking with instant feedback and authentic IELTS assessment criteria.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✍️</div>
+                    <h3 class="feature-title">TrueScore® GenAI Writing</h3>
+                    <p class="feature-description">Advanced writing assessment using Nova Micro technology. Get detailed feedback on task achievement, coherence, lexical resource, and grammatical accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">Official IELTS Format</h3>
+                    <p class="feature-description">Authentic test experience with official IELTS layout, timing, and assessment criteria. Practice exactly as you'll encounter in the real exam.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Instant Band Scoring</h3>
+                    <p class="feature-description">Receive immediate band scores based on official IELTS criteria. Understand your strengths and areas for improvement with detailed feedback.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="assessments-section" id="assessments">
+            <h2 class="section-title">Choose Your Assessment</h2>
+            <div class="assessments-grid">
+                <div class="assessment-card">
+                    <div class="assessment-content">
+                        <div class="assessment-type">IELTS Academic</div>
+                        <div class="assessment-name">Speaking Assessment</div>
+                        <div class="price">$36</div>
+                        <ul class="assessment-features">
+                            <li>ClearScore® GenAI Technology</li>
+                            <li>Maya AI Examiner Conversation</li>
+                            <li>Real-time Nova Sonic Processing</li>
+                            <li>Instant Band Score Feedback</li>
+                            <li>Official IELTS Format</li>
+                        </ul>
+                        <a href="/qr-auth" class="cta-button">Get Assessment</a>
+                    </div>
+                </div>
+                
+                <div class="assessment-card">
+                    <div class="assessment-content">
+                        <div class="assessment-type">IELTS Academic</div>
+                        <div class="assessment-name">Writing Assessment</div>
+                        <div class="price">$36</div>
+                        <ul class="assessment-features">
+                            <li>TrueScore® GenAI Technology</li>
+                            <li>Nova Micro Analysis Engine</li>
+                            <li>Detailed Band Breakdown</li>
+                            <li>Task Achievement Feedback</li>
+                            <li>Official IELTS Interface</li>
+                        </ul>
+                        <a href="/qr-auth" class="cta-button">Get Assessment</a>
+                    </div>
+                </div>
+                
+                <div class="assessment-card">
+                    <div class="assessment-content">
+                        <div class="assessment-type">IELTS General Training</div>
+                        <div class="assessment-name">Speaking Assessment</div>
+                        <div class="price">$36</div>
+                        <ul class="assessment-features">
+                            <li>ClearScore® GenAI Technology</li>
+                            <li>Maya AI Examiner Conversation</li>
+                            <li>Real-time Nova Sonic Processing</li>
+                            <li>Instant Band Score Feedback</li>
+                            <li>Official IELTS Format</li>
+                        </ul>
+                        <a href="/qr-auth" class="cta-button">Get Assessment</a>
+                    </div>
+                </div>
+                
+                <div class="assessment-card">
+                    <div class="assessment-content">
+                        <div class="assessment-type">IELTS General Training</div>
+                        <div class="assessment-name">Writing Assessment</div>
+                        <div class="price">$36</div>
+                        <ul class="assessment-features">
+                            <li>TrueScore® GenAI Technology</li>
+                            <li>Nova Micro Analysis Engine</li>
+                            <li>Detailed Band Breakdown</li>
+                            <li>Task Achievement Feedback</li>
+                            <li>Official IELTS Interface</li>
+                        </ul>
+                        <a href="/qr-auth" class="cta-button">Get Assessment</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="access-info" id="how-it-works">
+            <h2 class="section-title">How to Access Your Assessments</h2>
+            <p>Our platform uses mobile app purchases for global accessibility and QR authentication for seamless desktop access.</p>
+            
+            <div class="access-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Download Mobile App</h3>
+                    <p>Get our mobile app from the App Store or Google Play Store to purchase assessments.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Purchase Assessment</h3>
+                    <p>Buy your desired assessment through secure in-app purchase ($36 per assessment).</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Get QR Code</h3>
+                    <p>Receive a unique QR code after purchase confirmation in the mobile app.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Access on Desktop</h3>
+                    <p>Visit ieltsaiprep.com on your computer, scan the QR code, and start your assessment.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 IELTS GenAI Prep. Powered by Amazon Nova AI Technology.</p>
+        <p>Featuring ClearScore® GenAI Speaking and TrueScore® GenAI Writing assessments.</p>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+            }
+        });
+    </script>
+</body>
+</html>
