@@ -528,8 +528,18 @@ class IELTSGenAIPrepApp {
           </button>
         </div>
 
+        <!-- My Assessments Section -->
+        <div id="my-assessments-section" style="margin-bottom: 20px; display: none;">
+          <h2 style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 16px;">
+            My Assessments
+          </h2>
+          <div id="purchased-assessments" style="display: grid; gap: 12px;">
+            <!-- Purchased assessments will be loaded here -->
+          </div>
+        </div>
+
         <!-- Assessment Products Section -->
-        <div style="margin-bottom: 20px;">
+        <div id="products-section" style="margin-bottom: 20px;">
           <h2 style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 16px;">
             IELTS Assessment Products
           </h2>
@@ -557,6 +567,9 @@ class IELTSGenAIPrepApp {
     
     // Set up event listeners
     this.setupHomeScreenListeners();
+    
+    // Load and display purchased assessments
+    this.loadPurchasedAssessments();
   }
 
   private generateProductCards(): string {
@@ -811,6 +824,328 @@ class IELTSGenAIPrepApp {
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
+  }
+
+  private async loadPurchasedAssessments(): Promise<void> {
+    try {
+      // Load user data first
+      await this.loadUserData();
+      
+      if (!this.currentUser?.email) {
+        // No user logged in, hide purchased assessments section
+        return;
+      }
+
+      const purchasedProducts = this.currentUser.products || [];
+      
+      if (purchasedProducts.length === 0) {
+        // No purchased products, hide section
+        return;
+      }
+
+      // Show purchased assessments section
+      const myAssessmentsSection = document.getElementById('my-assessments-section');
+      if (myAssessmentsSection) {
+        myAssessmentsSection.style.display = 'block';
+      }
+
+      // Generate assessment cards for purchased products
+      const purchasedContainer = document.getElementById('purchased-assessments');
+      if (purchasedContainer) {
+        purchasedContainer.innerHTML = this.generatePurchasedAssessmentCards(purchasedProducts);
+        this.setupPurchasedAssessmentListeners();
+      }
+
+    } catch (error) {
+      console.error('Failed to load purchased assessments:', error);
+    }
+  }
+
+  private generatePurchasedAssessmentCards(purchasedProducts: string[]): string {
+    const assessmentMap = {
+      'academic_speaking_assessment': {
+        title: 'ClearScore® GenAI Speaking',
+        subtitle: 'Academic Training',
+        icon: '🗣️',
+        type: 'speaking',
+        color: '#007bff'
+      },
+      'academic_writing_assessment': {
+        title: 'TrueScore® GenAI Writing',
+        subtitle: 'Academic Training', 
+        icon: '✍️',
+        type: 'writing',
+        color: '#28a745'
+      },
+      'general_speaking_assessment': {
+        title: 'ClearScore® GenAI Speaking',
+        subtitle: 'General Training',
+        icon: '🗣️',
+        type: 'speaking',
+        color: '#007bff'
+      },
+      'general_writing_assessment': {
+        title: 'TrueScore® GenAI Writing',
+        subtitle: 'General Training',
+        icon: '✍️', 
+        type: 'writing',
+        color: '#28a745'
+      }
+    };
+
+    return purchasedProducts.map(productId => {
+      const assessment = assessmentMap[productId];
+      if (!assessment) return '';
+
+      return `
+        <div style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="display: flex; align-items: center; margin-bottom: 12px;">
+            <div style="font-size: 24px; margin-right: 12px;">${assessment.icon}</div>
+            <div style="flex: 1;">
+              <div style="font-size: 16px; font-weight: bold; color: #333;">${assessment.title}</div>
+              <div style="font-size: 14px; color: #666;">${assessment.subtitle}</div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="start-assessment-btn" data-product="${productId}" data-type="${assessment.type}" 
+                    style="background: ${assessment.color}; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;">
+              Start in App
+            </button>
+            <button class="web-access-btn" data-product="${productId}" 
+                    style="background: white; color: ${assessment.color}; border: 2px solid ${assessment.color}; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;">
+              Use on Web
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  private setupPurchasedAssessmentListeners(): void {
+    // Start assessment in app buttons
+    const startBtns = document.querySelectorAll('.start-assessment-btn');
+    startBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const productId = (e.target as HTMLElement).getAttribute('data-product');
+        const assessmentType = (e.target as HTMLElement).getAttribute('data-type');
+        if (productId && assessmentType) {
+          this.startAssessmentInApp(productId, assessmentType);
+        }
+      });
+    });
+
+    // Web access buttons
+    const webBtns = document.querySelectorAll('.web-access-btn');
+    webBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const productId = (e.target as HTMLElement).getAttribute('data-product');
+        if (productId) {
+          this.showWebAccessGuide(productId);
+        }
+      });
+    });
+  }
+
+  private async startAssessmentInApp(productId: string, assessmentType: string): Promise<void> {
+    try {
+      if (assessmentType === 'speaking') {
+        await this.startSpeakingAssessment(productId);
+      } else if (assessmentType === 'writing') {
+        await this.startWritingAssessment(productId);
+      }
+    } catch (error) {
+      console.error('Failed to start assessment:', error);
+      await Toast.show({
+        text: `Failed to start assessment: ${error.message}`,
+        duration: 'long',
+        position: 'center'
+      });
+    }
+  }
+
+  private async startSpeakingAssessment(productId: string): Promise<void> {
+    // Show speaking assessment interface
+    const modal = document.createElement('div');
+    modal.innerHTML = `
+      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; flex-direction: column;">
+        <div style="background: #007bff; color: white; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <h3 style="margin: 0; font-size: 18px;">Speaking Assessment</h3>
+          <button id="close-speaking" style="background: none; border: none; color: white; font-size: 24px;">&times;</button>
+        </div>
+        
+        <div style="flex: 1; padding: 20px; color: white; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+          <div style="font-size: 48px; margin-bottom: 20px;">🗣️</div>
+          <h2 style="margin-bottom: 16px;">AI Conversation with Maya</h2>
+          <p style="margin-bottom: 30px; line-height: 1.5;">
+            Start a natural conversation with Maya, your AI IELTS examiner. 
+            She'll assess your speaking skills in real-time.
+          </p>
+          
+          <button id="start-speaking-btn" style="background: #28a745; color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: bold; margin-bottom: 16px;">
+            Start Conversation
+          </button>
+          
+          <p style="font-size: 14px; opacity: 0.8;">
+            Make sure you're in a quiet environment with good microphone access
+          </p>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Set up event listeners
+    document.getElementById('close-speaking')?.addEventListener('click', () => {
+      modal.remove();
+    });
+
+    document.getElementById('start-speaking-btn')?.addEventListener('click', async () => {
+      try {
+        // Start Nova Sonic conversation
+        await this.apiClient.submitSpeechAssessment(new Blob(), productId);
+        await Toast.show({
+          text: 'Speaking assessment started! Continue conversation with Maya.',
+          duration: 'long',
+          position: 'center'
+        });
+      } catch (error) {
+        await Toast.show({
+          text: 'Failed to start conversation. Please try again.',
+          duration: 'long',
+          position: 'center'
+        });
+      }
+    });
+  }
+
+  private async startWritingAssessment(productId: string): Promise<void> {
+    // Show writing assessment interface
+    const modal = document.createElement('div');
+    modal.innerHTML = `
+      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; display: flex; flex-direction: column;">
+        <div style="background: #28a745; color: white; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <h3 style="margin: 0; font-size: 18px;">Writing Assessment</h3>
+          <button id="close-writing" style="background: none; border: none; color: white; font-size: 24px;">&times;</button>
+        </div>
+        
+        <div style="flex: 1; padding: 20px; overflow-y: auto;">
+          <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 12px 0; color: #333;">Writing Task</h4>
+            <p style="margin: 0; line-height: 1.5; color: #555;">
+              Write an essay of at least 250 words discussing the advantages and disadvantages of social media in modern society.
+              You should provide specific examples and express your own opinion.
+            </p>
+          </div>
+          
+          <textarea id="essay-text" placeholder="Start writing your essay here..." 
+                    style="width: 100%; height: 300px; padding: 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; line-height: 1.5; resize: vertical;"></textarea>
+          
+          <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <div id="word-count" style="color: #666; font-size: 14px;">0 words</div>
+            <button id="submit-essay" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
+              Submit for Assessment
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const essayTextarea = document.getElementById('essay-text') as HTMLTextAreaElement;
+    const wordCountDiv = document.getElementById('word-count');
+
+    // Word count functionality
+    essayTextarea?.addEventListener('input', () => {
+      const wordCount = essayTextarea.value.trim().split(/\s+/).filter(word => word.length > 0).length;
+      if (wordCountDiv) {
+        wordCountDiv.textContent = `${wordCount} words`;
+      }
+    });
+
+    // Set up event listeners
+    document.getElementById('close-writing')?.addEventListener('click', () => {
+      modal.remove();
+    });
+
+    document.getElementById('submit-essay')?.addEventListener('click', async () => {
+      const essayText = essayTextarea?.value.trim();
+      if (!essayText || essayText.length < 50) {
+        await Toast.show({
+          text: 'Please write at least 50 characters before submitting.',
+          duration: 'long',
+          position: 'center'
+        });
+        return;
+      }
+
+      try {
+        await this.apiClient.submitWritingAssessment(
+          essayText, 
+          'Social media advantages and disadvantages essay',
+          productId
+        );
+        
+        modal.remove();
+        await Toast.show({
+          text: 'Essay submitted successfully! You will receive detailed feedback shortly.',
+          duration: 'long',
+          position: 'center'
+        });
+      } catch (error) {
+        await Toast.show({
+          text: 'Failed to submit essay. Please try again.',
+          duration: 'long', 
+          position: 'center'
+        });
+      }
+    });
+  }
+
+  private async showWebAccessGuide(productId: string): Promise<void> {
+    const modal = document.createElement('div');
+    modal.innerHTML = `
+      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; text-align: center;">
+          <h3 style="margin: 0 0 16px 0; color: #333;">Access on Web Platform</h3>
+          
+          <div style="font-size: 48px; margin-bottom: 16px;">🖥️</div>
+          
+          <p style="margin-bottom: 20px; line-height: 1.5; color: #555;">
+            For the best assessment experience with full screen and keyboard support:
+          </p>
+          
+          <ol style="text-align: left; margin-bottom: 20px; padding-left: 20px; line-height: 1.6; color: #555;">
+            <li>Visit <strong>ieltsaiprep.com</strong> on your computer</li>
+            <li>The website will display a QR code</li>
+            <li>Return to this app and tap "Scan QR Code"</li>
+            <li>Point your camera at the QR code</li>
+            <li>You'll be logged into the web platform automatically</li>
+          </ol>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <button id="open-qr-scanner" style="background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600;">
+              Scan QR Code
+            </button>
+            <button id="close-web-guide" style="background: #f8f9fa; color: #333; border: none; padding: 12px; border-radius: 8px; font-weight: 600;">
+              Got It
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('close-web-guide')?.addEventListener('click', () => {
+      modal.remove();
+    });
+
+    document.getElementById('open-qr-scanner')?.addEventListener('click', () => {
+      modal.remove();
+      this.handleQRScan();
+    });
   }
 }
 
