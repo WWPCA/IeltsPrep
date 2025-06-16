@@ -239,6 +239,35 @@ def handle_profile_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             'body': f'<h1>Error loading profile: {str(e)}</h1>'
         }
 
+def handle_database_schema_page() -> Dict[str, Any]:
+    """Serve database schema documentation page"""
+    try:
+        with open('database_schema_demo.html', 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': content
+        }
+        
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/plain'},
+            'body': 'Database schema page not found'
+        }
+    except Exception as e:
+        print(f"[CLOUDWATCH] Database schema page error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error loading database schema: {str(e)}</h1>'
+        }
+
 def handle_apple_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
     """Handle Apple App Store in-app purchase verification"""
     try:
