@@ -68,7 +68,7 @@
         // Mock mobile API client
         class MobileAPIClient {
             constructor() {
-                this.baseURL = 'https://api-us.ieltsaiprep.com';
+                this.baseURL = window.location.origin;
                 this.region = 'us-east-1';
                 this.sessionToken = null;
                 this.qrAuthToken = null;
@@ -101,11 +101,11 @@
             }
 
             async registerUser(name, email, password) {
-                return this.makeAPICall('/auth/register', 'POST', { name, email, password });
+                return this.makeAPICall('/api/register', 'POST', { name, email, password });
             }
 
             async loginUser(email, password) {
-                return this.makeAPICall('/auth/login', 'POST', { email, password });
+                return this.makeAPICall('/api/login', 'POST', { email, password });
             }
 
             async generateQRTokenAfterPurchase(userEmail, productId) {
