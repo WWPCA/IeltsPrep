@@ -390,13 +390,47 @@ class AWSMockServices:
             'Timestamp': datetime.utcnow()
         }])
     
+    def get_assessment_rubric(self, assessment_type: str) -> Optional[Dict[str, Any]]:
+        """Get IELTS assessment rubric from DynamoDB for Nova Sonic/Micro"""
+        return self.assessment_rubrics_table.get_item(assessment_type)
+    
+    def store_assessment_result(self, result_data: Dict[str, Any]) -> bool:
+        """Store assessment result in DynamoDB"""
+        return self.assessment_results_table.put_item(result_data)
+    
+    def get_user_assessments(self, user_email: str) -> list:
+        """Get all assessments for a user from DynamoDB"""
+        return self.assessment_results_table.scan(f"user_email = '{user_email}'")
+    
+    def update_user_progress(self, user_email: str, progress_data: Dict[str, Any]) -> bool:
+        """Update user progress in DynamoDB"""
+        return self.user_progress_table.put_item({
+            'user_email': user_email,
+            'progress_data': progress_data,
+            'updated_at': datetime.utcnow().isoformat()
+        })
+    
+    def get_nova_sonic_prompts(self, assessment_type: str) -> Optional[Dict[str, Any]]:
+        """Get Nova Sonic system prompts from DynamoDB rubrics"""
+        rubric = self.get_assessment_rubric(assessment_type)
+        return rubric.get('nova_sonic_prompts') if rubric else None
+    
+    def get_nova_micro_prompts(self, assessment_type: str) -> Optional[Dict[str, Any]]:
+        """Get Nova Micro system prompts from DynamoDB rubrics"""
+        rubric = self.get_assessment_rubric(assessment_type)
+        return rubric.get('nova_micro_prompts') if rubric else None
+
     def get_health_status(self) -> Dict[str, Any]:
         """Get overall system health"""
         return {
             'dynamodb_tables': {
                 'auth_tokens': len(self.auth_tokens_table.items),
+                'users': len(self.users_table.items),
                 'user_sessions': len(self.user_sessions_table.items),
-                'purchase_records': len(self.purchase_records_table.items)
+                'purchase_records': len(self.purchase_records_table.items),
+                'assessment_results': len(self.assessment_results_table.items),
+                'assessment_rubrics': len(self.assessment_rubrics_table.items),
+                'user_progress': len(self.user_progress_table.items)
             },
             'elasticache': {
                 'active_sessions': len(self.session_cache.cache)
