@@ -210,6 +210,9 @@ class AWSMockServices:
         self.users_table = MockDynamoDBTable('ielts-genai-prep-users')
         self.user_sessions_table = MockDynamoDBTable('ielts-genai-prep-user-sessions')
         self.purchase_records_table = MockDynamoDBTable('ielts-genai-prep-purchases')
+        self.assessment_results_table = MockDynamoDBTable('ielts-genai-prep-assessment-results')
+        self.assessment_rubrics_table = MockDynamoDBTable('ielts-genai-prep-assessment-rubrics')
+        self.user_progress_table = MockDynamoDBTable('ielts-genai-prep-user-progress')
         
         # ElastiCache
         self.session_cache = MockElastiCache()
@@ -221,7 +224,131 @@ class AWSMockServices:
         self.region = os.environ.get('AWS_REGION', 'us-east-1')
         self.account_id = '123456789012'  # Mock account ID
         
+        # Initialize IELTS assessment rubrics
+        self._setup_assessment_data()
+        
         print(f"[AWS_MOCK] Services initialized for region: {self.region}")
+    
+    def _setup_assessment_data(self):
+        """Initialize IELTS assessment rubrics for Nova Sonic and Nova Micro"""
+        
+        # IELTS Speaking Assessment Rubrics (for Nova Sonic)
+        speaking_rubrics = {
+            'academic_speaking': {
+                'rubric_id': 'ielts_academic_speaking_v2024',
+                'assessment_type': 'speaking',
+                'criteria': {
+                    'fluency_and_coherence': {
+                        'band_9': 'Speaks fluently with only rare repetition or self-correction. Develops topics coherently and appropriately.',
+                        'band_8': 'Speaks fluently with only occasional repetition or self-correction. Develops topics coherently.',
+                        'band_7': 'Speaks at length without noticeable effort or loss of coherence. Uses linking words effectively.',
+                        'band_6': 'Speaks at length though may show hesitation. Generally coherent but may lack progression.',
+                        'band_5': 'Usually maintains flow but uses repetition and hesitation. Over-uses linking words.',
+                        'band_4': 'Cannot respond without noticeable pauses. Speech may be slow with frequent repetition.',
+                        'descriptors': ['flow', 'pace', 'coherence', 'topic_development', 'linking_devices']
+                    },
+                    'lexical_resource': {
+                        'band_9': 'Uses vocabulary with full flexibility and precise usage in all topics.',
+                        'band_8': 'Uses wide range of vocabulary fluently and flexibly to convey precise meanings.',
+                        'band_7': 'Uses vocabulary resource flexibly to discuss variety of topics.',
+                        'band_6': 'Has wide enough vocabulary to discuss topics at length.',
+                        'band_5': 'Manages to talk about familiar topics but uses vocabulary inappropriately.',
+                        'band_4': 'Limited vocabulary prevents discussion of unfamiliar topics.',
+                        'descriptors': ['range', 'accuracy', 'flexibility', 'appropriacy', 'paraphrase_ability']
+                    },
+                    'grammatical_range_and_accuracy': {
+                        'band_9': 'Uses wide range of structures with full flexibility and accuracy.',
+                        'band_8': 'Uses wide range of structures flexibly with majority error-free.',
+                        'band_7': 'Uses range of complex structures with some flexibility.',
+                        'band_6': 'Uses mix of simple and complex structures with some errors.',
+                        'band_5': 'Uses basic sentence forms with reasonable accuracy.',
+                        'band_4': 'Uses only basic sentence forms with frequent errors.',
+                        'descriptors': ['complexity', 'range', 'accuracy', 'error_frequency', 'communication_impact']
+                    },
+                    'pronunciation': {
+                        'band_9': 'Uses wide range of pronunciation features with precise control.',
+                        'band_8': 'Uses wide range of pronunciation features flexibly.',
+                        'band_7': 'Shows all positive features and sustained ability.',
+                        'band_6': 'Uses range of pronunciation features with mixed control.',
+                        'band_5': 'Shows some effective use of features but not sustained.',
+                        'band_4': 'Limited range of pronunciation features.',
+                        'descriptors': ['individual_sounds', 'word_stress', 'sentence_stress', 'intonation', 'chunking']
+                    }
+                },
+                'nova_sonic_prompts': {
+                    'system_prompt': 'You are Maya, an experienced IELTS examiner conducting a speaking assessment. Follow IELTS speaking test format with Part 1 (familiar topics), Part 2 (long turn), and Part 3 (abstract discussion). Evaluate based on fluency, vocabulary, grammar, and pronunciation.',
+                    'part_1_topics': ['work', 'studies', 'hometown', 'family', 'hobbies', 'food', 'transport', 'weather'],
+                    'part_2_structure': 'Give candidate cue card with topic, 1 minute preparation, 2 minutes speaking',
+                    'part_3_approach': 'Ask abstract questions related to Part 2 topic, probe deeper understanding'
+                }
+            },
+            'general_speaking': {
+                'rubric_id': 'ielts_general_speaking_v2024',
+                'assessment_type': 'speaking',
+                'criteria': {
+                    # Same criteria as academic but with different topics and contexts
+                    'fluency_and_coherence': {
+                        'band_9': 'Speaks fluently with only rare repetition or self-correction. Develops topics coherently and appropriately.',
+                        'band_8': 'Speaks fluently with only occasional repetition or self-correction. Develops topics coherently.',
+                        'band_7': 'Speaks at length without noticeable effort or loss of coherence. Uses linking words effectively.',
+                        'band_6': 'Speaks at length though may show hesitation. Generally coherent but may lack progression.',
+                        'band_5': 'Usually maintains flow but uses repetition and hesitation. Over-uses linking words.',
+                        'band_4': 'Cannot respond without noticeable pauses. Speech may be slow with frequent repetition.',
+                        'descriptors': ['flow', 'pace', 'coherence', 'topic_development', 'linking_devices']
+                    }
+                },
+                'nova_sonic_prompts': {
+                    'system_prompt': 'You are Maya, an IELTS examiner for General Training. Focus on everyday situations, practical English usage, and social contexts.',
+                    'part_1_topics': ['daily_routine', 'shopping', 'travel', 'entertainment', 'sports', 'technology'],
+                    'part_2_structure': 'Practical topics like describing experiences, places, people',
+                    'part_3_approach': 'Discuss practical implications and everyday applications'
+                }
+            }
+        }
+        
+        # IELTS Writing Assessment Rubrics (for Nova Micro)
+        writing_rubrics = {
+            'academic_writing': {
+                'rubric_id': 'ielts_academic_writing_v2024',
+                'assessment_type': 'writing',
+                'task_1': {
+                    'task_achievement': {
+                        'band_9': 'Fully satisfies all requirements. Clearly presents fully developed response.',
+                        'band_8': 'Covers requirements sufficiently. Clearly presents well-developed response.',
+                        'band_7': 'Covers requirements. Clearly presents key features/bullet points.',
+                        'band_6': 'Addresses requirements with some omissions. Format appropriate.',
+                        'band_5': 'Generally addresses requirements. Format may be inappropriate.',
+                        'band_4': 'Attempts to address requirements but fails to cover all.',
+                        'descriptors': ['completeness', 'appropriacy', 'accuracy', 'overview', 'key_features']
+                    }
+                },
+                'task_2': {
+                    'task_response': {
+                        'band_9': 'Fully addresses all parts. Develops clear, comprehensive arguments.',
+                        'band_8': 'Sufficiently addresses all parts. Develops relevant arguments.',
+                        'band_7': 'Addresses all parts though some more than others.',
+                        'band_6': 'Addresses all parts but some may be more developed.',
+                        'band_5': 'Addresses the task only partially. Limited development.',
+                        'band_4': 'Responds to task but in limited way.',
+                        'descriptors': ['position_clarity', 'argument_development', 'examples', 'conclusion']
+                    }
+                },
+                'nova_micro_prompts': {
+                    'system_prompt': 'You are an IELTS Academic Writing examiner. Evaluate Task Achievement/Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Provide band scores (1-9) and detailed feedback.',
+                    'task_1_requirements': 'Describe visual information (graphs, charts, diagrams). Minimum 150 words. Academic tone.',
+                    'task_2_requirements': 'Present argument or discussion. Minimum 250 words. Academic essay structure.'
+                }
+            }
+        }
+        
+        # Store rubrics in database
+        for speaking_type, rubric in speaking_rubrics.items():
+            self.assessment_rubrics_table.put_item(rubric)
+            
+        for writing_type, rubric in writing_rubrics.items():
+            self.assessment_rubrics_table.put_item(rubric)
+            
+        print("[AWS_MOCK] IELTS assessment rubrics initialized")
     
     def store_qr_token(self, token_data: Dict[str, Any]) -> bool:
         """Store QR token in AuthTokens table"""
