@@ -77,32 +77,27 @@
             async makeAPICall(endpoint, method = 'POST', data = null) {
                 console.log(`API Call: ${method} ${endpoint}`, data);
                 
-                // Handle authentication endpoints specifically
-                if (endpoint === '/auth/register' && data) {
-                    // Simulate successful registration
-                    return { 
-                        success: true, 
-                        user: { 
-                            name: data.name || data.email.split('@')[0], 
-                            email: data.email, 
-                            products: [] 
-                        } 
-                    };
+                try {
+                    const response = await fetch(`${this.baseURL}${endpoint}`, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: data ? JSON.stringify(data) : null
+                    });
+
+                    const responseData = await response.json();
+                    
+                    if (response.ok) {
+                        return responseData;
+                    } else {
+                        throw new Error(responseData.message || `HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error(`API Call failed for ${endpoint}:`, error);
+                    throw error;
                 }
-                
-                if (endpoint === '/auth/login' && data) {
-                    // Simulate successful login
-                    return { 
-                        success: true, 
-                        user: { 
-                            name: data.email.split('@')[0], 
-                            email: data.email, 
-                            products: [] 
-                        } 
-                    };
-                }
-                
-                return { success: true, message: 'Mock API response' };
             }
 
             async registerUser(name, email, password) {

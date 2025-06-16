@@ -73,6 +73,10 @@ def lambda_handler(event, context):
             return handle_website_auth_check(data)
         elif path == '/api/mobile/scan-qr' and method == 'POST':
             return handle_mobile_qr_scan(data)
+        elif path == '/api/register' and method == 'POST':
+            return handle_user_registration(data)
+        elif path == '/api/login' and method == 'POST':
+            return handle_user_login(data)
         elif path == '/qr-auth' and method == 'GET':
             return handle_qr_auth_page()
         elif path == '/profile' and method == 'GET':
@@ -877,4 +881,154 @@ def handle_health_check() -> Dict[str, Any]:
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'status': 'unhealthy', 'error': str(e)})
+        }
+
+def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle user registration with DynamoDB storage"""
+    try:
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        
+        # Validate input
+        if not name or not email or not password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'All fields are required'})
+            }
+        
+        if len(password) < 6:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'Password must be at least 6 characters'})
+            }
+        
+        # Check if user already exists
+        existing_user = aws_mock.users_table.get_item(email)
+        if existing_user:
+            return {
+                'statusCode': 409,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'User already exists with this email'})
+            }
+        
+        # Hash password
+        import hashlib
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        # Create user record
+        user_data = {
+            'user_id': email,
+            'email': email,
+            'name': name,
+            'password_hash': password_hash,
+            'created_at': datetime.utcnow().isoformat(),
+            'products': [],
+            'last_login': None
+        }
+        
+        # Store in DynamoDB
+        success = aws_mock.users_table.put_item(user_data)
+        
+        if success:
+            aws_mock.log_event('UserAuth', f'User registered: {email}')
+            return {
+                'statusCode': 201,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'success': True, 
+                    'user': {
+                        'name': name,
+                        'email': email,
+                        'products': []
+                    }
+                })
+            }
+        else:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'Failed to create user account'})
+            }
+            
+    except Exception as e:
+        print(f"[CLOUDWATCH] User registration error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': False, 'message': 'Registration failed'})
+        }
+
+def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle user login with DynamoDB authentication"""
+    try:
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        
+        # Validate input
+        if not email or not password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'Email and password are required'})
+            }
+        
+        # Get user from DynamoDB
+        user_data = aws_mock.users_table.get_item(email)
+        if not user_data:
+            return {
+                'statusCode': 401,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'Invalid email or password'})
+            }
+        
+        # Verify password
+        import hashlib
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        if user_data['password_hash'] != password_hash:
+            return {
+                'statusCode': 401,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'Invalid email or password'})
+            }
+        
+        # Update last login
+        aws_mock.users_table.update_item(email, {
+            'last_login': datetime.utcnow().isoformat()
+        })
+        
+        # Create session
+        session_id = f"mobile_session_{int(time.time())}_{email.replace('@', '_').replace('.', '_')}"
+        session_data = {
+            'user_email': email,
+            'created_at': time.time(),
+            'type': 'mobile_app'
+        }
+        aws_mock.create_session(session_data)
+        
+        aws_mock.log_event('UserAuth', f'User logged in: {email}')
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({
+                'success': True,
+                'user': {
+                    'name': user_data['name'],
+                    'email': user_data['email'],
+                    'products': user_data.get('products', [])
+                },
+                'session_id': session_id
+            })
+        }
+        
+    except Exception as e:
+        print(f"[CLOUDWATCH] User login error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': False, 'message': 'Login failed'})
         }

@@ -207,6 +207,7 @@ class AWSMockServices:
     def __init__(self):
         # DynamoDB Tables
         self.auth_tokens_table = MockDynamoDBTable('ielts-genai-prep-auth-tokens')
+        self.users_table = MockDynamoDBTable('ielts-genai-prep-users')
         self.user_sessions_table = MockDynamoDBTable('ielts-genai-prep-user-sessions')
         self.purchase_records_table = MockDynamoDBTable('ielts-genai-prep-purchases')
         
