@@ -213,7 +213,10 @@
                 this.apiClient = new MobileAPIClient();
                 this.purchaseManager = new iOSPurchaseManager(this.apiClient);
                 this.qrScanner = new QRCodeScanner(this.apiClient);
-                this.currentUser = { email: 'test@example.com' };
+                this.currentUser = { email: 'test@example.com', products: [] };
+                
+                // Store global reference for purchase flow
+                window.appInstance = this;
             }
 
             async initialize() {
@@ -226,11 +229,106 @@
                 }
             }
 
+            async addPurchasedProduct(userEmail, productId) {
+                if (!this.currentUser.products.includes(productId)) {
+                    this.currentUser.products.push(productId);
+                    console.log(`Added ${productId} to user products`);
+                    
+                    // Refresh home screen to show purchased assessments
+                    this.setupHomeScreen();
+                }
+            }
+
+            async startAssessmentInApp(productId, assessmentType) {
+                if (assessmentType === 'speaking') {
+                    alert(`Starting ${productId} Speaking Assessment in mobile app!`);
+                } else if (assessmentType === 'writing') {
+                    alert(`Starting ${productId} Writing Assessment in mobile app!`);
+                }
+            }
+
+            showWebAccessGuide(productId) {
+                alert(`Web access guide for ${productId}: Visit ieltsaiprep.com and scan QR code with this app.`);
+            }
+
+            generatePurchasedAssessmentCards() {
+                const assessmentMap = {
+                    'academic_speaking_assessment': {
+                        title: 'ClearScore® GenAI Speaking',
+                        subtitle: 'Academic Training',
+                        icon: '🗣️',
+                        type: 'speaking',
+                        color: '#007bff'
+                    },
+                    'academic_writing_assessment': {
+                        title: 'TrueScore® GenAI Writing',
+                        subtitle: 'Academic Training', 
+                        icon: '✍️',
+                        type: 'writing',
+                        color: '#28a745'
+                    },
+                    'general_speaking_assessment': {
+                        title: 'ClearScore® GenAI Speaking',
+                        subtitle: 'General Training',
+                        icon: '🗣️',
+                        type: 'speaking',
+                        color: '#007bff'
+                    },
+                    'general_writing_assessment': {
+                        title: 'TrueScore® GenAI Writing',
+                        subtitle: 'General Training',
+                        icon: '✍️', 
+                        type: 'writing',
+                        color: '#28a745'
+                    }
+                };
+
+                return this.currentUser.products.map(productId => {
+                    const assessment = assessmentMap[productId];
+                    if (!assessment) return '';
+
+                    return `
+                        <div style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <div style="font-size: 24px; margin-right: 12px;">${assessment.icon}</div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 16px; font-weight: bold; color: #333;">${assessment.title}</div>
+                                    <div style="font-size: 14px; color: #666;">${assessment.subtitle}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <button class="start-assessment-btn" data-product="${productId}" data-type="${assessment.type}" 
+                                        style="background: ${assessment.color}; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;">
+                                    Start in App
+                                </button>
+                                <button class="web-access-btn" data-product="${productId}" 
+                                        style="background: white; color: ${assessment.color}; border: 2px solid ${assessment.color}; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;">
+                                    Use on Web
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
             setupHomeScreen() {
                 const homeContainer = document.getElementById('home-screen');
                 
+                // Generate purchased assessments section
+                const purchasedAssessmentsHTML = this.currentUser.products.length > 0 ? `
+                    <div style="margin-bottom: 24px;">
+                        <h2 style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 16px;">
+                            My Assessments
+                        </h2>
+                        ${this.generatePurchasedAssessmentCards()}
+                    </div>
+                ` : '';
+
                 const homeScreenHTML = `
                     <div id="ielts-home-screen" style="padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                        ${purchasedAssessmentsHTML}
+                        
                         <!-- Top Half: Web Version Access Information -->
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 20px; text-align: center;">
                             <div style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">
@@ -281,6 +379,69 @@
                 
                 homeContainer.innerHTML = homeScreenHTML;
                 this.setupHomeScreenListeners();
+            }
+
+            setupHomeScreenListeners() {
+                // Learn more about web access
+                const learnMoreBtn = document.getElementById('learn-more-web-access');
+                if (learnMoreBtn) {
+                    learnMoreBtn.addEventListener('click', () => {
+                        this.showWebAccessInfo();
+                    });
+                }
+
+                // QR scanner button
+                const qrScanBtn = document.getElementById('qr-scan-button');
+                if (qrScanBtn) {
+                    qrScanBtn.addEventListener('click', () => {
+                        this.handleQRScan();
+                    });
+                }
+
+                // Purchase buttons
+                const purchaseBtns = document.querySelectorAll('.purchase-btn');
+                purchaseBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = e.target.getAttribute('data-product');
+                        if (productId) {
+                            this.handlePurchase(productId);
+                        }
+                    });
+                });
+
+                // Learn more buttons
+                const learnMoreBtns = document.querySelectorAll('.learn-more-btn');
+                learnMoreBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = e.target.getAttribute('data-product');
+                        if (productId) {
+                            this.showProductDetails(productId);
+                        }
+                    });
+                });
+
+                // Start assessment in app buttons
+                const startBtns = document.querySelectorAll('.start-assessment-btn');
+                startBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = e.target.getAttribute('data-product');
+                        const assessmentType = e.target.getAttribute('data-type');
+                        if (productId && assessmentType) {
+                            this.startAssessmentInApp(productId, assessmentType);
+                        }
+                    });
+                });
+
+                // Web access buttons
+                const webBtns = document.querySelectorAll('.web-access-btn');
+                webBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = e.target.getAttribute('data-product');
+                        if (productId) {
+                            this.showWebAccessGuide(productId);
+                        }
+                    });
+                });
             }
 
             generateProductCards() {
