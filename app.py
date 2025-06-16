@@ -85,6 +85,8 @@ def lambda_handler(event, context):
             return handle_static_file('test_mobile_home_screen.html')
         elif path == '/database-schema' and method == 'GET':
             return handle_database_schema_page()
+        elif path == '/nova-assessment' and method == 'GET':
+            return handle_nova_assessment_demo()
         elif path == '/' and method == 'GET':
             return handle_home_page()
         else:
@@ -266,6 +268,35 @@ def handle_database_schema_page() -> Dict[str, Any]:
             'statusCode': 500,
             'headers': {'Content-Type': 'text/html'},
             'body': f'<h1>Error loading database schema: {str(e)}</h1>'
+        }
+
+def handle_nova_assessment_demo() -> Dict[str, Any]:
+    """Serve Nova AI assessment demonstration page"""
+    try:
+        with open('nova_assessment_demo.html', 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': content
+        }
+        
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/plain'},
+            'body': 'Nova assessment demo not found'
+        }
+    except Exception as e:
+        print(f"[CLOUDWATCH] Nova assessment demo error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error loading Nova demo: {str(e)}</h1>'
         }
 
 def handle_apple_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
