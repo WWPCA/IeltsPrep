@@ -9,6 +9,7 @@ import os
 import uuid
 import time
 import base64
+import requests
 from io import BytesIO
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -18,6 +19,50 @@ os.environ['REPLIT_ENVIRONMENT'] = 'true'
 
 # Import AWS mock services
 from aws_mock_config import aws_mock
+
+def verify_recaptcha_v2(recaptcha_response: str, user_ip: str = None) -> bool:
+    """Verify reCAPTCHA v2 response with Google"""
+    try:
+        secret_key = os.environ.get('RECAPTCHA_V2_SECRET_KEY')
+        if not secret_key:
+            print("[RECAPTCHA] No secret key found, skipping verification")
+            return True  # Allow in development if no key set
+        
+        # Prepare verification request
+        verification_data = {
+            'secret': secret_key,
+            'response': recaptcha_response
+        }
+        
+        if user_ip:
+            verification_data['remoteip'] = user_ip
+        
+        # Send verification request to Google
+        response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=verification_data,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            success = result.get('success', False)
+            
+            if not success:
+                error_codes = result.get('error-codes', [])
+                print(f"[RECAPTCHA] Verification failed: {error_codes}")
+            
+            return success
+        else:
+            print(f"[RECAPTCHA] HTTP error: {response.status_code}")
+            return False
+            
+    except requests.exceptions.RequestException as e:
+        print(f"[RECAPTCHA] Network error: {str(e)}")
+        return False
+    except Exception as e:
+        print(f"[RECAPTCHA] Verification error: {str(e)}")
+        return False
 
 def generate_qr_code(data: str) -> str:
     """Generate QR code image as base64 string"""
@@ -2500,10 +2545,12 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle user login with bcrypt authentication"""
+    """Handle user login with bcrypt authentication and reCAPTCHA v2 verification"""
     try:
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
+        recaptcha_response = data.get('g-recaptcha-response', '')
+        user_ip = data.get('user_ip')
         
         # Validate input
         if not email or not password:
@@ -2511,6 +2558,15 @@ def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'success': False, 'message': 'Email and password are required'})
+            }
+        
+        # Verify reCAPTCHA v2
+        if not verify_recaptcha_v2(recaptcha_response, user_ip):
+            aws_mock.log_event('SecurityAuth', f'reCAPTCHA verification failed for: {email}')
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': False, 'message': 'Please complete the reCAPTCHA verification'})
             }
         
         # Verify credentials using bcrypt

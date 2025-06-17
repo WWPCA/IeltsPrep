@@ -3,6 +3,88 @@
 {% block scripts %}
 <!-- Simple reCAPTCHA v2 automatic rendering -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('login-form');
+    const loginBtn = document.getElementById('login-btn');
+    const loginMessage = document.getElementById('login-message');
+    
+    function showMessage(message, type) {
+        loginMessage.textContent = message;
+        loginMessage.className = `alert alert-${type}`;
+        loginMessage.style.display = 'block';
+    }
+    
+    function hideMessage() {
+        loginMessage.style.display = 'none';
+    }
+    
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideMessage();
+        
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const recaptchaResponse = grecaptcha.getResponse();
+        
+        // Validate form fields
+        if (!email || !password) {
+            showMessage('Please fill in all fields', 'danger');
+            return;
+        }
+        
+        // Validate reCAPTCHA
+        if (!recaptchaResponse) {
+            showMessage('Please complete the reCAPTCHA verification', 'warning');
+            return;
+        }
+        
+        // Disable submit button during request
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+        
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    'g-recaptcha-response': recaptchaResponse,
+                    user_ip: null // Will be set by backend from request headers
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage('Login successful! Redirecting...', 'success');
+                
+                // Redirect to dashboard or requested page
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectUrl = urlParams.get('redirect') || '/dashboard';
+                
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 1000);
+            } else {
+                showMessage(result.message || 'Login failed', 'danger');
+                grecaptcha.reset(); // Reset reCAPTCHA on failure
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showMessage('Network error. Please try again.', 'danger');
+            grecaptcha.reset(); // Reset reCAPTCHA on error
+        } finally {
+            // Re-enable submit button
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+        }
+    });
+});
+</script>
 {% endblock %}
 
 {% block content %}
@@ -14,35 +96,35 @@
                     <h2 class="mb-0">Login</h2>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('login') }}" id="login-form">
-                        {{ form.hidden_tag() }}
-                        
+                    <div id="login-message" class="alert" style="display: none;"></div>
+                    
+                    <form id="login-form">
                         <div class="form-group mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control", id="email") }}
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         
                         <div class="form-group mb-3">
-                            {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control", id="password") }}
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         
                         <div class="form-check mb-3">
-                            {{ form.remember_me(class="form-check-input", id="remember") }}
-                            {{ form.remember_me.label(class="form-check-label", for="remember") }}
+                            <input class="form-check-input" type="checkbox" id="remember" name="remember_me">
+                            <label class="form-check-label" for="remember">Remember me</label>
                         </div>
                         
                         <div class="mb-3 small text-end">
-                            <a href="{{ url_for('forgot_password') }}" class="text-decoration-none">Forgot password?</a>
+                            <a href="/forgot_password" class="text-decoration-none">Forgot password?</a>
                         </div>
                         
-                        <!-- reCAPTCHA v2 Widget with automatic rendering -->
+                        <!-- reCAPTCHA v2 Widget -->
                         <div class="mb-3">
-                            <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_V2_SITE_KEY or config.RECAPTCHA_SITE_KEY }}"></div>
+                            <div class="g-recaptcha" data-sitekey="6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix"></div>
                         </div>
                         
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Login</button>
+                            <button type="submit" class="btn btn-primary" id="login-btn">Login</button>
                             <p class="text-muted small mt-2">This site is protected by Google reCAPTCHA v2 and the Google <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.</p>
                         </div>
                     </form>
