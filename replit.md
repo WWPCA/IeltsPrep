@@ -108,8 +108,12 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Created detailed AWS deployment guide with step-by-step instructions
   - Configured WebSocket API for Nova Sonic bi-directional speech streaming
   - Set up IAM roles and policies for Bedrock, DynamoDB, and ElastiCache access
-  - Added monitoring and troubleshooting documentation for production operations
-  - Implemented multi-region scaling considerations and performance optimization guidance
+  - Built mobile app configuration with iOS/Android in-app purchase integration
+  - Created website production endpoint configuration with automatic environment detection
+  - Developed Nova AI testing script for validating real Bedrock integration before full deployment
+  - Added comprehensive mobile purchase flow with Apple App Store and Google Play verification
+  - Implemented automatic endpoint configuration script that updates all mobile and web configs
+  - Created complete production deployment guide with 5-command deployment process
 
 - June 16, 2025: Implemented mobile-first authentication architecture replacing QR code system
   - Created secure mobile-first authentication flow where users register and purchase through mobile app
