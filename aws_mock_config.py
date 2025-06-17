@@ -9,7 +9,7 @@ import time
 import uuid
 import bcrypt
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 class MockDynamoDBTable:
     """Simulates DynamoDB table with TTL support"""
@@ -450,19 +450,287 @@ class AWSMockServices:
         return self.assessment_results_table.scan(f"user_email = '{user_email}'")
     
     def add_user_purchase(self, user_id: str, purchase_data: Dict[str, Any]) -> bool:
-        """Add purchase to user record"""
+        """Add purchase to user record with 4 assessment attempts"""
         user = self.users_table.get_item(user_id)
         if not user:
             return False
         
+        # Map product IDs to assessment types
+        product_assessment_map = {
+            'com.ieltsgenaiprep.academic.writing': 'academic_writing',
+            'com.ieltsgenaiprep.general.writing': 'general_writing',
+            'com.ieltsgenaiprep.academic.speaking': 'academic_speaking',
+            'com.ieltsgenaiprep.general.speaking': 'general_speaking',
+            'academic_writing_assessment': 'academic_writing',
+            'general_writing_assessment': 'general_writing',
+            'academic_speaking_assessment': 'academic_speaking',
+            'general_speaking_assessment': 'general_speaking'
+        }
+        
+        assessment_type = product_assessment_map.get(purchase_data.get('product_id'))
+        if not assessment_type:
+            return False
+        
         purchase_record = {
             'product_id': purchase_data.get('product_id'),
+            'assessment_type': assessment_type,
             'purchase_date': datetime.utcnow().isoformat(),
             'platform': purchase_data.get('platform', 'mobile'),
-            'receipt_data': purchase_data.get('receipt_data')
+            'receipt_data': purchase_data.get('receipt_data'),
+            'assessments_remaining': 4,
+            'assessments_used': 0,
+            'price': 36.00,
+            'currency': 'USD'
         }
         
         user['purchases'].append(purchase_record)
+        return self.users_table.put_item(user)
+
+    def use_assessment_attempt(self, user_email: str, assessment_type: str) -> bool:
+        """Decrement assessment counter when user completes an assessment"""
+        user = self.users_table.get_item(user_email)
+        if not user or 'purchases' not in user:
+            return False
+        
+        # Find the purchase for this assessment type
+        for purchase in user['purchases']:
+            if purchase.get('assessment_type') == assessment_type:
+                if purchase.get('assessments_remaining', 0) > 0:
+                    purchase['assessments_remaining'] -= 1
+                    purchase['assessments_used'] = purchase.get('assessments_used', 0) + 1
+                    purchase['last_used'] = datetime.utcnow().isoformat()
+                    
+                    # Update user record
+                    self.users_table.put_item(user)
+                    
+                    self.log_event('AssessmentUsage', f'Assessment used: {user_email} - {assessment_type}, {purchase["assessments_remaining"]} remaining')
+                    return True
+        
+        return False
+
+    def get_user_assessment_counts(self, user_email: str) -> Dict[str, Dict[str, int]]:
+        """Get remaining and used assessment counts for user"""
+        user = self.users_table.get_item(user_email)
+        if not user or 'purchases' not in user:
+            return {}
+        
+        assessment_counts = {}
+        for purchase in user['purchases']:
+            assessment_type = purchase.get('assessment_type')
+            if assessment_type:
+                assessment_counts[assessment_type] = {
+                    'remaining': purchase.get('assessments_remaining', 0),
+                    'used': purchase.get('assessments_used', 0),
+                    'total': 4,
+                    'purchased_at': purchase.get('purchase_date', ''),
+                    'last_used': purchase.get('last_used', ''),
+                    'price': purchase.get('price', 36.00)
+                }
+        
+        return assessment_counts
+
+    def has_assessment_access(self, user_email: str, assessment_type: str) -> bool:
+        """Check if user has remaining assessments for this type"""
+        counts = self.get_user_assessment_counts(user_email)
+        return counts.get(assessment_type, {}).get('remaining', 0) > 0
+
+    def get_unique_assessment_question(self, user_email: str, assessment_type: str) -> Optional[Dict[str, Any]]:
+        """Get a unique assessment question that user hasn't seen before"""
+        user = self.users_table.get_item(user_email)
+        if not user:
+            return None
+        
+        # Get user's completed assessments to avoid repetition
+        completed_assessments = user.get('completed_assessments', [])
+        used_questions = [a.get('question_id') for a in completed_assessments if a.get('assessment_type') == assessment_type]
+        
+        # Get question bank for this assessment type
+        question_bank = self._get_question_bank(assessment_type)
+        available_questions = [q for q in question_bank if q['question_id'] not in used_questions]
+        
+        if not available_questions:
+            # If all questions used, allow reuse after completing all 4 attempts
+            available_questions = question_bank
+        
+        # Return random question from available pool
+        import random
+        return random.choice(available_questions) if available_questions else None
+
+    def _get_question_bank(self, assessment_type: str) -> List[Dict[str, Any]]:
+        """Get question bank for assessment type"""
+        question_banks = {
+            'academic_writing': [
+                {
+                    'question_id': 'aw_task2_001',
+                    'task': 'Task 2',
+                    'prompt': 'Some people believe that universities should require every student to take a variety of courses outside their field of study. Others believe that universities should not force students to take any courses other than those that will help prepare them for jobs in their chosen fields. Write a response in which you discuss which view more closely aligns with your own position and explain your reasoning for the position you take.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_002', 
+                    'task': 'Task 2',
+                    'prompt': 'Many governments think that economic progress is their most important goal. Some people, however, think that other types of progress are equally important for a country. Discuss both these views and give your own opinion.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_003',
+                    'task': 'Task 2', 
+                    'prompt': 'In some countries, young people are encouraged to work or travel for a year between finishing high school and starting university studies. Discuss the advantages and disadvantages for young people who decide to do this.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_004',
+                    'task': 'Task 2',
+                    'prompt': 'Some people say that the main environmental problem of our time is the loss of particular species of plants and animals. Others say that there are more important environmental problems. Discuss both these views and give your own opinion.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_005',
+                    'task': 'Task 2',
+                    'prompt': 'In a number of countries, some people think it is necessary to spend large sums of money on constructing new railway lines for very fast trains between cities. Others believe the money should be spent on improving existing public transport. Discuss both these views and give your own opinion.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                }
+            ],
+            'general_writing': [
+                {
+                    'question_id': 'gw_task1_001',
+                    'task': 'Task 1',
+                    'prompt': 'You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken. Write a letter to the shop manager. In your letter: describe the problem with the equipment, explain what happened when you phoned the shop, say what you would like the manager to do.',
+                    'word_limit': 150,
+                    'time_limit': 20
+                },
+                {
+                    'question_id': 'gw_task1_002',
+                    'task': 'Task 1', 
+                    'prompt': 'You work for an international company, and would like to spend six months working in its head office in another country. Write a letter to your manager. In your letter: explain why you want to work in the company\'s head office for six months, say how your work could be done while you are away, ask for his/her help in arranging it.',
+                    'word_limit': 150,
+                    'time_limit': 20
+                },
+                {
+                    'question_id': 'gw_task1_003',
+                    'task': 'Task 1',
+                    'prompt': 'A friend has agreed to look after your house and pet while you are on holiday. Write a letter to your friend. In your letter: give contact details for when you are away, give instructions about how to care for your pet, describe other household duties.',
+                    'word_limit': 150,
+                    'time_limit': 20
+                },
+                {
+                    'question_id': 'gw_task1_004',
+                    'task': 'Task 1',
+                    'prompt': 'You have seen an advertisement in an Australian magazine for someone to live with a family for six months and look after their six-year-old child. Write a letter to the parents. In your letter: explain why you would like the job, give details of why you would be a suitable person to employ, say how you would spend your free time while you are in Australia.',
+                    'word_limit': 150,
+                    'time_limit': 20
+                },
+                {
+                    'question_id': 'gw_task1_005',
+                    'task': 'Task 1',
+                    'prompt': 'You are going to another country to study. You would like to do a part-time job while you are studying, so you want to ask a friend who lives there for some help. Write a letter to your friend. In your letter: give details about your study plans, explain why you want to get a part-time job, suggest how your friend could help you find a job.',
+                    'word_limit': 150,
+                    'time_limit': 20
+                }
+            ],
+            'academic_speaking': [
+                {
+                    'question_id': 'as_part2_001',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a book that has had a major influence on you. You should say: what the book is, when you read it, why it influenced you, and explain how this book affected your life.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_002',
+                    'task': 'Part 2', 
+                    'prompt': 'Describe a skill that you learned as a child. You should say: what the skill is, how you learned it, why you learned it, and explain how this skill has been useful in your adult life.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_003',
+                    'task': 'Part 2',
+                    'prompt': 'Describe an important decision you had to make recently. You should say: what the decision was, what factors you considered, how you made the decision, and explain why this decision was important.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_004',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a place you have visited that you particularly enjoyed. You should say: where the place is, when you visited it, what you did there, and explain why you enjoyed visiting this place.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_005',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a technological device that you find useful. You should say: what the device is, how you use it, when you use it, and explain why you find this device useful.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                }
+            ],
+            'general_speaking': [
+                {
+                    'question_id': 'gs_part2_001',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a memorable meal you have had. You should say: where you had the meal, who you were with, what you ate, and explain why this meal was memorable.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_002',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a hobby you enjoy. You should say: what the hobby is, how long you have been doing it, what equipment or materials you need, and explain why you enjoy this hobby.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_003',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a time when you helped someone. You should say: who you helped, what you did to help them, why you decided to help, and explain how you felt about helping this person.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_004',
+                    'task': 'Part 2',
+                    'prompt': 'Describe your ideal job. You should say: what the job would be, what skills you would need, where you would like to work, and explain why this would be your ideal job.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_005',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a festival or celebration in your country. You should say: what the festival is, when it takes place, how people celebrate it, and explain why this festival is important in your country.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                }
+            ]
+        }
+        
+        return question_banks.get(assessment_type, [])
+
+    def record_completed_assessment(self, user_email: str, assessment_type: str, question_id: str, result_data: Dict[str, Any]) -> bool:
+        """Record completed assessment and use attempt"""
+        user = self.users_table.get_item(user_email)
+        if not user:
+            return False
+        
+        # Add to completed assessments
+        if 'completed_assessments' not in user:
+            user['completed_assessments'] = []
+        
+        completed_assessment = {
+            'assessment_type': assessment_type,
+            'question_id': question_id,
+            'completed_at': datetime.utcnow().isoformat(),
+            'result_data': result_data
+        }
+        
+        user['completed_assessments'].append(completed_assessment)
+        
+        # Update user record
         return self.users_table.put_item(user)
     
     def get_nova_sonic_prompts(self, assessment_type: str) -> Optional[Dict[str, Any]]:

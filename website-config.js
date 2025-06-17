@@ -63,10 +63,30 @@ window.IELTS_CONFIG = {
   
   // Assessment configuration
   assessmentTypes: {
-    academic_writing: 'TrueScore® GenAI Writing Assessment (Academic)',
-    general_writing: 'TrueScore® GenAI Writing Assessment (General)',
-    academic_speaking: 'ClearScore® GenAI Speaking Assessment (Academic)',
-    general_speaking: 'ClearScore® GenAI Speaking Assessment (General)'
+    academic_writing: {
+      name: 'TrueScore® GenAI Writing Assessment (Academic)',
+      description: '4 Assessment Attempts • Task 1 & Task 2 • TrueScore® GenAI Evaluation',
+      assessmentCount: 4,
+      price: 36.00
+    },
+    general_writing: {
+      name: 'TrueScore® GenAI Writing Assessment (General)', 
+      description: '4 Assessment Attempts • Letter & Essay Assessment • TrueScore® GenAI Evaluation',
+      assessmentCount: 4,
+      price: 36.00
+    },
+    academic_speaking: {
+      name: 'ClearScore® GenAI Speaking Assessment (Academic)',
+      description: '4 Assessment Attempts • 3-Part Speaking Test • Maya AI Examiner',
+      assessmentCount: 4,
+      price: 36.00
+    },
+    general_speaking: {
+      name: 'ClearScore® GenAI Speaking Assessment (General)',
+      description: '4 Assessment Attempts • 3-Part Speaking Test • Maya AI Examiner', 
+      assessmentCount: 4,
+      price: 36.00
+    }
   }
 };
 

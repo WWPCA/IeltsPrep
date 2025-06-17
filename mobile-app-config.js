@@ -107,32 +107,40 @@ export const ASSESSMENT_PRODUCTS = {
   academic_writing: {
     id: 'academic_writing_assessment',
     name: 'TrueScore® GenAI Writing Assessment (Academic)',
+    description: '4 Assessment Attempts • Task 1 & Task 2 • TrueScore® GenAI Evaluation • Official IELTS Criteria • Detailed Band Score Feedback • Writing Improvement Recommendations',
     price: 36.00,
     currency: 'USD',
+    assessmentCount: 4,
     appleProductId: 'com.ieltsgenaiprep.academic.writing',
     googleProductId: 'academic_writing_assessment'
   },
   general_writing: {
     id: 'general_writing_assessment',
     name: 'TrueScore® GenAI Writing Assessment (General)',
+    description: '4 Assessment Attempts • Letter & Essay Assessment • TrueScore® GenAI Evaluation • Official IELTS Criteria • Detailed Band Score Feedback • Writing Improvement Recommendations',
     price: 36.00,
     currency: 'USD',
+    assessmentCount: 4,
     appleProductId: 'com.ieltsgenaiprep.general.writing',
     googleProductId: 'general_writing_assessment'
   },
   academic_speaking: {
     id: 'academic_speaking_assessment',
     name: 'ClearScore® GenAI Speaking Assessment (Academic)',
+    description: '4 Assessment Attempts • 3-Part Speaking Test • Maya AI Examiner • Real-Time Conversation • Official IELTS Criteria • Detailed Band Score Feedback • Speaking Improvement Recommendations',
     price: 36.00,
     currency: 'USD',
+    assessmentCount: 4,
     appleProductId: 'com.ieltsgenaiprep.academic.speaking',
     googleProductId: 'academic_speaking_assessment'
   },
   general_speaking: {
     id: 'general_speaking_assessment',
     name: 'ClearScore® GenAI Speaking Assessment (General)',
+    description: '4 Assessment Attempts • 3-Part Speaking Test • Maya AI Examiner • Real-Time Conversation • Official IELTS Criteria • Detailed Band Score Feedback • Speaking Improvement Recommendations',
     price: 36.00,
     currency: 'USD',
+    assessmentCount: 4,
     appleProductId: 'com.ieltsgenaiprep.general.speaking',
     googleProductId: 'general_speaking_assessment'
   }
