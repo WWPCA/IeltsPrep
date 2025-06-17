@@ -20,7 +20,7 @@ os.environ['REPLIT_ENVIRONMENT'] = 'true'
 # Import AWS mock services
 from aws_mock_config import aws_mock
 
-def verify_recaptcha_v2(recaptcha_response: str, user_ip: str = None) -> bool:
+def verify_recaptcha_v2(recaptcha_response: str, user_ip: Optional[str] = None) -> bool:
     """Verify reCAPTCHA v2 response with Google"""
     try:
         secret_key = os.environ.get('RECAPTCHA_V2_SECRET_KEY')
@@ -152,6 +152,15 @@ def lambda_handler(event, context):
             return handle_privacy_policy()
         elif path == '/terms-of-service' and method == 'GET':
             return handle_terms_of_service()
+        elif path == '/login' and method == 'GET':
+            return handle_login_page()
+        elif path == '/api/login' and method == 'POST':
+            # Extract user IP from headers for reCAPTCHA verification
+            user_ip = headers.get('x-forwarded-for', headers.get('x-real-ip', headers.get('remote-addr')))
+            if user_ip and ',' in user_ip:
+                user_ip = user_ip.split(',')[0].strip()  # Take first IP if multiple
+            data['user_ip'] = user_ip
+            return handle_user_login(data)
         elif path == '/' and method == 'GET':
             return handle_home_page()
         else:
