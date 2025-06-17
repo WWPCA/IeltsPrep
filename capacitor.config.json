@@ -1,9 +1,9 @@
 {
-  "appId": "com.ieltsaiprep.app",
+  "appId": "com.ieltsgenaiprep.app",
   "appName": "IELTS GenAI Prep",
   "webDir": "static",
   "server": {
-    "url": "https://api.ieltsaiprep.com",
+    "url": "https://your-api-gateway-id.execute-api.us-east-1.amazonaws.com/Prod",
     "cleartext": false
   },
   "plugins": {
@@ -23,16 +23,25 @@
       "enabled": true
     },
     "App": {
+      "enabled": true,
+      "deepLinkHostname": "ieltsgenaiprep.com",
+      "deepLinkScheme": "ieltsgenaiprep"
+    },
+    "Toast": {
       "enabled": true
     }
   },
   "ios": {
     "contentInset": "automatic",
-    "scheme": "https"
+    "scheme": "ieltsgenaiprep",
+    "allowsLinkPreview": false,
+    "preferredContentMode": "mobile"
   },
   "android": {
     "allowMixedContent": false,
     "captureInput": true,
-    "scheme": "https"
+    "webContentsDebuggingEnabled": false,
+    "scheme": "ieltsgenaiprep",
+    "minWebViewVersion": 60
   }
 }
