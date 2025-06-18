@@ -100,13 +100,16 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- June 18, 2025: Enhanced security and legal compliance
-  - Added Google reCAPTCHA v2 verification to website login for enhanced security
-  - Updated all pricing displays to show "$36 for 4 unique assessments" with clear assessment counting
-  - Implemented comprehensive 4-unique-assessment system with question rotation ensuring each assessment has different content
-  - Enhanced Terms of Service with "Prices are subject to change without notice" and "We may modify these terms at any time and without notice"
-  - Fixed login page layout issues and mobile app guidance display
-  - Completed backend assessment counter system ensuring each purchase provides exactly 4 unique assessment experiences
+- June 18, 2025: PRODUCTION DEPLOYMENT COMPLETE - AWS Lambda Backend Fully Operational
+  - Successfully deployed complete AWS Lambda serverless backend to production environment
+  - Implemented secure PBKDF2-HMAC-SHA256 password authentication with 100,000 iterations
+  - Fixed DynamoDB table schema compatibility issues for auth-tokens and users tables
+  - Verified complete authentication flow: registration, login, and session-based assessment access
+  - Production API Gateway endpoint active: https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod
+  - All AWS resources deployed and functional: Lambda function, 4 DynamoDB tables, API Gateway
+  - Comprehensive production testing completed with full authentication and assessment access verification
+  - Created detailed production deployment documentation with all endpoints and configuration details
+  - Mobile app configuration updated with production AWS endpoints for App Store deployment readiness
 
 - June 17, 2025: Created comprehensive AWS production deployment infrastructure
   - Built complete SAM template with DynamoDB tables, Lambda functions, and API Gateway routing
