@@ -211,19 +211,19 @@ def handle_website_home():
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h1 class="display-4 fw-bold mb-3">Master IELTS with the World's ONLY GenAI Assessment Platform</h1>
-                    <div class="alert alert-info mx-auto" style="max-width: 600px; background: rgba(255, 255, 255, 0.2); border: none; color: white;">
+                    <div class="alert mx-auto mb-4" style="max-width: 700px; background: rgba(23, 162, 184, 0.9); border: none; color: white; padding: 15px; border-radius: 8px;">
                         <strong>Powered by TrueScore® & ClearScore® - Industry-Leading Standardized Assessment Technology</strong>
                     </div>
-                    <p class="lead mb-4">IELTS GenAI Prep delivers precise, examiner-aligned feedback through our exclusive TrueScore® writing analysis and ClearScore® speaking assessment systems. Our proprietary technology applies the official IELTS marking criteria to provide consistent, accurate band scores and actionable feedback for both Academic and General Training.</p>
+                    <p class="lead mb-4" style="max-width: 800px; margin: 0 auto;">IELTS GenAI Prep delivers precise, examiner-aligned feedback through our exclusive TrueScore® writing analysis and ClearScore® speaking assessment systems. Our proprietary technology applies the official IELTS marking criteria to provide consistent, accurate band scores and actionable feedback for both Academic and General Training.</p>
                     <div class="row justify-content-center mb-4">
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle me-2"></i>Standardized Assessment
+                        <div class="col-auto" style="color: white;">
+                            <i class="fas fa-circle me-2" style="font-size: 0.8rem;"></i>Standardized Assessment
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle me-2"></i>IELTS Criteria Aligned
+                        <div class="col-auto" style="color: white;">
+                            <i class="fas fa-circle me-2" style="font-size: 0.8rem;"></i>IELTS Criteria Aligned
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle me-2"></i>Personalized Feedback
+                        <div class="col-auto" style="color: white;">
+                            <i class="fas fa-circle me-2" style="font-size: 0.8rem;"></i>Personalized Feedback
                         </div>
                     </div>
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
