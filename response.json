@@ -1,0 +1,1 @@
+{"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"message\": \"IELTS GenAI Prep API is running\", \"version\": \"1.0\", \"environment\": \"production\", \"event\": {\"httpMethod\": \"GET\", \"path\": \"/\", \"headers\": {}}}"}
