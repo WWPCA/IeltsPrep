@@ -100,6 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- June 18, 2025: CUSTOM DOMAIN SETUP IN PROGRESS - SSL Certificate Validation
+  - Successfully requested SSL certificate for ieltsaiprep.com and www.ieltsaiprep.com through AWS Certificate Manager
+  - Added required CNAME validation records to Namecheap DNS (pending propagation)
+  - Created custom domain setup scripts and documentation
+  - Next steps: Complete API Gateway custom domain mapping once certificate validates (24-48 hours)
+  - Mobile app configuration ready to update with custom domain endpoints
+  - App Store submission on hold pending custom domain completion
+
 - June 18, 2025: CUSTOM DOMAIN CONFIGURATION - Updated for ieltsaiprep.com
   - Configured all legal links and privacy policy URLs to use custom domain ieltsaiprep.com
   - Updated App Store Connect configuration with professional domain URLs
