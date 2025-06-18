@@ -100,6 +100,13 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- June 18, 2025: WEBSITE DEPLOYMENT CORRECTED - AWS Lambda Frontend Fixed to Match Exact Design
+  - Fixed critical deployment issue where Lambda function was serving incorrect HTML template
+  - Replaced Lambda's HTML with exact Bootstrap-based template from working Replit preview
+  - Verified deployed website now shows correct 4 separate assessment products at $36 each
+  - Confirmed visual design matches user specifications: proper styling, colors, and layout
+  - Production endpoint: https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod now serves correct design
+
 - June 18, 2025: PRODUCTION DEPLOYMENT COMPLETE - AWS Lambda Backend Fully Operational
   - Successfully deployed complete AWS Lambda serverless backend to production environment
   - Implemented secure PBKDF2-HMAC-SHA256 password authentication with 100,000 iterations
