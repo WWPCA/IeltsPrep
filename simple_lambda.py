@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Simplified AWS Lambda Handler for IELTS GenAI Prep
-Production version without external dependencies
+Production AWS Lambda Handler for IELTS GenAI Prep
+Simplified version with working authentication and session management
 """
 
 import json
@@ -12,10 +12,18 @@ import hashlib
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
+from decimal import Decimal
 
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+class DecimalEncoder(json.JSONEncoder):
+    """Handle Decimal objects in JSON serialization"""
+    def default(self, o):
+        if isinstance(o, Decimal):
+            return int(o)
+        return super(DecimalEncoder, self).default(o)
 
 def lambda_handler(event, context):
     """Main AWS Lambda handler for production environment"""
@@ -247,7 +255,7 @@ def success_response(data: Dict[str, Any], status_code: int = 200):
             'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
             'Access-Control-Max-Age': '86400'
         },
-        'body': json.dumps(data, default=str)
+        'body': json.dumps(data, cls=DecimalEncoder)
     }
 
 def error_response(message: str, status_code: int = 400):
