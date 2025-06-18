@@ -152,12 +152,16 @@ def handle_user_login(data: Dict[str, Any], dynamodb):
         user = response['Items'][0]
         
         # Verify password
-        stored_password = bytes.fromhex(user['password_hash'])
-        salt = stored_password[:32]
-        stored_hash = stored_password[32:]
-        password_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
-        
-        if password_hash != stored_hash:
+        try:
+            stored_password = bytes.fromhex(user['password_hash'])
+            salt = stored_password[:32]
+            stored_hash = stored_password[32:]
+            password_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+            
+            if password_hash != stored_hash:
+                return error_response('Invalid credentials', 401)
+        except Exception as e:
+            logger.error(f"Password verification error: {str(e)}")
             return error_response('Invalid credentials', 401)
         
         # Create session
