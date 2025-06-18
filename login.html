@@ -16,6 +16,8 @@
             min-height: 100vh;
             display: flex;
             align-items: center;
+            margin: 0;
+            padding: 20px 0;
         }
         
         .login-card {
@@ -23,6 +25,8 @@
             border-radius: 15px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            position: relative;
+            width: 100%;
         }
         
         .login-header {
@@ -34,6 +38,8 @@
         
         .login-body {
             padding: 2rem;
+            background: white;
+            position: relative;
         }
         
         .form-control {
@@ -68,16 +74,23 @@
             padding: 1.5rem;
             margin-bottom: 1.5rem;
             border-left: 4px solid #667eea;
-            display: block !important;
-            visibility: visible !important;
+            position: relative;
+            z-index: 1;
         }
         
         .mobile-app-info .d-flex {
             display: flex !important;
+            align-items: center;
         }
         
         .mobile-app-info .gap-2 {
             gap: 0.5rem;
+        }
+        
+        .login-body {
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
         }
         
         .recaptcha-container {
@@ -89,6 +102,41 @@
         .alert {
             border-radius: 10px;
             border: none;
+        }
+        
+        /* Fix for content overflow */
+        .login-card * {
+            box-sizing: border-box;
+        }
+        
+        .login-card {
+            isolation: isolate;
+        }
+        
+        .login-header {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .login-body {
+            position: relative;
+            z-index: 1;
+            clear: both;
+        }
+        
+        /* Ensure proper mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .login-header {
+                padding: 1.5rem;
+            }
+            
+            .login-body {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
