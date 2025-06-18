@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS GenAI Prep - App Screenshots Generator</title>
+    <style>
+        /* iPhone 14 Pro Max dimensions: 1290x2796 */
+        .screenshot-frame {
+            width: 390px;
+            height: 844px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 40px;
+            padding: 20px;
+            margin: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .screen-content {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 20px 20px 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            right: 20px;
+            height: 20px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .app-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 20px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .app-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .app-subtitle {
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+        
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .assessment-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .assessment-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .assessment-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .assessment-type {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .price-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .feature-icon {
+            background: #27ae60;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 12px;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        
+        .download-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .screenshots-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        /* Different screen layouts */
+        .home-screen .assessment-grid {
+            margin-top: 40px;
+        }
+        
+        .features-screen {
+            padding-top: 60px;
+        }
+        
+        .purchase-screen {
+            text-align: center;
+            padding-top: 60px;
+        }
+        
+        .purchase-screen .price-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px 20px;
+            margin: 30px 0;
+            border: 2px solid #e3f2fd;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #95a5a6;
+            font-size: 16px;
+        }
+        
+        .current-price {
+            color: #e74c3c;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .save-badge {
+            background: #27ae60;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="screenshots-container">
+        
+        <!-- Screenshot 1: Home Screen -->
+        <div class="screenshot-frame">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 📶 📶 🔋</span>
+            </div>
+            <div class="screen-content home-screen">
+                <div class="app-header">
+                    <div class="app-logo">IG</div>
+                    <div class="app-title">IELTS GenAI Prep</div>
+                    <div class="app-subtitle">AI-Powered Test Preparation</div>
+                </div>
+                
+                <div class="assessment-grid">
+                    <div class="assessment-card">
+                        <div class="assessment-icon">✍️</div>
+                        <div class="assessment-title">Academic Writing</div>
+                        <div class="assessment-type">TrueScore® GenAI</div>
+                    </div>
+                    <div class="assessment-card">
+                        <div class="assessment-icon">🗣️</div>
+                        <div class="assessment-title">Academic Speaking</div>
+                        <div class="assessment-type">ClearScore® GenAI</div>
+                    </div>
+                    <div class="assessment-card">
+                        <div class="assessment-icon">📝</div>
+                        <div class="assessment-title">General Writing</div>
+                        <div class="assessment-type">TrueScore® GenAI</div>
+                    </div>
+                    <div class="assessment-card">
+                        <div class="assessment-icon">💬</div>
+                        <div class="assessment-title">General Speaking</div>
+                        <div class="assessment-type">ClearScore® GenAI</div>
+                    </div>
+                </div>
+                
+                <div class="price-badge">$36 CAD each</div>
+                
+                <button class="cta-button">Get Started</button>
+            </div>
+        </div>
+        
+        <!-- Screenshot 2: Features Screen -->
+        <div class="screenshot-frame">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 📶 📶 🔋</span>
+            </div>
+            <div class="screen-content features-screen">
+                <div class="app-header">
+                    <div class="app-title">AI-Powered Assessment</div>
+                    <div class="app-subtitle">Advanced Technology Features</div>
+                </div>
+                
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Real-time AI conversation with Maya</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Amazon Nova Sonic speech technology</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Instant detailed feedback</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>4 unique assessments per purchase</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Cross-platform access (mobile + web)</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Band score predictions</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Personalized improvement tips</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Academic & General Training</span>
+                    </li>
+                </ul>
+                
+                <button class="cta-button">Explore Assessments</button>
+            </div>
+        </div>
+        
+        <!-- Screenshot 3: Purchase Screen -->
+        <div class="screenshot-frame">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 📶 📶 🔋</span>
+            </div>
+            <div class="screen-content purchase-screen">
+                <div class="app-header">
+                    <div class="app-title">Choose Assessment</div>
+                    <div class="app-subtitle">Select your IELTS preparation path</div>
+                </div>
+                
+                <div class="price-section">
+                    <h3 style="margin-top: 0; color: #2c3e50;">TrueScore® Academic Writing</h3>
+                    <div class="current-price">$36 CAD</div>
+                    <div style="color: #7f8c8d; font-size: 14px; margin: 10px 0;">
+                        Includes 4 unique assessment attempts
+                    </div>
+                    <div class="save-badge">Best Value</div>
+                </div>
+                
+                <ul class="feature-list" style="text-align: left;">
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Task 1 & Task 2 assessment</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Detailed band score breakdown</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Grammar & vocabulary analysis</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Coherence & cohesion feedback</span>
+                    </li>
+                </ul>
+                
+                <button class="cta-button">Purchase Now</button>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="download-section">
+        <h2>App Store Screenshots Generated</h2>
+        <p>Right-click on each screenshot above and "Save Image As" to download</p>
+        <p>Screenshots are optimized for iPhone 6.7" display (iPhone 14 Pro Max)</p>
+        <p>Use these in your App Store Connect submission</p>
+    </div>
+
+    <script>
+        // Make screenshots downloadable
+        document.querySelectorAll('.screenshot-frame').forEach((frame, index) => {
+            frame.addEventListener('click', function() {
+                // Convert to canvas for download
+                html2canvas(frame, {
+                    width: 1290,
+                    height: 2796,
+                    scale: 3.3
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `ielts-genai-prep-screenshot-${index + 1}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            });
+        });
+    </script>
+    
+    <!-- Include html2canvas library -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>
