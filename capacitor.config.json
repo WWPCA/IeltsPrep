@@ -3,7 +3,7 @@
   "appName": "IELTS GenAI Prep",
   "webDir": "static",
   "server": {
-    "url": "https://your-api-gateway-id.execute-api.us-east-1.amazonaws.com/Prod",
+    "url": "https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod",
     "cleartext": false
   },
   "plugins": {
