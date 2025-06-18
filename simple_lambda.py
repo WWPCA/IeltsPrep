@@ -141,15 +141,20 @@ def handle_user_login(data: Dict[str, Any], dynamodb):
         
         # Query user from DynamoDB
         users_table = dynamodb.Table('ielts-genai-prep-users')
-        response = users_table.scan(
-            FilterExpression='email = :email',
-            ExpressionAttributeValues={':email': email}
-        )
-        
-        if not response['Items']:
-            return error_response('Invalid credentials', 401)
-        
-        user = response['Items'][0]
+        try:
+            response = users_table.scan(
+                FilterExpression='email = :email',
+                ExpressionAttributeValues={':email': email}
+            )
+            
+            if not response['Items']:
+                return error_response('Invalid credentials', 401)
+            
+            user = response['Items'][0]
+            logger.info(f"Found user: {user.get('email', 'unknown')}")
+        except Exception as e:
+            logger.error(f"DynamoDB scan error: {str(e)}")
+            return error_response('Authentication service unavailable', 500)
         
         # Verify password
         try:
