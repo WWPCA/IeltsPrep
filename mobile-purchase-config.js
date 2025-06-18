@@ -12,7 +12,7 @@ const PURCHASE_CONFIG = {
             price: 36.00,
             currency: 'USD',
             title: 'Academic Speaking Assessment',
-            description: 'AI-powered speaking assessment with Maya examiner using Nova Sonic technology'
+            description: '4 unique AI-powered speaking assessments with Maya examiner using Nova Sonic technology'
         },
         academic_writing: {
             apple_id: 'com.ieltsaiprep.academic_writing',
@@ -20,7 +20,7 @@ const PURCHASE_CONFIG = {
             price: 36.00,
             currency: 'USD',
             title: 'Academic Writing Assessment',
-            description: 'Comprehensive writing evaluation with detailed feedback and scoring'
+            description: '4 unique comprehensive writing evaluations with detailed feedback and scoring'
         },
         general_speaking: {
             apple_id: 'com.ieltsaiprep.general_speaking',
@@ -28,7 +28,7 @@ const PURCHASE_CONFIG = {
             price: 36.00,
             currency: 'USD',
             title: 'General Training Speaking Assessment',
-            description: 'Speaking practice and assessment for General Training IELTS'
+            description: '4 unique speaking assessments for General Training IELTS preparation'
         },
         general_writing: {
             apple_id: 'com.ieltsaiprep.general_writing',
@@ -36,7 +36,7 @@ const PURCHASE_CONFIG = {
             price: 36.00,
             currency: 'USD', 
             title: 'General Training Writing Assessment',
-            description: 'Writing assessment and feedback for General Training IELTS'
+            description: '4 unique writing assessments with feedback for General Training IELTS'
         }
     },
     

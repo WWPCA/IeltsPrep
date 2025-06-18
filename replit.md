@@ -102,11 +102,11 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 - June 18, 2025: Enhanced security and legal compliance
   - Added Google reCAPTCHA v2 verification to website login for enhanced security
-  - Updated all pricing displays to show "$36 for 4 attempts" with clear attempt counting
-  - Implemented comprehensive 4-attempt assessment system with unique question rotation
+  - Updated all pricing displays to show "$36 for 4 unique assessments" with clear assessment counting
+  - Implemented comprehensive 4-unique-assessment system with question rotation ensuring each assessment has different content
   - Enhanced Terms of Service with "Prices are subject to change without notice" and "We may modify these terms at any time and without notice"
   - Fixed login page layout issues and mobile app guidance display
-  - Completed backend assessment counter system ensuring each purchase provides exactly 4 unique assessment attempts
+  - Completed backend assessment counter system ensuring each purchase provides exactly 4 unique assessment experiences
 
 - June 17, 2025: Created comprehensive AWS production deployment infrastructure
   - Built complete SAM template with DynamoDB tables, Lambda functions, and API Gateway routing
