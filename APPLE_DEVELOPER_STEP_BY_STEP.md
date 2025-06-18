@@ -52,7 +52,7 @@ Once your app is created, you'll need to configure:
 ### App Privacy
 - **Privacy Policy URL:** 
 ```
-https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod/privacy-policy
+https://ieltsaiprep.com/privacy-policy
 ```
 
 ### In-App Purchases (Create 4 products)

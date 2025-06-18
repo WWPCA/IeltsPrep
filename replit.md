@@ -100,6 +100,13 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- June 18, 2025: CUSTOM DOMAIN CONFIGURATION - Updated for ieltsaiprep.com
+  - Configured all legal links and privacy policy URLs to use custom domain ieltsaiprep.com
+  - Updated App Store Connect configuration with professional domain URLs
+  - Created custom domain setup scripts and documentation for AWS integration
+  - Mobile app ready for App Store submission with professional domain references
+  - Option provided to proceed with current Lambda URL or implement custom domain mapping
+
 - June 18, 2025: WEBSITE DEPLOYMENT CORRECTED - AWS Lambda Frontend Fixed to Match Exact Design
   - Fixed critical deployment issue where Lambda function was serving incorrect HTML template
   - Replaced Lambda's HTML with exact Bootstrap-based template from working Replit preview

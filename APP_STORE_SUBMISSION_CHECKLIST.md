@@ -79,8 +79,8 @@ Key Features:
 Perfect for students and professionals preparing for IELTS Academic or General Training tests worldwide.
 
 ## Legal Links
-- Privacy Policy: https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod/privacy-policy
-- Terms of Service: https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod/terms-of-service
+- Privacy Policy: https://ieltsaiprep.com/privacy-policy
+- Terms of Service: https://ieltsaiprep.com/terms-of-service
 
 ## Submission Steps
 
