@@ -225,7 +225,7 @@ def handle_assessment_access(path: str, headers: Dict[str, Any], dynamodb):
         
         # Check session validity
         auth_table = dynamodb.Table('ielts-genai-prep-auth-tokens')
-        response = auth_table.get_item(Key={'session_id': session_id})
+        response = auth_table.get_item(Key={'token_id': session_id})
         
         if 'Item' not in response:
             return error_response('Invalid session', 401)
