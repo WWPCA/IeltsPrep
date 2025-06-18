@@ -9,8 +9,8 @@ const isStaging = process.env.ENVIRONMENT === 'staging';
 
 // Production API configuration
 const PRODUCTION_CONFIG = {
-  // Primary API Gateway endpoint (replace with your actual deployment URL)
-  baseURL: 'https://7j29vyr4n0.execute-api.us-east-1.amazonaws.com/prod',
+  // Primary API Gateway endpoint - LIVE PRODUCTION DEPLOYMENT
+  baseURL: 'https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod',
   
   // WebSocket endpoint for Nova Sonic streaming
   websocketURL: 'wss://your-websocket-id.execute-api.us-east-1.amazonaws.com/Prod',
