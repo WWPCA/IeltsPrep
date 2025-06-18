@@ -180,7 +180,7 @@ def handle_user_login(data: Dict[str, Any], dynamodb):
         # Create session
         session_id = str(uuid.uuid4())
         session_data = {
-            'session_id': session_id,
+            'token_id': session_id,  # Match table primary key
             'user_email': email,
             'user_id': user['user_id'],
             'created_at': datetime.utcnow().isoformat(),
@@ -188,8 +188,13 @@ def handle_user_login(data: Dict[str, Any], dynamodb):
         }
         
         # Store session in DynamoDB
-        auth_table = dynamodb.Table('ielts-genai-prep-auth-tokens')
-        auth_table.put_item(Item=session_data)
+        try:
+            auth_table = dynamodb.Table('ielts-genai-prep-auth-tokens')
+            auth_table.put_item(Item=session_data)
+            logger.info(f"Session created successfully for: {email}")
+        except Exception as session_error:
+            logger.error(f"Session creation error: {str(session_error)}")
+            return error_response('Session creation failed', 500)
         
         logger.info(f"User login successful: {email}")
         return success_response({
