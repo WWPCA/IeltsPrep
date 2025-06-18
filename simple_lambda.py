@@ -253,16 +253,16 @@ def handle_website_home():
         
         .pricing-card {
             background: white;
-            padding: 2rem;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
         }
         
         .price {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: bold;
-            margin: 1rem 0;
+            margin: 0.5rem 0;
         }
         
         .section-header {
@@ -272,8 +272,8 @@ def handle_website_home():
         
         .assessment-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
             max-width: 600px;
             margin: 0 auto 4rem;
         }
@@ -482,33 +482,37 @@ def handle_website_home():
                 
                 <div class="assessment-grid">
                     <div class="pricing-card writing-card">
-                        <div style="background: #4CAF50; color: white; padding: 0.8rem; margin: -2rem -2rem 1.5rem; border-radius: 10px 10px 0 0; font-weight: 600;">Academic Writing</div>
-                        <div class="price" style="color: #333;">$36</div>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1.5rem;"><strong>for 4 assessments</strong></p>
-                        <ul class="feature-list">
-                            <li>4 Unique Assessments Included</li>
-                            <li>Task 1 & Task 2 Assessment</li>
-                            <li>TrueScore® GenAI Evaluation</li>
-                            <li>Official IELTS Criteria Alignment</li>
-                            <li>Detailed Band Score Feedback</li>
-                            <li>Writing Improvement Recommendations</li>
-                        </ul>
-                        <button class="purchase-btn">Purchase via Mobile App</button>
+                        <div style="background: #4CAF50; color: white; padding: 1rem; font-weight: 600; font-size: 1.1rem;">Academic Writing</div>
+                        <div style="padding: 1.5rem;">
+                            <div class="price" style="color: #333;">$36</div>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;"><strong>for 4 assessments</strong></p>
+                            <ul style="list-style: none; padding: 0; text-align: left; font-size: 0.85rem; color: #666; margin-bottom: 1.5rem;">
+                                <li style="margin: 0.3rem 0;">✓ 4 Unique Assessments Included</li>
+                                <li style="margin: 0.3rem 0;">✓ Task 1 & Task 2 Assessment</li>
+                                <li style="margin: 0.3rem 0;">✓ TrueScore® GenAI Evaluation</li>
+                                <li style="margin: 0.3rem 0;">✓ Official IELTS Criteria Alignment</li>
+                                <li style="margin: 0.3rem 0;">✓ Detailed Band Score Feedback</li>
+                                <li style="margin: 0.3rem 0;">✓ Writing Improvement Recommendations</li>
+                            </ul>
+                            <button style="background: #4CAF50; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer;">Purchase via Mobile App</button>
+                        </div>
                     </div>
                     
                     <div class="pricing-card writing-card">
-                        <div style="background: #4CAF50; color: white; padding: 0.8rem; margin: -2rem -2rem 1.5rem; border-radius: 10px 10px 0 0; font-weight: 600;">General Training Writing</div>
-                        <div class="price" style="color: #333;">$36</div>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1.5rem;"><strong>for 4 assessments</strong></p>
-                        <ul class="feature-list">
-                            <li>4 Unique Assessments Included</li>
-                            <li>Letter & Essay Assessment</li>
-                            <li>TrueScore® GenAI Evaluation</li>
-                            <li>Official IELTS Criteria Alignment</li>
-                            <li>Detailed Band Score Feedback</li>
-                            <li>Target Band Achievement Support</li>
-                        </ul>
-                        <button class="purchase-btn">Purchase via Mobile App</button>
+                        <div style="background: #4CAF50; color: white; padding: 1rem; font-weight: 600; font-size: 1.1rem;">General Training Writing</div>
+                        <div style="padding: 1.5rem;">
+                            <div class="price" style="color: #333;">$36</div>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;"><strong>for 4 assessments</strong></p>
+                            <ul style="list-style: none; padding: 0; text-align: left; font-size: 0.85rem; color: #666; margin-bottom: 1.5rem;">
+                                <li style="margin: 0.3rem 0;">✓ 4 Unique Assessments Included</li>
+                                <li style="margin: 0.3rem 0;">✓ Letter & Essay Assessment</li>
+                                <li style="margin: 0.3rem 0;">✓ TrueScore® GenAI Evaluation</li>
+                                <li style="margin: 0.3rem 0;">✓ Official IELTS Criteria Alignment</li>
+                                <li style="margin: 0.3rem 0;">✓ Detailed Band Score Feedback</li>
+                                <li style="margin: 0.3rem 0;">✓ Target Band Achievement Support</li>
+                            </ul>
+                            <button style="background: #4CAF50; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer;">Purchase via Mobile App</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -523,33 +527,37 @@ def handle_website_home():
                 
                 <div class="assessment-grid">
                     <div class="pricing-card speaking-card">
-                        <div style="background: #2196F3; color: white; padding: 0.8rem; margin: -2rem -2rem 1.5rem; border-radius: 10px 10px 0 0; font-weight: 600;">Academic Speaking</div>
-                        <div class="price" style="color: #333;">$36</div>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1.5rem;"><strong>for 4 assessments</strong></p>
-                        <ul class="feature-list">
-                            <li>4 Unique Assessments Included</li>
-                            <li>Interactive Maya AI Examiner</li>
-                            <li>ClearScore® GenAI Analysis</li>
-                            <li>Real-time Speech Assessment</li>
-                            <li>Detailed Performance Metrics</li>
-                            <li>Pronunciation & Fluency Feedback</li>
-                        </ul>
-                        <button class="purchase-btn speaking">Purchase via Mobile App</button>
+                        <div style="background: #2196F3; color: white; padding: 1rem; font-weight: 600; font-size: 1.1rem;">Academic Speaking</div>
+                        <div style="padding: 1.5rem;">
+                            <div class="price" style="color: #333;">$36</div>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;"><strong>for 4 assessments</strong></p>
+                            <ul style="list-style: none; padding: 0; text-align: left; font-size: 0.85rem; color: #666; margin-bottom: 1.5rem;">
+                                <li style="margin: 0.3rem 0;">✓ 4 Unique Assessments Included</li>
+                                <li style="margin: 0.3rem 0;">✓ Interactive Maya AI Examiner</li>
+                                <li style="margin: 0.3rem 0;">✓ ClearScore® GenAI Analysis</li>
+                                <li style="margin: 0.3rem 0;">✓ Real-time Speech Assessment</li>
+                                <li style="margin: 0.3rem 0;">✓ Detailed Performance Metrics</li>
+                                <li style="margin: 0.3rem 0;">✓ Pronunciation & Fluency Feedback</li>
+                            </ul>
+                            <button style="background: #2196F3; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer;">Purchase via Mobile App</button>
+                        </div>
                     </div>
                     
                     <div class="pricing-card speaking-card">
-                        <div style="background: #2196F3; color: white; padding: 0.8rem; margin: -2rem -2rem 1.5rem; border-radius: 10px 10px 0 0; font-weight: 600;">General Training Speaking</div>
-                        <div class="price" style="color: #333;">$36</div>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1.5rem;"><strong>for 4 assessments</strong></p>
-                        <ul class="feature-list">
-                            <li>4 Unique Assessments Included</li>
-                            <li>Maya AI Conversation Partner</li>
-                            <li>ClearScore® GenAI Technology</li>
-                            <li>Comprehensive Speaking Analysis</li>
-                            <li>Real-time Performance Feedback</li>
-                            <li>Instant Performance Feedback</li>
-                        </ul>
-                        <button class="purchase-btn speaking">Purchase via Mobile App</button>
+                        <div style="background: #2196F3; color: white; padding: 1rem; font-weight: 600; font-size: 1.1rem;">General Training Speaking</div>
+                        <div style="padding: 1.5rem;">
+                            <div class="price" style="color: #333;">$36</div>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;"><strong>for 4 assessments</strong></p>
+                            <ul style="list-style: none; padding: 0; text-align: left; font-size: 0.85rem; color: #666; margin-bottom: 1.5rem;">
+                                <li style="margin: 0.3rem 0;">✓ 4 Unique Assessments Included</li>
+                                <li style="margin: 0.3rem 0;">✓ Maya AI Conversation Partner</li>
+                                <li style="margin: 0.3rem 0;">✓ ClearScore® GenAI Technology</li>
+                                <li style="margin: 0.3rem 0;">✓ Comprehensive Speaking Analysis</li>
+                                <li style="margin: 0.3rem 0;">✓ Real-time Performance Feedback</li>
+                                <li style="margin: 0.3rem 0;">✓ Instant Performance Feedback</li>
+                            </ul>
+                            <button style="background: #2196F3; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer;">Purchase via Mobile App</button>
+                        </div>
                     </div>
                 </div>
             </div>
