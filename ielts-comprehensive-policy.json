@@ -4,35 +4,103 @@
         {
             "Effect": "Allow",
             "Action": [
-                "bedrock:*",
-                "lambda:*",
-                "apigateway:*",
-                "dynamodb:*",
-                "route53:*",
-                "acm:*",
-                "cloudformation:*",
-                "cloudwatch:*",
-                "logs:*",
-                "iam:PassRole",
-                "iam:GetRole",
-                "iam:CreateRole",
-                "iam:AttachRolePolicy",
-                "iam:DetachRolePolicy",
-                "iam:ListRoles",
-                "iam:ListRolePolicies",
-                "iam:ListAttachedRolePolicies",
-                "elasticache:*",
-                "s3:*",
-                "ec2:DescribeVpcs",
-                "ec2:DescribeRegions",
-                "cognito-idp:*",
-                "sns:*",
-                "ses:*"
+                "bedrock:InvokeModel",
+                "bedrock:InvokeModelWithResponseStream",
+                "bedrock:GetFoundationModel",
+                "bedrock:ListFoundationModels"
+            ],
+            "Resource": [
+                "arn:aws:bedrock:*::foundation-model/amazon.nova-sonic-v1:0",
+                "arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:username": "WWP"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "lambda:InvokeFunction",
+                "lambda:GetFunction",
+                "lambda:UpdateFunctionCode",
+                "lambda:UpdateFunctionConfiguration"
+            ],
+            "Resource": "arn:aws:lambda:*:116981806044:function:ielts-genai-prep-*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:username": "WWP"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "apigateway:GET",
+                "apigateway:POST",
+                "apigateway:PUT",
+                "apigateway:DELETE",
+                "apigateway:PATCH"
+            ],
+            "Resource": [
+                "arn:aws:apigateway:*::/restapis/n0cpf1rmvc/*",
+                "arn:aws:apigateway:*::/domainnames/ieltsaiprep.com*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:username": "WWP"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:Query",
+                "dynamodb:Scan"
+            ],
+            "Resource": "arn:aws:dynamodb:*:116981806044:table/ielts-genai-prep-*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:username": "WWP"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "route53:GetHostedZone",
+                "route53:ChangeResourceRecordSets",
+                "route53:ListResourceRecordSets"
+            ],
+            "Resource": "arn:aws:route53:::hostedzone/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:username": "WWP"
+                },
+                "StringLike": {
+                    "route53:HostedZoneName": "ieltsaiprep.com."
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "acm:RequestCertificate",
+                "acm:DescribeCertificate",
+                "acm:ListCertificates"
             ],
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
                     "aws:username": "WWP"
+                },
+                "StringLike": {
+                    "acm:DomainName": "*.ieltsaiprep.com"
                 }
             }
         }
