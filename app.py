@@ -163,8 +163,6 @@ def lambda_handler(event, context):
                 user_ip = user_ip.split(',')[0].strip()  # Take first IP if multiple
             data['user_ip'] = user_ip
             return handle_user_login(data)
-        elif path == '/' and method == 'GET':
-            return handle_home_page()
         else:
             return {
                 'statusCode': 404,
