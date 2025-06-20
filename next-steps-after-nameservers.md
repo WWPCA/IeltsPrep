@@ -1,36 +1,38 @@
-# Next Steps After Adding Route 53 Nameservers
+# Next Steps After Adding Nameservers to Namecheap
 
-## Step 1: Update Namecheap (Do This Now)
-Add these nameservers to your Custom DNS fields:
-1. ns-22.awsdns-02.com
-2. ns-1255.awsdns-28.org
-3. ns-1995.awsdns-57.co.uk
-4. ns-763.awsdns-31.net
-
-Save changes in Namecheap.
-
-## Step 2: Request SSL Certificate (AWS Console)
-1. Go to AWS Certificate Manager
-2. Request certificate for:
-   - ieltsaiprep.com
-   - www.ieltsaiprep.com
-3. Use DNS validation
-4. Create records in Route 53 automatically
-
-## Step 3: Create API Gateway Custom Domain
-1. API Gateway Console → Custom domain names
-2. Domain: ieltsaiprep.com
-3. Certificate: Select validated certificate
-4. API mappings: n0cpf1rmvc → prod stage
-
-## Step 4: Create DNS Records
-1. Route 53 → ieltsaiprep.com hosted zone
-2. Create A record (alias to API Gateway)
-3. Create www A record (alias to API Gateway)
+## What You Just Did
+Added these Route 53 nameservers to Namecheap Custom DNS:
+- ns-22.awsdns-02.com
+- ns-1255.awsdns-28.org  
+- ns-1995.awsdns-57.co.uk
+- ns-763.awsdns-31.net
 
 ## Timeline
-- Nameserver propagation: 15 minutes - 2 hours
-- SSL certificate validation: 5-30 minutes
-- Complete setup: 1-2 hours total
+- **DNS Propagation**: 15 minutes - 2 hours (usually within 30 minutes)
+- **SSL Certificate Validation**: 5-30 minutes after DNS propagation
+- **Total Time**: Usually 45 minutes, maximum 2.5 hours
 
-Your professional ieltsaiprep.com domain will be ready for mobile app submission.
+## Check Progress
+Run this command to check SSL certificate status:
+```bash
+./check-certificate-status.sh
+```
+
+## What Happens Next (Automatic)
+1. DNS propagates worldwide
+2. AWS validates the SSL certificate automatically
+3. Certificate status changes from PENDING_VALIDATION → ISSUED
+4. Create API Gateway custom domain mapping
+5. Update mobile app configuration with ieltsaiprep.com URLs
+6. Test complete professional domain setup
+
+## Current Status
+✅ Route 53 hosted zone created
+✅ SSL certificate requested  
+✅ DNS validation records added to Route 53
+✅ Nameservers provided to Namecheap
+🔄 **WAITING**: DNS propagation and certificate validation
+⏳ **NEXT**: API Gateway custom domain creation
+
+## Mobile App Ready
+All mobile app configurations are prepared with ieltsaiprep.com URLs. Once certificate validates, the app will use the professional domain instead of AWS Lambda URLs.
