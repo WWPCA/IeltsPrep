@@ -22,6 +22,11 @@ from aws_mock_config import aws_mock
 
 def verify_recaptcha_v2(recaptcha_response: str, user_ip: Optional[str] = None) -> bool:
     """Verify reCAPTCHA v2 response with Google"""
+    # Skip reCAPTCHA in development/testing environment
+    if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+        print("[RECAPTCHA] Skipping verification in development environment")
+        return True
+    
     try:
         secret_key = os.environ.get('RECAPTCHA_V2_SECRET_KEY')
         if not secret_key:
@@ -229,6 +234,10 @@ def handle_login_page() -> Dict[str, Any]:
     try:
         with open('login.html', 'r', encoding='utf-8') as f:
             html_content = f.read()
+        
+        # Replace the hardcoded reCAPTCHA site key with the environment variable
+        recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix')
+        html_content = html_content.replace('6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix', recaptcha_site_key)
         
         return {
             'statusCode': 200,
