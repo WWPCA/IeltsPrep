@@ -27,7 +27,8 @@
                 "ec2:DescribeRegions",
                 "cognito-idp:*",
                 "sns:*",
-                "ses:*"
+                "ses:*",
+                "cloudfront:*"
             ],
             "Resource": "*",
             "Condition": {

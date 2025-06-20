@@ -265,6 +265,25 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub '${ApiGateway}/*/*'
 
+  # SSL Certificate for Custom Domain
+  SSLCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      SubjectAlternativeNames:
+        - !Sub 'www.${DomainName}'
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: Z01451123MAROFMSZLXBI
+        - DomainName: !Sub 'www.${DomainName}'
+          HostedZoneId: Z01451123MAROFMSZLXBI
+      Tags:
+        - Key: Project
+          Value: IELTSGenAIPrep
+        - Key: Environment
+          Value: !Ref Environment
+
   # API Gateway
   ApiGateway:
     Type: AWS::ApiGatewayV2::Api
@@ -287,6 +306,48 @@ Resources:
       Tags:
         Project: IELTSGenAIPrep
         Environment: !Ref Environment
+
+  # Custom Domain Name
+  CustomDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !Ref DomainName
+      DomainNameConfigurations:
+        - CertificateArn: !Ref SSLCertificate
+          SecurityPolicy: TLS_1_2
+      Tags:
+        Project: IELTSGenAIPrep
+        Environment: !Ref Environment
+
+  # API Gateway Domain Mapping
+  ApiGatewayMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiId: !Ref ApiGateway
+      DomainName: !Ref CustomDomainName
+      Stage: !Ref ApiGatewayStage
+
+  # Route 53 DNS Record for Custom Domain
+  DNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: Z01451123MAROFMSZLXBI
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CustomDomainName.DomainNameConfiguration.TargetDomainName
+        HostedZoneId: !GetAtt CustomDomainName.DomainNameConfiguration.HostedZoneId
+
+  # Route 53 DNS Record for www subdomain
+  WWWDNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: Z01451123MAROFMSZLXBI
+      Name: !Sub 'www.${DomainName}'
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CustomDomainName.DomainNameConfiguration.TargetDomainName
+        HostedZoneId: !GetAtt CustomDomainName.DomainNameConfiguration.HostedZoneId
 
   # API Gateway Stage
   ApiGatewayStage:
