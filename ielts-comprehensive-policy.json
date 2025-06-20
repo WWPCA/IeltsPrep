@@ -73,17 +73,36 @@
         {
             "Effect": "Allow",
             "Action": [
+                "route53:CreateHostedZone",
+                "route53:DeleteHostedZone",
                 "route53:GetHostedZone",
+                "route53:ListHostedZones",
                 "route53:ChangeResourceRecordSets",
-                "route53:ListResourceRecordSets"
+                "route53:ListResourceRecordSets",
+                "route53:GetChange",
+                "route53:CreateHealthCheck",
+                "route53:UpdateHealthCheck",
+                "route53:DeleteHealthCheck",
+                "route53:ListHealthChecks",
+                "route53:GetHealthCheck"
             ],
-            "Resource": "arn:aws:route53:::hostedzone/*",
+            "Resource": "*",
             "Condition": {
                 "StringEquals": {
                     "aws:username": "WWP"
-                },
-                "StringLike": {
-                    "route53:HostedZoneName": "ieltsaiprep.com."
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeVpcs",
+                "ec2:DescribeRegions"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:username": "WWP"
                 }
             }
         },
