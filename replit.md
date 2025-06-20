@@ -100,6 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- June 20, 2025: WEBSITE FULLY OPERATIONAL - reCAPTCHA Issue Resolved and Lambda Function Fixed
+  - Fixed Lambda function syntax errors and missing dependencies
+  - Resolved reCAPTCHA "Invalid site key" error by deploying corrected handler
+  - Website now returns 200 OK status at www.ieltsaiprep.com/login
+  - Test account operational: test@ieltsgenaiprep.com / testpassword123
+  - Production Lambda function serving login, dashboard, and API endpoints correctly
+  - Ready for App Store screenshot generation and submission process
+
 - June 20, 2025: DNS SIMPLIFIED TO WWW-ONLY - Single Domain Configuration Complete
   - Removed DNS A record for ieltsaiprep.com from Route 53
   - Removed SSL validation CNAME records (certificates already validated)
