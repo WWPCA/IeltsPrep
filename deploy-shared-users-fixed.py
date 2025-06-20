@@ -6,7 +6,6 @@ import boto3
 import zipfile
 import os
 import json
-import hashlib
 
 def create_shared_user_lambda():
     """Create Lambda with shared user database"""
@@ -25,7 +24,7 @@ import hmac
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
-# Mock DynamoDB for Replit environment
+# Mock DynamoDB for shared users between mobile app and website
 class MockDynamoDBUsers:
     def __init__(self):
         # Shared user database for both mobile app and website
@@ -176,7 +175,10 @@ def handle_home_page() -> Dict[str, Any]:
 
 def handle_login_page() -> Dict[str, Any]:
     """Serve login page"""
-    login_html = '''<!DOCTYPE html>
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -186,7 +188,7 @@ def handle_login_page() -> Dict[str, Any]:
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0percent, #764ba2 100percent);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -318,17 +320,15 @@ def handle_login_page() -> Dict[str, Any]:
     });
     </script>
 </body>
-</html>'''
-    
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': login_html
+</html>"""
     }
 
 def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
     """Serve dashboard page"""
-    dashboard_html = '''<!DOCTYPE html>
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -369,8 +369,8 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             <div class="col-md-6">
                 <div class="card assessment-card h-100" style="border-left: 5px solid #4361ee;">
                     <div class="card-body">
-                        <h5 class="card-title text-primary">🎓 Academic Writing Assessment</h5>
-                        <p class="card-text">TrueScore® GenAI writing evaluation with detailed feedback</p>
+                        <h5 class="card-title text-primary">Academic Writing Assessment</h5>
+                        <p class="card-text">TrueScore GenAI writing evaluation with detailed feedback</p>
                         <p class="text-success"><strong>4 assessments remaining</strong></p>
                         <button class="btn btn-primary">Start Assessment</button>
                     </div>
@@ -380,8 +380,8 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             <div class="col-md-6">
                 <div class="card assessment-card h-100" style="border-left: 5px solid #e74c3c;">
                     <div class="card-body">
-                        <h5 class="card-title text-danger">🎤 Academic Speaking Assessment</h5>
-                        <p class="card-text">ClearScore® GenAI speaking practice with AI examiner Maya</p>
+                        <h5 class="card-title text-danger">Academic Speaking Assessment</h5>
+                        <p class="card-text">ClearScore GenAI speaking practice with AI examiner Maya</p>
                         <p class="text-success"><strong>4 assessments remaining</strong></p>
                         <button class="btn btn-danger">Start Assessment</button>
                     </div>
@@ -391,8 +391,8 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             <div class="col-md-6">
                 <div class="card assessment-card h-100" style="border-left: 5px solid #2ecc71;">
                     <div class="card-body">
-                        <h5 class="card-title text-success">📝 General Writing Assessment</h5>
-                        <p class="card-text">TrueScore® GenAI writing evaluation for General Training</p>
+                        <h5 class="card-title text-success">General Writing Assessment</h5>
+                        <p class="card-text">TrueScore GenAI writing evaluation for General Training</p>
                         <p class="text-success"><strong>4 assessments remaining</strong></p>
                         <button class="btn btn-success">Start Assessment</button>
                     </div>
@@ -402,8 +402,8 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             <div class="col-md-6">
                 <div class="card assessment-card h-100" style="border-left: 5px solid #f39c12;">
                     <div class="card-body">
-                        <h5 class="card-title text-warning">🗣️ General Speaking Assessment</h5>
-                        <p class="card-text">ClearScore® GenAI speaking practice for General Training</p>
+                        <h5 class="card-title text-warning">General Speaking Assessment</h5>
+                        <p class="card-text">ClearScore GenAI speaking practice for General Training</p>
                         <p class="text-success"><strong>4 assessments remaining</strong></p>
                         <button class="btn btn-warning">Start Assessment</button>
                     </div>
@@ -412,12 +412,7 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
         </div>
     </div>
 </body>
-</html>'''
-    
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': dashboard_html
+</html>"""
     }
 
 def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -601,6 +596,7 @@ def deploy_shared_user_lambda():
 if __name__ == "__main__":
     if deploy_shared_user_lambda():
         print("Shared user database Lambda deployed!")
+        print("Mobile app credentials now work on website!")
         print("Test login at: https://www.ieltsaiprep.com/login")
         print("Credentials: test@ieltsgenaiprep.com / testpassword123")
     else:
