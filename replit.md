@@ -100,6 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- June 20, 2025: iOS APP STORE DEPLOYMENT READY - Mobile App Configured for Apple App Store
+  - Updated Capacitor configuration to use www.ieltsaiprep.com domain
+  - iOS platform synced successfully with 6 Capacitor plugins
+  - Created comprehensive App Store deployment guide and assets
+  - Configured 4 in-app purchase products at $36 each (Academic/General Writing/Speaking)
+  - App Store metadata, deployment script, and technical documentation completed
+  - Ready for Apple Developer Account setup and Xcode archiving process
+
 - June 20, 2025: CLOUDFRONT UPDATED TO WWW-ONLY DOMAIN - Single Domain Configuration Active
   - Updated CloudFront distribution to serve only www.ieltsaiprep.com (removed ieltsaiprep.com alias)
   - Distribution status: InProgress (propagating globally, 15-20 minutes)
