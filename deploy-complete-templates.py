@@ -16,8 +16,12 @@ def create_lambda_with_complete_templates():
     with open('complete-login-template.html', 'r', encoding='utf-8') as f:
         login_content = f.read()
     
+    # Escape content for embedding in Python string
+    home_escaped = home_content.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
+    login_escaped = login_content.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
+    
     # Create Lambda function code with all templates
-    lambda_code = f'''import json
+    lambda_code = '''import json
 import base64
 
 def lambda_handler(event, context):
@@ -26,13 +30,13 @@ def lambda_handler(event, context):
     path = event.get('path', '/')
     method = event.get('httpMethod', 'GET')
     
-    print(f"Processing {{method}} {{path}}")
+    print(f"Processing {method} {path}")
     
     # Comprehensive home page
-    home_html = """{home_content.replace('\\', '\\\\').replace('"', '\\"')}"""
+    home_html = """''' + home_escaped + '''"""
     
     # Complete login page matching preview design
-    login_html = """{login_content.replace('\\', '\\\\').replace('"', '\\"')}"""
+    login_html = """''' + login_escaped + '''"""
     
     # Dashboard page template
     dashboard_html = """<!DOCTYPE html>
