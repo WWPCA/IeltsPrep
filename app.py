@@ -98,9 +98,11 @@ def lambda_handler(event, context):
             data = {}
         
         print(f"[CLOUDWATCH] Lambda processing {method} {path}")
+        print(f"[CLOUDWATCH] Path type: {type(path)}, Path repr: {repr(path)}")
         
         # Route requests
         if path == '/' and method == 'GET':
+            print(f"[CLOUDWATCH] Serving home page")
             return handle_home_page()
         elif path == '/api/health':
             return handle_health_check()
@@ -164,14 +166,19 @@ def lambda_handler(event, context):
             data['user_ip'] = user_ip
             return handle_user_login(data)
         else:
-            return {
-                'statusCode': 404,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({'error': 'Endpoint not found'})
-            }
+            print(f"[CLOUDWATCH] No route matched, defaulting to home page for path: {path}")
+            # Default to home page for any unmatched GET request
+            if method == 'GET':
+                return handle_home_page()
+            else:
+                return {
+                    'statusCode': 404,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Endpoint not found'})
+                }
             
     except Exception as e:
         print(f"[CLOUDWATCH] Lambda handler error: {str(e)}")
