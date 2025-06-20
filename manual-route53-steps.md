@@ -1,85 +1,87 @@
-# Manual Route 53 Migration Steps for ieltsaiprep.com
+# Manual Route 53 Custom Domain Setup
 
-## Step-by-Step AWS Console Migration
+## Setup Professional Domain for IELTS GenAI Prep
 
 ### Step 1: Create Route 53 Hosted Zone
-1. Go to [Route 53 Console](https://console.aws.amazon.com/route53/v2/hostedzones)
+1. Open AWS Route 53 console
 2. Click "Create hosted zone"
 3. Domain name: `ieltsaiprep.com`
 4. Type: Public hosted zone
-5. Click "Create hosted zone"
-6. **Save the 4 nameservers** shown (you'll need these for Namecheap)
+5. Click "Create"
+6. **Save the 4 nameservers** from the NS record
 
 ### Step 2: Request SSL Certificate
-1. Go to [Certificate Manager Console](https://console.aws.amazon.com/acm/home?region=us-east-1)
-2. Click "Request a certificate"
-3. Request a public certificate
-4. Domain names:
+1. Open AWS Certificate Manager console
+2. Click "Request certificate"
+3. Domain names:
    - `ieltsaiprep.com`
    - `www.ieltsaiprep.com`
-5. Validation method: **DNS validation**
-6. Click "Request"
+4. Validation method: DNS validation
+5. Click "Request"
+6. Click "Create records in Route 53" for both domains
+7. Wait for certificate validation (5-30 minutes)
 
-### Step 3: Add DNS Validation Records
-1. In Certificate Manager, click on your certificate
-2. Copy the CNAME validation records
-3. Go back to Route 53 hosted zone
-4. Click "Create record"
-5. Add each CNAME validation record exactly as shown
-6. Wait for certificate status to change to "Issued" (5-10 minutes)
+### Step 3: Create API Gateway Custom Domain
+1. Open API Gateway console
+2. Click "Custom domain names"
+3. Click "Create"
+4. Domain name: `ieltsaiprep.com`
+5. Certificate: Select your validated certificate
+6. Click "Create"
+7. Note the **Target domain name** (looks like d-xyz.execute-api.us-east-1.amazonaws.com)
 
-### Step 4: Create API Gateway Custom Domain
-1. Go to [API Gateway Console](https://console.aws.amazon.com/apigateway/main/publish/domain-names?region=us-east-1)
-2. Click "Create domain name"
-3. Domain name: `ieltsaiprep.com`
-4. Certificate: Select your issued certificate
-5. Endpoint type: Regional
-6. Click "Create domain name"
+### Step 4: Configure Base Path Mapping
+1. In the custom domain you just created
+2. Click "API mappings"
+3. Click "Configure API mappings"
+4. Add mapping:
+   - API: `ielts-genai-prep-production` (ID: n0cpf1rmvc)
+   - Stage: `prod`
+   - Path: (leave empty)
+5. Click "Save"
 
-### Step 5: Create API Mapping
-1. In the custom domain page, click "API mappings"
-2. Click "Configure API mappings"
-3. API: Select your Lambda API (should contain "n0cpf1rmvc")
-4. Stage: `prod`
-5. Path: (leave empty)
-6. Click "Save"
-
-### Step 6: Update Route 53 A Record
-1. Copy the "Target domain name" from API Gateway custom domain
-2. Go back to Route 53 hosted zone
-3. Create new record:
-   - Record name: (leave empty for apex domain)
-   - Record type: A
+### Step 5: Create DNS Records in Route 53
+1. Return to Route 53 hosted zone for ieltsaiprep.com
+2. Click "Create record"
+3. Record 1:
+   - Name: (leave empty for root domain)
+   - Type: A
    - Alias: Yes
-   - Route traffic to: Alias to API Gateway API
-   - Region: US East (N. Virginia)
-   - API Gateway domain name: Paste the target domain
+   - Route traffic to: API Gateway
+   - Region: us-east-1
+   - API Gateway: Select your custom domain
 4. Click "Create records"
-
-### Step 7: Create WWW Subdomain
-1. Create another record:
-   - Record name: `www`
-   - Record type: A
+5. Create second record:
+   - Name: `www`
+   - Type: A
    - Alias: Yes
-   - Route traffic to: Alias to API Gateway API
-   - Use same target domain as step 6
-2. Click "Create records"
+   - Route traffic to: API Gateway
+   - Region: us-east-1
+   - API Gateway: Select your custom domain
 
-### Step 8: Update Nameservers at Namecheap
+### Step 6: Update Nameservers at Namecheap
 1. Login to Namecheap
-2. Go to Domain List → ieltsaiprep.com → Manage
-3. Change nameservers from "Namecheap BasicDNS" to "Custom DNS"
-4. Enter the 4 Route 53 nameservers from Step 1
-5. Save changes
+2. Go to Domain List → ieltsaiprep.com
+3. Click "Manage"
+4. Change nameservers to "Custom DNS"
+5. Add the 4 Route 53 nameservers from Step 1
+6. Save changes
 
-### Step 9: Wait for DNS Propagation
-- Timeline: 24-48 hours for global propagation
-- Test with: `dig ieltsaiprep.com` and `curl -I https://ieltsaiprep.com`
+### Expected Timeline
+- SSL certificate validation: 5-30 minutes
+- DNS propagation after nameserver update: 24-48 hours
+- Total setup time: 15-20 minutes active work
 
-## Expected Results After Migration
-- https://ieltsaiprep.com → Your IELTS app
-- https://www.ieltsaiprep.com → Your IELTS app
-- SSL certificate automatically validated and renewed
-- Professional domain for App Store submission
+### Test Commands (after DNS propagation)
+```bash
+curl -I https://ieltsaiprep.com
+curl -I https://ieltsaiprep.com/health
+```
 
-This manual approach avoids CLI permission issues while achieving the same AWS-native domain management.
+### Mobile App Configuration Update
+After DNS propagation, your mobile app will use:
+- Base URL: `https://ieltsaiprep.com`
+- Privacy Policy: `https://ieltsaiprep.com/privacy-policy`
+- Terms of Service: `https://ieltsaiprep.com/terms-of-service`
+
+This gives you the professional domain needed for App Store submission.
