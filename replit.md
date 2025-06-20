@@ -108,7 +108,8 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Test account confirmed working: test@ieltsgenaiprep.com / testpassword123
   - Authentication flow: register in mobile app → login on website with same credentials
   - Website ready for App Store screenshot generation with professional interface
-  - S3 storage confirmed unnecessary - pure serverless Lambda/DynamoDB architecture optimized
+  - S3 storage and CloudFormation confirmed unnecessary - pure serverless Lambda/DynamoDB architecture optimized
+  - AWS account can be cleaned up by removing unused CloudFormation stacks and S3 buckets
 
 - June 20, 2025: DNS SIMPLIFIED TO WWW-ONLY - Single Domain Configuration Complete
   - Removed DNS A record for ieltsaiprep.com from Route 53
