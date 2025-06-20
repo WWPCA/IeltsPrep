@@ -3,7 +3,7 @@
   "appName": "IELTS GenAI Prep",
   "webDir": "static",
   "server": {
-    "url": "https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod",
+    "url": "https://www.ieltsaiprep.com",
     "cleartext": false
   },
   "plugins": {
@@ -24,7 +24,7 @@
     },
     "App": {
       "enabled": true,
-      "deepLinkHostname": "ieltsgenaiprep.com",
+      "deepLinkHostname": "www.ieltsaiprep.com",
       "deepLinkScheme": "ieltsgenaiprep"
     },
     "Toast": {
