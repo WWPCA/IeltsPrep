@@ -102,8 +102,10 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 - June 20, 2025: DNS SIMPLIFIED TO WWW-ONLY - Single Domain Configuration Complete
   - Removed DNS A record for ieltsaiprep.com from Route 53
-  - Only www.ieltsaiprep.com now has DNS resolution (propagating globally)
-  - CloudFront and DNS now consistently serve single domain only
+  - Removed SSL validation CNAME records (certificates already validated)
+  - Route 53 zone now contains only essential records: NS, SOA, and www A record
+  - Only www.ieltsaiprep.com has DNS resolution (propagated globally)
+  - CloudFront and DNS consistently serve single domain only
   - Mobile app correctly configured for www.ieltsaiprep.com backend
 
 - June 20, 2025: iOS APP STORE DEPLOYMENT READY - Mobile App Configured for Apple App Store
