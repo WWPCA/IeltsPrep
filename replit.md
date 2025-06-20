@@ -100,14 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- June 20, 2025: MANUAL ROUTE 53 CUSTOM DOMAIN SETUP READY - CloudFormation Alternative Due to Permissions
-  - Created comprehensive manual AWS Console setup guide for ieltsaiprep.com custom domain
-  - Identified CloudFormation deployment blocked by Route 53 permissions on current AWS account
-  - Prepared step-by-step Route 53 hosted zone, SSL certificate, and API Gateway custom domain configuration
-  - Manual approach provides same professional domain outcome with AWS Console interface
-  - Setup timeline: 15-20 minutes active work + 24-48 hours DNS propagation after nameserver update
-  - Mobile app configuration ready for professional ieltsaiprep.com domain integration
-  - All infrastructure components identified: Lambda function (ielts-genai-prep-api) and API Gateway (n0cpf1rmvc) ready for custom domain mapping
+- June 20, 2025: ROUTE 53 DNS MANAGEMENT STRATEGY FINALIZED - Namecheap Registrar + AWS DNS
+  - Confirmed optimal approach: Keep ieltsaiprep.com registered at Namecheap, use Route 53 for DNS management only
+  - Avoids $14 USD domain transfer fee and 5-day transfer complexity while achieving professional domain setup
+  - Created comprehensive IAM policy with user-specific security for WWP covering all required AWS services
+  - Prepared Route 53 console setup guide for hosted zone creation and nameserver configuration
+  - Infrastructure ready: Lambda function (ielts-genai-prep-api) and API Gateway (n0cpf1rmvc) configured for custom domain mapping
+  - Mobile app production configuration completed with professional ieltsaiprep.com URLs for App Store submission
+  - Setup timeline: 20 minutes active work + 24-48 hours DNS propagation for complete professional domain deployment
 
 - June 18, 2025: CUSTOM DOMAIN SETUP IN PROGRESS - SSL Certificate Validation
   - Successfully requested SSL certificate for ieltsaiprep.com and www.ieltsaiprep.com through AWS Certificate Manager
