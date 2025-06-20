@@ -100,7 +100,9 @@ def lambda_handler(event, context):
         print(f"[CLOUDWATCH] Lambda processing {method} {path}")
         
         # Route requests
-        if path == '/api/health':
+        if path == '/' and method == 'GET':
+            return handle_home_page()
+        elif path == '/api/health':
             return handle_health_check()
         elif path == '/api/auth/generate-qr' and method == 'POST':
             return handle_generate_qr(data)
