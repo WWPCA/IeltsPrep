@@ -1,1 +1,1 @@
-{"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"message\": \"IELTS GenAI Prep API is running\", \"version\": \"1.0\", \"environment\": \"production\", \"event\": {\"httpMethod\": \"GET\", \"path\": \"/\", \"headers\": {}}}"}
+{"errorMessage": "unhashable type: 'dict'", "errorType": "TypeError", "requestId": "18f3f5bf-e756-41da-9f89-f362cbaf4ad9", "stackTrace": ["  File \"/var/task/simple_lambda.py\", line 1612, in lambda_handler\n    'headers': {{\n"]}
