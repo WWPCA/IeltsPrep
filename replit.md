@@ -100,6 +100,12 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- June 20, 2025: CLOUDFRONT UPDATED TO WWW-ONLY DOMAIN - Single Domain Configuration Active
+  - Updated CloudFront distribution to serve only www.ieltsaiprep.com (removed ieltsaiprep.com alias)
+  - Distribution status: InProgress (propagating globally, 15-20 minutes)
+  - Primary domain now exclusively: www.ieltsaiprep.com
+  - Mobile app and all documentation should reference www.ieltsaiprep.com only
+
 - June 20, 2025: MOBILE-FIRST AUTHENTICATION TEMPLATES DEPLOYED - All Preview Pages Now Live
   - Successfully migrated from QR code strategy to simple username/password authentication with Google reCAPTCHA
   - Deployed comprehensive login page matching exact preview design with mobile-first instructions
