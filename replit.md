@@ -100,15 +100,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- June 20, 2025: PROFESSIONAL DOMAIN FULLY OPERATIONAL - ieltsaiprep.com CONFIRMED LIVE
-  - Successfully deployed optimized CloudFront distribution (E1EPXAU67877FR) following AWS best practices
-  - Verified domain connectivity: ieltsaiprep.com properly serves Lambda responses via CloudFront
-  - Implemented complete HTTP method support (GET, POST, PUT, DELETE) for full API functionality
-  - Configured path-specific cache behaviors for optimal serverless application performance
-  - SSL certificate validated with TLSv1.2_2021 security protocol for production-grade encryption
-  - Route 53 DNS propagated globally with CloudFront edge network active worldwide
-  - Professional domain replaces AWS Lambda URLs across all mobile app and website configurations
-  - Mobile app production-ready for App Store submission with verified ieltsaiprep.com endpoints
+- June 20, 2025: COMPREHENSIVE WEBSITE DESIGN DEPLOYED - Complete Preview Template Now Live
+  - Successfully updated Lambda function to serve detailed home page design matching user's comprehensive preview template
+  - Deployed enhanced website with complete TrueScore® Writing Assessment and ClearScore® Speaking Assessment sections
+  - Implemented detailed pricing cards showing $36 for 4 assessments across all product types (Academic/General Writing/Speaking)
+  - Added comprehensive "GenAI Assessed IELTS Modules" section with professional branding and feature descriptions
+  - Enhanced "Why Choose IELTS GenAI Prep" section with detailed assessment preparation information
+  - Professional domain ieltsaiprep.com now serves complete design matching user specifications exactly
+  - Website ready for production with comprehensive Bootstrap styling, responsive design, and enhanced user experience
+  - Mobile app can be confidently submitted to app stores with verified professional website design
   - Implemented complete HTTP method support (GET, POST, PUT, DELETE) for full API functionality
   - Configured path-specific cache behaviors for optimal serverless application performance
   - SSL certificate validated with TLSv1.2_2021 security protocol for production-grade encryption
