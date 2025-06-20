@@ -29,7 +29,12 @@
                 "sns:*",
                 "ses:*"
             ],
-            "Resource": "*"
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:username": "WWP"
+                }
+            }
         }
     ]
 }
