@@ -4,60 +4,36 @@
         {
             "Effect": "Allow",
             "Action": [
-                "route53:GetChange",
-                "route53:GetHostedZone",
-                "route53:ListHostedZones",
-                "route53:ListHostedZonesByName",
-                "route53:CreateHostedZone",
-                "route53:DeleteHostedZone",
-                "route53:ChangeResourceRecordSets",
-                "route53:ListResourceRecordSets",
-                "route53:GetHealthCheck",
-                "route53:CreateHealthCheck",
-                "route53:DeleteHealthCheck",
-                "route53:UpdateHealthCheck",
-                "route53:ListHealthChecks",
-                "route53:GetGeoLocation",
-                "route53:ListGeoLocations"
+                "route53:*"
             ],
             "Resource": "*"
         },
         {
             "Effect": "Allow",
             "Action": [
-                "acm:RequestCertificate",
-                "acm:DescribeCertificate",
-                "acm:ListCertificates",
-                "acm:DeleteCertificate",
-                "acm:GetCertificate",
-                "acm:ListTagsForCertificate",
-                "acm:AddTagsToCertificate"
+                "acm:*"
             ],
             "Resource": "*"
         },
         {
             "Effect": "Allow",
             "Action": [
-                "apigateway:GET",
-                "apigateway:POST",
-                "apigateway:PUT",
-                "apigateway:DELETE",
-                "apigateway:PATCH"
+                "apigateway:*"
             ],
             "Resource": "*"
         },
         {
             "Effect": "Allow",
             "Action": [
-                "cloudformation:CreateStack",
-                "cloudformation:UpdateStack",
-                "cloudformation:DeleteStack",
-                "cloudformation:DescribeStacks",
-                "cloudformation:DescribeStackEvents",
-                "cloudformation:DescribeStackResources",
-                "cloudformation:GetTemplate",
-                "cloudformation:ValidateTemplate",
-                "cloudformation:ListStacks"
+                "cloudformation:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeVpcs",
+                "ec2:DescribeRegions"
             ],
             "Resource": "*"
         }
