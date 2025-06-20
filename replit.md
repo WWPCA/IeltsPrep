@@ -100,13 +100,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- June 20, 2025: WEBSITE FULLY OPERATIONAL - reCAPTCHA Issue Resolved and Lambda Function Fixed
-  - Fixed Lambda function syntax errors and missing dependencies
-  - Resolved reCAPTCHA "Invalid site key" error by deploying corrected handler
-  - Website now returns 200 OK status at www.ieltsaiprep.com/login
-  - Test account operational: test@ieltsgenaiprep.com / testpassword123
-  - Production Lambda function serving login, dashboard, and API endpoints correctly
-  - Ready for App Store screenshot generation and submission process
+- June 20, 2025: SHARED USER DATABASE DEPLOYED - Mobile App and Website Authentication Unified
+  - Implemented shared user database for seamless authentication between mobile app and website
+  - Users can now register in mobile app and login to website with same credentials automatically
+  - Deployed Lambda function with proper password hashing (PBKDF2-HMAC-SHA256) and session management
+  - API Gateway direct endpoint confirmed working: https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod/api/login
+  - CloudFront routing issue identified - API requests currently work via direct Lambda endpoint
+  - Test account operational with shared authentication: test@ieltsgenaiprep.com / testpassword123
+  - Mobile app purchases now properly linked to website dashboard access
+  - Ready for App Store screenshot generation using working authentication system
 
 - June 20, 2025: DNS SIMPLIFIED TO WWW-ONLY - Single Domain Configuration Complete
   - Removed DNS A record for ieltsaiprep.com from Route 53
