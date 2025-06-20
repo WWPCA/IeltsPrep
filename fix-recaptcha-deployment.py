@@ -61,7 +61,7 @@ def deploy_recaptcha_fix():
     """Deploy the reCAPTCHA fix to production Lambda"""
     
     lambda_client = boto3.client('lambda', region_name='us-east-1')
-    function_name = 'ielts-genai-prep-lambda'
+    function_name = 'ielts-genai-prep-api'
     
     try:
         # Create the deployment package
