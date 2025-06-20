@@ -100,6 +100,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- June 20, 2025: MOBILE-FIRST AUTHENTICATION TEMPLATES DEPLOYED - All Preview Pages Now Live
+  - Successfully migrated from QR code strategy to simple username/password authentication with Google reCAPTCHA
+  - Deployed comprehensive login page matching exact preview design with mobile-first instructions
+  - Implemented complete privacy policy and terms of service templates with detailed AI technology coverage
+  - Removed legal links from navigation headers, kept only in footer as requested
+  - All Lambda templates now reflect mobile-first architecture: users register in app → login on website
+  - Authentication flow clearly guides users through 3-step process: Download app → Purchase → Login anywhere
+  - Website ieltsaiprep.com now serves all comprehensive templates from preview with proper mobile-first guidance
+
 - June 20, 2025: COMPREHENSIVE WEBSITE DESIGN DEPLOYED - Complete Preview Template Now Live
   - Successfully updated Lambda function to serve detailed home page design matching user's comprehensive preview template
   - Deployed enhanced website with complete TrueScore® Writing Assessment and ClearScore® Speaking Assessment sections

@@ -16,9 +16,19 @@ def create_lambda_with_complete_templates():
     with open('complete-login-template.html', 'r', encoding='utf-8') as f:
         login_content = f.read()
     
+    # Read the complete privacy policy template
+    with open('complete-privacy-policy.html', 'r', encoding='utf-8') as f:
+        privacy_content = f.read()
+    
+    # Read the complete terms of service template
+    with open('complete-terms-of-service.html', 'r', encoding='utf-8') as f:
+        terms_content = f.read()
+    
     # Escape content for embedding in Python string
     home_escaped = home_content.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
     login_escaped = login_content.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
+    privacy_escaped = privacy_content.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
+    terms_escaped = terms_content.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
     
     # Create Lambda function code with all templates
     lambda_code = '''import json
@@ -37,6 +47,12 @@ def lambda_handler(event, context):
     
     # Complete login page matching preview design
     login_html = """''' + login_escaped + '''"""
+    
+    # Complete privacy policy page
+    privacy_html = """''' + privacy_escaped + '''"""
+    
+    # Complete terms of service page
+    terms_html = """''' + terms_escaped + '''"""
     
     # Dashboard page template
     dashboard_html = """<!DOCTYPE html>
@@ -126,118 +142,7 @@ def lambda_handler(event, context):
 </body>
 </html>"""
     
-    # Privacy policy page
-    privacy_html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - IELTS GenAI Prep</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="fas fa-graduation-cap me-2"></i>IELTS GenAI Prep</a>
-        </div>
-    </nav>
-    
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <h1 class="mb-4">Privacy Policy</h1>
-                <div class="card">
-                    <div class="card-body">
-                        <p><strong>Last updated:</strong> January 2025</p>
-                        <h3>Information We Collect</h3>
-                        <p>We collect information to provide better services to our users:</p>
-                        <ul>
-                            <li>Account information (email, username)</li>
-                            <li>Assessment responses and results</li>
-                            <li>Device information for mobile app functionality</li>
-                            <li>Payment information through secure app store billing</li>
-                        </ul>
-                        
-                        <h3>How We Use Information</h3>
-                        <p>We use collected information to:</p>
-                        <ul>
-                            <li>Provide and maintain our assessment services</li>
-                            <li>Process your assessments using AI technology</li>
-                            <li>Improve our services and user experience</li>
-                            <li>Communicate with you about your account</li>
-                        </ul>
-                        
-                        <h3>Data Security</h3>
-                        <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
-                        
-                        <h3>Contact Us</h3>
-                        <p>If you have questions about this Privacy Policy, please contact us through our mobile app support system.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>"""
-    
-    # Terms of service page
-    terms_html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms of Service - IELTS GenAI Prep</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="fas fa-graduation-cap me-2"></i>IELTS GenAI Prep</a>
-        </div>
-    </nav>
-    
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <h1 class="mb-4">Terms of Service</h1>
-                <div class="card">
-                    <div class="card-body">
-                        <p><strong>Last updated:</strong> January 2025</p>
-                        
-                        <h3>Acceptance of Terms</h3>
-                        <p>By accessing and using IELTS GenAI Prep, you accept and agree to be bound by the terms and provision of this agreement.</p>
-                        
-                        <h3>Service Description</h3>
-                        <p>IELTS GenAI Prep provides AI-powered IELTS test preparation assessments including:</p>
-                        <ul>
-                            <li>TrueScore® Writing Assessment</li>
-                            <li>ClearScore® Speaking Assessment</li>
-                            <li>Academic and General Training variants</li>
-                        </ul>
-                        
-                        <h3>Purchase Terms</h3>
-                        <p>All purchases are made through official app stores (Apple App Store, Google Play Store). Each assessment package costs $36 CAD and includes 4 unique assessment attempts.</p>
-                        
-                        <h3>Refund Policy</h3>
-                        <p>All sales are final. Refunds are handled according to the respective app store policies (Apple App Store, Google Play Store).</p>
-                        
-                        <h3>User Conduct</h3>
-                        <p>Users agree to use the service only for legitimate IELTS preparation purposes and not to abuse or misuse the AI assessment system.</p>
-                        
-                        <h3>Limitation of Liability</h3>
-                        <p>IELTS GenAI Prep provides assessment practice and is not affiliated with the official IELTS testing organization.</p>
-                        
-                        <h3>Contact Information</h3>
-                        <p>For questions about these Terms of Service, please contact us through our mobile app support system.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>"""
+
 
     # Route handling logic
     if path == '/' or path == '/index.html':
