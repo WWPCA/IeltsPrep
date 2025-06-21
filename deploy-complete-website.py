@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Fix Lambda deployment with correct handler configuration
+Deploy complete website with comprehensive home page and working authentication
 """
 import boto3
 import zipfile
 import os
 
-def create_fixed_lambda_package():
-    """Create deployment package with correct handler name"""
+def create_complete_website_lambda():
+    """Create Lambda with complete website including home page and authentication"""
     
     lambda_code = '''import json
 import hashlib
@@ -44,73 +44,65 @@ class MockDynamoDBUsers:
 user_db = MockDynamoDBUsers()
 
 def lambda_handler(event, context):
-    """Main Lambda handler"""
-    try:
-        method = event.get('httpMethod', 'GET')
-        path = event.get('path', '/')
-        body = event.get('body', '')
-        
-        if path == '/login' and method == 'POST':
-            # Handle form submission
-            try:
-                # Parse form data
-                form_data = urllib.parse.parse_qs(body)
-                email = form_data.get('email', [''])[0].strip().lower()
-                password = form_data.get('password', [''])[0]
-                
-                if not email or not password:
-                    return handle_login_page('Please fill in all fields')
-                
-                user = user_db.get_user(email)
-                if not user or not user_db.verify_password(password, user['password_hash']):
-                    return handle_login_page('Invalid email or password')
-                
-                # Successful login - redirect to dashboard
-                return {
-                    'statusCode': 302,
-                    'headers': {
-                        'Location': '/dashboard',
-                        'Set-Cookie': 'web_session_id=session123; Path=/; HttpOnly; Secure'
-                    },
-                    'body': ''
-                }
-            except Exception as e:
-                return handle_login_page('Login error occurred')
-        
-        elif path == '/login':
-            return handle_login_page()
-        
-        elif path == '/dashboard':
-            return handle_dashboard_page()
-        
-        elif path == '/health':
-            return {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({
-                    'status': 'healthy',
-                    'timestamp': datetime.utcnow().isoformat(),
-                    'version': '2.0'
-                })
-            }
-        
-        else:
-            # Serve comprehensive home page
-            return handle_home_page()
+    """Lambda handler with complete website"""
+    method = event.get('httpMethod', 'GET')
+    path = event.get('path', '/')
+    body = event.get('body', '')
+    
+    if path == '/login' and method == 'POST':
+        # Handle form submission
+        try:
+            # Parse form data
+            form_data = urllib.parse.parse_qs(body)
+            email = form_data.get('email', [''])[0].strip().lower()
+            password = form_data.get('password', [''])[0]
             
-    except Exception as e:
+            if not email or not password:
+                return handle_login_page('Please fill in all fields')
+            
+            user = user_db.get_user(email)
+            if not user or not user_db.verify_password(password, user['password_hash']):
+                return handle_login_page('Invalid email or password')
+            
+            # Successful login - redirect to dashboard
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Location': '/dashboard',
+                    'Set-Cookie': f'web_session_id=session123; Path=/; HttpOnly; Secure'
+                },
+                'body': ''
+            }
+        except Exception as e:
+            return handle_login_page('Login error occurred')
+    
+    elif path == '/login':
+        return handle_login_page()
+    
+    elif path == '/dashboard':
+        return handle_dashboard_page()
+    
+    elif path == '/health':
         return {
-            'statusCode': 500,
+            'statusCode': 200,
             'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Internal server error', 'message': str(e)})
+            'body': json.dumps({
+                'status': 'healthy',
+                'timestamp': datetime.utcnow().isoformat(),
+                'version': '2.0'
+            })
         }
+    
+    else:
+        # Serve comprehensive home page
+        return handle_home_page()
 
 def handle_home_page():
     """Serve comprehensive home page"""
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -140,6 +132,17 @@ def handle_home_page():
             padding: 100px 0;
             position: relative;
             overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="white" opacity="0.1"><polygon points="0,0 1000,80 1000,100 0,100"/></svg>');
+            background-size: cover;
         }
         
         .hero-content {
@@ -220,6 +223,28 @@ def handle_home_page():
             height: 4px;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
             border-radius: 2px;
+        }
+        
+        .stats-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 80px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: block;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 50px 0 30px;
         }
         
         .mobile-cta {
@@ -441,9 +466,174 @@ def handle_home_page():
         </div>
     </section>
 
+    <!-- Features Section -->
+    <section id="features" class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Why Choose IELTS GenAI Prep</h2>
+                <p class="lead text-muted">Advanced AI technology meets proven IELTS preparation methods</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <i class="bi bi-robot text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h5>AI-Powered Assessment</h5>
+                        <p class="text-muted">Advanced Amazon Nova AI technology provides accurate, detailed feedback on your IELTS performance across all skill areas.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <i class="bi bi-person-workspace text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h5>Personalized Learning</h5>
+                        <p class="text-muted">Receive customized feedback and improvement suggestions based on your individual strengths and areas for development.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <i class="bi bi-shield-check text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h5>Authentic Practice</h5>
+                        <p class="text-muted">Practice with real IELTS-style questions and tasks that mirror the actual test format and difficulty level.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <i class="bi bi-stopwatch text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h5>Instant Feedback</h5>
+                        <p class="text-muted">Get immediate, comprehensive feedback on your performance with detailed explanations and improvement strategies.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <i class="bi bi-phone-vibrate text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h5>Mobile & Desktop</h5>
+                        <p class="text-muted">Access your assessments anywhere, anytime. Purchase on mobile, practice on desktop, or use both platforms seamlessly.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <i class="bi bi-award text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h5>Band Score Prediction</h5>
+                        <p class="text-muted">Receive accurate band score predictions based on official IELTS criteria and AI analysis of your performance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">How It Works</h2>
+                <p class="lead text-muted">Get started with IELTS GenAI Prep in three simple steps</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4 text-center">
+                    <div class="mb-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <span class="h3 mb-0">1</span>
+                        </div>
+                    </div>
+                    <h5>Download & Purchase</h5>
+                    <p class="text-muted">Download our mobile app from the App Store or Google Play. Create your account and purchase your preferred assessment products.</p>
+                </div>
+                
+                <div class="col-md-4 text-center">
+                    <div class="mb-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <span class="h3 mb-0">2</span>
+                        </div>
+                    </div>
+                    <h5>Practice Anywhere</h5>
+                    <p class="text-muted">Use your purchase on both mobile and desktop. Login to this website with your mobile app credentials for full desktop access.</p>
+                </div>
+                
+                <div class="col-md-4 text-center">
+                    <div class="mb-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <span class="h3 mb-0">3</span>
+                        </div>
+                    </div>
+                    <h5>Get AI Feedback</h5>
+                    <p class="text-muted">Receive detailed, personalized feedback from our AI technology. Track your progress and improve your IELTS performance.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">4</span>
+                        <p class="text-muted">Assessment Products</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">16</span>
+                        <p class="text-muted">Total Assessments</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <p class="text-muted">AI Availability</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <span class="stat-number">Global</span>
+                        <p class="text-muted">Access Anywhere</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-white mb-3">IELTS GenAI Prep</h5>
+                    <p>Advanced AI-powered IELTS preparation platform using Amazon Nova technology for comprehensive speaking and writing assessment.</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-white mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#assessments" class="text-light text-decoration-none">Assessments</a></li>
+                        <li><a href="#features" class="text-light text-decoration-none">Features</a></li>
+                        <li><a href="/login" class="text-light text-decoration-none">Login</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-white mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/privacy" class="text-light text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="/terms" class="text-light text-decoration-none">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: #34495e;">
+            <div class="text-center">
+                <p>&copy; 2025 IELTS GenAI Prep. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>'''
+</html>"""
     }
 
 def handle_login_page(error_message=None):
@@ -455,7 +645,7 @@ def handle_login_page(error_message=None):
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
-        'body': f'''<!DOCTYPE html>
+        'body': f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -542,7 +732,7 @@ def handle_login_page(error_message=None):
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }
 
 def handle_dashboard_page():
@@ -550,7 +740,7 @@ def handle_dashboard_page():
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -640,25 +830,25 @@ def handle_dashboard_page():
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }'''
     
-    with zipfile.ZipFile('lambda-fixed.zip', 'w', zipfile.ZIP_DEFLATED) as zip_file:
+    with zipfile.ZipFile('lambda-complete-website.zip', 'w', zipfile.ZIP_DEFLATED) as zip_file:
         zip_file.writestr('lambda_function.py', lambda_code)
     
-    return 'lambda-fixed.zip'
+    return 'lambda-complete-website.zip'
 
-def deploy_fixed_lambda():
-    """Deploy the fixed Lambda function"""
+def deploy_complete_website():
+    """Deploy complete website with comprehensive design"""
     lambda_client = boto3.client('lambda', region_name='us-east-1')
     
     try:
-        zip_path = create_fixed_lambda_package()
+        zip_path = create_complete_website_lambda()
         
         with open(zip_path, 'rb') as f:
             zip_content = f.read()
         
-        print("Deploying fixed Lambda function...")
+        print("Deploying complete website with comprehensive home page...")
         
         lambda_client.update_function_code(
             FunctionName='ielts-genai-prep-api',
@@ -669,7 +859,7 @@ def deploy_fixed_lambda():
         waiter.wait(FunctionName='ielts-genai-prep-api')
         
         os.remove(zip_path)
-        print("Fixed Lambda function deployed successfully!")
+        print("Complete website deployed successfully!")
         return True
         
     except Exception as e:
@@ -677,4 +867,4 @@ def deploy_fixed_lambda():
         return False
 
 if __name__ == "__main__":
-    deploy_fixed_lambda()
+    deploy_complete_website()
