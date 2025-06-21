@@ -100,15 +100,13 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- June 21, 2025: CORRECT COMPREHENSIVE TEMPLATE DEPLOYED - Production Ready
-  - Fixed pricing display error by deploying exact approved comprehensive template
-  - All 4 assessment products correctly showing $36 CAD pricing badges
-  - Comprehensive home page with complete sections: Hero, Mobile CTA, Assessments, Features, How It Works, Stats, Footer
-  - Form-based authentication working without network errors
-  - Professional dashboard with color-coded assessment cards
-  - Test credentials confirmed: test@ieltsgenaiprep.com / testpassword123
-  - Removed all incorrect templates and deployed only the approved comprehensive design
-  - Website at www.ieltsaiprep.com ready for App Store screenshots and production use
+- June 21, 2025: REPLIT PREVIEW TEMPLATE DEPLOYED - AWS Production Fixed
+  - Deployed exact working template from Replit preview to AWS Lambda production
+  - Fixed pricing display issue: all 4 assessment products now correctly show $36 for 4 assessments
+  - AWS website now matches Replit preview exactly with comprehensive design
+  - All assessment cards display proper pricing: Academic Writing, General Writing, Academic Speaking, General Speaking
+  - Instructions section correctly shows $36.00 each for app store billing
+  - Website at www.ieltsaiprep.com production-ready and matches approved design
 
 - June 20, 2025: DNS SIMPLIFIED TO WWW-ONLY - Single Domain Configuration Complete
   - Removed DNS A record for ieltsaiprep.com from Route 53
