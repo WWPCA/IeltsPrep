@@ -100,6 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 4, 2025: LOGIN PAGE TEMPLATE AND RECAPTCHA FIXED - Complete Website Consistency
+  - Fixed login page template to match approved comprehensive design instead of basic unstyled version
+  - Updated login page with working reCAPTCHA configuration using Google test site key
+  - Eliminated "ERROR for site owner: Invalid site key" message on login form
+  - Both home page and login page now use consistent professional design templates
+  - Maintained correct $36 pricing on home page (5 instances verified)
+  - Complete website at www.ieltsaiprep.com now provides seamless professional experience
+
 - June 21, 2025: REPLIT PREVIEW TEMPLATE DEPLOYED - AWS Production Fixed
   - Deployed exact working template from Replit preview to AWS Lambda production
   - Fixed pricing display issue: all 4 assessment products now correctly show $36 for 4 assessments
