@@ -146,7 +146,7 @@ def lambda_handler(event, context):
 def deploy_complete_login():
     """Deploy Lambda with complete login page"""
     
-    print("Deploying complete login page to production...")
+    print("Deploying updated login page with fixes to production...")
     
     # Create Lambda code
     lambda_code = create_lambda_with_complete_login()
