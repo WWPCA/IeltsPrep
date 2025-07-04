@@ -35,8 +35,13 @@ def lambda_handler(event, context):
     # Enhanced template content
     template = """''' + template_content.replace('\\', '\\\\').replace('"', '\\"') + '''"""
     
-    # Complete login page content
+    # Complete login page content with dynamic reCAPTCHA key
     login_page = """''' + login_content.replace('\\', '\\\\').replace('"', '\\"') + '''"""
+    
+    # Replace reCAPTCHA site key with environment variable
+    import os
+    recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix')
+    login_page = login_page.replace('6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix', recaptcha_site_key)
     
     # Get request details
     path = event.get('path', '/')
