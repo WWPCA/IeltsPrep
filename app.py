@@ -216,8 +216,25 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
         }
 
 def handle_home_page() -> Dict[str, Any]:
-    """Handle home page - serve public landing page"""
-    return handle_static_file('public_home.html')
+    """Handle home page - serve updated working template for preview"""
+    try:
+        with open('working_template.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Working template not found</h1>'
+        }
 
 def handle_login_page() -> Dict[str, Any]:
     """Serve mobile-first login page"""
