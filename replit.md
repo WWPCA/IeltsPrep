@@ -100,6 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 4, 2025: COMPREHENSIVE TEMPLATE UPDATES COMPLETE - Privacy Pages and Navigation Fixed
+  - Deployed comprehensive privacy policy and terms of service pages matching local preview design
+  - Removed "Legal" dropdown button from header navigation as requested
+  - Maintained privacy policy and terms of service links in footer for proper access
+  - Privacy policy now includes detailed TrueScore® and ClearScore® technology information
+  - Terms of service covers $36 CAD assessment products and app store purchase policies
+  - All pages now use consistent professional Bootstrap styling and comprehensive content
+
 - July 4, 2025: LOGIN PAGE TEMPLATE AND RECAPTCHA FIXED - Complete Website Consistency
   - Fixed login page template to match approved comprehensive design instead of basic unstyled version
   - Updated login page with working reCAPTCHA configuration using Google test site key
