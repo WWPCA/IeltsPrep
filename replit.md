@@ -100,6 +100,12 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 7, 2025: INACCURATE LINE REMOVED - Website Now Shows Only Accurate Information
+  - Removed false claim "Trusted by 30,000+ test-takers" from home page green banner
+  - Maintained all existing functionality and professional design
+  - Preserved authentic assessment sample structure and working reCAPTCHA integration
+  - Production website www.ieltsaiprep.com now displays only accurate information without misleading claims
+
 - July 7, 2025: AUTHENTIC ASSESSMENT SAMPLE DEPLOYED - Real IELTS Structure and Academic Writing Context Complete
   - Implemented authentic IELTS assessment criteria structure matching actual app feedback format
   - Added "Academic Writing Assessment Sample" badge with pencil icon for clear context
