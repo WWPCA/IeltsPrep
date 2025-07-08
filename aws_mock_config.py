@@ -557,7 +557,7 @@ class AWSMockServices:
         return random.choice(available_questions) if available_questions else None
 
     def _get_question_bank(self, assessment_type: str) -> List[Dict[str, Any]]:
-        """Get question bank for assessment type"""
+        """Get comprehensive question bank for assessment type - Full Migration Complete"""
         question_banks = {
             'academic_writing': [
                 {
@@ -592,6 +592,56 @@ class AWSMockServices:
                     'question_id': 'aw_task2_005',
                     'task': 'Task 2',
                     'prompt': 'In a number of countries, some people think it is necessary to spend large sums of money on constructing new railway lines for very fast trains between cities. Others believe the money should be spent on improving existing public transport. Discuss both these views and give your own opinion.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                # Additional comprehensive questions from Academic Writing database
+                {
+                    'question_id': 'aw_task2_006',
+                    'task': 'Task 2',
+                    'prompt': 'The global economy is evolving quickly, and individuals can no longer rely on the same career path or workplace environment throughout their lives. Discuss the potential reasons for this rapid evolution, and propose strategies to prepare people for their careers in the future.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_007',
+                    'task': 'Task 2',
+                    'prompt': 'Many countries are experiencing a significant increase in the proportion of older people in their populations. Discuss the possible reasons for this demographic shift, and suggest ways in which societies can adapt to this aging population.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_008',
+                    'task': 'Task 2',
+                    'prompt': 'In many parts of the world, the popularity of private vehicles is increasing despite growing concerns about environmental pollution and traffic congestion. Discuss the possible reasons for the continued preference for private vehicles, and suggest ways in which governments could encourage people to use alternative forms of transport.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_009',
+                    'task': 'Task 2',
+                    'prompt': 'The increasing availability and influence of social media have fundamentally changed the way people communicate and form relationships. Discuss the potential benefits and drawbacks of this development, and suggest ways individuals and societies can navigate the impact of social media in the future.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_010',
+                    'task': 'Task 2',
+                    'prompt': 'Many cities around the world are experiencing increasing pressure from tourism, which can have both positive and negative effects on local communities and environments. Discuss the potential benefits and drawbacks of mass tourism in urban areas, and suggest ways in which cities can manage tourism more sustainably in the future.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_011',
+                    'task': 'Task 2',
+                    'prompt': 'The reliance on standardized testing as the primary method for evaluating student performance and determining educational opportunities is a subject of ongoing debate. Discuss the potential advantages and disadvantages of standardized testing in education, and suggest alternative methods that could be used to assess student learning and potential.',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'aw_task2_012',
+                    'task': 'Task 2',
+                    'prompt': 'The increasing consumption of fast food and processed meals is a growing trend in many developed nations. Discuss the possible reasons for the popularity of these types of food, and suggest ways in which individuals and governments could encourage healthier eating habits.',
                     'word_limit': 250,
                     'time_limit': 40
                 }
@@ -631,6 +681,50 @@ class AWSMockServices:
                     'prompt': 'You are going to another country to study. You would like to do a part-time job while you are studying, so you want to ask a friend who lives there for some help. Write a letter to your friend. In your letter: give details about your study plans, explain why you want to get a part-time job, suggest how your friend could help you find a job.',
                     'word_limit': 150,
                     'time_limit': 20
+                },
+                # Additional comprehensive questions from General Writing database - Task 2 Essays
+                {
+                    'question_id': 'gw_task2_006',
+                    'task': 'Task 2',
+                    'prompt': 'Urban areas face increasing traffic problems. Some think building more roads is the answer, while others favor improving public transport. Who do you believe should be the priority: expanding roads or developing public transport?',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'gw_task2_007',
+                    'task': 'Task 2',
+                    'prompt': 'Many companies are now allowing their employees to work from home some or all of the time. This shift has both benefits and drawbacks. Do you think the advantages of remote work outweigh the disadvantages, or vice versa?',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'gw_task2_008',
+                    'task': 'Task 2',
+                    'prompt': 'The use of social media has become widespread among young people. It offers opportunities for connection but also presents potential risks. Do you believe the benefits of social media for young people outweigh the risks, or are the risks more significant?',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                {
+                    'question_id': 'gw_task2_009',
+                    'task': 'Task 2',
+                    'prompt': 'Fast food is a popular choice for many due to its convenience and affordability. However, its impact on health is often debated. Do you think the advantages of fast food outweigh its disadvantages, or are the health concerns more significant?',
+                    'word_limit': 250,
+                    'time_limit': 40
+                },
+                # Additional Task 1 Letters from database files
+                {
+                    'question_id': 'gw_task1_006',
+                    'task': 'Task 1',
+                    'prompt': 'You are currently enrolled in an evening course at a local community center, but you are facing several issues with the classroom environment that make it challenging to focus and learn effectively. Write a letter to the course coordinator at the community center. In your letter: describe the situation, explain your problems and why it is difficult to learn, suggest what kind of classroom environment you would prefer.',
+                    'word_limit': 150,
+                    'time_limit': 20
+                },
+                {
+                    'question_id': 'gw_task1_007',
+                    'task': 'Task 1',
+                    'prompt': 'You have recently joined a local gym to improve your fitness, but you are experiencing several issues with the gym facilities that make it difficult to exercise comfortably. Write a letter to the gym manager. In your letter: describe the situation, explain your problems and why it is difficult to exercise, suggest what kind of improvements or facilities you would prefer.',
+                    'word_limit': 150,
+                    'time_limit': 20
                 }
             ],
             'academic_speaking': [
@@ -666,6 +760,42 @@ class AWSMockServices:
                     'question_id': 'as_part2_005',
                     'task': 'Part 2',
                     'prompt': 'Describe a technological device that you find useful. You should say: what the device is, how you use it, when you use it, and explain why you find this device useful.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                # Additional comprehensive questions from Academic Speaking database
+                {
+                    'question_id': 'as_part2_006',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a research project you have worked on. You should say: what the project was about, what methodology you used, what challenges you faced, and explain what you learned from this experience.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_007',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a lecture or presentation that made a strong impression on you. You should say: what the topic was, who gave the presentation, what made it memorable, and explain how it influenced your thinking.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_008',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a scientific discovery or innovation that interests you. You should say: what the discovery is, when it was made, how it has impacted society, and explain why you find it fascinating.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_009',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a time when you had to work in a team for an academic project. You should say: what the project was, who you worked with, what your role was, and explain what you learned about teamwork.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'as_part2_010',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a method of learning that works well for you. You should say: what the method is, how you discovered it, when you use it, and explain why this method is effective for you.',
                     'preparation_time': 1,
                     'speaking_time': 2
                 }
@@ -705,11 +835,49 @@ class AWSMockServices:
                     'prompt': 'Describe a festival or celebration in your country. You should say: what the festival is, when it takes place, how people celebrate it, and explain why this festival is important in your country.',
                     'preparation_time': 1,
                     'speaking_time': 2
+                },
+                # Additional comprehensive questions from General Speaking database
+                {
+                    'question_id': 'gs_part2_006',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a time when you moved to a new home or neighborhood. You should say: where you moved to, why you moved, what the experience was like, and explain how you felt about this change.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_007',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a person who has influenced you in a positive way. You should say: who this person is, how you know them, what qualities they have, and explain how they have influenced you.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_008',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a time when you had to solve a problem. You should say: what the problem was, how you approached it, what steps you took, and explain whether your solution was successful.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_009',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a memorable journey or trip you have taken. You should say: where you went, who you traveled with, what you did during the journey, and explain why this trip was memorable.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
+                },
+                {
+                    'question_id': 'gs_part2_010',
+                    'task': 'Part 2',
+                    'prompt': 'Describe a skill you would like to learn in the future. You should say: what the skill is, why you want to learn it, how you plan to learn it, and explain how this skill would benefit you.',
+                    'preparation_time': 1,
+                    'speaking_time': 2
                 }
             ]
         }
         
-        return question_banks.get(assessment_type, [])
+        bank = question_banks.get(assessment_type, [])
+        print(f"[COMPREHENSIVE] Loaded {len(bank)} questions for {assessment_type} - Full Migration Complete")
+        return bank
 
     def record_completed_assessment(self, user_email: str, assessment_type: str, question_id: str, result_data: Dict[str, Any]) -> bool:
         """Record completed assessment and use attempt"""
