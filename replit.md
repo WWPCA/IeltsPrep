@@ -100,6 +100,17 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 8, 2025: NOVA FEEDBACK STANDARDIZATION COMPLETE - Consistent Assessment Output Across All Modules
+  - Standardized feedback format across both AWS Nova Micro (writing) and Nova Sonic (speaking) systems
+  - Implemented consistent JSON structure with overall_band, criteria breakdown, detailed_feedback, strengths, and areas_for_improvement
+  - Updated all 4 assessment types: Academic Writing, General Writing, Academic Speaking, General Speaking
+  - Enhanced Nova Micro prompts with specific JSON output format requirements and example-based feedback
+  - Enhanced Nova Sonic prompts with conversation management AND structured final assessment capabilities
+  - Created comprehensive documentation and local mock functions for development testing
+  - Ensures professional, consistent user experience across TrueScore® and ClearScore® branded assessments
+  - Improved analytics capability with standardized data structure and unique assessment IDs
+  - Production DynamoDB rubrics updated with new standardized prompts for immediate deployment
+
 - July 8, 2025: DOMAIN TRANSFER INITIATED - ieltsaiprep.com Transfer from Namecheap to AWS Route 53 Started
   - Successfully initiated domain transfer from Namecheap to AWS Route 53 using EPP authorization code
   - Domain transferability confirmed by AWS Route 53 domains service
