@@ -40,7 +40,6 @@ def transfer_domain(auth_code):
     try:
         response = route53domains.transfer_domain(
             DomainName='ieltsaiprep.com',
-            IdnLangCode='en',
             DurationInYears=1,
             AuthCode=auth_code,
             AdminContact={
