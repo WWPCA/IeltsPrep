@@ -1709,11 +1709,11 @@ def handle_maya_introduction(data: Dict[str, Any]) -> Dict[str, Any]:
         rubric = aws_mock.get_assessment_rubric(assessment_type)
         nova_prompts = rubric.get('nova_sonic_prompts', {}) if rubric else {}
         
-        # Generate Maya's introduction based on assessment type
+        # Generate Maya's introduction based on assessment type and proper IELTS structure
         if 'academic' in assessment_type:
-            introduction = f"Hello, I'm Maya, your IELTS examiner. Today we'll be conducting the Academic Speaking test. This assessment has three parts: familiar topics, a long turn where you'll speak for 2 minutes, and an abstract discussion. Let's begin with Part 1. Can you tell me your name and where you're from?"
+            introduction = f"Hello, I'm Maya, your IELTS examiner. Today we'll be conducting the Academic Speaking test. This assessment has three parts: Part 1 is an interview lasting 4-5 minutes, Part 2 is a long turn where you'll speak for 2 minutes after 1 minute preparation, and Part 3 is a discussion lasting 4-5 minutes. The total test time is 11-14 minutes. Let's begin with Part 1. Can you tell me your name and where you're from?"
         else:
-            introduction = f"Hello, I'm Maya, your IELTS examiner. Today we'll be conducting the General Training Speaking test. We'll cover everyday topics and practical situations. Let's start with some questions about yourself. What's your name and what do you do for work?"
+            introduction = f"Hello, I'm Maya, your IELTS examiner. Today we'll be conducting the General Training Speaking test. This assessment has three parts: Part 1 is an interview lasting 4-5 minutes, Part 2 is a long turn where you'll speak for 2 minutes after 1 minute preparation, and Part 3 is a discussion lasting 4-5 minutes. The total test time is 11-14 minutes. Let's start with Part 1. What's your name and what do you do for work?"
         
         print(f"[CLOUDWATCH] Maya introduction started for {user_email} - {assessment_type}")
         
@@ -1756,14 +1756,26 @@ def handle_maya_conversation(data: Dict[str, Any]) -> Dict[str, Any]:
         rubric = aws_mock.get_assessment_rubric(assessment_type)
         nova_prompts = rubric.get('nova_sonic_prompts', {}) if rubric else {}
         
-        # Generate Maya's response based on user input
+        # Generate Maya's response based on user input and proper IELTS 3-part structure
         # In production, this would use Nova Sonic bi-directional streaming
-        if 'name' in user_message.lower() and 'from' in user_message.lower():
-            response = "Thank you. Now, let's talk about your work. What do you do for a living, and how long have you been doing this job?"
-        elif 'work' in user_message.lower() or 'job' in user_message.lower():
-            response = "That's interesting. What do you enjoy most about your work? And what would you like to change about it if you could?"
+        assessment_part = data.get('assessment_part', 1)
+        
+        if assessment_part == 1:
+            # Part 1: Interview questions (4-5 minutes)
+            if 'name' in user_message.lower() and 'from' in user_message.lower():
+                response = "Thank you. Now, let's talk about your work or studies. What do you do for a living, and how long have you been doing this?"
+            elif 'work' in user_message.lower() or 'job' in user_message.lower() or 'study' in user_message.lower():
+                response = "That's interesting. What do you enjoy most about your work? And what would you like to change about it if you could?"
+            else:
+                response = "I see. Let's move to another topic. Can you tell me about your hometown? What's it like there?"
+        elif assessment_part == 2:
+            # Part 2: Long turn (3-4 minutes total - 1 min prep, 2 min speaking)
+            response = "Excellent. Now we're moving to Part 2. I'll give you a topic and you'll have 1 minute to prepare, then speak for 2 minutes. Here's your topic card."
+        elif assessment_part == 3:
+            # Part 3: Discussion (4-5 minutes)
+            response = "Great. Now let's move to Part 3 - a discussion. I'll ask you some more abstract questions related to the topic you just spoke about."
         else:
-            response = "I see. Let's move to another topic. Can you tell me about your hometown? What's it like there?"
+            response = "Thank you for your response. Let's continue with the next question."
         
         print(f"[CLOUDWATCH] Maya conversation - User: {user_message[:50]}...")
         

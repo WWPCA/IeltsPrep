@@ -729,148 +729,336 @@ class AWSMockServices:
             ],
             'academic_speaking': [
                 {
-                    'question_id': 'as_part2_001',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a book that has had a major influence on you. You should say: what the book is, when you read it, why it influenced you, and explain how this book affected your life.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'as_complete_001',
+                    'assessment_type': 'academic_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'Tell me about your favorite hobby and why you enjoy it.',
+                                'Tell me about your job. What responsibilities do you have?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a place you have visited that had a significant impact on you. You should say: where the place is, when you went there, what you did there, and explain why this place had such an impact on you.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'Do you think travel is an important part of education? Why or why not?',
+                                'What changes do you think will happen in education in the future?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'as_part2_002',
-                    'task': 'Part 2', 
-                    'prompt': 'Describe a skill that you learned as a child. You should say: what the skill is, how you learned it, why you learned it, and explain how this skill has been useful in your adult life.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'as_complete_002',
+                    'assessment_type': 'academic_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'What do you like or dislike about your studies?',
+                                'Would you prefer to work in a large company or a small company? Why?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a person who has had a significant influence on your life. You should say: who this person is, how you know them, what they do, and explain why they have influenced you so much.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'Do you think students should be able to choose what they study at school?',
+                                'How important do you think it is for people to continue learning throughout their lives?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'as_part2_003',
-                    'task': 'Part 2',
-                    'prompt': 'Describe an important decision you had to make recently. You should say: what the decision was, what factors you considered, how you made the decision, and explain why this decision was important.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'as_complete_003',
+                    'assessment_type': 'academic_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'Can you describe the place where you live?',
+                                'What kind of accommodation do you live in?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a teacher who has influenced you. You should say: when you met them, what subject they taught, what was special about them, and explain how they influenced your life.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'What factors should people consider when choosing a career?',
+                                'Do you think it\'s better to have one job for life or to change jobs regularly?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'as_part2_004',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a place you have visited that you particularly enjoyed. You should say: where the place is, when you visited it, what you did there, and explain why you enjoyed visiting this place.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'as_complete_004',
+                    'assessment_type': 'academic_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'What changes would you like to make to your home?',
+                                'Describe your hometown. What is it known for?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a friend who is a good leader. You should say: who the person is, how you know this person, what leadership qualities they have, and explain why you think they are a good leader.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'How has technology changed the way people work in your country?',
+                                'What environmental problems does your country face today?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'as_part2_005',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a technological device that you find useful. You should say: what the device is, how you use it, when you use it, and explain why you find this device useful.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                # Additional comprehensive questions from Academic Speaking database
-                {
-                    'question_id': 'as_part2_006',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a research project you have worked on. You should say: what the project was about, what methodology you used, what challenges you faced, and explain what you learned from this experience.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'as_part2_007',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a lecture or presentation that made a strong impression on you. You should say: what the topic was, who gave the presentation, what made it memorable, and explain how it influenced your thinking.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'as_part2_008',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a scientific discovery or innovation that interests you. You should say: what the discovery is, when it was made, how it has impacted society, and explain why you find it fascinating.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'as_part2_009',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a time when you had to work in a team for an academic project. You should say: what the project was, who you worked with, what your role was, and explain what you learned about teamwork.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'as_part2_010',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a method of learning that works well for you. You should say: what the method is, how you discovered it, when you use it, and explain why this method is effective for you.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'as_complete_005',
+                    'assessment_type': 'academic_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'Is your hometown a good place for tourists to visit? Why or why not?',
+                                'How has your hometown changed in recent years?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a public place you like to visit. You should say: where it is, when you usually go there, what you do there, and explain why you like this place.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'Do you think individuals or governments should be responsible for protecting the environment?',
+                                'How can we encourage more people to use public transportation instead of cars?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 }
             ],
             'general_speaking': [
                 {
-                    'question_id': 'gs_part2_001',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a memorable meal you have had. You should say: where you had the meal, who you were with, what you ate, and explain why this meal was memorable.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'gs_complete_001',
+                    'assessment_type': 'general_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'What activities do you enjoy doing in your free time?',
+                                'Do you prefer indoor or outdoor activities? Why?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a historic building you have visited. You should say: where it is, when you visited it, what the building looks like, and explain why you visited this building.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'How might technology change the way we live in the future?',
+                                'Do social media platforms bring people together or push them further apart?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'gs_part2_002',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a hobby you enjoy. You should say: what the hobby is, how long you have been doing it, what equipment or materials you need, and explain why you enjoy this hobby.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'gs_complete_002',
+                    'assessment_type': 'general_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'How important is it to have hobbies?',
+                                'How often do you use computers or technology in your daily life?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a place in your country that you would recommend someone visit. You should say: where it is, what people can do there, when is the best time to visit, and explain why you would recommend this place.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'Should there be more regulation of technology and the internet?',
+                                'How has family life changed in your country in recent decades?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'gs_part2_003',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a time when you helped someone. You should say: who you helped, what you did to help them, why you decided to help, and explain how you felt about helping this person.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'gs_complete_003',
+                    'assessment_type': 'general_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'What impact does technology have on your work or studies?',
+                                'Do you think people rely too much on technology nowadays?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe an important object in your life. You should say: what it is, how long you\'ve had it, where you got it from, and explain why it\'s important to you.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'What role should governments play in healthcare and social services?',
+                                'Is it better to live in a city or in the countryside? Why?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'gs_part2_004',
-                    'task': 'Part 2',
-                    'prompt': 'Describe your ideal job. You should say: what the job would be, what skills you would need, where you would like to work, and explain why this would be your ideal job.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'gs_complete_004',
+                    'assessment_type': 'general_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'What kind of places do you like to visit on vacation?',
+                                'Do you prefer traveling alone or with other people? Why?'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a piece of technology that you find useful. You should say: what it is, what you use it for, how often you use it, and explain why it is so useful to you.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'How can countries work together more effectively to solve global problems?',
+                                'What do you think are the biggest challenges facing young people today?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 },
                 {
-                    'question_id': 'gs_part2_005',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a festival or celebration in your country. You should say: what the festival is, when it takes place, how people celebrate it, and explain why this festival is important in your country.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                # Additional comprehensive questions from General Speaking database
-                {
-                    'question_id': 'gs_part2_006',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a time when you moved to a new home or neighborhood. You should say: where you moved to, why you moved, what the experience was like, and explain how you felt about this change.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'gs_part2_007',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a person who has influenced you in a positive way. You should say: who this person is, how you know them, what qualities they have, and explain how they have influenced you.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'gs_part2_008',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a time when you had to solve a problem. You should say: what the problem was, how you approached it, what steps you took, and explain whether your solution was successful.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'gs_part2_009',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a memorable journey or trip you have taken. You should say: where you went, who you traveled with, what you did during the journey, and explain why this trip was memorable.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
-                },
-                {
-                    'question_id': 'gs_part2_010',
-                    'task': 'Part 2',
-                    'prompt': 'Describe a skill you would like to learn in the future. You should say: what the skill is, why you want to learn it, how you plan to learn it, and explain how this skill would benefit you.',
-                    'preparation_time': 1,
-                    'speaking_time': 2
+                    'question_id': 'gs_complete_005',
+                    'assessment_type': 'general_speaking',
+                    'parts': [
+                        {
+                            'part': 1,
+                            'duration': '4-5 minutes',
+                            'topic': 'Introduction and Interview',
+                            'questions': [
+                                'What\'s the most interesting journey you\'ve ever taken?',
+                                'Tell me about your favorite hobby and why you enjoy it.'
+                            ]
+                        },
+                        {
+                            'part': 2,
+                            'duration': '3-4 minutes',
+                            'topic': 'Individual Long Turn',
+                            'prompt': 'Describe a book that has influenced you. You should say: what kind of book it is, what it is about, when you first read it, and explain how it has influenced you.',
+                            'prep_time': 60,
+                            'talk_time': 120
+                        },
+                        {
+                            'part': 3,
+                            'duration': '4-5 minutes',
+                            'topic': 'Two-way Discussion',
+                            'questions': [
+                                'Do you think international tourism is mostly positive or negative for local communities?',
+                                'How might technology change the way we live in the future?'
+                            ]
+                        }
+                    ],
+                    'total_duration': '11-14 minutes'
                 }
             ]
         }
