@@ -722,6 +722,7 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         .conversation-area {{ background: #f8f9fa; padding: 20px; border-radius: 8px; min-height: 200px; margin: 20px 0; }}
         .maya-message {{ background: #d4edda; padding: 15px; border-radius: 8px; margin: 10px 0; }}
         .user-message {{ background: #fff3cd; padding: 15px; border-radius: 8px; margin: 10px 0; }}
+        .error-message {{ background: #f8d7da; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #f5c6cb; color: #721c24; }}
         .timer {{ font-size: 24px; font-weight: bold; color: #dc3545; }}
         .current-part {{ background: #28a745; color: white; padding: 10px; border-radius: 5px; display: inline-block; margin: 10px 0; }}
     </style>
@@ -1038,9 +1039,40 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             document.getElementById('conversation').appendChild(messageDiv);
         }}
         
+        // Enhanced Maya conversation with connectivity safeguards
+        let mayaRetryAttempts = 0;
+        const maxMayaRetries = 3;
+        
+        // Save conversation state regularly
+        function saveConversationState() {{
+            const conversationData = {{
+                currentPart: currentPart,
+                timeRemaining: timeRemaining,
+                partTimeRemaining: partTimeRemaining,
+                assessmentStarted: assessmentStarted,
+                conversation: document.getElementById('conversation').innerHTML,
+                timestamp: Date.now()
+            }};
+            localStorage.setItem('ielts_speaking_state_{session_id}', JSON.stringify(conversationData));
+        }}
+        
+        // Auto-save conversation state every 15 seconds
+        setInterval(saveConversationState, 15000);
+        
         async function sendToMaya(userMessage) {{
+            if (!navigator.onLine) {{
+                document.getElementById('status').textContent = '📡 No internet connection. Please check your network.';
+                return;
+            }}
+            
             try {{
                 document.getElementById('status').textContent = '🤖 Maya is thinking...';
+                
+                // Save conversation state before request
+                saveConversationState();
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
                 
                 const response = await fetch('/api/maya/conversation', {{
                     method: 'POST',
@@ -1048,15 +1080,28 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                     body: JSON.stringify({{
                         user_message: userMessage,
                         assessment_type: '{assessment_type}',
-                        session_id: '{session_id}'
-                    }})
+                        session_id: '{session_id}',
+                        current_part: currentPart,
+                        time_remaining: timeRemaining,
+                        retry_attempt: mayaRetryAttempts
+                    }}),
+                    signal: controller.signal
                 }});
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {{
+                    throw new Error(`HTTP ${{response.status}}: ${{response.statusText}}`);
+                }}
                 
                 const result = await response.json();
                 
                 if (result.success) {{
                     addMessage('Maya', result.response, 'maya-message');
                     document.getElementById('status').textContent = '🔊 Maya is responding...';
+                    
+                    // Reset retry counter on success
+                    mayaRetryAttempts = 0;
                     
                     if (result.audio_url) {{
                         const audio = document.getElementById('mayaAudio');
@@ -1065,16 +1110,152 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                         audio.onended = () => {{
                             document.getElementById('status').textContent = '✅ Maya finished - Your turn to speak';
                             updateButtons();
+                            saveConversationState();
+                        }};
+                        
+                        audio.onerror = () => {{
+                            document.getElementById('status').textContent = '✅ Maya responded - Your turn to speak';
+                            updateButtons();
                         }};
                         
                         audio.play();
+                    }} else {{
+                        document.getElementById('status').textContent = '✅ Maya responded - Your turn to speak';
+                        updateButtons();
                     }}
                 }} else {{
-                    document.getElementById('status').textContent = '❌ Maya error: ' + (result.error || 'Unknown error');
+                    handleMayaError(result.error || 'Maya processing error', userMessage);
                 }}
             }} catch (error) {{
                 console.error('Error with Maya conversation:', error);
-                document.getElementById('status').textContent = '❌ Connection error with Maya';
+                
+                if (error.name === 'AbortError') {{
+                    handleMayaError('Maya response timed out', userMessage);
+                }} else if (!navigator.onLine) {{
+                    handleMayaError('Connection lost during conversation', userMessage);
+                }} else {{
+                    handleMayaError('Network error with Maya', userMessage);
+                }}
+            }}
+        }}
+        
+        // Handle Maya errors with retry logic
+        function handleMayaError(errorMessage, originalMessage) {{
+            mayaRetryAttempts++;
+            
+            if (mayaRetryAttempts <= maxMayaRetries && navigator.onLine) {{
+                document.getElementById('status').textContent = `${{errorMessage}} Retrying... (${{mayaRetryAttempts}}/${{maxMayaRetries}})`;
+                
+                setTimeout(() => {{
+                    if (navigator.onLine) {{
+                        sendToMaya(originalMessage);
+                    }} else {{
+                        document.getElementById('status').textContent = '📡 Connection lost. Please check your network and try again.';
+                        updateButtons();
+                    }}
+                }}, 2000);
+            }} else {{
+                document.getElementById('status').textContent = `${{errorMessage}} Please try speaking again.`;
+                updateButtons();
+                
+                // Add error message to conversation
+                addMessage('System', 'Connection issue. Please repeat your response.', 'error-message');
+            }}
+        }}
+        
+        // Enhanced assessment completion with safeguards
+        function completeAssessment() {{
+            // Save final state
+            saveConversationState();
+            
+            const {{ modal, modalContent }} = createSpeakingModal();
+            modalContent.innerHTML = `
+                <h3 style="color: #28a745; margin-bottom: 20px;">✅ Assessment Complete</h3>
+                <p style="font-size: 18px; margin-bottom: 20px;">Your 14-minute speaking assessment has ended.</p>
+                <p style="margin-bottom: 20px;">Your conversation has been saved and will be processed.</p>
+                <p style="margin-bottom: 20px; font-size: 14px; color: #666;">If processing fails, you can access your results from the dashboard.</p>
+                <div style="margin: 20px 0;">
+                    <div style="
+                        display: inline-block;
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #28a745;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    "></div>
+                    <p style="margin-top: 15px; font-style: italic;">Processing your results...</p>
+                </div>
+                <style>
+                    @keyframes spin {{
+                        0% {{ transform: rotate(0deg); }}
+                        100% {{ transform: rotate(360deg); }}
+                    }}
+                </style>
+            `;
+            
+            modal.style.display = 'flex';
+            
+            // Disable controls
+            document.getElementById('speakBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+            
+            // Try to submit assessment results
+            setTimeout(() => {{
+                if (navigator.onLine) {{
+                    // Attempt to submit speaking assessment
+                    submitSpeakingAssessment();
+                }} else {{
+                    modalContent.innerHTML = `
+                        <h3 style="color: #dc3545; margin-bottom: 20px;">📡 Connection Issue</h3>
+                        <p style="font-size: 18px; margin-bottom: 20px;">Unable to process results due to network connectivity.</p>
+                        <p style="margin-bottom: 20px;">Your assessment has been saved and can be processed from your dashboard.</p>
+                        <button onclick="window.location.href='/dashboard'" style="
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            font-size: 16px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">Go to Dashboard</button>
+                    `;
+                }}
+            }}, 3000);
+        }}
+        
+        // Submit speaking assessment with retry logic
+        async function submitSpeakingAssessment() {{
+            try {{
+                const conversationData = JSON.parse(localStorage.getItem('ielts_speaking_state_{session_id}') || '{{}}');
+                
+                const response = await fetch('/api/maya/submit-assessment', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        conversation_data: conversationData,
+                        assessment_type: '{assessment_type}',
+                        session_id: '{session_id}',
+                        user_email: '{user_email}'
+                    }})
+                }});
+                
+                const result = await response.json();
+                
+                if (result.success) {{
+                    // Clear saved state after successful submission
+                    localStorage.removeItem('ielts_speaking_state_{session_id}');
+                    window.location.href = '/dashboard';
+                }} else {{
+                    throw new Error(result.error || 'Failed to submit assessment');
+                }}
+            }} catch (error) {{
+                console.error('Speaking assessment submission error:', error);
+                // Keep assessment data for manual retry
+                setTimeout(() => {{
+                    window.location.href = '/dashboard';
+                }}, 5000);
             }}
         }}
         
@@ -1736,9 +1917,50 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             }}
         }});
         
-        // Submit essay for Nova Micro assessment
+        // Enhanced connectivity safeguards and retry logic
+        let retryAttempts = 0;
+        const maxRetries = 5;
+        let autoRetryInterval = null;
+        
+        // Auto-save essay content every 30 seconds
+        setInterval(() => {{
+            if (essayText.value.trim().length > 0) {{
+                localStorage.setItem('ielts_essay_draft_{session_id}', essayText.value);
+                localStorage.setItem('ielts_essay_timestamp_{session_id}', Date.now().toString());
+            }}
+        }}, 30000);
+        
+        // Enhanced connectivity check
+        function checkNetworkStatus() {{
+            return navigator.onLine && window.fetch;
+        }}
+        
+        // Network status monitoring
+        window.addEventListener('online', () => {{
+            if (retryAttempts > 0) {{
+                statusBar.className = 'status-bar status-ready';
+                statusBar.textContent = 'Connection restored. You can retry your assessment.';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Retry Assessment';
+            }}
+        }});
+        
+        window.addEventListener('offline', () => {{
+            statusBar.className = 'status-bar status-waiting';
+            statusBar.textContent = 'No internet connection. Your work is saved locally. Assessment will retry when connection is restored.';
+            clearInterval(autoRetryInterval);
+        }});
+        
+        // Submit essay with comprehensive retry logic
         async function submitEssay() {{
             if (assessmentSubmitted) return;
+            
+            // Check network connectivity first
+            if (!checkNetworkStatus()) {{
+                statusBar.className = 'status-bar status-waiting';
+                statusBar.textContent = 'No internet connection. Please check your network and try again.';
+                return;
+            }}
             
             assessmentSubmitted = true;
             submitBtn.disabled = true;
@@ -1746,7 +1968,14 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             statusBar.className = 'status-bar status-processing';
             statusBar.textContent = 'Nova Micro is analyzing your essay using IELTS band descriptors...';
             
+            // Save essay before submission
+            localStorage.setItem('ielts_essay_draft_{session_id}', essayText.value);
+            localStorage.setItem('ielts_essay_timestamp_{session_id}', Date.now().toString());
+            
             try {{
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+                
                 const response = await fetch('/api/nova-micro/writing', {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
@@ -1755,9 +1984,17 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                         prompt: document.getElementById('taskPrompt').textContent,
                         assessment_type: '{assessment_type}',
                         session_id: '{session_id}',
-                        user_email: '{user_email}'
-                    }})
+                        user_email: '{user_email}',
+                        retry_attempt: retryAttempts
+                    }}),
+                    signal: controller.signal
                 }});
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {{
+                    throw new Error(`HTTP ${{response.status}}: ${{response.statusText}}`);
+                }}
                 
                 const result = await response.json();
                 
@@ -1766,21 +2003,130 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                     statusBar.className = 'status-bar status-ready';
                     statusBar.textContent = 'Assessment completed successfully';
                     clearInterval(timerInterval); // Stop timer
+                    retryAttempts = 0; // Reset retry counter
+                    
+                    // Clear saved draft after successful submission
+                    localStorage.removeItem('ielts_essay_draft_{session_id}');
+                    localStorage.removeItem('ielts_essay_timestamp_{session_id}');
                 }} else {{
-                    statusBar.className = 'status-bar status-waiting';
-                    statusBar.textContent = 'Assessment error: ' + (result.error || 'Please try again');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Retry Assessment';
-                    assessmentSubmitted = false;
+                    handleSubmissionError(result.error || 'Assessment processing failed');
                 }}
             }} catch (error) {{
                 console.error('Nova Micro assessment error:', error);
+                
+                if (error.name === 'AbortError') {{
+                    handleSubmissionError('Assessment timed out. This may be due to high server load.');
+                }} else if (!navigator.onLine) {{
+                    handleSubmissionError('Connection lost. Your work is saved. Please retry when online.');
+                }} else {{
+                    handleSubmissionError('Network error. Please check your connection and try again.');
+                }}
+            }}
+        }}
+        
+        // Handle submission errors with intelligent retry
+        function handleSubmissionError(errorMessage) {{
+            retryAttempts++;
+            assessmentSubmitted = false;
+            
+            if (retryAttempts < maxRetries && checkNetworkStatus()) {{
                 statusBar.className = 'status-bar status-waiting';
-                statusBar.textContent = 'Connection error. Please check your network and try again.';
+                statusBar.textContent = `${{errorMessage}} Retrying automatically... (Attempt ${{retryAttempts}}/${{maxRetries}})`;
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = `Retrying... (${{retryAttempts}}/${{maxRetries}})`;
+                
+                // Auto-retry with exponential backoff
+                const retryDelay = Math.min(2000 * Math.pow(2, retryAttempts - 1), 30000);
+                autoRetryInterval = setTimeout(() => {{
+                    if (checkNetworkStatus()) {{
+                        submitEssay();
+                    }} else {{
+                        statusBar.className = 'status-bar status-waiting';
+                        statusBar.textContent = 'Connection lost. Please check your network and manually retry.';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Retry Assessment';
+                    }}
+                }}, retryDelay);
+            }} else {{
+                statusBar.className = 'status-bar status-waiting';
+                statusBar.textContent = `${{errorMessage}} Please try again manually.`;
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Retry Assessment';
-                assessmentSubmitted = false;
+                
+                // Show extended retry options
+                if (retryAttempts >= maxRetries) {{
+                    statusBar.textContent += ' Contact support if issues persist.';
+                }}
             }}
+        }}
+        
+        // Enhanced screen lock with connectivity safeguards
+        function lockScreenTimeExpired() {{
+            if (screenLocked) return;
+            screenLocked = true;
+            
+            // Save essay before locking
+            localStorage.setItem('ielts_essay_draft_{session_id}', essayText.value);
+            localStorage.setItem('ielts_essay_timestamp_{session_id}', Date.now().toString());
+            
+            const {{ modal, modalContent }} = createTimerModal();
+            modalContent.innerHTML = `
+                <h3 style="color: #dc3545; margin-bottom: 20px;">🔒 Time Expired</h3>
+                <p style="font-size: 18px; margin-bottom: 20px;">The 60-minute writing assessment time has ended.</p>
+                <p style="margin-bottom: 20px;">Your essay has been saved and will be submitted automatically.</p>
+                <p style="margin-bottom: 20px; font-size: 14px; color: #666;">If submission fails due to connectivity, you can retry from your dashboard.</p>
+                <div style="margin: 20px 0;">
+                    <div style="
+                        display: inline-block;
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #dc3545;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    "></div>
+                    <p style="margin-top: 15px; font-style: italic;">Submitting your essay...</p>
+                </div>
+                <style>
+                    @keyframes spin {{
+                        0% {{ transform: rotate(0deg); }}
+                        100% {{ transform: rotate(360deg); }}
+                    }}
+                </style>
+            `;
+            
+            modal.style.display = 'flex';
+            
+            // Disable all inputs
+            essayText.disabled = true;
+            essayText.style.backgroundColor = '#f8f9fa';
+            essayText.style.color = '#6c757d';
+            submitBtn.disabled = true;
+            saveBtn.disabled = true;
+            
+            // Try to submit with multiple attempts
+            setTimeout(() => {{
+                if (checkNetworkStatus()) {{
+                    submitEssay();
+                }} else {{
+                    modalContent.innerHTML = `
+                        <h3 style="color: #dc3545; margin-bottom: 20px;">📡 Connection Issue</h3>
+                        <p style="font-size: 18px; margin-bottom: 20px;">Unable to submit due to network connectivity.</p>
+                        <p style="margin-bottom: 20px;">Your essay has been saved locally and can be submitted from your dashboard.</p>
+                        <button onclick="window.location.href='/dashboard'" style="
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            font-size: 16px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">Go to Dashboard</button>
+                    `;
+                }}
+            }}, 3000);
         }}
         
         // Display Nova Micro assessment results
