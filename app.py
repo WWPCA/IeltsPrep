@@ -661,6 +661,15 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
     rubric = aws_mock.get_assessment_rubric(assessment_type)
     nova_prompts = rubric.get('nova_sonic_prompts', {}) if rubric else {}
     
+    # Get unique question from comprehensive question bank
+    question_data = aws_mock.get_unique_assessment_question(user_email, assessment_type)
+    if not question_data:
+        return f"<h1>Error: Unable to load assessment question for {assessment_type}</h1><p>Please contact support.</p>"
+    
+    question_id = question_data['question_id']
+    prompt = question_data['prompt']
+    task_type = question_data.get('task_type', question_data.get('task', 'Assessment'))
+    
     if 'speaking' in assessment_type:
         return f"""
 <!DOCTYPE html>
@@ -693,6 +702,8 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             <h3>Welcome to your {assessment_type.replace('_', ' ').title()} Assessment</h3>
             <p><strong>User:</strong> {user_email}</p>
             <p><strong>Session:</strong> {session_id}</p>
+            <p><strong>Question ID:</strong> {question_id} (from DynamoDB)</p>
+            <p><strong>Assessment Type:</strong> {task_type}</p>
             <div class="auto-start-notice">
                 📢 Maya will automatically introduce herself and start the assessment when this page loads.
             </div>
@@ -1223,8 +1234,7 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                 
                 <div class="task-topic" id="taskPrompt">
                     <strong>Write about the following topic:</strong><br><br>
-                    Some people believe that technology has made our lives more complicated, while others argue that it has made life easier.<br><br>
-                    Discuss both views and give your own opinion.<br><br>
+                    {prompt}<br><br>
                     Give reasons for your answer and include any relevant examples from your own knowledge or experience.
                 </div>
             </div>
@@ -1233,6 +1243,7 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                 <h4 style="margin: 0 0 10px 0; color: #0066cc;">Assessment Information</h4>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>User:</strong> {user_email}</p>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Session:</strong> {session_id}</p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Question ID:</strong> {question_id} (from DynamoDB)</p>
                 <p style="margin: 5px 0; font-size: 14px;">Your essay will be evaluated by Nova Micro using official IELTS band descriptors.</p>
             </div>
         </div>
