@@ -747,8 +747,8 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             {speaking_content}
         </div>
 
-        <div class="current-part" id="currentPart">Part 1: Introduction & Interview</div>
-        <div class="timer" id="timer">00:00</div>
+        <div class="current-part" id="currentPart">Part 1: Introduction & Interview (4-5 minutes)</div>
+        <div class="timer" id="timer">14:00</div>
 
         <div class="maya-controls">
             <div class="status" id="status">Maya will guide you through each part of the assessment</div>
@@ -770,6 +770,179 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         let isListening = false;
         let recognition = null;
         let conversationActive = false;
+        let timeRemaining = 14 * 60; // 14 minutes total for speaking assessment
+        let currentPart = 1;
+        let partTimeRemaining = 5 * 60; // Part 1: 5 minutes max
+        let timerInterval = null;
+        let twoMinuteWarningShown = false;
+        let assessmentStarted = false;
+        
+        // IELTS Speaking timing structure
+        const partTimings = {{
+            1: {{ min: 4, max: 5, name: "Introduction & Interview" }},
+            2: {{ min: 3, max: 4, name: "Long Turn" }},
+            3: {{ min: 4, max: 5, name: "Discussion" }}
+        }};
+        
+        // Create modal for warnings and time expiry
+        function createSpeakingModal() {{
+            const modal = document.createElement('div');
+            modal.id = 'speakingModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                text-align: center;
+                max-width: 500px;
+                margin: 20px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            return {{ modal, modalContent }};
+        }}
+        
+        // Show 2-minute warning for overall assessment
+        function showTwoMinuteWarning() {{
+            if (twoMinuteWarningShown) return;
+            twoMinuteWarningShown = true;
+            
+            const {{ modal, modalContent }} = createSpeakingModal();
+            modalContent.innerHTML = `
+                <h3 style="color: #dc3545; margin-bottom: 20px;">⚠️ Speaking Assessment Warning</h3>
+                <p style="font-size: 18px; margin-bottom: 20px;">You have <strong>2 minutes</strong> remaining!</p>
+                <p style="margin-bottom: 20px;">Maya will conclude the assessment shortly.</p>
+                <button id="continueSpeakingBtn" style="
+                    background: #dc3545;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    font-size: 16px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-weight: bold;
+                ">Continue Assessment</button>
+            `;
+            
+            modal.style.display = 'flex';
+            
+            document.getElementById('continueSpeakingBtn').onclick = function() {{
+                modal.style.display = 'none';
+                modal.remove();
+            }};
+        }}
+        
+        // Handle assessment completion
+        function completeAssessment() {{
+            const {{ modal, modalContent }} = createSpeakingModal();
+            modalContent.innerHTML = `
+                <h3 style="color: #28a745; margin-bottom: 20px;">✅ Assessment Complete</h3>
+                <p style="font-size: 18px; margin-bottom: 20px;">Your 14-minute speaking assessment has ended.</p>
+                <p style="margin-bottom: 20px;">Maya will now provide your assessment results.</p>
+                <div style="margin: 20px 0;">
+                    <div style="
+                        display: inline-block;
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #28a745;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    "></div>
+                    <p style="margin-top: 15px; font-style: italic;">Processing your results...</p>
+                </div>
+                <style>
+                    @keyframes spin {{
+                        0% {{ transform: rotate(0deg); }}
+                        100% {{ transform: rotate(360deg); }}
+                    }}
+                </style>
+            `;
+            
+            modal.style.display = 'flex';
+            
+            // Disable controls
+            document.getElementById('speakBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+            
+            // Auto-submit assessment after 3 seconds
+            setTimeout(() => {{
+                window.location.href = '/dashboard';
+            }}, 5000);
+        }}
+        
+        // Update current part display
+        function updateCurrentPart() {{
+            const part = partTimings[currentPart];
+            const partElement = document.getElementById('currentPart');
+            partElement.textContent = `Part ${{currentPart}}: ${{part.name}} (${{part.min}}-${{part.max}} minutes)`;
+            
+            // Update Maya's context for the new part
+            addMessage('Maya', `Now moving to Part ${{currentPart}}: ${{part.name}}`, 'maya-message');
+        }}
+        
+        // Start comprehensive timer
+        function startSpeakingTimer() {{
+            if (timerInterval) return; // Already started
+            
+            timerInterval = setInterval(() => {{
+                timeRemaining--;
+                partTimeRemaining--;
+                
+                // Update main timer display
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                document.getElementById('timer').textContent = `${{minutes}}:${{seconds.toString().padStart(2, '0')}}`;
+                
+                // 2-minute warning (120 seconds)
+                if (timeRemaining === 120 && !twoMinuteWarningShown) {{
+                    showTwoMinuteWarning();
+                    document.getElementById('timer').style.color = '#dc3545';
+                    document.getElementById('timer').style.fontSize = '28px';
+                }}
+                
+                // Last 5 minutes - red warning
+                if (timeRemaining <= 300) {{
+                    document.getElementById('timer').style.color = '#dc3545';
+                    document.getElementById('timer').style.fontSize = '28px';
+                }}
+                
+                // Part transitions based on time
+                if (currentPart === 1 && partTimeRemaining <= 0) {{
+                    currentPart = 2;
+                    partTimeRemaining = 4 * 60; // Part 2: 4 minutes max
+                    updateCurrentPart();
+                }} else if (currentPart === 2 && partTimeRemaining <= 0) {{
+                    currentPart = 3;
+                    partTimeRemaining = 5 * 60; // Part 3: 5 minutes max
+                    updateCurrentPart();
+                }}
+                
+                // Assessment completion
+                if (timeRemaining <= 0) {{
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = "COMPLETED";
+                    document.getElementById('timer').style.color = '#28a745';
+                    document.getElementById('timer').style.fontSize = '32px';
+                    completeAssessment();
+                }}
+            }}, 1000);
+        }}
         
         // Initialize speech recognition
         function initializeSpeechRecognition() {{
@@ -938,11 +1111,25 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             }}
         }});
         
+        document.getElementById('startBtn').addEventListener('click', function() {{
+            if (!assessmentStarted) {{
+                assessmentStarted = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('startBtn').textContent = 'Assessment Started';
+                
+                // Start the 14-minute timer
+                startSpeakingTimer();
+                
+                // Start Maya introduction
+                startMayaIntroduction();
+            }}
+        }});
+        
         // Initialize when page loads
         window.addEventListener('load', function() {{
             if (initializeSpeechRecognition()) {{
-                // Auto-start Maya introduction after 2 seconds
-                setTimeout(startMayaIntroduction, 2000);
+                // Ready to start when user clicks button
+                document.getElementById('status').textContent = 'Ready to begin - Click "Start Assessment with Maya"';
             }}
         }});
     </script>
@@ -1259,7 +1446,7 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                 <div class="ielts-logo">IELTS</div>
                 <div class="test-info">International English Language Testing System</div>
                 <div class="test-info">{assessment_type.replace('_', ' ').title()}</div>
-                <div class="test-info">Time allowed: 60 minutes</div>
+                <div class="test-info">Time allowed: 60 minutes (Task 1: 20 min, Task 2: 40 min recommended)</div>
             </div>
             
             <div class="task-box">
@@ -1301,7 +1488,7 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                     Words: <span id="wordCount">0</span> / <span id="minWords">250</span>
                 </div>
                 <div class="timer-display">
-                    Time remaining: <span id="timer">40:00</span>
+                    Time remaining: <span id="timer">60:00</span>
                 </div>
             </div>
             
@@ -1368,9 +1555,11 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
     </div>
 
     <script>
-        let timeRemaining = 40 * 60; // 40 minutes in seconds
+        let timeRemaining = 60 * 60; // 60 minutes total for writing section
         let timerInterval = null;
         let assessmentSubmitted = false;
+        let twoMinuteWarningShown = false;
+        let screenLocked = false;
         
         const essayText = document.getElementById('essayText');
         const wordCount = document.getElementById('wordCount');
@@ -1381,7 +1570,117 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         const timer = document.getElementById('timer');
         const assessmentResults = document.getElementById('assessmentResults');
         
-        // Start 40-minute timer
+        // Create modal for warnings and time expiry
+        function createTimerModal() {{
+            const modal = document.createElement('div');
+            modal.id = 'timerModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                text-align: center;
+                max-width: 500px;
+                margin: 20px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            return {{ modal, modalContent }};
+        }}
+        
+        // Show 2-minute warning modal
+        function showTwoMinuteWarning() {{
+            if (twoMinuteWarningShown) return;
+            twoMinuteWarningShown = true;
+            
+            const {{ modal, modalContent }} = createTimerModal();
+            modalContent.innerHTML = `
+                <h3 style="color: #dc3545; margin-bottom: 20px;">⚠️ Time Warning</h3>
+                <p style="font-size: 18px; margin-bottom: 20px;">You have <strong>2 minutes</strong> remaining!</p>
+                <p style="margin-bottom: 20px;">Please finish your essay and submit it before time expires.</p>
+                <button id="continueBtn" style="
+                    background: #dc3545;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    font-size: 16px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-weight: bold;
+                ">Continue Writing</button>
+            `;
+            
+            modal.style.display = 'flex';
+            
+            document.getElementById('continueBtn').onclick = function() {{
+                modal.style.display = 'none';
+                modal.remove();
+            }};
+        }}
+        
+        // Lock screen when time expires
+        function lockScreenTimeExpired() {{
+            if (screenLocked) return;
+            screenLocked = true;
+            
+            const {{ modal, modalContent }} = createTimerModal();
+            modalContent.innerHTML = `
+                <h3 style="color: #dc3545; margin-bottom: 20px;">🔒 Time Expired</h3>
+                <p style="font-size: 18px; margin-bottom: 20px;">The 60-minute writing assessment time has ended.</p>
+                <p style="margin-bottom: 20px;">Your essay will be automatically submitted for Nova Micro assessment.</p>
+                <div style="margin: 20px 0;">
+                    <div style="
+                        display: inline-block;
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #dc3545;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    "></div>
+                    <p style="margin-top: 15px; font-style: italic;">Submitting your essay...</p>
+                </div>
+                <style>
+                    @keyframes spin {{
+                        0% {{ transform: rotate(0deg); }}
+                        100% {{ transform: rotate(360deg); }}
+                    }}
+                </style>
+            `;
+            
+            modal.style.display = 'flex';
+            
+            // Disable all form inputs
+            essayText.disabled = true;
+            essayText.style.backgroundColor = '#f8f9fa';
+            essayText.style.color = '#6c757d';
+            submitBtn.disabled = true;
+            saveBtn.disabled = true;
+            
+            // Auto-submit after 3 seconds
+            setTimeout(() => {{
+                if (!assessmentSubmitted) {{
+                    submitEssay();
+                }}
+            }}, 3000);
+        }}
+        
+        // Start 60-minute timer with proper IELTS timing
         function startTimer() {{
             timerInterval = setInterval(() => {{
                 timeRemaining--;
@@ -1389,17 +1688,29 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
                 const seconds = timeRemaining % 60;
                 timer.textContent = `${{minutes}}:${{seconds.toString().padStart(2, '0')}}`;
                 
-                if (timeRemaining <= 300) {{ // Last 5 minutes
-                    timer.style.color = '#dc3545'; // Red warning
+                // 2-minute warning (120 seconds)
+                if (timeRemaining === 120 && !twoMinuteWarningShown) {{
+                    showTwoMinuteWarning();
+                    timer.style.color = '#dc3545';
+                    timer.style.fontSize = '18px';
+                    timer.style.fontWeight = 'bold';
                 }}
                 
+                // Last 5 minutes - red warning
+                if (timeRemaining <= 300) {{
+                    timer.style.color = '#dc3545';
+                    timer.style.fontSize = '18px';
+                    timer.style.fontWeight = 'bold';
+                }}
+                
+                // Time expired - lock screen
                 if (timeRemaining <= 0) {{
                     clearInterval(timerInterval);
-                    timer.textContent = "Time's up!";
+                    timer.textContent = "TIME EXPIRED";
                     timer.style.color = '#dc3545';
-                    if (!assessmentSubmitted) {{
-                        submitEssay();
-                    }}
+                    timer.style.fontSize = '20px';
+                    timer.style.fontWeight = 'bold';
+                    lockScreenTimeExpired();
                 }}
             }}, 1000);
         }}
@@ -1530,6 +1841,9 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         
         // Initialize page
         window.addEventListener('load', function() {{
+            // Start the 60-minute timer immediately
+            startTimer();
+            
             // Load saved draft if available
             const savedDraft = localStorage.getItem('ielts_essay_draft_{session_id}');
             if (savedDraft) {{
