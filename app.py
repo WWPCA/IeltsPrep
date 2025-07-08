@@ -671,6 +671,33 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
     task_type = question_data.get('task_type', question_data.get('task', 'Assessment'))
     
     if 'speaking' in assessment_type:
+        # Format the speaking question properly based on IELTS structure
+        speaking_content = ""
+        if question_data.get('parts'):
+            # Multi-part structure (proper IELTS format)
+            for part in question_data['parts']:
+                part_num = part.get('part', 1)
+                topic = part.get('topic', 'Speaking Task')
+                if part_num == 1:
+                    questions = part.get('questions', [])
+                    speaking_content += f"<h4>Part {part_num}: {topic}</h4><ul>"
+                    for q in questions:
+                        speaking_content += f"<li>{q}</li>"
+                    speaking_content += "</ul>"
+                elif part_num == 2:
+                    prep_time = part.get('prep_time', 60)
+                    talk_time = part.get('talk_time', 120)
+                    speaking_content += f"<h4>Part {part_num}: {topic}</h4><p><strong>Preparation time:</strong> {prep_time} seconds</p><p><strong>Speaking time:</strong> {talk_time} seconds</p><div class='cue-card'>{prompt}</div>"
+                elif part_num == 3:
+                    questions = part.get('questions', [])
+                    speaking_content += f"<h4>Part {part_num}: {topic}</h4><ul>"
+                    for q in questions:
+                        speaking_content += f"<li>{q}</li>"
+                    speaking_content += "</ul>"
+        else:
+            # Single part question (current format)
+            speaking_content = f"<h4>{task_type}</h4><div class='cue-card'>{prompt}</div>"
+        
         return f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -680,46 +707,60 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
     <title>Maya - {assessment_type.replace('_', ' ').title()} Assessment</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
-        .container {{ max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }}
-        .maya-intro {{ background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0; }}
-        .conversation-area {{ background: #f8f9fa; padding: 20px; border-radius: 8px; min-height: 300px; }}
-        .maya-message {{ background: #d4edda; padding: 15px; border-radius: 8px; margin: 10px 0; }}
-        .user-message {{ background: #fff3cd; padding: 15px; border-radius: 8px; margin: 10px 0; }}
-        .controls {{ text-align: center; margin: 20px 0; }}
+        .container {{ max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }}
+        .ielts-header {{ background: #0066cc; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }}
+        .assessment-info {{ background: #e8f4fd; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+        .speaking-structure {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+        .cue-card {{ background: #fffacd; padding: 20px; border: 2px solid #ffd700; border-radius: 8px; margin: 15px 0; }}
+        .part-section {{ margin: 20px 0; padding: 15px; border-left: 4px solid #0066cc; }}
+        .maya-controls {{ text-align: center; margin: 20px 0; padding: 20px; background: #f0f8ff; border-radius: 8px; }}
         .btn {{ padding: 12px 24px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }}
         .btn-primary {{ background: #007bff; color: white; }}
         .btn-success {{ background: #28a745; color: white; }}
         .btn-danger {{ background: #dc3545; color: white; }}
         .status {{ text-align: center; margin: 15px 0; font-weight: bold; }}
-        .auto-start-notice {{ background: #ffc107; color: #212529; padding: 10px; border-radius: 5px; margin: 10px 0; }}
+        .conversation-area {{ background: #f8f9fa; padding: 20px; border-radius: 8px; min-height: 200px; margin: 20px 0; }}
+        .maya-message {{ background: #d4edda; padding: 15px; border-radius: 8px; margin: 10px 0; }}
+        .user-message {{ background: #fff3cd; padding: 15px; border-radius: 8px; margin: 10px 0; }}
+        .timer {{ font-size: 24px; font-weight: bold; color: #dc3545; }}
+        .current-part {{ background: #28a745; color: white; padding: 10px; border-radius: 5px; display: inline-block; margin: 10px 0; }}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Maya - Your IELTS Speaking Examiner</h1>
+        <div class="ielts-header">
+            <h1>IELTS Speaking Assessment</h1>
+            <p>Conducted by Maya - AI Examiner</p>
+        </div>
         
-        <div class="maya-intro">
-            <h3>Welcome to your {assessment_type.replace('_', ' ').title()} Assessment</h3>
+        <div class="assessment-info">
+            <h4>Assessment Details</h4>
+            <p><strong>Test Type:</strong> {assessment_type.replace('_', ' ').title()}</p>
             <p><strong>User:</strong> {user_email}</p>
             <p><strong>Session:</strong> {session_id}</p>
             <p><strong>Question ID:</strong> {question_id} (from DynamoDB)</p>
-            <p><strong>Assessment Type:</strong> {task_type}</p>
-            <div class="auto-start-notice">
-                📢 Maya will automatically introduce herself and start the assessment when this page loads.
-            </div>
+            <p><strong>Total Duration:</strong> 11-14 minutes</p>
         </div>
 
-        <div class="status" id="status">Initializing Maya...</div>
+        <div class="speaking-structure">
+            <h3>IELTS Speaking Test Structure</h3>
+            {speaking_content}
+        </div>
+
+        <div class="current-part" id="currentPart">Part 1: Introduction & Interview</div>
+        <div class="timer" id="timer">00:00</div>
+
+        <div class="maya-controls">
+            <div class="status" id="status">Maya will guide you through each part of the assessment</div>
+            <button class="btn btn-success" id="startBtn">Start Assessment with Maya</button>
+            <button class="btn btn-primary" id="speakBtn" disabled>🎤 Speak to Maya</button>
+            <button class="btn btn-danger" id="stopBtn" disabled>⏹️ Stop</button>
+        </div>
         
         <div class="conversation-area" id="conversation">
-            <div class="maya-message" id="maya-intro">
-                <strong>Maya:</strong> <span id="intro-text">Loading introduction...</span>
+            <div class="maya-message">
+                <strong>Maya:</strong> <span id="maya-text">Welcome! I'm Maya, your IELTS speaking examiner. Click 'Start Assessment' when you're ready to begin.</span>
             </div>
-        </div>
-
-        <div class="controls">
-            <button class="btn btn-success" id="speakBtn" disabled>🎤 Speak to Maya</button>
-            <button class="btn btn-danger" id="stopBtn" disabled>⏹️ Stop</button>
         </div>
 
         <audio id="mayaAudio" style="display: none;"></audio>

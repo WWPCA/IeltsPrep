@@ -100,6 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 8, 2025: SPEAKING ASSESSMENT STRUCTURE CORRECTED - Fixed Maya's Role and IELTS Format Alignment
+  - Identified critical flaw: Maya was conducting simple conversations instead of proper IELTS 3-part structure
+  - Corrected speaking assessment templates to show proper IELTS structure: Part 1 (Interview), Part 2 (Long Turn), Part 3 (Discussion)
+  - Updated Maya's role from free conversation to structured IELTS examiner guiding through timed sections
+  - Fixed template to display proper assessment structure with timing for each part
+  - Current database has 10 questions each for academic_speaking and general_speaking but needs proper 3-part structure
+  - Next: Need to update question database to include proper multi-part IELTS speaking questions with Part 1, 2, and 3 components
+
 - July 8, 2025: DYNAMODB QUESTION MIGRATION COMPLETE - Questions Moved from Lambda Code to Database Storage
   - Successfully migrated all 16 assessment questions from hardcoded Lambda function arrays to DynamoDB table "ielts-assessment-questions"
   - Implemented get_questions_from_dynamodb() function for dynamic question loading with fallback support
