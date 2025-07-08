@@ -100,6 +100,17 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 8, 2025: DOMAIN TRANSFER INITIATED - ieltsaiprep.com Transfer from Namecheap to AWS Route 53 Started
+  - Successfully initiated domain transfer from Namecheap to AWS Route 53 using EPP authorization code
+  - Domain transferability confirmed by AWS Route 53 domains service
+  - Transfer request submitted with proper Canadian postal code formatting and contact information
+  - Expected timeline: 5-7 days for completion with email approvals from both Namecheap and AWS
+  - Website will continue operating without interruption during transfer process
+  - Current CloudFront distribution d2ehqyfqw00g6j.cloudfront.net properly configured for seamless transition
+  - DNS records already exist in Route 53 hosted zone, ensuring zero downtime during transfer
+  - Transfer cost: ~$12-14 USD plus $0.50/month for Route 53 hosted zone management
+  - Next steps: Monitor email for approval requests from both registrars and approve transfer
+
 - July 8, 2025: PRODUCTION CONNECTIVITY SAFEGUARDS COMPLETE - Comprehensive Network Error Protection Active
   - Implemented robust connectivity safeguards for both writing and speaking assessments
   - Writing Assessment Protection: Auto-save every 30 seconds, 5 automatic retries with exponential backoff, 45-second timeouts
