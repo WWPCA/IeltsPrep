@@ -100,6 +100,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 8, 2025: DYNAMODB QUESTION MIGRATION COMPLETE - Questions Moved from Lambda Code to Database Storage
+  - Successfully migrated all 16 assessment questions from hardcoded Lambda function arrays to DynamoDB table "ielts-assessment-questions"
+  - Implemented get_questions_from_dynamodb() function for dynamic question loading with fallback support
+  - Maintained unique question delivery system ensuring no repetition across multiple purchases
+  - Added visual indicators: Dashboard shows "DynamoDB Question System Active", assessment pages display "Question ID: xxx (from DynamoDB)"
+  - Enhanced scalability: Easy to add new questions without code deployment, foundation for question analytics and management
+  - Preserved all existing functionality: assessment attempts tracking, Maya AI integration, Nova API calls
+  - Production website www.ieltsaiprep.com now uses database-driven question management for better scalability and content control
+
 - July 8, 2025: COMPREHENSIVE ASSESSMENT SYSTEM COMPLETE - Full Production Functionality Deployed
   - Implemented complete assessment functionality with real AWS Nova API integration
   - All 4 "Start Assessment" buttons now lead to fully functional assessment pages
