@@ -1,1 +1,1 @@
-{"errorMessage": "unhashable type: 'dict'", "errorType": "TypeError", "requestId": "18f3f5bf-e756-41da-9f89-f362cbaf4ad9", "stackTrace": ["  File \"/var/task/simple_lambda.py\", line 1612, in lambda_handler\n    'headers': {{\n"]}
+{"errorMessage": "Unable to import module 'lambda_function': No module named 'bcrypt'", "errorType": "Runtime.ImportModuleError", "requestId": "", "stackTrace": []}
