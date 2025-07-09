@@ -4,7 +4,7 @@
 The "ERROR for site owner: Invalid site key" error has been permanently fixed.
 
 ## Root Cause Identified
-The Lambda function was serving a hardcoded reCAPTCHA site key (`6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix`) instead of using the correct environment variable.
+The Lambda function was serving a hardcoded reCAPTCHA site key instead of using the correct environment variable.
 
 ## Solution Applied
 Modified the `serve_login_page()` function in `deploy_comprehensive_privacy_template.py` to:
@@ -22,7 +22,7 @@ def serve_login_page():
     
     # Replace hardcoded reCAPTCHA site key with environment variable
     recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '')
-    html_content = html_content.replace('6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix', recaptcha_site_key)
+    html_content = html_content.replace('[HARDCODED_KEY]', recaptcha_site_key)
     
     return {
         'statusCode': 200,
@@ -32,13 +32,11 @@ def serve_login_page():
 ```
 
 ## Verification Results
-✅ **Before Fix**: `data-sitekey="6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix"` (hardcoded)
-✅ **After Fix**: `data-sitekey="6LdD2VUrAAAAABG_Tt5fFYmWkRB4YFVHPdjggYzQ"` (environment variable)
+✅ **Before Fix**: Hardcoded reCAPTCHA site key in template
+✅ **After Fix**: Dynamic replacement using environment variable
 
 ## Environment Configuration
-The Lambda function environment variables are correctly configured:
-- `RECAPTCHA_V2_SITE_KEY`: `6LdD2VUrAAAAABG_Tt5fFYmWkRB4YFVHPdjggYzQ`  
-- `RECAPTCHA_V2_SECRET_KEY`: `6LdD2VUrAAAAAMfcUfxDgm88Mbh1kkY2IOqzhhI5`
+The Lambda function environment variables are correctly configured with proper reCAPTCHA keys.
 
 ## All Pages Working
 ✅ **Home Page**: https://www.ieltsaiprep.com/ - HTTP 200

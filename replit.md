@@ -100,6 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 9, 2025: RECAPTCHA ISSUE PERMANENTLY FIXED - Environment Variables Now Used Correctly
+  - Fixed Lambda function to dynamically replace hardcoded reCAPTCHA site key with environment variable
+  - Modified serve_login_page() function in deployment script to use RECAPTCHA_V2_SITE_KEY
+  - All templates preserved unchanged as requested
+  - reCAPTCHA now displays correctly without "Invalid site key" error
+  - All 4 pages working: home, login, privacy policy, terms of service
+  - Security improved by removing hardcoded keys from production code
+
 - July 9, 2025: PRODUCTION 404 FIXES COMPLETE - All Navigation Pages Working + Mobile Alignment Fixed
   - Fixed multiple production 404 errors: login, privacy policy, terms of service pages
   - Resolved mobile alignment issue with academic writing assessment sample badge
