@@ -100,6 +100,16 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 9, 2025: PRIVACY POLICY AND TERMS OF SERVICE TEMPLATES FIXED - Approved Comprehensive Design Active
+  - Successfully replaced basic privacy policy and terms of service templates with approved comprehensive designs
+  - Updated PRIVACY_POLICY_TEMPLATE and TERMS_OF_SERVICE_TEMPLATE constants in Lambda function
+  - Applied professional card-based design with gradient headers and organized sections
+  - Privacy policy now includes detailed TrueScore® and ClearScore® technology information
+  - Terms of service covers $36 CAD assessment products and app store purchase policies
+  - All existing functionality preserved: CloudFront blocking, home page, login, and dashboard
+  - Lambda function deployment completed without breaking any existing features
+  - Production pages now match approved working templates from preview
+
 - July 9, 2025: API GATEWAY BLOCKING SUCCESSFULLY IMPLEMENTED - CloudFront-Based Solution Working
   - Successfully implemented CloudFront-based blocking using custom header validation
   - Added secret header "CF-Secret-3140348d" to CloudFront distribution for www.ieltsaiprep.com
