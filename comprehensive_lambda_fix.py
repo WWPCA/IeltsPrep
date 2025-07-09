@@ -568,7 +568,7 @@ def get_comprehensive_login_html():
                     
                     <div class="form-group">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" placeholder="••••••••••••" required>
+                        <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
                     </div>
                     
                     <div class="recaptcha-container">
