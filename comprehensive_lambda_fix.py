@@ -264,194 +264,394 @@ def get_comprehensive_login_html():
     # Replace reCAPTCHA site key with production key
     recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
     login_html = '''<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Login - IELTS GenAI Prep</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-<style>
-body { 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-    min-height: 100vh; 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-.login-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.login-card { 
-    background: white; 
-    border-radius: 20px; 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
-    padding: 50px; 
-    max-width: 500px; 
-    width: 100%;
-    margin: 20px;
-}
-.mobile-info { 
-    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); 
-    border-radius: 15px; 
-    padding: 25px; 
-    margin-bottom: 25px; 
-    border-left: 4px solid #2196F3;
-}
-.brand-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-.brand-header h1 {
-    color: #4361ee;
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-.brand-header p {
-    color: #666;
-    font-size: 1.1rem;
-    margin-bottom: 0;
-}
-.form-control {
-    border-radius: 12px;
-    padding: 15px;
-    border: 2px solid #e9ecef;
-    font-size: 1rem;
-}
-.form-control:focus {
-    border-color: #4361ee;
-    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
-}
-.btn-primary {
-    background: linear-gradient(135deg, #4361ee 0%, #667eea 100%);
-    border: none;
-    border-radius: 12px;
-    padding: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
-}
-.btn-outline-secondary {
-    border-radius: 12px;
-    padding: 12px 25px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-.home-btn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background: rgba(255,255,255,0.2);
-    border: none;
-    border-radius: 50px;
-    padding: 12px 20px;
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-.home-btn:hover {
-    background: rgba(255,255,255,0.3);
-    color: white;
-    text-decoration: none;
-    transform: translateY(-2px);
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+        
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            border-radius: 25px;
+            padding: 8px 16px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+        }
+        
+        .home-btn:hover {
+            background: rgba(255,255,255,0.25);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+        
+        .header-section h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header-section p {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            background: #f8f9fa;
+            min-height: calc(100vh - 140px);
+            padding: 40px 0;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .new-user-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .new-user-info h6 {
+            color: #1976d2;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .new-user-info p {
+            color: #424242;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .app-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .app-btn {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .app-btn:hover {
+            background: #f0f0f0;
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .app-btn i {
+            margin-right: 8px;
+        }
+        
+        .login-form {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .forbidden-message {
+            background: #ffebee;
+            border: 1px solid #f8bbd9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #c62828;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+        
+        .recaptcha-container {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .sign-in-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .sign-in-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sign-in-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-links {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .alert {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        @media (max-width: 576px) {
+            .header-section h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header-section p {
+                font-size: 1rem;
+            }
+            
+            .login-container {
+                padding: 0 15px;
+            }
+            
+            .app-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .app-btn {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-<a href="/" class="home-btn">
-    <i class="fas fa-home me-2"></i>
-    Home
-</a>
-
-<div class="login-container">
-    <div class="login-card">
-        <div class="brand-header">
-            <h1><i class="fas fa-graduation-cap me-2"></i>IELTS GenAI Prep</h1>
-            <p>Welcome Back to Your AI Assessment Platform</p>
-        </div>
-        
-        <div class="mobile-info">
-            <h6 class="fw-bold mb-2">
-                <i class="fas fa-mobile-alt me-2"></i>
-                Mobile-First Platform
-            </h6>
-            <p class="mb-0">
-                <strong>New users:</strong> Download our mobile app and complete your purchase first. 
-                Then use the same credentials to access assessments on any device.
-            </p>
-        </div>
-        
-        <form id="loginForm">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+    <div class="header-section">
+        <a href="/" class="home-btn">
+            <i class="fas fa-home me-2"></i>Home
+        </a>
+        <h1>Welcome Back</h1>
+        <p>Sign in to your IELTS GenAI Prep account</p>
+    </div>
+    
+    <div class="main-content">
+        <div class="login-container">
+            <div class="new-user-info">
+                <h6><i class="fas fa-mobile-alt me-2"></i>New to IELTS GenAI Prep?</h6>
+                <p>To get started, you need to:</p>
+                <p>1. Download our mobile app (iOS/Android)<br>
+                2. Create an account and purchase assessments<br>
+                3. Return here to access your assessments on desktop</p>
+                <div class="app-buttons">
+                    <a href="#" class="app-btn">
+                        <i class="fab fa-apple"></i>App Store
+                    </a>
+                    <a href="#" class="app-btn">
+                        <i class="fab fa-google-play"></i>Google Play
+                    </a>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+            
+            <div class="login-form">
+                <div class="forbidden-message">
+                    Forbidden
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" placeholder="prodtest_20250709_175130_i1m2@ieltsaiprep.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="••••••••••••" required>
+                    </div>
+                    
+                    <div class="recaptcha-container">
+                        <div class="g-recaptcha" data-sitekey="{RECAPTCHA_V2_SITE_KEY}"></div>
+                    </div>
+                    
+                    <button type="submit" class="sign-in-btn">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </button>
+                </form>
+                
+                <div class="forgot-password">
+                    <a href="#"><i class="fas fa-key me-1"></i>Forgot your password?</a>
+                </div>
+                
+                <div class="footer-links">
+                    This site is protected by Google reCAPTCHA v2. Please review our 
+                    <a href="/privacy-policy">Privacy Policy</a> and 
+                    <a href="/terms-of-service">Terms of Service</a>.
+                </div>
             </div>
-            <div class="mb-4">
-                <div class="g-recaptcha" data-sitekey="{RECAPTCHA_V2_SITE_KEY}"></div>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 mb-3">
-                <i class="fas fa-sign-in-alt me-2"></i>
-                Sign In to Dashboard
-            </button>
-        </form>
-        
-        <div id="message" class="mt-3"></div>
-        
-        <div class="text-center mt-4">
-            <a href="/" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>
-                Back to Home
-            </a>
+            
+            <div id="message"></div>
         </div>
     </div>
-</div>
-
-<script>
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const messageDiv = document.getElementById('message');
-    messageDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Signing in...</div>';
     
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                'g-recaptcha-response': grecaptcha.getResponse()
-            })
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const messageDiv = document.getElementById('message');
+            const submitBtn = document.querySelector('.sign-in-btn');
+            
+            // Clear previous messages
+            messageDiv.innerHTML = '';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing in...';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value,
+                        'g-recaptcha-response': grecaptcha.getResponse()
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.cookie = 'web_session_id=' + result.session_id + '; path=/; max-age=3600';
+                    messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Success! Redirecting to dashboard...</div>';
+                    setTimeout(() => window.location.href = '/dashboard', 1000);
+                } else {
+                    messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>' + result.error + '</div>';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Sign In';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Login failed: ' + error.message + '</div>';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Sign In';
+            }
         });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            document.cookie = 'web_session_id=' + result.session_id + '; path=/; max-age=3600';
-            messageDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Success! Redirecting to dashboard...</div>';
-            setTimeout(() => window.location.href = '/dashboard', 1000);
-        } else {
-            messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>' + result.error + '</div>';
-        }
-    } catch (error) {
-        messageDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Login failed: ' + error.message + '</div>';
-    }
-});
-</script>
+    </script>
 </body>
-</html>'''
+</html>'''.replace('{RECAPTCHA_V2_SITE_KEY}', recaptcha_site_key)
+    return login_html
     
     # Replace the placeholder with actual site key
     return login_html.replace('{RECAPTCHA_V2_SITE_KEY}', recaptcha_site_key)

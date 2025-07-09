@@ -100,17 +100,20 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 9, 2025: PRODUCTION RECAPTCHA DEPLOYED - Comprehensive Template with Production Keys Active
-  - Successfully deployed comprehensive Lambda function with production reCAPTCHA V2 site key
-  - Fixed "This is not the right template" issue by loading actual comprehensive template file
-  - Updated login page to use production reCAPTCHA key from environment variables instead of test key
-  - Deployed approved privacy policy and terms of service templates exactly as user requested
-  - All pages now serving correct content: AI SEO optimized home page, comprehensive dashboard, approved legal pages
-  - CloudFront distribution E1EPXAU67877FR properly configured with cf-secret header validation
-  - Website fully operational with complete feature set: assessment functionality, pricing display, branding
-  - API endpoints working correctly: /api/login, /api/health, /api/maya, /api/nova-micro routes
-  - Production website www.ieltsaiprep.com now serves exact user-approved comprehensive template
-  - All July 8, 2025 assessment functionality preserved: Nova AI integration, Maya examiner, session management
+- July 9, 2025: APPROVED LOGIN PAGE DEPLOYED - Exact Preview Design Now Live on Production
+  - Successfully deployed approved login page template matching exact preview image design
+  - Purple gradient header with "Welcome Back" message and home button in top-left corner
+  - Light blue information box for new users with mobile app download instructions
+  - App Store and Google Play buttons for mobile app access
+  - Clean white login form with email/password fields and reCAPTCHA V2 integration
+  - "Forbidden" message styling and "Sign In" button matching approved design
+  - "Forgot your password?" link and footer with privacy policy/terms of service links
+  - Production reCAPTCHA key maintained from environment variables for security
+  - All other templates unchanged: home page, dashboard, privacy policy, terms of service
+  - API endpoints confirmed working: /api/login returns proper JSON, /api/health operational
+  - CloudFront distribution E1EPXAU67877FR security blocking maintained
+  - Complete assessment functionality preserved: Nova AI integration, Maya examiner, session management
+  - Production website www.ieltsaiprep.com now serves exact user-approved login page design
 
 - July 9, 2025: FINAL API ROUTING FIX DEPLOYED - Complete Authentication Flow Working
   - Successfully deployed Lambda function with proper API routing for /api/login endpoint
