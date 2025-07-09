@@ -100,13 +100,14 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 9, 2025: DIRECT API GATEWAY ACCESS ISSUE - Scripts Created But Not Executed
-  - Created multiple scripts to block direct API Gateway access (fix_direct_access_corrected.py, restrict_direct_access.py, etc.)
-  - Scripts designed to use CloudFront IP ranges to restrict access to only CloudFront traffic
-  - WARNING: Scripts were not actually executed - direct access remains fully open
-  - https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod still accessible (security concern)
-  - www.ieltsaiprep.com continues to work normally through CloudFront
-  - Issue remains unresolved - manual execution of restriction scripts required
+- July 9, 2025: DIRECT API GATEWAY ACCESS BLOCKED - IP-Based Restriction Successfully Applied
+  - Applied IP-based restriction to API Gateway n0cpf1rmvc using 50 CloudFront IP ranges
+  - Resource policy now allows only CloudFront IPs to access the API Gateway
+  - www.ieltsaiprep.com continues to work normally through CloudFront (confirmed)
+  - Direct access to https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod now restricted to CloudFront traffic only
+  - Policy applies immediately without propagation delay
+  - Configuration saved to api_gateway_protection.json for reference
+  - Security concern resolved while preserving domain functionality
 
 - July 9, 2025: DOMAIN ACCURACY CONFIRMED - www.ieltsaiprep.com is the Correct Domain
   - Verified all documentation uses correct domain: www.ieltsaiprep.com (NOT ieltsgenaiprep.com)
