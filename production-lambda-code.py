@@ -776,7 +776,10 @@ def handle_home_page() -> Dict[str, Any]:
 def handle_login_page() -> Dict[str, Any]:
     """Handle login page - FIXED 404 ERROR"""
     
-    template = """<!DOCTYPE html>
+    # Get reCAPTCHA site key from environment
+    recaptcha_site_key = os.environ.get("RECAPTCHA_V2_SITE_KEY", "")
+    
+    template = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1162,7 +1165,7 @@ def handle_login_page() -> Dict[str, Any]:
 
                             
                             <div class="recaptcha-wrapper">
-                                <div class="g-recaptcha" data-sitekey="6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix"></div>
+                                <div class="g-recaptcha" data-sitekey="{recaptcha_site_key}"></div>
                             </div>
                             
                             <button type="submit" class="submit-btn" id="submitBtn">
