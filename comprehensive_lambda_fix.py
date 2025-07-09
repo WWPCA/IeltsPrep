@@ -5,29 +5,25 @@ from datetime import datetime
 
 def validate_cloudfront_header(event):
     headers = event.get('headers', {})
-    # Temporarily allow all requests while CloudFront deploys
-    # Check for CloudFront headers as indication of legitimate request
-    user_agent = headers.get('user-agent', '').lower()
-    cloudfront_indicators = [
-        'cloudfront', 'amazon', 'aws',
-        headers.get('cloudfront-viewer-country'),
-        headers.get('cloudfront-forwarded-proto'),
-        headers.get('cf-ray')
-    ]
+    host = headers.get('host', '').lower()
     
-    # Allow if any CloudFront indicators present OR cf-secret header correct
-    if (headers.get('cf-secret') == 'CF-Secret-3140348d' or 
-        any(indicator for indicator in cloudfront_indicators if indicator)):
+    # Allow www.ieltsaiprep.com (CloudFront) - main domain
+    if 'ieltsaiprep.com' in host:
         return None
     
-    # Block only obvious direct API Gateway access
-    if 'execute-api' in headers.get('host', ''):
+    # Check for CloudFront secret header
+    if headers.get('cf-secret') == 'CF-Secret-3140348d':
+        return None
+    
+    # Block direct API Gateway access with proper message
+    if 'execute-api' in host:
         return {
             'statusCode': 403,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'Direct access not allowed'})
+            'headers': {'Content-Type': 'text/plain'},
+            'body': 'Direct access not allowed'
         }
     
+    # Allow all other requests (temporary fix for CloudFront header issue)
     return None
 
 def lambda_handler(event, context):
@@ -131,20 +127,27 @@ def handle_dashboard_page():
     }
 
 def handle_assessment_access(path):
-    assessment_type = path.split('/')[-1]
-    question_id = f'{assessment_type}_q1'
-    
-    if 'writing' in assessment_type:
+    try:
+        assessment_type = path.split('/')[-1]
+        question_id = f'{assessment_type}_q1'
+        
+        if 'writing' in assessment_type:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'text/html'},
+                'body': get_writing_assessment_html(assessment_type, question_id)
+            }
+        else:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'text/html'},
+                'body': get_speaking_assessment_html(assessment_type, question_id)
+            }
+    except Exception as e:
         return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'text/html'},
-            'body': get_writing_assessment_html(assessment_type, question_id)
-        }
-    else:
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'text/html'},
-            'body': get_speaking_assessment_html(assessment_type, question_id)
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': f'Assessment access error: {str(e)}'})
         }
 
 def handle_privacy_policy():
