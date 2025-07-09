@@ -9,7 +9,8 @@ import os
 import uuid
 import time
 import base64
-import requests
+import urllib.request
+import urllib.parse
 from io import BytesIO
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -37,15 +38,20 @@ def verify_recaptcha_v2(recaptcha_response: str, user_ip: Optional[str] = None) 
         if user_ip:
             verification_data['remoteip'] = user_ip
         
-        # Send verification request to Google
-        response = requests.post(
+        # Send verification request to Google using urllib
+        data = urllib.parse.urlencode(verification_data).encode('utf-8')
+        
+        req = urllib.request.Request(
             'https://www.google.com/recaptcha/api/siteverify',
-            data=verification_data,
-            timeout=10
+            data=data,
+            method='POST'
         )
         
-        if response.status_code == 200:
-            result = response.json()
+        response = urllib.request.urlopen(req, timeout=10)
+        
+        if response.status == 200:
+            result_data = response.read().decode('utf-8')
+            result = json.loads(result_data)
             success = result.get('success', False)
             
             if not success:
@@ -54,10 +60,10 @@ def verify_recaptcha_v2(recaptcha_response: str, user_ip: Optional[str] = None) 
             
             return success
         else:
-            print(f"[RECAPTCHA] HTTP error: {response.status_code}")
+            print(f"[RECAPTCHA] HTTP error: {response.status}")
             return False
             
-    except requests.exceptions.RequestException as e:
+    except urllib.error.URLError as e:
         print(f"[RECAPTCHA] Network error: {str(e)}")
         return False
     except Exception as e:
