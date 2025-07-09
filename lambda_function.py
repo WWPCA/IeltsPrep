@@ -8,7 +8,7 @@ import hashlib
 from datetime import datetime
 
 def lambda_handler(event, context):
-    """AWS Lambda handler - Authentication Working"""
+    """AWS Lambda handler - Correct domain credentials"""
     try:
         http_method = event.get('httpMethod', 'GET')
         path = event.get('path', '/')
@@ -27,6 +27,7 @@ def lambda_handler(event, context):
                 pass
         
         print(f"[LAMBDA] Processing {http_method} {path}")
+        print(f"[LAMBDA] Headers: {headers}")
         
         # Route handling
         if path == '/':
@@ -102,13 +103,15 @@ def serve_login_page():
     }
 
 def handle_login(data, headers):
-    """Handle login with reCAPTCHA and test credentials"""
+    """Handle login with reCAPTCHA and CORRECT domain credentials"""
     try:
         email = data.get('email', '').lower().strip()
         password = data.get('password', '')
         recaptcha_response = data.get('g-recaptcha-response', '')
         
         print(f"[AUTH] Login attempt: {email}")
+        print(f"[AUTH] Password length: {len(password)}")
+        print(f"[AUTH] reCAPTCHA response length: {len(recaptcha_response) if recaptcha_response else 0}")
         
         # Get user IP
         user_ip = headers.get('x-forwarded-for', '').split(',')[0].strip() if headers.get('x-forwarded-for') else None
@@ -131,8 +134,8 @@ def handle_login(data, headers):
                 'body': json.dumps({'success': False, 'message': 'Please complete the reCAPTCHA verification'})
             }
         
-        # Verify test credentials
-        if email == 'test@ieltsgenaiprep.com' and password == 'password123':
+        # CORRECT domain credentials: test@ieltsaiprep.com (not ieltsgenaiprep.com)
+        if email == 'test@ieltsaiprep.com' and password == 'password123':
             # Create session
             session_id = f"web_{int(time.time())}_{str(uuid.uuid4())[:8]}"
             
@@ -197,12 +200,10 @@ def check_session(headers):
     cookie_header = headers.get('cookie', '')
     
     if 'web_session_id=' in cookie_header:
-        # Extract session ID
         for cookie in cookie_header.split(';'):
             if 'web_session_id=' in cookie:
                 session_id = cookie.split('=')[1].strip()
                 print(f"[SESSION] Found session: {session_id}")
-                # For simplicity, any session ID is valid for 1 hour
                 return True
     
     print("[SESSION] No valid session found")
@@ -247,6 +248,7 @@ def serve_assessment_page(path, headers):
 
 def handle_api_request(path, data, headers):
     """Handle API requests"""
+    print(f"[API] Processing {path}")
     
     if path == '/api/nova-micro/submit':
         return {
@@ -1792,10 +1794,10 @@ DASHBOARD_TEMPLATE = """<!DOCTYPE html>
             <div class="col-12">
                 <h1 class="mb-4">IELTS GenAI Prep Dashboard</h1>
                 <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> Authentication Working with DynamoDB Test Credentials
+                    <i class="fas fa-check-circle"></i> Authentication Working with Correct Domain: www.ieltsaiprep.com
                 </div>
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Route 53 DNS Migration: www.ieltsgenaiprep.com (in progress)
+                    <i class="fas fa-info-circle"></i> Test credentials: test@ieltsaiprep.com / password123
                 </div>
             </div>
         </div>
@@ -1864,11 +1866,9 @@ DASHBOARD_TEMPLATE = """<!DOCTYPE html>
         
         <div class="row mt-4">
             <div class="col-12">
-                <div class="d-flex gap-2 flex-wrap">
-                    <a href="/" class="btn btn-outline-secondary">
-                        <i class="fas fa-home"></i> Back to Home
-                    </a>
-                </div>
+                <a href="/" class="btn btn-outline-secondary">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
             </div>
         </div>
     </div>
@@ -1883,10 +1883,6 @@ WRITING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
     <title>IELTS Writing Assessment - TrueScore® Technology</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .timer { position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 10px 15px; border-radius: 25px; font-weight: bold; }
-        .word-count { position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 10px 15px; border-radius: 25px; font-weight: bold; }
-    </style>
 </head>
 <body>
     <div class="container mt-4">
@@ -1894,13 +1890,9 @@ WRITING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
             <div class="col-12">
                 <h1 class="text-center mb-4">IELTS Writing Assessment</h1>
                 <div class="alert alert-primary">
-                    <i class="fas fa-robot"></i> <strong>TrueScore® Technology Active</strong> - Authentication Working
+                    <i class="fas fa-robot"></i> <strong>TrueScore® Technology Active</strong> - www.ieltsaiprep.com
                 </div>
             </div>
-        </div>
-        
-        <div class="timer">
-            <i class="fas fa-clock"></i> <span id="timer">60:00</span>
         </div>
         
         <div class="row">
@@ -1912,13 +1904,6 @@ WRITING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
                     <div class="card-body">
                         <p class="fw-bold">Some people believe that technology has made our lives easier and more convenient. Others argue that technology has created new problems and made life more complicated.</p>
                         <p class="fw-bold">Discuss both views and give your own opinion.</p>
-                        <hr>
-                        <p class="text-muted"><strong>Instructions:</strong></p>
-                        <ul class="text-muted">
-                            <li>Write at least 250 words</li>
-                            <li>You have 60 minutes to complete this task</li>
-                            <li>Address both viewpoints and provide your opinion</li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -1929,7 +1914,7 @@ WRITING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
                         <h4><i class="fas fa-pen"></i> Your Response</h4>
                     </div>
                     <div class="card-body">
-                        <textarea id="essay-text" class="form-control" rows="18" placeholder="Write your essay response here..."></textarea>
+                        <textarea id="essay-text" class="form-control" rows="15" placeholder="Write your essay response here..."></textarea>
                     </div>
                 </div>
             </div>
@@ -1942,43 +1927,13 @@ WRITING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
                 </button>
             </div>
         </div>
-        
-        <div class="word-count">
-            <i class="fas fa-font"></i> <span id="word-count">0</span> words
-        </div>
     </div>
 
     <script>
-        let timeRemaining = 3600;
-        let wordCount = 0;
-        
-        function startTimer() {
-            setInterval(() => {
-                timeRemaining--;
-                const minutes = Math.floor(timeRemaining / 60);
-                const seconds = timeRemaining % 60;
-                document.getElementById('timer').textContent = 
-                    String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-                
-                if (timeRemaining <= 0) {
-                    submitAssessment();
-                }
-            }, 1000);
-        }
-        
-        function updateWordCount() {
-            const text = document.getElementById('essay-text').value;
-            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-            wordCount = words.length;
-            document.getElementById('word-count').textContent = wordCount;
-        }
-        
         function submitAssessment() {
             const assessmentData = {
                 assessment_type: 'writing',
-                essay_text: document.getElementById('essay-text').value,
-                word_count: wordCount,
-                time_taken: 3600 - timeRemaining
+                essay_text: document.getElementById('essay-text').value
             };
             
             fetch('/api/nova-micro/submit', {
@@ -2000,9 +1955,6 @@ WRITING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
                 alert('Submission failed - please try again');
             });
         }
-        
-        document.getElementById('essay-text').addEventListener('input', updateWordCount);
-        startTimer();
     </script>
 </body>
 </html>"""
@@ -2015,11 +1967,6 @@ SPEAKING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
     <title>IELTS Speaking Assessment - ClearScore® Technology</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .timer { position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 10px 15px; border-radius: 25px; font-weight: bold; }
-        .maya-chat { border: 1px solid #ddd; height: 300px; overflow-y: auto; padding: 20px; margin: 20px 0; background: white; border-radius: 10px; }
-        .maya-message { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; margin: 10px 0; border-radius: 18px; }
-    </style>
 </head>
 <body>
     <div class="container mt-4">
@@ -2027,59 +1974,36 @@ SPEAKING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
             <div class="col-12">
                 <h1 class="text-center mb-4">IELTS Speaking Assessment</h1>
                 <div class="alert alert-info">
-                    <i class="fas fa-robot"></i> <strong>ClearScore® Technology Active</strong> - Authentication Working
+                    <i class="fas fa-robot"></i> <strong>ClearScore® Technology Active</strong> - www.ieltsaiprep.com
                 </div>
             </div>
         </div>
         
-        <div class="timer">
-            <i class="fas fa-clock"></i> <span id="timer">15:00</span>
-        </div>
-        
         <div class="row">
             <div class="col-12">
-                <div class="maya-chat" id="maya-chat">
-                    <div class="maya-message">
-                        <strong><i class="fas fa-robot"></i> Maya:</strong> Hello! I am Maya, your AI IELTS examiner. Welcome to your speaking assessment. We will begin with Part 1 - the interview section.
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4><i class="fas fa-robot"></i> Maya AI Examiner</h4>
                     </div>
-                </div>
-                
-                <div class="text-center">
-                    <button class="btn btn-success btn-lg px-5" onclick="submitAssessment()">
-                        <i class="fas fa-paper-plane"></i> Submit ClearScore® Assessment
-                    </button>
+                    <div class="card-body">
+                        <p>Hello! I am Maya, your AI IELTS examiner. Welcome to your speaking assessment.</p>
+                        <div class="text-center mt-4">
+                            <button class="btn btn-success btn-lg px-5" onclick="submitAssessment()">
+                                <i class="fas fa-paper-plane"></i> Submit ClearScore® Assessment
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let timeRemaining = 900;
-        
-        function startTimer() {
-            setInterval(() => {
-                timeRemaining--;
-                const minutes = Math.floor(timeRemaining / 60);
-                const seconds = timeRemaining % 60;
-                document.getElementById('timer').textContent = 
-                    String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-                
-                if (timeRemaining <= 0) {
-                    submitAssessment();
-                }
-            }, 1000);
-        }
-        
         function submitAssessment() {
-            const assessmentData = {
-                assessment_type: 'speaking',
-                time_taken: 900 - timeRemaining
-            };
-            
             fetch('/api/nova-sonic/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(assessmentData)
+                body: JSON.stringify({})
             })
             .then(response => response.json())
             .then(data => {
@@ -2095,8 +2019,6 @@ SPEAKING_ASSESSMENT_TEMPLATE = """<!DOCTYPE html>
                 alert('Submission failed - please try again');
             });
         }
-        
-        startTimer();
     </script>
 </body>
 </html>"""
