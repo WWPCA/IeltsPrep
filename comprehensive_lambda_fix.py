@@ -391,16 +391,7 @@ def get_comprehensive_login_html():
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        .forbidden-message {
-            background: #ffebee;
-            border: 1px solid #f8bbd9;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 20px;
-            color: #c62828;
-            text-align: center;
-            font-weight: 500;
-        }
+
         
         .form-group {
             margin-bottom: 20px;
@@ -569,10 +560,6 @@ def get_comprehensive_login_html():
             </div>
             
             <div class="login-form">
-                <div class="forbidden-message">
-                    Forbidden
-                </div>
-                
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="email" class="form-label">Email Address</label>
