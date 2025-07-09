@@ -231,8 +231,13 @@ def serve_home_page():
 
 def serve_login_page():
     """Serve login page with working reCAPTCHA and privacy links"""
+    import os
     template_b64 = "{login_b64}"
     html_content = base64.b64decode(template_b64.encode('ascii')).decode('utf-8')
+    
+    # Replace hardcoded reCAPTCHA site key with environment variable
+    recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '')
+    html_content = html_content.replace('6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix', recaptcha_site_key)
     
     return {{
         'statusCode': 200,

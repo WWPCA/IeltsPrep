@@ -242,6 +242,10 @@ def handle_login_page() -> Dict[str, Any]:
         with open('login.html', 'r', encoding='utf-8') as f:
             html_content = f.read()
         
+        # Replace hardcoded reCAPTCHA site key with environment variable
+        recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '')
+        html_content = html_content.replace('6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix', recaptcha_site_key)
+        
         return {
             'statusCode': 200,
             'headers': {
