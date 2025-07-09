@@ -1,5 +1,6 @@
 import json
 import uuid
+import os
 from datetime import datetime
 
 def validate_cloudfront_header(event):
@@ -260,7 +261,9 @@ def get_comprehensive_home_html():
         return f.read()
 
 def get_comprehensive_login_html():
-    return '''<!DOCTYPE html>
+    # Replace reCAPTCHA site key with production key
+    recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
+    login_html = '''<!DOCTYPE html>
 <html>
 <head>
 <title>Login - IELTS GenAI Prep</title>
@@ -397,7 +400,7 @@ body {
                 <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
             </div>
             <div class="mb-4">
-                <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                <div class="g-recaptcha" data-sitekey="{RECAPTCHA_V2_SITE_KEY}"></div>
             </div>
             <button type="submit" class="btn btn-primary w-100 mb-3">
                 <i class="fas fa-sign-in-alt me-2"></i>
@@ -449,6 +452,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 </script>
 </body>
 </html>'''
+    
+    # Replace the placeholder with actual site key
+    return login_html.replace('{RECAPTCHA_V2_SITE_KEY}', recaptcha_site_key)
 
 def get_comprehensive_dashboard_html():
     return '''<!DOCTYPE html>
