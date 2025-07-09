@@ -3392,7 +3392,8 @@ def handle_robots_txt() -> Dict[str, Any]:
         }
     except FileNotFoundError:
         # Fallback robots.txt content for AI crawling
-        fallback_content = '''User-agent: GPTBot
+        fallback_content = '''# AI Bot Crawlers - Explicitly Allow All Major AI Services
+User-agent: GPTBot
 Allow: /
 
 User-agent: ClaudeBot
@@ -3401,9 +3402,63 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
+User-agent: Bard
+Allow: /
+
+User-agent: Gemini
+Allow: /
+
+User-agent: PaLM
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Allow All Other Crawlers
 User-agent: *
 Allow: /
 
+# Crawl Delay (1 second between requests)
+Crawl-delay: 1
+
+# Sitemap Location
 Sitemap: https://www.ieltsgenaiprep.com/sitemap.xml'''
         
         return {
