@@ -590,18 +590,18 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {{ font-family: 'Times New Roman', serif; }}
-        .assessment-container {{ max-width: 1200px; margin: 0 auto; padding: 20px; }}
-        .question-section {{ border: 2px solid #000; padding: 20px; margin-bottom: 20px; }}
-        .answer-section {{ border: 1px solid #ccc; padding: 15px; min-height: 400px; }}
-        .timer {{ position: fixed; top: 20px; right: 20px; background: #f8f9fa; padding: 10px; border-radius: 5px; }}
-        .word-count {{ position: fixed; bottom: 20px; right: 20px; background: #f8f9fa; padding: 10px; border-radius: 5px; }}
-        .recording-controls {{ text-align: center; margin: 20px 0; }}
-        .recording-controls button {{ margin: 0 10px; }}
-        .maya-chat {{ border: 1px solid #ddd; height: 300px; overflow-y: auto; padding: 15px; margin: 20px 0; }}
-        .maya-message {{ background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 10px; }}
-        .user-message {{ background: #f3e5f5; padding: 10px; margin: 10px 0; border-radius: 10px; text-align: right; }}
-        .status-indicator {{ position: fixed; top: 60px; right: 20px; }}
+        body { font-family: 'Times New Roman', serif; }
+        .assessment-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .question-section { border: 2px solid #000; padding: 20px; margin-bottom: 20px; }
+        .answer-section { border: 1px solid #ccc; padding: 15px; min-height: 400px; }
+        .timer { position: fixed; top: 20px; right: 20px; background: #f8f9fa; padding: 10px; border-radius: 5px; }
+        .word-count { position: fixed; bottom: 20px; right: 20px; background: #f8f9fa; padding: 10px; border-radius: 5px; }
+        .recording-controls { text-align: center; margin: 20px 0; }
+        .recording-controls button { margin: 0 10px; }
+        .maya-chat { border: 1px solid #ddd; height: 300px; overflow-y: auto; padding: 15px; margin: 20px 0; }
+        .maya-message { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 10px; }
+        .user-message { background: #f3e5f5; padding: 10px; margin: 10px 0; border-radius: 10px; text-align: right; }
+        .status-indicator { position: fixed; top: 60px; right: 20px; }
     </style>
 </head>
 <body>
@@ -660,24 +660,24 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         let wordCount = 0;
         
         // Start timer
-        function startTimer() {{
-            timerInterval = setInterval(function() {{
+        function startTimer() {
+            timerInterval = setInterval(function() {
                 timeRemaining--;
                 updateTimerDisplay();
                 
-                if (timeRemaining <= 0) {{
+                if (timeRemaining <= 0) {
                     clearInterval(timerInterval);
                     submitAssessment();
-                }}
-            }}, 1000);
-        }}
+                }
+            }, 1000);
+        }
         
-        function updateTimerDisplay() {{
+        function updateTimerDisplay() {
             const minutes = Math.floor(timeRemaining / 60);
             const seconds = timeRemaining % 60;
             document.getElementById('time-display').textContent = 
                 String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-        }}
+        }
         
         // Word counting for writing assessments
         {"function updateWordCount() { const text = document.getElementById('essay-text').value; const words = text.trim().split(/\\s+/).filter(word => word.length > 0); wordCount = words.length; document.getElementById('word-count-display').textContent = wordCount; } document.getElementById('essay-text').addEventListener('input', updateWordCount);" if 'writing' in assessment_type else ""}
@@ -686,40 +686,40 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         {"let mayaConversation = []; function initializeMaya() { fetch('/api/maya/introduction', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assessment_type: '" + assessment_type + "', user_email: '" + user_email + "' }) }).then(response => response.json()).then(data => { addMayaMessage(data.message); }); } function addMayaMessage(message) { const chatDiv = document.getElementById('maya-chat'); const messageDiv = document.createElement('div'); messageDiv.className = 'maya-message'; messageDiv.innerHTML = '<strong>Maya:</strong> ' + message; chatDiv.appendChild(messageDiv); chatDiv.scrollTop = chatDiv.scrollHeight; } function startRecording() { console.log('Recording started'); } function stopRecording() { console.log('Recording stopped'); } initializeMaya();" if 'speaking' in assessment_type else ""}
         
         // Submit assessment
-        function submitAssessment() {{
-            const assessmentData = {{
+        function submitAssessment() {
+            const assessmentData = {
                 assessment_type: '{assessment_type}',
                 user_email: '{user_email}',
                 session_id: '{session_id}',
                 {"essay_text: document.getElementById('essay-text').value," if 'writing' in assessment_type else "conversation_data: mayaConversation,"}
                 time_taken: 3600 - timeRemaining,
                 word_count: wordCount
-            }};
+            };
             
-            fetch('/api/nova-micro/submit', {{
+            fetch('/api/nova-micro/submit', {
                 method: 'POST',
-                headers: {{ 'Content-Type': 'application/json' }},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(assessmentData)
-            }})
+            })
             .then(response => response.json())
-            .then(data => {{
-                if (data.success) {{
+            .then(data => {
+                if (data.success) {
                     alert('Assessment submitted successfully!');
                     window.location.href = '/dashboard';
-                }} else {{
+                } else {
                     alert('Submission failed: ' + data.error);
-                }}
-            }})
-            .catch(error => {{
+                }
+            })
+            .catch(error => {
                 console.error('Error:', error);
                 alert('Submission failed');
-            }});
-        }}
+            });
+        }
         
         // Auto-save functionality
-        setInterval(function() {{
+        setInterval(function() {
             console.log('Auto-saving assessment data...');
-        }}, 30000); // Save every 30 seconds
+        }, 30000); // Save every 30 seconds
         
         // Initialize
         startTimer();

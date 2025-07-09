@@ -165,6 +165,8 @@ def lambda_handler(event, context):
             return handle_user_login(data)
         elif path == '/' and method == 'GET':
             return handle_home_page()
+        elif path == '/robots.txt' and method == 'GET':
+            return handle_robots_txt()
         else:
             return {
                 'statusCode': 404,
@@ -3371,4 +3373,45 @@ def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({'success': False, 'message': 'Login failed'})
+        }
+
+def handle_robots_txt() -> Dict[str, Any]:
+    """Serve robots.txt for AI crawling optimization"""
+    try:
+        with open('robots.txt', 'r', encoding='utf-8') as f:
+            robots_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/plain',
+                'Cache-Control': 'public, max-age=86400',  # Cache for 24 hours
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': robots_content
+        }
+    except FileNotFoundError:
+        # Fallback robots.txt content for AI crawling
+        fallback_content = '''User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.ieltsgenaiprep.com/sitemap.xml'''
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/plain',
+                'Cache-Control': 'public, max-age=86400',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': fallback_content
         }
