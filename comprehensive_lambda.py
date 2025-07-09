@@ -95,38 +95,203 @@ def handle_login_page():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - IELTS GenAI Prep</title>
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Google reCAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            max-width: 450px;
+            width: 100%;
+        }
+        
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 12px;
+            padding: 12px 20px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .login-title {
+            background: linear-gradient(135deg, #4361ee 0%, #3651d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .login-subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-control {
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4361ee 0%, #3651d4 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+        }
+        
+        .mobile-instructions {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .mobile-instructions h5 {
+            color: #1976d2;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .mobile-instructions p {
+            color: #424242;
+            margin-bottom: 0;
+            font-size: 0.95rem;
+        }
+        
+        .recaptcha-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .test-credentials {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .test-credentials small {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                padding: 2rem;
+            }
+            
+            .login-title {
+                font-size: 2rem;
+            }
+            
+            .home-btn {
+                top: 10px;
+                left: 10px;
+                padding: 8px 16px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5">
+<body>
+    <a href="/" class="home-btn">
+        <i class="fas fa-home me-2"></i>Home
+    </a>
+    
+    <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title text-center mb-4">Login</h2>
-                        
-                        <form id="loginForm">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" required>
-                            </div>
-                            
-                            <div class="mb-3 text-center">
-                                <div class="g-recaptcha" data-sitekey="''' + recaptcha_site_key + '''"></div>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100">Sign In</button>
-                        </form>
-                        
-                        <div class="text-center mt-3">
-                            <small class="text-muted">Test: test@ieltsgenaiprep.com / Test123!</small>
+            <div class="col-md-8 col-lg-6">
+                <div class="login-container">
+                    <div class="text-center">
+                        <h1 class="login-title">Welcome Back</h1>
+                        <p class="login-subtitle">Sign in to your IELTS GenAI Prep account</p>
+                    </div>
+                    
+                    <div class="mobile-instructions">
+                        <h5><i class="fas fa-mobile-alt me-2"></i>New to IELTS GenAI Prep?</h5>
+                        <p>Download our mobile app first to purchase assessments, then return here to login with the same credentials for desktop access.</p>
+                    </div>
+                    
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" required>
                         </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        
+                        <div class="recaptcha-container">
+                            <div class="g-recaptcha" data-sitekey="''' + recaptcha_site_key + '''"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                    </form>
+                    
+                    <div class="test-credentials">
+                        <small>
+                            <strong>Test Credentials:</strong><br>
+                            Email: test@ieltsgenaiprep.com<br>
+                            Password: Test123!
+                        </small>
                     </div>
                 </div>
             </div>
@@ -140,6 +305,11 @@ def handle_login_page():
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const recaptchaResponse = grecaptcha.getResponse();
+        
+        if (!recaptchaResponse) {
+            alert('Please complete the reCAPTCHA verification');
+            return;
+        }
         
         try {
             const response = await fetch('/api/login', {
