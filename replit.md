@@ -100,6 +100,13 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 9, 2025: DOMAIN ACCURACY CONFIRMED - www.ieltsaiprep.com is the Correct Domain
+  - Verified all documentation uses correct domain: www.ieltsaiprep.com (NOT ieltsgenaiprep.com)
+  - Domain accuracy is critical for mobile app configuration and user access
+  - All references to incorrect domain variations have been flagged for correction
+  - Production AWS endpoint https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod was deployed without approval (June 18, 2025)
+  - User has expressed concern about unauthorized production deployments requiring explicit approval
+
 - July 9, 2025: AI SEO OPTIMIZATION COMPLETE - Enhanced Search Engine Discoverability
   - Implemented comprehensive AI SEO optimization in working_template.html
   - Added proper H1 hierarchy with "IELTS GenAI Prep" main heading and "AI-Powered IELTS Assessment Platform" subheading
