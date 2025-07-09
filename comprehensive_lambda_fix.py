@@ -563,7 +563,7 @@ def get_comprehensive_login_html():
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="email" placeholder="prodtest_20250709_175130_i1m2@ieltsaiprep.com" required>
+                        <input type="email" class="form-control" id="email" placeholder="Enter your email address" required>
                     </div>
                     
                     <div class="form-group">
