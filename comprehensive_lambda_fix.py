@@ -7,21 +7,29 @@ def validate_cloudfront_header(event):
     headers = event.get('headers', {})
     host = headers.get('host', '').lower()
     
+    # Debug logging to understand what headers we receive
+    print(f"Headers received: {json.dumps(headers, indent=2)}")
+    
     # Allow www.ieltsaiprep.com (CloudFront) - main domain
     if 'ieltsaiprep.com' in host:
         return None
     
-    # Check for CloudFront secret header
-    if headers.get('cf-secret') == 'CF-Secret-3140348d':
-        return None
+    # Check for CloudFront secret header (case insensitive)
+    for header_name, header_value in headers.items():
+        if header_name.lower() == 'cf-secret' and header_value == 'CF-Secret-3140348d':
+            return None
     
-    # Temporary DNS transfer fix: Allow CloudFront requests during domain migration
-    # This bypasses cache behavior issues during Route 53 transfer
-    cf_id = headers.get('x-amz-cf-id')
-    if cf_id:  # Request is coming through CloudFront
-        return None
+    # Check for CloudFront ID header (case insensitive)
+    for header_name, header_value in headers.items():
+        if 'cf-id' in header_name.lower() and header_value:
+            return None  # Request came through CloudFront
     
-    # Block direct API Gateway access with proper message
+    # Check for Via header containing CloudFront (case insensitive)
+    for header_name, header_value in headers.items():
+        if header_name.lower() == 'via' and 'cloudfront' in header_value.lower():
+            return None
+    
+    # Block direct API Gateway access
     if 'execute-api' in host:
         return {
             'statusCode': 403,
@@ -29,7 +37,7 @@ def validate_cloudfront_header(event):
             'body': 'Direct access not allowed'
         }
     
-    # Allow all other requests (temporary fix for CloudFront header issue)
+    # Allow all other requests
     return None
 
 def lambda_handler(event, context):
