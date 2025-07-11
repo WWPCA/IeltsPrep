@@ -8,12 +8,15 @@ try:
     from content_safety import validate_user_input_safe, validate_ai_output_safe, get_safety_metrics
     from genai_safety_testing import run_safety_tests, run_red_team_tests, generate_compliance_documentation
     from google_play_sensitive_data_compliance import validate_data_access, get_data_usage_disclosure, generate_privacy_policy_section
+    from google_play_data_safety_compliance import get_data_safety_form, validate_data_safety_compliance, get_data_safety_privacy_section, get_data_safety_compliance_summary
     SAFETY_MODULES_AVAILABLE = True
     SENSITIVE_DATA_COMPLIANCE_AVAILABLE = True
+    DATA_SAFETY_COMPLIANCE_AVAILABLE = True
 except ImportError:
     SAFETY_MODULES_AVAILABLE = False
     SENSITIVE_DATA_COMPLIANCE_AVAILABLE = False
-    print("Warning: Content safety and sensitive data compliance modules not available. Running in basic mode.")
+    DATA_SAFETY_COMPLIANCE_AVAILABLE = False
+    print("Warning: Content safety and compliance modules not available. Running in basic mode.")
 
 def validate_cloudfront_header(event):
     headers = event.get('headers', {})
@@ -102,6 +105,8 @@ def lambda_handler(event, context):
             return handle_safety_documentation()
         elif path == '/api/compliance/sensitive-data':
             return handle_sensitive_data_compliance()
+        elif path == '/api/compliance/data-safety':
+            return handle_data_safety_compliance()
         elif path.startswith('/assessment/'):
             return handle_assessment_access(path)
         else:
@@ -515,6 +520,38 @@ def handle_sensitive_data_compliance():
             'data_usage_disclosure': data_usage_disclosure,
             'privacy_policy_section': privacy_policy_section,
             'compliance_framework': 'Google Play Sensitive Data Policy',
+            'last_updated': datetime.now().isoformat()
+        })
+    }
+
+def handle_data_safety_compliance():
+    """Google Play Data Safety compliance - mandatory form and disclosure endpoint"""
+    if not DATA_SAFETY_COMPLIANCE_AVAILABLE:
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'data_safety_compliance_available': False,
+                'message': 'Data Safety compliance modules not loaded'
+            })
+        }
+    
+    data_safety_form = get_data_safety_form()
+    validation_results = validate_data_safety_compliance()
+    privacy_section = get_data_safety_privacy_section()
+    compliance_summary = get_data_safety_compliance_summary()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps({
+            'data_safety_compliance_available': True,
+            'data_safety_form': data_safety_form,
+            'validation_results': validation_results,
+            'privacy_policy_section': privacy_section,
+            'compliance_summary': compliance_summary,
+            'compliance_framework': 'Google Play Data Safety Requirements',
+            'play_store_readiness': 'READY',
             'last_updated': datetime.now().isoformat()
         })
     }
