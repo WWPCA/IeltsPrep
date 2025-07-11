@@ -3,6 +3,15 @@ import uuid
 import os
 from datetime import datetime
 
+# Import content safety modules for Google Play GenAI compliance
+try:
+    from content_safety import validate_user_input_safe, validate_ai_output_safe, get_safety_metrics
+    from genai_safety_testing import run_safety_tests, run_red_team_tests, generate_compliance_documentation
+    SAFETY_MODULES_AVAILABLE = True
+except ImportError:
+    SAFETY_MODULES_AVAILABLE = False
+    print("Warning: Content safety modules not available. Running in basic mode.")
+
 def validate_cloudfront_header(event):
     headers = event.get('headers', {})
     host = headers.get('host', '').lower()
@@ -82,6 +91,12 @@ def lambda_handler(event, context):
             return handle_profile_page()
         elif path == '/robots.txt':
             return handle_robots_txt()
+        elif path == '/api/safety/metrics':
+            return handle_safety_metrics()
+        elif path == '/api/safety/test':
+            return handle_safety_testing()
+        elif path == '/api/safety/documentation':
+            return handle_safety_documentation()
         elif path.startswith('/assessment/'):
             return handle_assessment_access(path)
         else:
@@ -216,52 +231,136 @@ def handle_health_check():
     }
 
 def handle_maya_introduction(data):
+    # Google Play GenAI compliance - validate and filter AI output
+    maya_response = 'Hello! I am Maya, your AI IELTS speaking examiner. Let us begin with Part 1.'
+    
+    if SAFETY_MODULES_AVAILABLE:
+        is_safe, sanitized_response, safety_report = validate_ai_output_safe(maya_response, 'maya_conversation')
+        if not is_safe:
+            maya_response = sanitized_response
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json'},
         'body': json.dumps({
             'success': True,
-            'maya_response': 'Hello! I am Maya, your AI IELTS speaking examiner. Let us begin with Part 1.',
-            'current_part': 1
+            'maya_response': maya_response,
+            'current_part': 1,
+            'safety_validated': SAFETY_MODULES_AVAILABLE
         })
     }
 
 def handle_maya_conversation(data):
+    # Google Play GenAI compliance - validate user input and AI output
+    user_input = data.get('user_response', '')
+    
+    if SAFETY_MODULES_AVAILABLE and user_input:
+        is_safe, sanitized_input, safety_report = validate_user_input_safe(user_input, 'speaking')
+        if not is_safe:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Content safety violation detected',
+                    'maya_response': 'I apologize, but I need to keep our conversation focused on the IELTS speaking assessment. Let us continue with appropriate assessment content.',
+                    'safety_blocked': True
+                })
+            }
+    
+    # Generate Maya response (in production, this would use Nova Sonic)
+    maya_response = 'Thank you for sharing. Let us continue.'
+    
+    if SAFETY_MODULES_AVAILABLE:
+        is_safe, sanitized_response, safety_report = validate_ai_output_safe(maya_response, 'maya_conversation')
+        if not is_safe:
+            maya_response = sanitized_response
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json'},
         'body': json.dumps({
             'success': True,
-            'maya_response': 'Thank you for sharing. Let us continue.',
-            'assessment_progress': 'Part 1 continuing'
+            'maya_response': maya_response,
+            'assessment_progress': 'Part 1 continuing',
+            'safety_validated': SAFETY_MODULES_AVAILABLE
         })
     }
 
 def handle_nova_micro_writing(data):
+    # Google Play GenAI compliance - validate user writing input
+    user_writing = data.get('writing_content', '')
+    
+    if SAFETY_MODULES_AVAILABLE and user_writing:
+        is_safe, sanitized_writing, safety_report = validate_user_input_safe(user_writing, 'writing')
+        if not is_safe:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Content safety violation detected',
+                    'message': 'Please ensure your writing relates to the IELTS assessment task and contains appropriate content.',
+                    'safety_blocked': True
+                })
+            }
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json'},
         'body': json.dumps({
             'success': True,
-            'message': 'Nova Micro processing with TrueScore technology'
+            'message': 'Nova Micro processing with TrueScore technology',
+            'safety_validated': SAFETY_MODULES_AVAILABLE
         })
     }
 
 def handle_nova_micro_submit(data):
+    # Google Play GenAI compliance - validate user submission and AI feedback
+    user_submission = data.get('final_submission', '')
+    
+    if SAFETY_MODULES_AVAILABLE and user_submission:
+        is_safe, sanitized_submission, safety_report = validate_user_input_safe(user_submission, 'writing')
+        if not is_safe:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Content safety violation in submission',
+                    'message': 'Your submission contains inappropriate content. Please revise and resubmit.',
+                    'safety_blocked': True
+                })
+            }
+    
+    # Generate assessment feedback (in production, this would use Nova Micro)
+    assessment_feedback = {
+        'message': 'Assessment submitted successfully',
+        'assessment_id': str(uuid.uuid4()),
+        'overall_band': 7.5,
+        'criteria_breakdown': {
+            'task_achievement': 7.0,
+            'coherence_cohesion': 8.0,
+            'lexical_resource': 7.5,
+            'grammar_accuracy': 7.5
+        },
+        'detailed_feedback': 'Your writing demonstrates good understanding of the task with coherent structure and appropriate vocabulary usage.'
+    }
+    
+    # Validate AI-generated feedback
+    if SAFETY_MODULES_AVAILABLE:
+        feedback_text = assessment_feedback['detailed_feedback']
+        is_safe, sanitized_feedback, safety_report = validate_ai_output_safe(feedback_text, 'writing')
+        if not is_safe:
+            assessment_feedback['detailed_feedback'] = sanitized_feedback
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json'},
         'body': json.dumps({
             'success': True,
-            'message': 'Assessment submitted successfully',
-            'assessment_id': str(uuid.uuid4()),
-            'overall_band': 7.5,
-            'criteria_breakdown': {
-                'task_achievement': 7.0,
-                'coherence_cohesion': 8.0,
-                'lexical_resource': 7.5,
-                'grammar_accuracy': 7.5
-            }
+            **assessment_feedback,
+            'safety_validated': SAFETY_MODULES_AVAILABLE
         })
     }
 
@@ -270,6 +369,81 @@ def handle_robots_txt():
         'statusCode': 200,
         'headers': {'Content-Type': 'text/plain'},
         'body': 'User-agent: *\nAllow: /\nDisallow: /api/\n\n# AI Crawlers\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\nUser-agent: Google-Extended\nAllow: /'
+    }
+
+def handle_safety_metrics():
+    """Google Play GenAI compliance - safety metrics endpoint"""
+    if not SAFETY_MODULES_AVAILABLE:
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'safety_modules_available': False,
+                'message': 'Safety modules not loaded'
+            })
+        }
+    
+    metrics = get_safety_metrics()
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps({
+            'safety_modules_available': True,
+            'metrics': metrics,
+            'compliance_status': 'ACTIVE'
+        })
+    }
+
+def handle_safety_testing():
+    """Google Play GenAI compliance - safety testing endpoint"""
+    if not SAFETY_MODULES_AVAILABLE:
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'safety_modules_available': False,
+                'message': 'Safety testing modules not loaded'
+            })
+        }
+    
+    # Run comprehensive safety tests
+    safety_results = run_safety_tests()
+    red_team_results = run_red_team_tests()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps({
+            'safety_modules_available': True,
+            'safety_testing_results': safety_results,
+            'red_team_results': red_team_results,
+            'compliance_status': 'TESTED'
+        })
+    }
+
+def handle_safety_documentation():
+    """Google Play GenAI compliance - safety documentation endpoint"""
+    if not SAFETY_MODULES_AVAILABLE:
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'safety_modules_available': False,
+                'message': 'Safety documentation modules not loaded'
+            })
+        }
+    
+    documentation = generate_compliance_documentation()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps({
+            'safety_modules_available': True,
+            'documentation': documentation,
+            'compliance_framework': 'Google Play GenAI Policy',
+            'last_updated': datetime.now().isoformat()
+        })
     }
 
 def get_comprehensive_home_html():
