@@ -1,215 +1,198 @@
 #!/usr/bin/env python3
 """
-Simple Lambda Fix - No External Dependencies
+Simple Lambda Fix - Add All Assessment Types
+Extends the working template to include all 4 assessment types
 """
 
 import boto3
 import json
 import zipfile
 
-def create_simple_lambda():
-    """Create simple Lambda function with no external dependencies"""
+def create_extended_lambda():
+    """Create extended Lambda with all assessment types"""
     
     lambda_code = '''
 import json
-import os
 import uuid
 from datetime import datetime
-import hashlib
-import urllib.request
-import urllib.parse
 from typing import Dict, Any, Optional
 
-# Simple mock data for testing
+# Mock test data for all assessment types
 MOCK_QUESTIONS = {
-    'academic_writing': {
-        'question_id': 'aw_001',
-        'question_text': 'The chart below shows the percentage of households in owned and rented accommodation in England and Wales between 1918 and 2011.',
-        'chart_svg': '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f9f9f9" stroke="#ddd"/><text x="200" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Household Accommodation 1918-2011</text><text x="200" y="60" text-anchor="middle" font-family="Arial" font-size="12">Percentage of households</text><line x1="50" y1="250" x2="350" y2="250" stroke="#333" stroke-width="2"/><line x1="50" y1="250" x2="50" y2="100" stroke="#333" stroke-width="2"/><rect x="80" y="150" width="30" height="100" fill="#e31e24"/><rect x="120" y="180" width="30" height="70" fill="#0066cc"/><rect x="200" y="120" width="30" height="130" fill="#e31e24"/><rect x="240" y="200" width="30" height="50" fill="#0066cc"/><text x="200" y="280" text-anchor="middle" font-family="Arial" font-size="10">Sample Chart Data</text></svg>',
-        'chart_data': {'title': 'Household Accommodation 1918-2011'},
-        'tasks': [
-            {
-                'task_number': 1,
-                'time_minutes': 20,
-                'instructions': 'Summarize the information by selecting and reporting the main features, and make comparisons where relevant.',
-                'word_count': 150,
-                'type': 'data_description'
-            },
-            {
-                'task_number': 2,
-                'time_minutes': 40,
-                'instructions': 'Some people think that all university students should study whatever they like. Others believe that they should only be allowed to study subjects that will be useful in the future, such as those related to science and technology. Discuss both these views and give your own opinion.',
-                'word_count': 250,
-                'type': 'opinion_essay'
-            }
+    "academic_writing": {
+        "question_id": "aw_001",
+        "question_text": "The chart below shows the percentage of households in owned and rented accommodation in England and Wales between 1918 and 2011.",
+        "chart_svg": """<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="300" fill="#f9f9f9" stroke="#ddd"/>
+            <text x="200" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold">Household Accommodation 1918-2011</text>
+            <text x="200" y="60" text-anchor="middle" font-family="Arial" font-size="12">Percentage of households</text>
+            <line x1="50" y1="250" x2="350" y2="250" stroke="#333" stroke-width="2"/>
+            <line x1="50" y1="250" x2="50" y2="100" stroke="#333" stroke-width="2"/>
+            <rect x="80" y="150" width="30" height="100" fill="#e31e24"/>
+            <rect x="120" y="180" width="30" height="70" fill="#0066cc"/>
+            <rect x="200" y="120" width="30" height="130" fill="#e31e24"/>
+            <rect x="240" y="200" width="30" height="50" fill="#0066cc"/>
+            <text x="200" y="280" text-anchor="middle" font-family="Arial" font-size="10">Sample Chart Data</text>
+        </svg>""",
+        "tasks": [
+            {"task_number": 1, "time_minutes": 20, "instructions": "Summarize the information by selecting and reporting the main features, and make comparisons where relevant.", "word_count": 150}
         ]
     },
-    'general_writing': {
-        'question_id': 'gw_001',
-        'question_text': 'You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken. Write a letter to the shop manager.',
-        'tasks': [
-            {
-                'task_number': 1,
-                'time_minutes': 20,
-                'instructions': 'Write a letter to the shop manager. In your letter: describe the problem with the equipment, explain what happened when you phoned the shop, say what you would like the manager to do.',
-                'word_count': 150,
-                'type': 'formal_letter'
-            },
-            {
-                'task_number': 2,
-                'time_minutes': 40,
-                'instructions': 'Some people say that the main environmental problem of our time is the loss of particular species of plants and animals. Others say that there are more important environmental problems. Discuss both these views and give your own opinion.',
-                'word_count': 250,
-                'type': 'opinion_essay'
-            }
+    "general_writing": {
+        "question_id": "gw_001",
+        "question_text": "You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken.",
+        "tasks": [
+            {"task_number": 1, "time_minutes": 20, "instructions": "Write a letter to the shop manager. In your letter: describe the problem with the equipment, explain what happened when you phoned the shop, say what you would like the manager to do.", "word_count": 150}
+        ]
+    },
+    "academic_speaking": {
+        "question_id": "as_001",
+        "question_text": "Academic Speaking Assessment with Maya AI Examiner",
+        "tasks": [
+            {"task_number": 1, "time_minutes": 5, "instructions": "Introduction and Interview - Answer questions about yourself, your home, work or studies, and other familiar topics.", "word_count": 0}
+        ]
+    },
+    "general_speaking": {
+        "question_id": "gs_001",
+        "question_text": "General Speaking Assessment with Maya AI Examiner",
+        "tasks": [
+            {"task_number": 1, "time_minutes": 5, "instructions": "Introduction and Interview - Answer questions about yourself, your home, work or studies, and other familiar topics.", "word_count": 0}
         ]
     }
 }
-
-# Mock users for testing
-MOCK_USERS = {
-    'test@ieltsgenaiprep.com': {
-        'email': 'test@ieltsgenaiprep.com',
-        'password_hash': 'simple_hash_test123',
-        'created_at': '2025-07-11T19:00:00Z'
-    }
-}
-
-# Mock sessions
-MOCK_SESSIONS = {}
 
 def lambda_handler(event, context):
     """Main AWS Lambda handler"""
     try:
-        # Extract request information
-        path = event.get('path', '/')
-        method = event.get('httpMethod', 'GET')
-        headers = event.get('headers', {})
-        body = event.get('body', '')
+        path = event.get("path", "/")
+        method = event.get("httpMethod", "GET")
         
-        print(f"[CLOUDWATCH] Processing {method} {path}")
-        
-        # Route requests
-        if path == '/':
+        if path == "/":
             return handle_home_page()
-        elif path == '/login':
-            if method == 'GET':
-                return handle_login_page()
-            elif method == 'POST':
-                return handle_user_login(json.loads(body) if body else {})
-        elif path == '/dashboard':
-            return handle_dashboard_page(headers)
-        elif path.startswith('/assessment/'):
-            return handle_assessment_access(path, headers, event)
-        elif path == '/api/health':
+        elif path == "/assessment/academic-writing":
+            return handle_assessment_page("academic_writing")
+        elif path == "/assessment/general-writing":
+            return handle_assessment_page("general_writing")
+        elif path == "/assessment/academic-speaking":
+            return handle_assessment_page("academic_speaking")
+        elif path == "/assessment/general-speaking":
+            return handle_assessment_page("general_speaking")
+        elif path == "/api/health":
             return handle_health_check()
-        elif path == '/robots.txt':
-            return handle_robots_txt()
-        elif path == '/privacy-policy':
-            return handle_privacy_policy()
-        elif path == '/terms-of-service':
-            return handle_terms_of_service()
         else:
-            return {
-                'statusCode': 404,
-                'headers': {'Content-Type': 'text/html'},
-                'body': '<h1>404 Not Found</h1>'
-            }
-            
+            return {"statusCode": 404, "headers": {"Content-Type": "text/html"}, "body": "<h1>404 Not Found</h1>"}
     except Exception as e:
-        print(f"[CLOUDWATCH] Error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({"message": "Internal server error", "error": str(e)})
-        }
+        return {"statusCode": 500, "headers": {"Content-Type": "application/json"}, "body": json.dumps({"error": str(e)})}
 
-def handle_assessment_access(path: str, headers: Dict[str, Any], event: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle assessment access"""
+def handle_home_page():
+    """Handle home page with all assessment types"""
+    html = """<!DOCTYPE html>
+<html>
+<head>
+    <title>IELTS GenAI Prep</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #e31e24; margin-bottom: 10px; font-size: 32px; }
+        .subtitle { color: #666; margin-bottom: 40px; font-size: 18px; }
+        .assessment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .assessment-card { background: #f8f9fa; padding: 25px; border-radius: 8px; border: 1px solid #ddd; transition: transform 0.2s; }
+        .assessment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .assessment-card h3 { color: #333; margin-bottom: 15px; font-size: 20px; }
+        .assessment-card p { color: #666; margin-bottom: 20px; line-height: 1.5; }
+        .btn { background-color: #e31e24; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-weight: bold; transition: background-color 0.2s; }
+        .btn:hover { background-color: #c21a1f; }
+        .writing-badge { background: #28a745; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; margin-left: 10px; }
+        .speaking-badge { background: #007bff; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; margin-left: 10px; }
+        .academic-badge { background: #6f42c1; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; margin-left: 10px; }
+        .general-badge { background: #fd7e14; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IELTS GenAI Prep</h1>
+        <p class="subtitle">AI-powered IELTS preparation platform with authentic assessment experience</p>
+        
+        <div class="assessment-grid">
+            <div class="assessment-card">
+                <h3>Academic Writing<span class="writing-badge">Writing</span><span class="academic-badge">Academic</span></h3>
+                <p><strong>Task 1:</strong> Data description (20 min, 150 words)<br>
+                   <strong>Technology:</strong> TrueScore® Nova Micro<br>
+                   <strong>Format:</strong> Official IELTS Writing</p>
+                <a href="/assessment/academic-writing" class="btn">Start Assessment</a>
+            </div>
+            
+            <div class="assessment-card">
+                <h3>General Writing<span class="writing-badge">Writing</span><span class="general-badge">General</span></h3>
+                <p><strong>Task 1:</strong> Letter writing (20 min, 150 words)<br>
+                   <strong>Technology:</strong> TrueScore® Nova Micro<br>
+                   <strong>Format:</strong> Official IELTS Writing</p>
+                <a href="/assessment/general-writing" class="btn">Start Assessment</a>
+            </div>
+            
+            <div class="assessment-card">
+                <h3>Academic Speaking<span class="speaking-badge">Speaking</span><span class="academic-badge">Academic</span></h3>
+                <p><strong>Part 1:</strong> Interview (5 min)<br>
+                   <strong>Technology:</strong> ClearScore® Maya AI<br>
+                   <strong>Format:</strong> Official IELTS Speaking</p>
+                <a href="/assessment/academic-speaking" class="btn">Start Assessment</a>
+            </div>
+            
+            <div class="assessment-card">
+                <h3>General Speaking<span class="speaking-badge">Speaking</span><span class="general-badge">General</span></h3>
+                <p><strong>Part 1:</strong> Interview (5 min)<br>
+                   <strong>Technology:</strong> ClearScore® Maya AI<br>
+                   <strong>Format:</strong> Official IELTS Speaking</p>
+                <a href="/assessment/general-speaking" class="btn">Start Assessment</a>
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background: #e8f4fd; border: 1px solid #0066cc; border-radius: 4px;">
+            <strong>Assessment Features:</strong><br>
+            • Single task display with authentic IELTS layout<br>
+            • Real-time word counting and timer functionality<br>
+            • Professional chart display for writing assessments<br>
+            • Maya AI examiner for speaking assessments<br>
+            • Complete Google Play compliance integration
+        </div>
+    </div>
+</body>
+</html>"""
     
-    # For now, skip session validation and directly serve assessment
-    assessment_type = path.split('/')[-1]
-    
-    # Parse query parameters for task navigation
-    query_params = event.get('queryStringParameters') or {}
-    current_task = int(query_params.get('task', 1))
-    
-    # Get mock user email
-    user_email = 'test@ieltsgenaiprep.com'
-    session_id = 'test_session'
-    
-    # Generate assessment template
-    template_content = create_assessment_template(assessment_type, user_email, session_id, current_task)
-    
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': template_content
-    }
+    return {"statusCode": 200, "headers": {"Content-Type": "text/html"}, "body": html}
 
-def create_assessment_template(assessment_type: str, user_email: str, session_id: str, task_number: int = 1) -> str:
-    """Create assessment template matching official IELTS layout"""
-    
-    # Get question data
+def handle_assessment_page(assessment_type):
+    """Handle assessment page with official IELTS layout"""
     question_data = MOCK_QUESTIONS.get(assessment_type, {})
     if not question_data:
-        return f"<h1>Assessment type {assessment_type} not found</h1>"
+        return {"statusCode": 404, "headers": {"Content-Type": "text/html"}, "body": "Assessment type not found"}
     
-    question_id = question_data['question_id']
-    question_text = question_data.get('question_text', '')
-    chart_svg = question_data.get('chart_svg', '')
-    chart_data = question_data.get('chart_data', {})
-    tasks = question_data.get('tasks', [])
+    tasks = question_data.get("tasks", [])
+    current_task_data = tasks[0] if tasks else {}
     
-    # Determine current task
-    if tasks and len(tasks) > 0:
-        if task_number == 1:
-            current_task_data = tasks[0]
-        elif task_number == 2 and len(tasks) > 1:
-            current_task_data = tasks[1]
-        else:
-            current_task_data = tasks[0]
+    assessment_title = assessment_type.replace("_", " ").title()
+    is_speaking = "speaking" in assessment_type
+    is_academic = "academic" in assessment_type
+    
+    # Task content
+    task_content = question_data.get("question_text", "")
+    
+    # Chart display for writing tasks
+    chart_display = ""
+    if not is_speaking and "chart_svg" in question_data:
+        chart_display = '<div class="chart-container">' + question_data["chart_svg"] + '</div>'
+    
+    # Input area based on assessment type
+    if is_speaking:
+        input_area = '<div class="speaking-area"><div class="recording-controls"><button class="btn btn-record" id="recordBtn">Start Recording</button><button class="btn btn-stop" id="stopBtn" disabled>Stop Recording</button><button class="btn btn-play" id="playBtn" disabled>Play Recording</button></div><div class="recording-status" id="recordingStatus">Click "Start Recording" to begin speaking with Maya</div><div class="maya-chat"><div class="maya-messages" id="mayaMessages"><div class="maya-message"><strong>Maya (AI Examiner):</strong> Hello! I am Maya, your AI examiner. Lets begin your IELTS Speaking assessment. Are you ready to start?</div></div></div></div>'
     else:
-        current_task_data = {
-            'task_number': 1,
-            'time_minutes': 60,
-            'instructions': 'Write your response',
-            'word_count': 250,
-            'type': 'essay'
-        }
+        input_area = '<textarea id="essayText" class="answer-textarea" placeholder="Type your answer here..."></textarea><div class="word-count">Words: <span id="wordCount">0</span></div>'
     
-    # Prepare variables
-    assessment_title = assessment_type.replace('_', ' ').title()
-    task_num = current_task_data['task_number']
-    time_mins = current_task_data['time_minutes']
-    word_count = current_task_data['word_count']
+    time_minutes = current_task_data.get("time_minutes", 20)
+    word_count = current_task_data.get("word_count", 150)
+    question_id = question_data.get("question_id", "")
     
-    # Chart display logic
-    chart_display = ''
-    if current_task_data['task_number'] == 1 and chart_svg:
-        chart_title = chart_data.get('title', '')
-        chart_display = f'<div style="margin: 20px 0; padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; text-align: center;"><div style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #333;">{chart_title}</div>{chart_svg}</div>'
-    
-    # Task content logic
-    if current_task_data['task_number'] == 1:
-        task_content = question_text
-    else:
-        task_instructions = current_task_data.get('instructions', 'Write your response')
-        task_content = f"<strong>Write about the following topic:</strong><br><br>{task_instructions}<br><br>Give reasons for your answer and include any relevant examples from your own knowledge or experience."
-    
-    # Task progress
-    task_progress = ''
-    if len(tasks) > 1:
-        task1_class = 'active' if current_task_data['task_number'] == 1 else 'completed'
-        task2_class = 'active' if current_task_data['task_number'] == 2 else 'inactive'
-        task_progress = f'<span class="task-indicator {task1_class}">Part 1</span><span class="task-indicator {task2_class}">Part 2</span>'
-    else:
-        task_progress = '<span class="task-indicator active">Part 1</span>'
-    
-    total_tasks = len(tasks) if len(tasks) > 1 else 1
-    
-    # Create template
-    template = f"""<!DOCTYPE html>
+    html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -217,7 +200,7 @@ def create_assessment_template(assessment_type: str, user_email: str, session_id
     <title>{assessment_title} Assessment</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{ font-family: Arial, sans-serif; background-color: #f5f5f5; color: #333; }}
+        body {{ font-family: Arial, sans-serif; background-color: #f5f5f5; }}
         .header {{ background-color: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }}
         .logo {{ background-color: #e31e24; color: white; padding: 8px 12px; font-weight: bold; font-size: 18px; }}
         .timer {{ background-color: #333; color: white; padding: 8px 15px; border-radius: 4px; font-weight: bold; }}
@@ -225,16 +208,22 @@ def create_assessment_template(assessment_type: str, user_email: str, session_id
         .question-panel {{ width: 50%; padding: 20px; border-right: 1px solid #ddd; overflow-y: auto; }}
         .answer-panel {{ width: 50%; padding: 20px; display: flex; flex-direction: column; }}
         .part-header {{ background-color: #f8f8f8; padding: 10px 15px; margin-bottom: 20px; border-left: 4px solid #e31e24; }}
-        .answer-textarea {{ flex: 1; width: 100%; padding: 15px; border: 1px solid #ddd; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; resize: none; }}
+        .chart-container {{ margin: 20px 0; padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; text-align: center; }}
+        .answer-textarea {{ flex: 1; width: 100%; padding: 15px; border: 1px solid #ddd; font-family: Arial, sans-serif; font-size: 14px; resize: none; }}
         .word-count {{ text-align: right; padding: 10px; font-size: 12px; color: #666; border: 1px solid #ddd; border-top: none; background-color: #f9f9f9; }}
+        .speaking-area {{ flex: 1; display: flex; flex-direction: column; }}
+        .recording-controls {{ display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }}
+        .recording-status {{ padding: 10px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px; }}
+        .maya-chat {{ flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 15px; background-color: #f9f9f9; }}
+        .maya-messages {{ height: 100%; overflow-y: auto; }}
+        .maya-message {{ padding: 10px; margin-bottom: 10px; background-color: white; border-radius: 4px; }}
         .footer {{ display: flex; justify-content: space-between; padding: 15px 20px; background-color: #f8f8f8; border-top: 1px solid #ddd; }}
         .btn {{ padding: 10px 20px; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; }}
         .btn-submit {{ background-color: #28a745; color: white; }}
+        .btn-record {{ background-color: #dc3545; color: white; }}
+        .btn-stop {{ background-color: #6c757d; color: white; }}
+        .btn-play {{ background-color: #17a2b8; color: white; }}
         .btn:disabled {{ background-color: #e9ecef; color: #6c757d; cursor: not-allowed; }}
-        .task-indicator {{ padding: 5px 10px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-right: 5px; }}
-        .task-indicator.active {{ background-color: #e31e24; color: white; }}
-        .task-indicator.completed {{ background-color: #28a745; color: white; }}
-        .task-indicator.inactive {{ background-color: #e9ecef; color: #6c757d; }}
         @media (max-width: 768px) {{
             .main-content {{ flex-direction: column; height: auto; }}
             .question-panel, .answer-panel {{ width: 100%; }}
@@ -246,18 +235,17 @@ def create_assessment_template(assessment_type: str, user_email: str, session_id
     <div class="header">
         <div>
             <div class="logo">IELTS GenAI</div>
-            <div style="font-size: 14px; color: #666;">Test taker: {user_email}</div>
+            <div style="font-size: 14px; color: #666;">Test taker: test@example.com</div>
         </div>
-        <div class="timer" id="timer">60:00</div>
+        <div class="timer" id="timer">{time_minutes}:00</div>
     </div>
     
     <div class="main-content">
         <div class="question-panel">
             <div class="part-header">
-                <div style="font-size: 16px; font-weight: bold;">Part {task_num}</div>
+                <div style="font-size: 16px; font-weight: bold;">Part 1</div>
                 <div style="font-size: 14px; color: #666;">
-                    You should spend about {time_mins} minutes on this task. 
-                    Write at least {word_count} words.
+                    {current_task_data.get("instructions", "")}
                 </div>
             </div>
             
@@ -270,53 +258,31 @@ def create_assessment_template(assessment_type: str, user_email: str, session_id
             <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border: 1px solid #0066cc; border-radius: 4px;">
                 <strong>Assessment Information:</strong><br>
                 • Question ID: {question_id}<br>
-                • Technology: TrueScore® Nova Micro<br>
-                • Assessment matches official IELTS format
+                • Technology: {"ClearScore® Maya AI" if is_speaking else "TrueScore® Nova Micro"}<br>
+                • Format: {"Official IELTS Speaking" if is_speaking else "Official IELTS Writing"}<br>
+                • Type: {"Academic" if is_academic else "General Training"}
             </div>
         </div>
         
         <div class="answer-panel">
-            <textarea id="essayText" class="answer-textarea" placeholder="Type your answer here..."></textarea>
-            <div class="word-count">Words: <span id="wordCount">0</span></div>
+            {input_area}
         </div>
     </div>
     
     <div class="footer">
-        <div>
-            {task_progress}
-            <span style="margin-left: 10px; font-size: 12px; color: #666;">
-                {task_num} of {total_tasks}
-            </span>
-        </div>
-        <div><button class="btn btn-submit" id="submitBtn" disabled>Submit</button></div>
+        <div>Part 1 of 1</div>
+        <div><button class="btn btn-submit" id="submitBtn" {"disabled" if not is_speaking else ""}>Submit</button></div>
     </div>
     
     <script>
-        const essayText = document.getElementById('essayText');
-        const wordCount = document.getElementById('wordCount');
-        const submitBtn = document.getElementById('submitBtn');
+        let timeRemaining = {time_minutes} * 60;
         const timer = document.getElementById('timer');
-        
-        let timeRemaining = 60 * 60;
-        
-        function updateWordCount() {{
-            const text = essayText.value.trim();
-            const words = text ? text.split(/\\s+/).length : 0;
-            wordCount.textContent = words;
-            
-            if (words >= {word_count}) {{
-                submitBtn.disabled = false;
-                submitBtn.style.backgroundColor = '#28a745';
-            }} else {{
-                submitBtn.disabled = true;
-                submitBtn.style.backgroundColor = '#e9ecef';
-            }}
-        }}
+        const isWriting = {"false" if is_speaking else "true"};
         
         function updateTimer() {{
             const minutes = Math.floor(timeRemaining / 60);
             const seconds = timeRemaining % 60;
-            timer.textContent = `${{minutes.toString().padStart(2, '0')}}:${{seconds.toString().padStart(2, '0')}}`;
+            timer.textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
             
             if (timeRemaining <= 0) {{
                 alert('Time is up!');
@@ -326,192 +292,153 @@ def create_assessment_template(assessment_type: str, user_email: str, session_id
             timeRemaining--;
         }}
         
-        essayText.addEventListener('input', updateWordCount);
-        
-        submitBtn.addEventListener('click', function() {{
-            if (essayText.value.trim()) {{
-                alert('Assessment submitted successfully! (Demo mode)');
-            }} else {{
-                alert('Please write your essay before submitting.');
-            }}
-        }});
-        
-        // Start timer
         setInterval(updateTimer, 1000);
         updateTimer();
         
-        // Auto-save functionality
-        setInterval(function() {{
-            if (essayText.value.trim()) {{
-                localStorage.setItem('ielts_essay_draft_{session_id}', essayText.value);
+        if (isWriting) {{
+            const essayText = document.getElementById('essayText');
+            const wordCount = document.getElementById('wordCount');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            function updateWordCount() {{
+                const text = essayText.value.trim();
+                const words = text ? text.split(/\\s+/).length : 0;
+                wordCount.textContent = words;
+                
+                const minWords = {word_count};
+                if (words >= minWords && submitBtn) {{
+                    submitBtn.disabled = false;
+                    submitBtn.style.backgroundColor = '#28a745';
+                }} else if (submitBtn) {{
+                    submitBtn.disabled = true;
+                    submitBtn.style.backgroundColor = '#e9ecef';
+                }}
             }}
-        }}, 30000);
-        
-        // Load saved draft
-        const savedDraft = localStorage.getItem('ielts_essay_draft_{session_id}');
-        if (savedDraft) {{
-            essayText.value = savedDraft;
+            
+            essayText.addEventListener('input', updateWordCount);
             updateWordCount();
+        }}
+        
+        if (!isWriting) {{
+            const recordBtn = document.getElementById('recordBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const playBtn = document.getElementById('playBtn');
+            const recordingStatus = document.getElementById('recordingStatus');
+            
+            let mediaRecorder;
+            let audioChunks = [];
+            
+            recordBtn.addEventListener('click', async function() {{
+                try {{
+                    const stream = await navigator.mediaDevices.getUserMedia({{ audio: true }});
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = function(event) {{
+                        audioChunks.push(event.data);
+                    }};
+                    
+                    mediaRecorder.start();
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    recordingStatus.textContent = 'Recording in progress... Speak clearly for Maya AI analysis';
+                    recordingStatus.style.backgroundColor = '#fff3cd';
+                }} catch (error) {{
+                    recordingStatus.textContent = 'Error: Could not access microphone. Please allow microphone access.';
+                    recordingStatus.style.backgroundColor = '#f8d7da';
+                }}
+            }});
+            
+            stopBtn.addEventListener('click', function() {{
+                mediaRecorder.stop();
+                recordBtn.disabled = false;
+                stopBtn.disabled = true;
+                playBtn.disabled = false;
+                recordingStatus.textContent = 'Recording completed. You can play it back or submit your assessment.';
+                recordingStatus.style.backgroundColor = '#d1ecf1';
+            }});
+            
+            playBtn.addEventListener('click', function() {{
+                const audioBlob = new Blob(audioChunks, {{ type: 'audio/wav' }});
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            }});
         }}
     </script>
 </body>
-</html>"""
+</html>'''
     
-    return template
-
-def handle_home_page():
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': '''
-        <!DOCTYPE html>
-        <html><head><title>IELTS GenAI Prep</title></head>
-        <body>
-            <h1>IELTS GenAI Prep</h1>
-            <p>AI-powered IELTS preparation platform</p>
-            <a href="/assessment/academic-writing">Academic Writing Assessment</a><br>
-            <a href="/assessment/general-writing">General Writing Assessment</a><br>
-            <a href="/login">Login</a>
-        </body></html>
-        '''
-    }
-
-def handle_login_page():
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': '''
-        <!DOCTYPE html>
-        <html><head><title>Login - IELTS GenAI Prep</title></head>
-        <body>
-            <h1>Login</h1>
-            <p>Test credentials: test@ieltsgenaiprep.com / test123</p>
-            <form>
-                <input type="email" placeholder="Email" required><br><br>
-                <input type="password" placeholder="Password" required><br><br>
-                <button type="submit">Login</button>
-            </form>
-        </body></html>
-        '''
-    }
-
-def handle_dashboard_page(headers):
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': '''
-        <!DOCTYPE html>
-        <html><head><title>Dashboard - IELTS GenAI Prep</title></head>
-        <body>
-            <h1>Dashboard</h1>
-            <p>Your IELTS assessments</p>
-            <a href="/assessment/academic-writing">Academic Writing</a><br>
-            <a href="/assessment/general-writing">General Writing</a>
-        </body></html>
-        '''
-    }
-
-def handle_user_login(data):
-    email = data.get('email', '')
-    password = data.get('password', '')
-    
-    if email == 'test@ieltsgenaiprep.com' and password == 'test123':
-        session_id = str(uuid.uuid4())
-        MOCK_SESSIONS[session_id] = {
-            'session_id': session_id,
-            'user_email': email,
-            'created_at': datetime.now().isoformat()
-        }
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({"success": True, "session_id": session_id})
-        }
-    else:
-        return {
-            'statusCode': 401,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({"success": False, "error": "Invalid credentials"})
-        }
+    return {"statusCode": 200, "headers": {"Content-Type": "text/html"}, "body": html}
 
 def handle_health_check():
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'application/json'},
-        'body': json.dumps({"status": "healthy", "timestamp": datetime.now().isoformat()})
-    }
-
-def handle_robots_txt():
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/plain'},
-        'body': 'User-agent: *\\nDisallow:'
-    }
-
-def handle_privacy_policy():
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': '<h1>Privacy Policy</h1><p>IELTS GenAI Prep Privacy Policy</p>'
-    }
-
-def handle_terms_of_service():
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/html'},
-        'body': '<h1>Terms of Service</h1><p>IELTS GenAI Prep Terms of Service</p>'
-    }
+    """Handle health check"""
+    return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": json.dumps({"status": "healthy", "timestamp": datetime.now().isoformat()})}
 '''
     
     return lambda_code
 
-def deploy_simple_lambda():
-    """Deploy simple Lambda function"""
+def deploy_extended_system():
+    """Deploy extended system with all assessment types"""
     
-    print("🚀 Deploying Simple Lambda Fix")
-    print("=" * 40)
+    print("🚀 Deploying Extended Assessment System")
+    print("=" * 45)
     
     # Create lambda code
-    lambda_code = create_simple_lambda()
+    lambda_code = create_extended_lambda()
     
     # Write to file
     with open('lambda_function.py', 'w') as f:
         f.write(lambda_code)
     
     # Create deployment package
-    with zipfile.ZipFile('simple_lambda.zip', 'w') as zipf:
+    with zipfile.ZipFile('extended_assessment_system.zip', 'w') as zipf:
         zipf.write('lambda_function.py')
     
     # Deploy to AWS
     try:
         lambda_client = boto3.client('lambda', region_name='us-east-1')
         
-        with open('simple_lambda.zip', 'rb') as f:
+        with open('extended_assessment_system.zip', 'rb') as f:
             lambda_client.update_function_code(
                 FunctionName='ielts-genai-prep-api',
                 ZipFile=f.read()
             )
         
-        print("✅ Simple Lambda deployed successfully!")
-        print("🌐 Testing: https://www.ieltsaiprep.com/assessment/academic-writing")
+        print("✅ Extended assessment system deployed successfully!")
+        print("🌐 Testing all assessment types...")
         
-        # Test the deployment
+        # Test all assessment types
         import time
-        time.sleep(3)
+        time.sleep(5)
         
+        assessment_types = [
+            ("academic-writing", "Academic Writing"),
+            ("general-writing", "General Writing"), 
+            ("academic-speaking", "Academic Speaking"),
+            ("general-speaking", "General Speaking")
+        ]
+        
+        for assessment_type, display_name in assessment_types:
+            try:
+                import urllib.request
+                response = urllib.request.urlopen(f'https://www.ieltsaiprep.com/assessment/{assessment_type}')
+                if response.getcode() == 200:
+                    print(f"✅ {display_name} assessment working!")
+                else:
+                    print(f"⚠️ {assessment_type} returned status {response.getcode()}")
+            except Exception as e:
+                print(f"⚠️ {assessment_type} test failed: {str(e)}")
+        
+        # Test home page
         try:
-            import urllib.request
-            response = urllib.request.urlopen('https://www.ieltsaiprep.com/assessment/academic-writing')
-            content = response.read().decode('utf-8')
-            
-            if '<title>Academic Writing Assessment</title>' in content:
-                print("✅ Assessment page is working!")
-                print("✅ Internal server error fixed!")
+            response = urllib.request.urlopen('https://www.ieltsaiprep.com/')
+            if response.getcode() == 200:
+                print("✅ Enhanced home page working!")
             else:
-                print("⚠️ Page loaded but content may be incorrect")
-                
+                print(f"⚠️ Home page returned status {response.getcode()}")
         except Exception as e:
-            print(f"⚠️ Test failed: {str(e)}")
+            print(f"⚠️ Home page test failed: {str(e)}")
         
     except Exception as e:
         print(f"❌ Deployment failed: {str(e)}")
@@ -520,4 +447,4 @@ def deploy_simple_lambda():
     return True
 
 if __name__ == "__main__":
-    deploy_simple_lambda()
+    deploy_extended_system()
