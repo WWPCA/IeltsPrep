@@ -7,10 +7,13 @@ from datetime import datetime
 try:
     from content_safety import validate_user_input_safe, validate_ai_output_safe, get_safety_metrics
     from genai_safety_testing import run_safety_tests, run_red_team_tests, generate_compliance_documentation
+    from google_play_sensitive_data_compliance import validate_data_access, get_data_usage_disclosure, generate_privacy_policy_section
     SAFETY_MODULES_AVAILABLE = True
+    SENSITIVE_DATA_COMPLIANCE_AVAILABLE = True
 except ImportError:
     SAFETY_MODULES_AVAILABLE = False
-    print("Warning: Content safety modules not available. Running in basic mode.")
+    SENSITIVE_DATA_COMPLIANCE_AVAILABLE = False
+    print("Warning: Content safety and sensitive data compliance modules not available. Running in basic mode.")
 
 def validate_cloudfront_header(event):
     headers = event.get('headers', {})
@@ -97,6 +100,8 @@ def lambda_handler(event, context):
             return handle_safety_testing()
         elif path == '/api/safety/documentation':
             return handle_safety_documentation()
+        elif path == '/api/compliance/sensitive-data':
+            return handle_sensitive_data_compliance()
         elif path.startswith('/assessment/'):
             return handle_assessment_access(path)
         else:
@@ -254,6 +259,26 @@ def handle_maya_conversation(data):
     # Google Play GenAI compliance - validate user input and AI output
     user_input = data.get('user_response', '')
     
+    # Validate sensitive data access compliance
+    if SENSITIVE_DATA_COMPLIANCE_AVAILABLE and user_input:
+        access_validation = validate_data_access(
+            'user_speech_data', 
+            'IELTS speaking assessment evaluation',
+            'speaking_assessment'
+        )
+        if not access_validation['allowed']:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Sensitive data access not permitted',
+                    'maya_response': 'I apologize, but I cannot process your speech data: ' + access_validation['reason'],
+                    'compliance_blocked': True
+                })
+            }
+    
+    # Content safety validation
     if SAFETY_MODULES_AVAILABLE and user_input:
         is_safe, sanitized_input, safety_report = validate_user_input_safe(user_input, 'speaking')
         if not is_safe:
@@ -291,6 +316,26 @@ def handle_nova_micro_writing(data):
     # Google Play GenAI compliance - validate user writing input
     user_writing = data.get('writing_content', '')
     
+    # Validate sensitive data access compliance
+    if SENSITIVE_DATA_COMPLIANCE_AVAILABLE and user_writing:
+        access_validation = validate_data_access(
+            'user_writing_content', 
+            'IELTS writing assessment evaluation',
+            'writing_assessment'
+        )
+        if not access_validation['allowed']:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Sensitive data access not permitted',
+                    'message': 'Unable to process writing content: ' + access_validation['reason'],
+                    'compliance_blocked': True
+                })
+            }
+    
+    # Content safety validation
     if SAFETY_MODULES_AVAILABLE and user_writing:
         is_safe, sanitized_writing, safety_report = validate_user_input_safe(user_writing, 'writing')
         if not is_safe:
@@ -311,7 +356,8 @@ def handle_nova_micro_writing(data):
         'body': json.dumps({
             'success': True,
             'message': 'Nova Micro processing with TrueScore technology',
-            'safety_validated': SAFETY_MODULES_AVAILABLE
+            'safety_validated': SAFETY_MODULES_AVAILABLE,
+            'compliance_validated': SENSITIVE_DATA_COMPLIANCE_AVAILABLE
         })
     }
 
@@ -442,6 +488,33 @@ def handle_safety_documentation():
             'safety_modules_available': True,
             'documentation': documentation,
             'compliance_framework': 'Google Play GenAI Policy',
+            'last_updated': datetime.now().isoformat()
+        })
+    }
+
+def handle_sensitive_data_compliance():
+    """Google Play sensitive data compliance - data usage disclosure endpoint"""
+    if not SENSITIVE_DATA_COMPLIANCE_AVAILABLE:
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'sensitive_data_compliance_available': False,
+                'message': 'Sensitive data compliance modules not loaded'
+            })
+        }
+    
+    data_usage_disclosure = get_data_usage_disclosure()
+    privacy_policy_section = generate_privacy_policy_section()
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps({
+            'sensitive_data_compliance_available': True,
+            'data_usage_disclosure': data_usage_disclosure,
+            'privacy_policy_section': privacy_policy_section,
+            'compliance_framework': 'Google Play Sensitive Data Policy',
             'last_updated': datetime.now().isoformat()
         })
     }
