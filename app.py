@@ -666,7 +666,7 @@ def handle_nova_assessment_demo() -> Dict[str, Any]:
             'body': f'<h1>Error loading Nova demo: {str(e)}</h1>'
         }
 
-def get_assessment_template(assessment_type: str, user_email: str, session_id: str) -> str:
+def get_assessment_template(assessment_type: str, user_email: str, session_id: str, task_number: int = 1) -> str:
     """Load appropriate assessment template with Maya auto-start functionality"""
     
     # Get Nova prompts from DynamoDB
@@ -681,6 +681,32 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
     question_id = question_data['question_id']
     prompt = question_data['prompt']
     task_type = question_data.get('task_type', question_data.get('task', 'Assessment'))
+    
+    # Get chart data for writing assessments
+    chart_svg = question_data.get('chart_svg', '')
+    chart_data = question_data.get('chart_data', {})
+    question_text = question_data.get('question_text', prompt)
+    tasks = question_data.get('tasks', [])
+    
+    # Determine current task from parameter or default to Task 1
+    current_task = task_number
+    
+    if tasks and len(tasks) > 0:
+        # Find the appropriate task
+        if current_task == 1:
+            current_task_data = tasks[0]  # Task 1
+        elif current_task == 2 and len(tasks) > 1:
+            current_task_data = tasks[1]  # Task 2
+        else:
+            current_task_data = tasks[0]  # Default to Task 1
+    else:
+        current_task_data = {
+            'task_number': 2,
+            'time_minutes': 40,
+            'instructions': prompt,
+            'word_count': 250,
+            'type': 'opinion_essay'
+        }
     
     if 'speaking' in assessment_type:
         # Format the speaking question properly based on IELTS structure
@@ -1414,6 +1440,60 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             border-left: 4px solid #0066cc;
         }}
         
+        .chart-container {{
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }}
+        
+        .chart-title {{
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }}
+        
+        .task-progress {{
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }}
+        
+        .progress-indicator {{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }}
+        
+        .task-step {{
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }}
+        
+        .task-step.active {{
+            background: #007bff;
+            color: white;
+        }}
+        
+        .task-step.completed {{
+            background: #28a745;
+            color: white;
+        }}
+        
+        .task-step:not(.active):not(.completed) {{
+            background: #e9ecef;
+            color: #6c757d;
+        }}
+        
         .word-requirements {{
             font-weight: bold;
             font-size: 14px;
@@ -1643,20 +1723,27 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             </div>
             
             <div class="task-box">
-                <div class="task-title">WRITING TASK 2</div>
+                <div class="task-title">WRITING TASK {current_task_data['task_number']}</div>
                 
                 <div class="task-instructions">
-                    You should spend about 40 minutes on this task.
+                    You should spend about {current_task_data['time_minutes']} minutes on this task.
                 </div>
                 
                 <div class="word-requirements">
-                    Write at least 250 words.
+                    Write at least {current_task_data['word_count']} words.
                 </div>
                 
+                {f'<div class="chart-container"><div class="chart-title">{chart_data.get("title", "")}</div>{chart_svg}</div>' if current_task_data['task_number'] == 1 and chart_svg else ''}
+                
                 <div class="task-topic" id="taskPrompt">
-                    <strong>Write about the following topic:</strong><br><br>
-                    {prompt}<br><br>
-                    Give reasons for your answer and include any relevant examples from your own knowledge or experience.
+                    {question_text if current_task_data['task_number'] == 1 else f"<strong>Write about the following topic:</strong><br><br>{current_task_data['instructions']}<br><br>Give reasons for your answer and include any relevant examples from your own knowledge or experience."}
+                </div>
+                
+                <div class="task-progress">
+                    <div class="progress-indicator">
+                        <span class="task-step {'active' if current_task_data['task_number'] == 1 else 'completed' if len(tasks) > 1 else ''}">Task 1</span>
+                        {f'<span class="task-step {"active" if current_task_data["task_number"] == 2 else ""}">Task 2</span>' if len(tasks) > 1 else ''}
+                    </div>
                 </div>
             </div>
             
@@ -1697,7 +1784,8 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
             
             <div class="submit-section">
                 <button class="btn btn-save" id="saveBtn">Save Draft</button>
-                <button class="btn btn-submit" id="submitBtn" disabled>Submit for Assessment</button>
+                <button class="btn btn-submit" id="submitBtn" disabled>Submit Task {current_task_data['task_number']}</button>
+                <button class="btn btn-next" id="nextBtn" style="display: none;">Continue to Task 2</button>
             </div>
             
             <!-- Nova Micro Assessment Results -->
@@ -1759,9 +1847,25 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         const minWords = document.getElementById('minWords');
         const submitBtn = document.getElementById('submitBtn');
         const saveBtn = document.getElementById('saveBtn');
+        const nextBtn = document.getElementById('nextBtn');
         const statusBar = document.getElementById('statusBar');
         const timer = document.getElementById('timer');
         const assessmentResults = document.getElementById('assessmentResults');
+        
+        // Task navigation variables
+        let currentTask = 1;
+        let task1Completed = false;
+        let totalTasks = {len(tasks) if tasks else 1};
+        
+        // Next button functionality
+        if (nextBtn) {{
+            nextBtn.addEventListener('click', function() {{
+                if (currentTask === 1 && task1Completed) {{
+                    // Navigate to Task 2
+                    window.location.href = '/assessment/{assessment_type}?task=2&session_id={session_id}&user_email={user_email}';
+                }}
+            }});
+        }}
         
         // Create modal for warnings and time expiry
         function createTimerModal() {{
@@ -3183,8 +3287,16 @@ def handle_assessment_access(path: str, headers: Dict[str, Any]) -> Dict[str, An
         
         print(f"[CLOUDWATCH] Assessment access granted: {user_email} accessing {assessment_type}")
         
+        # Parse query parameters for task navigation
+        query_params = {}
+        if 'queryStringParameters' in headers:
+            query_params = headers['queryStringParameters'] or {}
+        
+        # Determine current task from URL parameters
+        current_task = int(query_params.get('task', 1))
+        
         # Load appropriate assessment template based on type
-        template_content = get_assessment_template(assessment_type, user_email, session_id)
+        template_content = get_assessment_template(assessment_type, user_email, session_id, current_task)
         
         return {
             'statusCode': 200,
