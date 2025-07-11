@@ -100,6 +100,17 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 10, 2025: CLOUDFRONT CACHE BEHAVIOR ANALYSIS COMPLETE - Manual AWS Console Fix Required
+  - Successfully identified root cause of assessment page 403 Forbidden errors
+  - Issue: /assessment/* cache behavior has legacy TTL settings incompatible with modern CloudFront cache policies
+  - Confirmed working configuration: /api/* behavior uses CachingDisabled policy (4135ea2d-6df8-44a3-9df3-4b5a84be39ad) and CORS-S3Origin policy (88a5eaf4-2fd4-4709-b370-b4c650ea3fcf)
+  - Automated CloudFront API updates blocked by CallerReference restrictions requiring manual AWS console intervention
+  - Enhanced Lambda function with comprehensive CloudFront detection and debug logging
+  - Verified all core functionality preserved: DynamoDB questions, Maya AI, Nova APIs, timers, word count
+  - Domain transfer from Namecheap to Route 53 fully complete and propagated
+  - Production website www.ieltsaiprep.com: main pages working, assessments require manual CloudFront cache behavior fix
+  - Next step: Manual AWS console update to copy working /api/* cache behavior configuration to /assessment/* behavior
+
 - July 9, 2025: COMPREHENSIVE FUNCTIONALITY CHECK COMPLETED - Core Issues Identified and Addressed
   - Fixed CloudFront blocking issue preventing assessment page access
   - Successfully cleaned up login page placeholder text for both email and password fields
