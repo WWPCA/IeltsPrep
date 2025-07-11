@@ -1,4 +1,17 @@
+#!/usr/bin/env python3
+"""
+Minimal Working Template - Fix Internal Server Error
+Creates a clean assessment template matching official IELTS layout
+"""
 
+import boto3
+import json
+import zipfile
+
+def create_minimal_assessment_template():
+    """Create minimal working assessment template"""
+    
+    lambda_code = '''
 import json
 import uuid
 from datetime import datetime
@@ -158,7 +171,7 @@ def handle_assessment_page():
         
         function updateWordCount() {{
             const text = essayText.value.trim();
-            const words = text ? text.split(/\s+/).length : 0;
+            const words = text ? text.split(/\\s+/).length : 0;
             wordCount.textContent = words;
             
             if (words >= 150) {{
@@ -208,3 +221,68 @@ def handle_health_check():
         "headers": {"Content-Type": "application/json"},
         "body": json.dumps({"status": "healthy"})
     }
+'''
+    
+    return lambda_code
+
+def deploy_minimal_template():
+    """Deploy the minimal template fix"""
+    
+    print("🚀 Deploying Minimal Template Fix")
+    print("=" * 40)
+    
+    # Create lambda code
+    lambda_code = create_minimal_assessment_template()
+    
+    # Write to file
+    with open('lambda_function.py', 'w') as f:
+        f.write(lambda_code)
+    
+    # Create deployment package
+    with zipfile.ZipFile('minimal_lambda.zip', 'w') as zipf:
+        zipf.write('lambda_function.py')
+    
+    # Deploy to AWS
+    try:
+        lambda_client = boto3.client('lambda', region_name='us-east-1')
+        
+        with open('minimal_lambda.zip', 'rb') as f:
+            lambda_client.update_function_code(
+                FunctionName='ielts-genai-prep-api',
+                ZipFile=f.read()
+            )
+        
+        print("✅ Minimal template deployed successfully!")
+        print("🌐 Testing website...")
+        
+        # Test the deployment
+        import time
+        time.sleep(3)
+        
+        try:
+            import urllib.request
+            response = urllib.request.urlopen('https://www.ieltsaiprep.com/assessment/academic-writing')
+            status = response.getcode()
+            content = response.read().decode('utf-8')
+            
+            if status == 200:
+                print("✅ Website is working!")
+                if 'Academic Writing Assessment' in content:
+                    print("✅ Assessment page loads correctly!")
+                    print("✅ Internal server error FIXED!")
+                else:
+                    print("⚠️ Page content needs verification")
+            else:
+                print(f"⚠️ Website returned status {status}")
+                
+        except Exception as e:
+            print(f"⚠️ Test failed: {str(e)}")
+        
+    except Exception as e:
+        print(f"❌ Deployment failed: {str(e)}")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    deploy_minimal_template()
