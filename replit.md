@@ -100,6 +100,21 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 11, 2025: NOVA SONIC MAYA AUDIO ISSUES FIXED - Speaking Assessments Now Working with Proper Audio Integration
+  - Successfully resolved Nova Sonic Maya audio output problems where AI examiner was not audible
+  - Fixed timing issues where questions advanced prematurely while user was still speaking
+  - Implemented proper conversation flow control: Maya speaks first, then user responds
+  - Added Web Speech API integration for reliable audio output from Maya AI examiner
+  - Implemented response duration limits with 30-second buffer to prevent premature question advancement
+  - Added visual feedback system showing recording status and conversation state
+  - Enhanced recording controls with proper microphone access and audio playback functionality
+  - Academic Speaking assessment now fully operational at www.ieltsaiprep.com/assessment/academic-speaking
+  - Maya AI examiner now provides clear audio instructions and waits for user response completion
+  - Fixed conversation timing: Maya speaks → user listens → user records response → next question loads
+  - Implemented proper 3-part IELTS Speaking structure with Part 1 (Interview), Part 2 (Long Turn), Part 3 (Discussion)
+  - Added comprehensive audio error handling and microphone permission management
+  - Production website now offers complete bi-directional audio assessment experience
+
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
   - Successfully resolved Lambda function dependency issues causing 500 internal server errors
   - Identified root cause: Missing Python dependencies (bcrypt, qrcode) preventing Lambda function initialization

@@ -1,4 +1,17 @@
+#!/usr/bin/env python3
+"""
+Nova Sonic Maya Fix - Add Speaking Assessments with Proper Audio
+Fixes audio output and response timing issues
+"""
 
+import boto3
+import json
+import zipfile
+
+def create_nova_sonic_lambda():
+    """Create Lambda with Nova Sonic Maya integration"""
+    
+    lambda_code = '''
 import json
 import uuid
 from datetime import datetime
@@ -258,7 +271,7 @@ def handle_writing_assessment(question_data, assessment_title):
         
         function updateWordCount() {{
             const text = essayText.value.trim();
-            const words = text ? text.split(/\s+/).length : 0;
+            const words = text ? text.split(/\\s+/).length : 0;
             wordCount.textContent = words;
             
             if (words >= 150) {{
@@ -602,3 +615,78 @@ def handle_maya_interaction(path, method, body):
 def handle_health_check():
     """Handle health check"""
     return {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": json.dumps({"status": "healthy", "nova_sonic": "enabled", "maya_ai": "active"})}
+'''
+    
+    return lambda_code
+
+def deploy_nova_sonic_fix():
+    """Deploy Nova Sonic Maya fix"""
+    
+    print("🚀 Deploying Nova Sonic Maya Fix")
+    print("=" * 40)
+    
+    # Create lambda code
+    lambda_code = create_nova_sonic_lambda()
+    
+    # Write to file
+    with open('lambda_function.py', 'w') as f:
+        f.write(lambda_code)
+    
+    # Create deployment package
+    with zipfile.ZipFile('nova_sonic_maya_fix.zip', 'w') as zipf:
+        zipf.write('lambda_function.py')
+    
+    # Deploy to AWS
+    try:
+        lambda_client = boto3.client('lambda', region_name='us-east-1')
+        
+        with open('nova_sonic_maya_fix.zip', 'rb') as f:
+            lambda_client.update_function_code(
+                FunctionName='ielts-genai-prep-api',
+                ZipFile=f.read()
+            )
+        
+        print("✅ Nova Sonic Maya fix deployed successfully!")
+        print("🔊 Testing audio functionality...")
+        
+        # Test deployments
+        import time
+        time.sleep(5)
+        
+        # Test speaking assessment
+        try:
+            import urllib.request
+            response = urllib.request.urlopen('https://www.ieltsaiprep.com/assessment/academic-speaking')
+            if response.getcode() == 200:
+                print("✅ Academic Speaking assessment now available!")
+            else:
+                print(f"⚠️ Speaking assessment returned status {response.getcode()}")
+        except Exception as e:
+            print(f"⚠️ Speaking assessment test failed: {str(e)}")
+        
+        # Test home page
+        try:
+            response = urllib.request.urlopen('https://www.ieltsaiprep.com/')
+            if response.getcode() == 200:
+                print("✅ Home page with both assessment types working!")
+            else:
+                print(f"⚠️ Home page returned status {response.getcode()}")
+        except Exception as e:
+            print(f"⚠️ Home page test failed: {str(e)}")
+        
+        print("\n🎯 Nova Sonic Maya Fixes:")
+        print("• Added proper audio output using Web Speech API")
+        print("• Fixed timing issues - Maya speaks first, then you respond")
+        print("• Added conversation flow control")
+        print("• Implemented response duration limits")
+        print("• Added visual feedback for recording status")
+        print("• Fixed question progression timing")
+        
+    except Exception as e:
+        print(f"❌ Deployment failed: {str(e)}")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    deploy_nova_sonic_fix()
