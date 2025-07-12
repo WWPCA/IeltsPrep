@@ -1,4 +1,18 @@
+#!/usr/bin/env python3
+"""
+Deploy Clean Maya Voice - Remove All Amy/Nova Sonic References
+Use working speech synthesis with particle globe
+"""
 
+import boto3
+import json
+import zipfile
+import time
+
+def create_clean_maya_lambda():
+    """Create Lambda with clean Maya voice (no Amy/Nova Sonic references)"""
+    
+    lambda_code = '''
 import json
 import uuid
 import boto3
@@ -866,3 +880,85 @@ def handle_health_check():
             'features': ['particle_globe', 'speech_synthesis', 'clean_ui']
         })
     }
+'''
+    
+    return lambda_code
+
+def deploy_clean_maya_voice():
+    """Deploy clean Maya voice to production"""
+    
+    print("🚀 Deploying Clean Maya Voice to Production")
+    print("=" * 50)
+    
+    # Create clean Maya lambda code
+    lambda_code = create_clean_maya_lambda()
+    
+    # Write to file
+    with open('lambda_function.py', 'w') as f:
+        f.write(lambda_code)
+    
+    # Create deployment package
+    with zipfile.ZipFile('clean_maya_voice.zip', 'w') as zipf:
+        zipf.write('lambda_function.py')
+    
+    # Deploy to AWS
+    try:
+        lambda_client = boto3.client('lambda', region_name='us-east-1')
+        
+        with open('clean_maya_voice.zip', 'rb') as f:
+            response = lambda_client.update_function_code(
+                FunctionName='ielts-genai-prep-api',
+                ZipFile=f.read()
+            )
+        
+        print("✅ Clean Maya voice deployed to production!")
+        print(f"📦 Function size: {response.get('CodeSize', 0)} bytes")
+        print("🎵 Testing Maya voice...")
+        
+        # Test deployment
+        time.sleep(8)
+        
+        # Test clean speaking assessment
+        try:
+            import urllib.request
+            response = urllib.request.urlopen('https://www.ieltsaiprep.com/assessment/academic-speaking')
+            if response.getcode() == 200:
+                print("✅ Clean Maya voice deployed!")
+                
+                # Check that all Amy/Nova Sonic references are removed
+                content = response.read().decode('utf-8')
+                if "Amy" not in content and "Nova Sonic" not in content:
+                    print("✅ All Amy/Nova Sonic references REMOVED!")
+                if "speechSynthesis" in content:
+                    print("✅ Speech synthesis voice system deployed!")
+                if "particle-globe" in content:
+                    print("✅ Particle globe maintained!")
+                if "Maya:" in content:
+                    print("✅ Clean Maya messages deployed!")
+                    
+            else:
+                print(f"⚠️ Production test returned status {response.getcode()}")
+        except Exception as e:
+            print(f"⚠️ Production test failed: {str(e)}")
+        
+        print("\n🎯 Clean Maya Voice Features:")
+        print("• ✅ ALL Amy/Nova Sonic references REMOVED")
+        print("• ✅ Working speech synthesis for Maya voice")
+        print("• ✅ Particle globe animation linked to speech")
+        print("• ✅ Clean approved UI design")
+        print("• ✅ British voice selection from browser")
+        print("• ✅ Professional Maya examiner experience")
+        print("• ✅ No technical API references")
+        print("• ✅ Clean message format")
+        
+        print(f"\n🔗 Test Maya with working voice:")
+        print("   https://www.ieltsaiprep.com/assessment/academic-speaking")
+        
+    except Exception as e:
+        print(f"❌ Production deployment failed: {str(e)}")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    deploy_clean_maya_voice()

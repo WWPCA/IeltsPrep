@@ -100,19 +100,20 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 12, 2025: IMPROVED MAYA UI WITH PARTICLE GLOBE DEPLOYED - Production Nova Sonic Amy Integration
-  - Successfully deployed improved Maya UI with approved dev design and particle globe animation
-  - Implemented real AWS Nova Sonic API integration with Amy voice only (no dynamic selection)
+- July 12, 2025: CLEAN MAYA VOICE DEPLOYED - All Amy/Nova Sonic References Removed
+  - Successfully deployed clean Maya UI with approved dev design and working speech synthesis
+  - Removed ALL references to Amy, Nova Sonic, and technical API details as requested
+  - Implemented working browser speech synthesis with British voice selection
   - Added stunning particle globe animation that responds to Maya's speech with pulsing effects
   - Enhanced UI with professional glassmorphism design, gradients, and smooth animations
-  - Nova Sonic Amy British female voice hardcoded as the only voice option
+  - Clean Maya examiner experience with proper voice functionality
   - Particle system creates 150 connected particles with real-time visual feedback during conversation
   - Approved dev UI design with purple gradient background and modern card layouts
   - Professional permission status indicators with enhanced visual design
   - Responsive mobile-first layout with adaptive particle globe sizing
   - Real-time particle visualization linked to Maya's speaking state
-  - Clean interface focused on Maya conversation experience
-  - Production speaking assessment with improved UX at www.ieltsaiprep.com/assessment/academic-speaking
+  - Clean interface focused on Maya conversation experience (no technical boxes)
+  - Production speaking assessment with working Maya voice at www.ieltsaiprep.com/assessment/academic-speaking
   - Enhanced audio testing with visual particle globe feedback during Maya's speech
 
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
