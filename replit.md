@@ -100,19 +100,20 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 12, 2025: ENHANCED MAYA AUDIO DEPLOYED TO PRODUCTION - Comprehensive Audio Testing Live
-  - Successfully deployed enhanced audio permission design to production AWS Lambda
-  - Implemented step-by-step audio setup flow: "Start Audio Setup" → "Test Maya's Voice" → "Test Microphone (3 sec)"
-  - Added comprehensive microphone and speaker permission testing before assessment begins
-  - Professional permission status indicators with clear visual feedback (granted/denied/pending)
-  - Enhanced Maya voice testing with longer sample message for better audio verification
-  - 3-second microphone recording test with immediate playback functionality
-  - Assessment begins only after successful completion of all audio tests
-  - Clean UI without technical backend details (Nova Sonic Features/Status boxes removed)
-  - Enhanced user experience with professional step-by-step audio configuration
-  - Maya AI examiner provides clear audio instructions with professional British voice
-  - Production speaking assessment now fully operational at www.ieltsaiprep.com/assessment/academic-speaking
-  - Enhanced audio testing ensures reliable voice interaction before Maya conversation begins
+- July 12, 2025: IMPROVED MAYA UI WITH PARTICLE GLOBE DEPLOYED - Production Nova Sonic Amy Integration
+  - Successfully deployed improved Maya UI with approved dev design and particle globe animation
+  - Implemented real AWS Nova Sonic API integration with Amy voice only (no dynamic selection)
+  - Added stunning particle globe animation that responds to Maya's speech with pulsing effects
+  - Enhanced UI with professional glassmorphism design, gradients, and smooth animations
+  - Nova Sonic Amy British female voice hardcoded as the only voice option
+  - Particle system creates 150 connected particles with real-time visual feedback during conversation
+  - Approved dev UI design with purple gradient background and modern card layouts
+  - Professional permission status indicators with enhanced visual design
+  - Responsive mobile-first layout with adaptive particle globe sizing
+  - Real-time particle visualization linked to Maya's speaking state
+  - Clean interface focused on Maya conversation experience
+  - Production speaking assessment with improved UX at www.ieltsaiprep.com/assessment/academic-speaking
+  - Enhanced audio testing with visual particle globe feedback during Maya's speech
 
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
   - Successfully resolved Lambda function dependency issues causing 500 internal server errors
