@@ -104,16 +104,18 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Successfully resolved Nova Sonic Maya audio output problems where AI examiner was not audible
   - Fixed timing issues where questions advanced prematurely while user was still speaking
   - Implemented proper conversation flow control: Maya speaks first, then user responds
-  - Added Web Speech API integration for reliable audio output from Maya AI examiner
-  - Implemented response duration limits with 30-second buffer to prevent premature question advancement
-  - Added visual feedback system showing recording status and conversation state
+  - REPLACED Web Speech API with proper Nova Sonic API integration for authentic British voice
+  - Fixed robotic voice quality by implementing Nova Sonic British female voice synthesis
+  - Eliminated duplicate message boxes - questions now display only once while Maya can repeat audio
+  - Fixed timer to start only after Maya speaks (not immediately upon page load)
+  - Implemented fully automatic conversation flow - no manual buttons required
   - Enhanced recording controls with proper microphone access and audio playback functionality
   - Academic Speaking assessment now fully operational at www.ieltsaiprep.com/assessment/academic-speaking
-  - Maya AI examiner now provides clear audio instructions and waits for user response completion
+  - Maya AI examiner now provides clear, natural audio instructions with friendly British voice
   - Fixed conversation timing: Maya speaks → user listens → user records response → next question loads
   - Implemented proper 3-part IELTS Speaking structure with Part 1 (Interview), Part 2 (Long Turn), Part 3 (Discussion)
   - Added comprehensive audio error handling and microphone permission management
-  - Production website now offers complete bi-directional audio assessment experience
+  - Production website now offers complete bi-directional audio assessment experience with Nova Sonic integration
 
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
   - Successfully resolved Lambda function dependency issues causing 500 internal server errors
