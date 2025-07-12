@@ -224,25 +224,127 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
         }
 
 def handle_home_page() -> Dict[str, Any]:
-    """Handle home page - serve updated working template for preview"""
-    try:
-        with open('working_template.html', 'r', encoding='utf-8') as f:
-            html_content = f.read()
+    """Serve mobile-first home page with assessment access"""
+    html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS GenAI Prep - Development Testing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 40px 0; color: white; }
+        .header h1 { font-size: 48px; margin-bottom: 10px; }
+        .header p { font-size: 18px; opacity: 0.9; }
+        .assessment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
+        .assessment-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .assessment-card:hover { transform: translateY(-5px); }
+        .assessment-card h3 { color: #333; margin-bottom: 15px; font-size: 24px; }
+        .assessment-card p { color: #666; line-height: 1.6; margin-bottom: 20px; }
+        .assessment-features { margin-bottom: 20px; }
+        .assessment-features li { margin-bottom: 8px; color: #555; }
+        .btn { display: inline-block; background: #e31e24; color: white; padding: 15px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; transition: background 0.3s; }
+        .btn:hover { background: #c21a1f; }
+        .dev-notice { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 30px; }
+        .dev-notice h4 { color: #856404; margin-bottom: 10px; }
+        .dev-notice p { color: #856404; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>IELTS GenAI Prep</h1>
+            <p>Development Testing Environment</p>
+        </div>
         
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'text/html',
-                'Cache-Control': 'no-cache'
-            },
-            'body': html_content
-        }
-    except FileNotFoundError:
-        return {
-            'statusCode': 404,
-            'headers': {'Content-Type': 'text/html'},
-            'body': '<h1>Working template not found</h1>'
-        }
+        <div class="dev-notice">
+            <h4>🧪 Development Testing Mode</h4>
+            <p>This is the development version with enhanced audio permission testing. Click the assessments below to test the improved user experience.</p>
+        </div>
+        
+        <div class="assessment-grid">
+            <div class="assessment-card">
+                <h3>📢 Academic Speaking Assessment</h3>
+                <p>Test the enhanced speaking assessment with proper microphone and speaker permission testing.</p>
+                <div class="assessment-features">
+                    <ul>
+                        <li>✅ Comprehensive audio setup flow</li>
+                        <li>✅ Microphone permission testing</li>
+                        <li>✅ Speaker test with Maya's voice</li>
+                        <li>✅ 3-second recording test</li>
+                        <li>✅ Professional permission indicators</li>
+                        <li>✅ Maya AI examiner with British voice</li>
+                    </ul>
+                </div>
+                <a href="/assessment/academic-speaking" class="btn">Test Speaking Assessment</a>
+            </div>
+            
+            <div class="assessment-card">
+                <h3>✍️ Academic Writing Assessment</h3>
+                <p>Test the writing assessment with authentic IELTS layout and two-column design.</p>
+                <div class="assessment-features">
+                    <ul>
+                        <li>✅ Official IELTS format</li>
+                        <li>✅ Two-column layout (50/50)</li>
+                        <li>✅ Question panel with charts</li>
+                        <li>✅ Answer panel with word count</li>
+                        <li>✅ Timer functionality</li>
+                        <li>✅ Professional branding</li>
+                    </ul>
+                </div>
+                <a href="/assessment/academic-writing" class="btn">Test Writing Assessment</a>
+            </div>
+            
+            <div class="assessment-card">
+                <h3>🎤 General Speaking Assessment</h3>
+                <p>Test the general speaking assessment with the same enhanced audio features.</p>
+                <div class="assessment-features">
+                    <ul>
+                        <li>✅ Same audio setup flow</li>
+                        <li>✅ General training questions</li>
+                        <li>✅ Maya AI examiner</li>
+                        <li>✅ 3-part IELTS structure</li>
+                        <li>✅ Recording controls</li>
+                        <li>✅ Professional UI</li>
+                    </ul>
+                </div>
+                <a href="/assessment/general-speaking" class="btn">Test General Speaking</a>
+            </div>
+            
+            <div class="assessment-card">
+                <h3>📝 General Writing Assessment</h3>
+                <p>Test the general writing assessment with letter writing format.</p>
+                <div class="assessment-features">
+                    <ul>
+                        <li>✅ Letter writing format</li>
+                        <li>✅ Two-column layout</li>
+                        <li>✅ Task instructions</li>
+                        <li>✅ Word count tracking</li>
+                        <li>✅ Timer functionality</li>
+                        <li>✅ Professional layout</li>
+                    </ul>
+                </div>
+                <a href="/assessment/general-writing" class="btn">Test General Writing</a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px; color: white;">
+            <p>Development Environment • Enhanced Audio Testing • Professional UI</p>
+        </div>
+    </div>
+</body>
+</html>"""
+    
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache'
+        },
+        'body': html_content
+    }
 
 def handle_login_page() -> Dict[str, Any]:
     """Serve mobile-first login page"""
@@ -466,10 +568,14 @@ def handle_assessment_access(path: str, headers: Dict[str, Any]) -> Dict[str, An
     try:
         assessment_type = path.split('/')[-1]
         
-        # For development, allow direct access to speaking assessment
+        # For development, allow direct access to all assessment types
         if assessment_type == 'academic-speaking':
             return handle_speaking_assessment_with_permissions()
+        elif assessment_type == 'general-speaking':
+            return handle_speaking_assessment_with_permissions()
         elif assessment_type == 'academic-writing':
+            return handle_writing_assessment()
+        elif assessment_type == 'general-writing':
             return handle_writing_assessment()
         else:
             return {
