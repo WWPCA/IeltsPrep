@@ -564,11 +564,13 @@ def handle_database_schema_page() -> Dict[str, Any]:
         }
 
 def handle_assessment_access(path: str, headers: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle assessment access with better microphone/speaker permission design"""
+    """Handle assessment access with better microphone/speaker permission design - NO LOGIN REQUIRED FOR DEV"""
     try:
         assessment_type = path.split('/')[-1]
         
-        # For development, allow direct access to all assessment types
+        print(f"[CLOUDWATCH] Dev assessment access granted: {assessment_type}")
+        
+        # Development mode - direct access without authentication
         if assessment_type == 'academic-speaking':
             return handle_speaking_assessment_with_permissions()
         elif assessment_type == 'general-speaking':
