@@ -105,6 +105,9 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Fixed timing issues where questions advanced prematurely while user was still speaking
   - Implemented proper conversation flow control: Maya speaks first, then user responds
   - REPLACED Web Speech API with proper Nova Sonic API integration for authentic British voice
+  - Implemented real AWS Bedrock Nova Sonic v1.0 API calls for professional voice synthesis
+  - Added studio-quality audio generation with consistent British accent
+  - Integrated real-time streaming capabilities for natural conversation flow
   - Fixed robotic voice quality by implementing Nova Sonic British female voice synthesis
   - Eliminated duplicate message boxes - questions now display only once while Maya can repeat audio
   - Fixed timer to start only after Maya speaks (not immediately upon page load)
