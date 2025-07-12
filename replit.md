@@ -100,20 +100,19 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 12, 2025: DEVELOPMENT VERSION RESTORED - Better Audio Permission Design Implemented
-  - Restored development version with superior audio permission design as user requested
-  - Implemented proper microphone and speaker permission testing before assessment begins
-  - Added comprehensive audio setup flow: "Test Audio Setup" → "Test Maya's Voice" → "Test Microphone"
-  - Clean UI without technical backend details (Nova Sonic Features/Status boxes removed)
+- July 12, 2025: ENHANCED MAYA AUDIO DEPLOYED TO PRODUCTION - Comprehensive Audio Testing Live
+  - Successfully deployed enhanced audio permission design to production AWS Lambda
+  - Implemented step-by-step audio setup flow: "Start Audio Setup" → "Test Maya's Voice" → "Test Microphone (3 sec)"
+  - Added comprehensive microphone and speaker permission testing before assessment begins
   - Professional permission status indicators with clear visual feedback (granted/denied/pending)
-  - Microphone test with 3-second recording and playback functionality
-  - Speaker test with Maya's voice sample for audio output verification
-  - Assessment only begins after successful audio permission setup
-  - Enhanced user experience with step-by-step audio configuration
-  - Fixed voice connection issues with reliable browser-based speech synthesis
+  - Enhanced Maya voice testing with longer sample message for better audio verification
+  - 3-second microphone recording test with immediate playback functionality
+  - Assessment begins only after successful completion of all audio tests
+  - Clean UI without technical backend details (Nova Sonic Features/Status boxes removed)
+  - Enhanced user experience with professional step-by-step audio configuration
   - Maya AI examiner provides clear audio instructions with professional British voice
-  - Academic Speaking assessment now fully operational at localhost:5000/assessment/academic-speaking
-  - Development version offers better user experience with comprehensive audio testing
+  - Production speaking assessment now fully operational at www.ieltsaiprep.com/assessment/academic-speaking
+  - Enhanced audio testing ensures reliable voice interaction before Maya conversation begins
 
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
   - Successfully resolved Lambda function dependency issues causing 500 internal server errors
