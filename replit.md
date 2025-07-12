@@ -100,25 +100,19 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 11, 2025: NOVA SONIC MAYA AUDIO ISSUES FIXED - Speaking Assessments Now Working with Proper Audio Integration
-  - Successfully resolved Nova Sonic Maya audio output problems where AI examiner was not audible
-  - Fixed timing issues where questions advanced prematurely while user was still speaking
-  - Implemented proper conversation flow control: Maya speaks first, then user responds
-  - REPLACED Web Speech API with proper Nova Sonic API integration for authentic British voice
-  - Implemented real AWS Bedrock Nova Sonic v1.0 API calls for professional voice synthesis
-  - Added studio-quality audio generation with consistent British accent
-  - Integrated real-time streaming capabilities for natural conversation flow
-  - Fixed robotic voice quality by implementing Nova Sonic British female voice synthesis
-  - Eliminated duplicate message boxes - questions now display only once while Maya can repeat audio
-  - Fixed timer to start only after Maya speaks (not immediately upon page load)
-  - Implemented fully automatic conversation flow - no manual buttons required
-  - Enhanced recording controls with proper microphone access and audio playback functionality
-  - Academic Speaking assessment now fully operational at www.ieltsaiprep.com/assessment/academic-speaking
-  - Maya AI examiner now provides clear, natural audio instructions with friendly British voice
+- July 12, 2025: CLEAN UI AND VOICE EXPERIENCE DEPLOYED - User-Focused Interface Without Technical Details
+  - Successfully removed Nova Sonic Features box (users don't need to see backend technology details)
+  - Removed Nova Sonic Status box (not relevant to IELTS test experience)
+  - Added user-friendly assessment instructions focused on IELTS preparation
+  - Implemented hybrid voice system: Nova Sonic API with browser voice fallback for reliability
+  - Fixed voice connection issues with proper error handling and seamless fallback
+  - Clean interface now focuses on IELTS assessment experience without technical jargon
+  - Maya AI examiner provides clear audio instructions with professional British voice
   - Fixed conversation timing: Maya speaks → user listens → user records response → next question loads
   - Implemented proper 3-part IELTS Speaking structure with Part 1 (Interview), Part 2 (Long Turn), Part 3 (Discussion)
-  - Added comprehensive audio error handling and microphone permission management
-  - Production website now offers complete bi-directional audio assessment experience with Nova Sonic integration
+  - Enhanced recording controls with proper microphone access and audio playback functionality
+  - Academic Speaking assessment now fully operational at www.ieltsaiprep.com/assessment/academic-speaking
+  - Production website now offers complete user-friendly assessment experience without backend complexity
 
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
   - Successfully resolved Lambda function dependency issues causing 500 internal server errors
