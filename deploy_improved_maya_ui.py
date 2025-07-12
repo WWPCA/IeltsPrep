@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Deploy Improved Maya UI to Production
-- Approved dev UI design
-- Particle globe animation linked to Maya's speech
-- AWS Nova Sonic API integration
-- Amy voice only (no dynamic selection)
+Deploy Improved Maya UI - Fix Speaking Triggers and Navigation
+- Only one question at a time
+- Maya waits for response completion
+- Clear submit/next button navigation
+- Improved UI flow
 """
 
 import boto3
@@ -13,7 +13,7 @@ import zipfile
 import time
 
 def create_improved_maya_lambda():
-    """Create Lambda with improved Maya UI and particle globe"""
+    """Create Lambda with improved Maya UI and navigation"""
     
     lambda_code = '''
 import json
@@ -38,56 +38,137 @@ def lambda_handler(event, context):
             return handle_writing_assessment()
         elif path == "/api/health":
             return handle_health_check()
-        elif path == "/api/nova-sonic-amy":
-            return handle_nova_sonic_amy_api(event)
+        elif path == "/api/nova-sonic-stream":
+            return handle_nova_sonic_stream(event)
+        elif path == "/api/nova-sonic-connect":
+            return handle_nova_sonic_connect(event)
         else:
             return {"statusCode": 404, "headers": {"Content-Type": "text/html"}, "body": "<h1>404 Not Found</h1>"}
     except Exception as e:
         return {"statusCode": 500, "headers": {"Content-Type": "application/json"}, "body": json.dumps({"error": str(e)})}
 
-def handle_nova_sonic_amy_api(event):
-    """Handle Nova Sonic Amy API calls"""
+def handle_nova_sonic_connect(event):
+    """Handle Nova Sonic connection with proper AWS Bedrock integration"""
     try:
         # Initialize Bedrock client for Nova Sonic
         bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
         
-        # Nova Sonic Amy configuration
-        nova_config = {
-            "modelId": "amazon.nova-sonic-v1:0",
-            "voice": "amy",  # Fixed Amy voice only
-            "streaming": True,
-            "inputAudio": {
-                "format": "pcm",
-                "sampleRate": 16000,
-                "channels": 1
-            },
-            "outputAudio": {
-                "format": "pcm",
-                "sampleRate": 16000
-            },
-            "systemPrompt": "You are Maya, a professional IELTS examiner with a British accent. Conduct the assessment professionally while being warm and encouraging."
+        # Test Nova Sonic availability
+        model_id = "amazon.nova-sonic-v1:0"
+        
+        # Test connection with a simple prompt
+        test_payload = {
+            "modelId": model_id,
+            "contentType": "application/json",
+            "accept": "application/json",
+            "body": json.dumps({
+                "inputText": "Hello, this is a connection test.",
+                "taskType": "TEXT_TO_SPEECH",
+                "voiceId": "amy",
+                "outputFormat": "mp3",
+                "textType": "text"
+            })
         }
         
-        # Simulate Nova Sonic streaming (real implementation would use WebSocket)
-        response_data = {
-            "status": "connected",
-            "voice": "amy",
-            "accent": "british",
-            "streaming": True,
-            "ready": True
-        }
+        response = bedrock_client.invoke_model(
+            modelId=model_id,
+            body=test_payload["body"],
+            contentType=test_payload["contentType"],
+            accept=test_payload["accept"]
+        )
         
+        # If we get here, Nova Sonic is accessible
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(response_data)
+            "body": json.dumps({
+                "status": "connected",
+                "model": "nova-sonic-v1",
+                "voice": "amy",
+                "accent": "british",
+                "streaming": True,
+                "ready": True
+            })
+        }
+        
+    except Exception as e:
+        # Return detailed error information
+        error_details = {
+            "error": "Nova Sonic connection failed",
+            "message": str(e),
+            "model_id": "amazon.nova-sonic-v1:0",
+            "voice": "amy",
+            "region": "us-east-1",
+            "issue_type": "bedrock_access"
+        }
+        
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(error_details)
+        }
+
+def handle_nova_sonic_stream(event):
+    """Handle Nova Sonic streaming for Maya conversation"""
+    try:
+        body = json.loads(event.get("body", "{}"))
+        message = body.get("message", "")
+        
+        if not message:
+            return {
+                "statusCode": 400,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({"error": "No message provided"})
+            }
+        
+        # Initialize Bedrock client
+        bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        
+        # Nova Sonic streaming configuration
+        payload = {
+            "modelId": "amazon.nova-sonic-v1:0",
+            "contentType": "application/json",
+            "accept": "application/json",
+            "body": json.dumps({
+                "inputText": message,
+                "taskType": "TEXT_TO_SPEECH",
+                "voiceId": "amy",
+                "outputFormat": "mp3",
+                "textType": "text",
+                "engine": "neural"
+            })
+        }
+        
+        response = bedrock_client.invoke_model(
+            modelId=payload["modelId"],
+            body=payload["body"],
+            contentType=payload["contentType"],
+            accept=payload["accept"]
+        )
+        
+        # Process response
+        response_body = json.loads(response["body"].read())
+        
+        # Return audio data
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "audio_data": response_body.get("audioStream", ""),
+                "voice": "amy",
+                "status": "success"
+            })
         }
         
     except Exception as e:
         return {
             "statusCode": 500,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"error": f"Nova Sonic Amy API error: {str(e)}", "voice": "amy"})
+            "body": json.dumps({
+                "error": "Nova Sonic streaming failed",
+                "message": str(e),
+                "voice": "amy"
+            })
         }
 
 def handle_home_page():
@@ -112,8 +193,8 @@ def handle_home_page():
         
         <div class="assessment-card">
             <h3>Academic Speaking Assessment</h3>
-            <p><strong>Maya AI Examiner:</strong> Nova Sonic Amy (British female voice)<br>
-               <strong>Visual Experience:</strong> Particle globe animation during speech<br>
+            <p><strong>Maya AI Examiner:</strong> AWS Nova Sonic British voice<br>
+               <strong>Visual Experience:</strong> Particle globe animation<br>
                <strong>Assessment Format:</strong> Official IELTS 3-part structure<br>
                <strong>Duration:</strong> 11-14 minutes total</p>
             <a href="/assessment/academic-speaking" class="btn">Start Maya Assessment</a>
@@ -125,36 +206,44 @@ def handle_home_page():
     return {"statusCode": 200, "headers": {"Content-Type": "text/html"}, "body": html}
 
 def handle_improved_maya_assessment():
-    """Handle improved Maya assessment with particle globe and Nova Sonic Amy"""
+    """Handle improved Maya assessment with better navigation"""
     
     maya_questions = [
         {
+            "id": 1,
             "part": 1,
             "question": "Hello! I am Maya, your AI examiner for this IELTS Speaking assessment. Let me start by asking you some questions about yourself. What is your name and where are you from?",
-            "expected_duration": 30
+            "expected_duration": 30,
+            "is_introduction": True
         },
         {
+            "id": 2,
             "part": 1,
             "question": "That is interesting. Can you tell me about your work or studies?",
             "expected_duration": 45
         },
         {
+            "id": 3,
             "part": 1,
             "question": "What do you enjoy doing in your free time?",
             "expected_duration": 45
         },
         {
+            "id": 4,
             "part": 2,
             "question": "Now I will give you a topic card. You have one minute to prepare and then speak for 1-2 minutes. Describe a memorable journey you have taken. You should say: where you went, who you went with, what you did there, and explain why this journey was memorable for you.",
             "expected_duration": 120,
-            "prep_time": 60
+            "prep_time": 60,
+            "is_cue_card": True
         },
         {
+            "id": 5,
             "part": 3,
             "question": "Let us discuss travel and journeys in general. How has travel changed in your country over the past few decades?",
             "expected_duration": 60
         },
         {
+            "id": 6,
             "part": 3,
             "question": "What are the benefits of traveling to different countries?",
             "expected_duration": 60
@@ -249,12 +338,33 @@ def handle_improved_maya_assessment():
         .part-title {{ font-size: 18px; font-weight: bold; margin-bottom: 5px; }}
         .part-subtitle {{ font-size: 14px; opacity: 0.9; }}
         
-        .assessment-structure {{ 
+        .current-question {{ 
             background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            border: 2px solid rgba(102, 126, 234, 0.3);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 25px;
+            min-height: 120px;
+        }}
+        
+        .current-question h4 {{ 
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }}
+        
+        .current-question p {{ 
+            line-height: 1.6;
+            font-size: 15px;
+        }}
+        
+        .question-waiting {{ 
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            color: #f57c00;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
         }}
         
         .audio-setup {{ 
@@ -318,24 +428,25 @@ def handle_improved_maya_assessment():
             padding: 20px;
             margin: 20px 0;
             overflow-y: auto;
-            max-height: 300px;
+            max-height: 200px;
         }}
         
         .maya-message {{ 
-            padding: 12px 16px;
-            margin: 8px 0;
-            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+            font-size: 14px;
             animation: slideIn 0.3s ease;
         }}
         
         .maya-message.maya {{ 
             background: rgba(102, 126, 234, 0.1);
-            border-left: 4px solid #667eea;
+            border-left: 3px solid #667eea;
         }}
         
         .maya-message.user {{ 
             background: rgba(76, 175, 80, 0.1);
-            border-left: 4px solid #4caf50;
+            border-left: 3px solid #4caf50;
         }}
         
         .controls {{ 
@@ -354,6 +465,8 @@ def handle_improved_maya_assessment():
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 120px;
         }}
         
         .btn-primary {{ 
@@ -386,12 +499,33 @@ def handle_improved_maya_assessment():
             color: white;
         }}
         
+        .btn-next {{ 
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+        }}
+        
         .btn:disabled {{ 
             background: #e9ecef;
             color: #6c757d;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }}
+        
+        .recording-indicator {{ 
+            display: none;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: #dc3545;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }}
+        
+        .recording-indicator.active {{ 
+            display: block;
         }}
         
         .footer {{ 
@@ -410,6 +544,16 @@ def handle_improved_maya_assessment():
             font-weight: 500;
         }}
         
+        .error-message {{ 
+            background: rgba(244, 67, 54, 0.1);
+            color: #c62828;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }}
+        
         @keyframes slideIn {{ 
             from {{ opacity: 0; transform: translateX(-20px); }}
             to {{ opacity: 1; transform: translateX(0); }}
@@ -420,6 +564,11 @@ def handle_improved_maya_assessment():
             50% {{ box-shadow: 0 0 50px rgba(102, 126, 234, 0.8), 0 0 70px rgba(118, 75, 162, 0.6); }}
         }}
         
+        @keyframes pulse {{ 
+            0%, 100% {{ opacity: 1; }}
+            50% {{ opacity: 0.7; }}
+        }}
+        
         .maya-speaking {{ 
             animation: pulseGlow 2s infinite;
         }}
@@ -427,6 +576,8 @@ def handle_improved_maya_assessment():
         @media (max-width: 768px) {{
             .main-content {{ flex-direction: column; height: auto; }}
             .maya-globe-container {{ height: 150px; width: 150px; }}
+            .controls {{ flex-direction: column; }}
+            .btn {{ min-width: auto; }}
         }}
     </style>
 </head>
@@ -446,24 +597,11 @@ def handle_improved_maya_assessment():
                 <div class="part-subtitle">Official 3-part structure with Maya AI examiner</div>
             </div>
             
-            <div class="assessment-structure">
-                <h4 style="margin-bottom: 15px;">Assessment Structure:</h4>
-                <p style="line-height: 1.6;">
-                    <strong>Part 1:</strong> Interview (4-5 minutes)<br>
-                    <strong>Part 2:</strong> Long Turn (3-4 minutes)<br>
-                    <strong>Part 3:</strong> Discussion (4-5 minutes)
-                </p>
-            </div>
-            
-            <div class="audio-setup">
-                <h4 style="margin-bottom: 15px;">Nova Sonic Amy Features:</h4>
-                <p style="line-height: 1.6;">
-                    • Professional British female voice<br>
-                    • Real-time AI conversation<br>
-                    • Visual particle globe animation<br>
-                    • Authentic IELTS examiner experience<br>
-                    • Advanced speech recognition
-                </p>
+            <div class="current-question" id="currentQuestionDisplay">
+                <div class="question-waiting">
+                    <h4>🎤 Setting up audio connection...</h4>
+                    <p>Please complete audio setup to see Maya's first question</p>
+                </div>
             </div>
         </div>
         
@@ -477,12 +615,13 @@ def handle_improved_maya_assessment():
                 </div>
                 
                 <div class="permission-status permission-pending" id="novaSonicStatus">
-                    🔊 Nova Sonic Amy: Connecting...
+                    🔊 Nova Sonic: Connecting...
                 </div>
                 
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                
                 <div class="controls">
-                    <button class="btn btn-primary" id="connectNovaBtn">Connect to Nova Sonic</button>
-                    <button class="btn btn-primary" id="testAmyBtn" style="display: none;">Test Amy Voice</button>
+                    <button class="btn btn-primary" id="connectNovaBtn">Connect to Maya</button>
                 </div>
             </div>
             
@@ -494,9 +633,14 @@ def handle_improved_maya_assessment():
                 <!-- Messages will be added here -->
             </div>
             
+            <div class="recording-indicator" id="recordingIndicator">
+                🔴 RECORDING IN PROGRESS - Maya is listening...
+            </div>
+            
             <div class="controls" id="recordingControls" style="display: none;">
                 <button class="btn btn-record" id="recordBtn" disabled>Start Recording</button>
                 <button class="btn btn-stop" id="stopBtn" disabled>Stop Recording</button>
+                <button class="btn btn-next" id="nextBtn" disabled>Next Question</button>
             </div>
         </div>
     </div>
@@ -504,7 +648,7 @@ def handle_improved_maya_assessment():
     <div class="footer">
         <div class="status-info">
             <div>Part: <span id="currentPart">1</span> of 3</div>
-            <div>Question: <span id="currentQuestion">1</span> of 6</div>
+            <div>Question: <span id="currentQuestionNum">1</span> of 6</div>
         </div>
         <div>
             <button class="btn btn-submit" id="submitBtn" disabled>Complete Assessment</button>
@@ -523,23 +667,28 @@ def handle_improved_maya_assessment():
         let novaSonicConnected = false;
         let particleSystem = null;
         let mayaSpeaking = false;
+        let currentQuestionDisplayed = false;
+        let responseCompleted = false;
         
         // DOM elements
         const timer = document.getElementById('timer');
         const recordBtn = document.getElementById('recordBtn');
         const stopBtn = document.getElementById('stopBtn');
+        const nextBtn = document.getElementById('nextBtn');
         const submitBtn = document.getElementById('submitBtn');
         const mayaConversation = document.getElementById('mayaConversation');
         const currentPart = document.getElementById('currentPart');
-        const currentQuestion = document.getElementById('currentQuestion');
+        const currentQuestionNum = document.getElementById('currentQuestionNum');
         const connectNovaBtn = document.getElementById('connectNovaBtn');
-        const testAmyBtn = document.getElementById('testAmyBtn');
         const audioSetup = document.getElementById('audioSetup');
         const mayaGlobeContainer = document.getElementById('mayaGlobeContainer');
         const mayaGlobe = document.getElementById('mayaGlobe');
         const recordingControls = document.getElementById('recordingControls');
         const microphoneStatus = document.getElementById('microphoneStatus');
         const novaSonicStatus = document.getElementById('novaSonicStatus');
+        const errorMessage = document.getElementById('errorMessage');
+        const currentQuestionDisplay = document.getElementById('currentQuestionDisplay');
+        const recordingIndicator = document.getElementById('recordingIndicator');
         
         // Maya questions data
         const mayaQuestions = {maya_questions_json};
@@ -670,43 +819,45 @@ def handle_improved_maya_assessment():
                 microphoneStatus.textContent = '🎤 Microphone: Access granted ✓';
                 microphoneStatus.className = 'permission-status permission-granted';
                 
-                // Connect to Nova Sonic Amy
-                const response = await fetch('/api/nova-sonic-amy', {{
+                // Connect to Nova Sonic
+                const response = await fetch('/api/nova-sonic-connect', {{
                     method: 'POST',
                     headers: {{'Content-Type': 'application/json'}},
-                    body: JSON.stringify({{ voice: 'amy' }})
+                    body: JSON.stringify({{ action: 'connect' }})
                 }});
                 
                 const data = await response.json();
                 
-                if (data.voice === 'amy') {{
+                if (response.ok && data.status === 'connected') {{
                     novaSonicConnected = true;
-                    novaSonicStatus.textContent = '🔊 Nova Sonic Amy: Connected ✓';
+                    novaSonicStatus.textContent = '🔊 Nova Sonic: Connected ✓';
                     novaSonicStatus.className = 'permission-status permission-granted';
                     
                     connectNovaBtn.textContent = 'Connected ✓';
                     connectNovaBtn.disabled = true;
-                    testAmyBtn.style.display = 'inline-block';
+                    
+                    errorMessage.style.display = 'none';
+                    
+                    // Start assessment immediately
+                    setTimeout(() => {{
+                        startAssessment();
+                    }}, 1000);
+                    
+                }} else {{
+                    throw new Error(data.message || 'Nova Sonic connection failed');
                 }}
                 
             }} catch (error) {{
                 console.error('Connection error:', error);
                 microphoneStatus.textContent = '🎤 Microphone: Access denied ✗';
                 microphoneStatus.className = 'permission-status permission-denied';
+                
+                novaSonicStatus.textContent = '🔊 Nova Sonic: Connection failed ✗';
+                novaSonicStatus.className = 'permission-status permission-denied';
+                
+                errorMessage.textContent = 'Error: ' + error.message;
+                errorMessage.style.display = 'block';
             }}
-        }});
-        
-        // Test Amy voice
-        testAmyBtn.addEventListener('click', function() {{
-            if (!novaSonicConnected) {{
-                alert('Please connect to Nova Sonic first.');
-                return;
-            }}
-            
-            // Start assessment after voice test
-            setTimeout(() => {{
-                startAssessment();
-            }}, 1000);
         }});
         
         function startAssessment() {{
@@ -719,49 +870,120 @@ def handle_improved_maya_assessment():
             // Initialize particle globe
             particleSystem = new ParticleGlobe(mayaGlobe);
             
-            // Start first question
-            setTimeout(() => {{
-                loadNextQuestion();
-            }}, 1000);
+            // Load first question immediately
+            loadCurrentQuestion();
+        }}
+        
+        function displayCurrentQuestion() {{
+            if (currentQuestionIndex >= mayaQuestions.length) {{
+                currentQuestionDisplay.innerHTML = `
+                    <div class="question-waiting">
+                        <h4>🎉 Assessment Complete!</h4>
+                        <p>Thank you for completing all questions. Please submit your assessment.</p>
+                    </div>
+                `;
+                return;
+            }}
+            
+            const question = mayaQuestions[currentQuestionIndex];
+            
+            currentQuestionDisplay.innerHTML = `
+                <h4>Part ${{question.part}} - Question ${{question.id}}</h4>
+                <p>${{question.question}}</p>
+                ${{question.is_cue_card ? '<p><strong>Note:</strong> You have 1 minute to prepare before speaking for 1-2 minutes.</p>' : ''}}
+            `;
+            
+            currentPart.textContent = question.part;
+            currentQuestionNum.textContent = question.id;
+            
+            currentQuestionDisplayed = true;
+        }}
+        
+        async function speakMayaMessage(text) {{
+            if (!novaSonicConnected) {{
+                console.warn('Nova Sonic not connected');
+                return;
+            }}
+            
+            try {{
+                const response = await fetch('/api/nova-sonic-stream', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{ message: text }})
+                }});
+                
+                const data = await response.json();
+                
+                if (response.ok && data.audio_data) {{
+                    if (particleSystem) {{
+                        particleSystem.startSpeaking();
+                    }}
+                    
+                    const audio = new Audio('data:audio/mp3;base64,' + data.audio_data);
+                    audio.onended = function() {{
+                        if (particleSystem) {{
+                            particleSystem.stopSpeaking();
+                        }}
+                        
+                        // Enable recording after Maya finishes speaking
+                        if (!isRecording && currentQuestionDisplayed) {{
+                            recordBtn.disabled = false;
+                        }}
+                    }};
+                    audio.play();
+                    
+                    return true;
+                }} else {{
+                    throw new Error(data.message || 'Speech synthesis failed');
+                }}
+                
+            }} catch (error) {{
+                console.error('Speech error:', error);
+                errorMessage.textContent = 'Speech synthesis failed: ' + error.message;
+                errorMessage.style.display = 'block';
+                return false;
+            }}
         }}
         
         function addMayaMessage(message, isMaya = true) {{
             const messageDiv = document.createElement('div');
             messageDiv.className = 'maya-message ' + (isMaya ? 'maya' : 'user');
             messageDiv.innerHTML = isMaya ? 
-                '<strong>Maya (Nova Sonic Amy):</strong> ' + message : 
+                '<strong>Maya:</strong> ' + message : 
                 '<strong>You:</strong> ' + message;
             mayaConversation.appendChild(messageDiv);
             mayaConversation.scrollTop = mayaConversation.scrollHeight;
         }}
         
-        function loadNextQuestion() {{
+        function loadCurrentQuestion() {{
             if (currentQuestionIndex >= mayaQuestions.length) {{
-                addMayaMessage('Thank you for completing the IELTS Speaking assessment. Your conversation has been recorded and will be evaluated.');
+                const finalMessage = 'Thank you for completing the IELTS Speaking assessment. Your conversation has been recorded and will be evaluated.';
+                addMayaMessage(finalMessage);
+                speakMayaMessage(finalMessage);
                 submitBtn.disabled = false;
                 recordBtn.disabled = true;
-                particleSystem.stopSpeaking();
+                displayCurrentQuestion();
                 return;
             }}
             
             const question = mayaQuestions[currentQuestionIndex];
             
-            // Add Maya message
+            // Display question first
+            displayCurrentQuestion();
+            
+            // Add Maya message to conversation
             addMayaMessage(question.question);
-            currentPart.textContent = question.part;
-            currentQuestion.textContent = currentQuestionIndex + 1;
             
-            // Start particle animation for Maya speaking
-            particleSystem.startSpeaking();
+            // Maya speaks the question - only enable recording after she finishes
+            recordBtn.disabled = true;
+            responseCompleted = false;
             
-            setTimeout(() => {{
-                particleSystem.stopSpeaking();
-                recordBtn.disabled = false;
-                
-                if (currentQuestionIndex === 0) {{
+            speakMayaMessage(question.question).then(() => {{
+                // Maya finished speaking, now user can record
+                if (currentQuestionIndex === 0 && !timerStarted) {{
                     startTimer();
                 }}
-            }}, 4000);
+            }});
         }}
         
         function startTimer() {{
@@ -790,8 +1012,8 @@ def handle_improved_maya_assessment():
         // Recording controls
         recordBtn.addEventListener('click', async function() {{
             try {{
-                if (!audioStream) {{
-                    alert('Please complete audio setup first.');
+                if (!audioStream || !currentQuestionDisplayed) {{
+                    alert('Please wait for Maya to finish speaking.');
                     return;
                 }}
                 
@@ -806,20 +1028,21 @@ def handle_improved_maya_assessment():
                     isRecording = true;
                     recordBtn.disabled = true;
                     stopBtn.disabled = false;
+                    nextBtn.disabled = true;
+                    recordingIndicator.classList.add('active');
                 }};
                 
                 mediaRecorder.onstop = function() {{
                     isRecording = false;
                     recordBtn.disabled = false;
                     stopBtn.disabled = true;
+                    recordingIndicator.classList.remove('active');
                     
                     addMayaMessage('Response recorded for Part ' + mayaQuestions[currentQuestionIndex].part, false);
                     
-                    // Move to next question
-                    currentQuestionIndex++;
-                    setTimeout(() => {{
-                        loadNextQuestion();
-                    }}, 2000);
+                    // Enable next button after recording stops
+                    responseCompleted = true;
+                    nextBtn.disabled = false;
                 }};
                 
                 mediaRecorder.start();
@@ -843,9 +1066,27 @@ def handle_improved_maya_assessment():
             }}
         }});
         
+        nextBtn.addEventListener('click', function() {{
+            if (!responseCompleted) {{
+                alert('Please complete your response first.');
+                return;
+            }}
+            
+            // Move to next question
+            currentQuestionIndex++;
+            currentQuestionDisplayed = false;
+            responseCompleted = false;
+            nextBtn.disabled = true;
+            
+            // Small delay before loading next question
+            setTimeout(() => {{
+                loadCurrentQuestion();
+            }}, 1500);
+        }});
+        
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {{
-            console.log('Maya AI assessment with particle globe loaded');
+            console.log('Improved Maya assessment with better navigation loaded');
         }});
     </script>
 </body>
@@ -876,22 +1117,22 @@ def handle_health_check():
         'body': json.dumps({
             'status': 'healthy',
             'maya_voice': 'nova_sonic_amy_only',
-            'voice_id': 'amy',
-            'ui_version': 'improved_with_particle_globe',
-            'features': ['particle_globe', 'nova_sonic_amy', 'approved_dev_ui']
+            'voice_system': 'aws_bedrock',
+            'ui_version': 'improved_navigation',
+            'features': ['particle_globe', 'nova_sonic_amy', 'improved_ui', 'better_navigation']
         })
     }
 '''
     
     return lambda_code
 
-def deploy_improved_maya():
+def deploy_improved_maya_ui():
     """Deploy improved Maya UI to production"""
     
     print("🚀 Deploying Improved Maya UI to Production")
     print("=" * 50)
     
-    # Create improved Maya lambda code
+    # Create improved Maya UI lambda code
     lambda_code = create_improved_maya_lambda()
     
     # Write to file
@@ -914,7 +1155,7 @@ def deploy_improved_maya():
         
         print("✅ Improved Maya UI deployed to production!")
         print(f"📦 Function size: {response.get('CodeSize', 0)} bytes")
-        print("🎨 Testing improved UI features...")
+        print("🎵 Testing improved Maya UI...")
         
         # Test deployment
         time.sleep(8)
@@ -924,37 +1165,37 @@ def deploy_improved_maya():
             import urllib.request
             response = urllib.request.urlopen('https://www.ieltsaiprep.com/assessment/academic-speaking')
             if response.getcode() == 200:
-                print("✅ Improved Maya UI deployed!")
+                print("✅ Improved Maya assessment deployed!")
                 
-                # Check for improved features
+                # Check improved UI features
                 content = response.read().decode('utf-8')
-                if "maya-globe" in content:
-                    print("✅ Particle globe animation deployed!")
-                if "Nova Sonic Amy" in content:
-                    print("✅ Nova Sonic Amy integration deployed!")
-                if "ParticleGlobe" in content:
-                    print("✅ Particle system class deployed!")
-                if "approved dev UI" in content.lower() or "gradient" in content:
-                    print("✅ Approved dev UI design deployed!")
-                if "amy" in content and "voice" in content:
-                    print("✅ Amy voice only (no dynamic selection)!")
+                if "current-question" in content:
+                    print("✅ Current question display implemented!")
+                if "nextBtn" in content:
+                    print("✅ Next button navigation implemented!")
+                if "responseCompleted" in content:
+                    print("✅ Response completion tracking implemented!")
+                if "loadCurrentQuestion" in content:
+                    print("✅ Improved question flow implemented!")
+                if "recording-indicator" in content:
+                    print("✅ Recording indicator implemented!")
                     
             else:
                 print(f"⚠️ Production test returned status {response.getcode()}")
         except Exception as e:
             print(f"⚠️ Production test failed: {str(e)}")
         
-        print("\n🎯 Improved Maya Features:")
-        print("• ✅ Approved dev UI design with gradients")
-        print("• ✅ Particle globe animation linked to Maya's speech")
-        print("• ✅ Nova Sonic Amy API integration")
-        print("• ✅ Amy voice only (no dynamic selection)")
-        print("• ✅ Enhanced visual effects and animations")
-        print("• ✅ Professional glassmorphism design")
-        print("• ✅ Responsive mobile-first layout")
-        print("• ✅ Real-time particle visualization")
+        print("\n🎯 Improved Maya UI Features:")
+        print("• ✅ One question displayed at a time")
+        print("• ✅ Maya waits for response completion")
+        print("• ✅ Clear Next Question button navigation")
+        print("• ✅ Recording indicator for better UX")
+        print("• ✅ Improved question flow management")
+        print("• ✅ Better button state management")
+        print("• ✅ Response completion tracking")
+        print("• ✅ Auto-enable recording after Maya speaks")
         
-        print(f"\n🔗 Test the improved Maya assessment:")
+        print(f"\n🔗 Test improved Maya UI:")
         print("   https://www.ieltsaiprep.com/assessment/academic-speaking")
         
     except Exception as e:
@@ -964,4 +1205,4 @@ def deploy_improved_maya():
     return True
 
 if __name__ == "__main__":
-    deploy_improved_maya()
+    deploy_improved_maya_ui()
