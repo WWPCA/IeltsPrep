@@ -9,24 +9,11 @@ import json
 import base64
 from botocore.exceptions import ClientError
 
-def deploy_nova_sonic_amy():
-    """Deploy Nova Sonic Amy voice integration with current AWS SDK"""
-    
-    print("🚀 Deploying Nova Sonic Amy Integration")
-    print("=" * 50)
-    
-    # Create working Nova Sonic implementation
-    nova_sonic_code = '''
 def synthesize_maya_voice_nova_sonic(text):
     """
     Synthesize Maya's voice using AWS Nova Sonic Amy
     Exclusive implementation for British female voice
     """
-    import boto3
-    import json
-    import base64
-    from botocore.exceptions import ClientError
-    
     try:
         # Initialize Nova Sonic client
         bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
@@ -134,7 +121,7 @@ def test_nova_sonic_real_time():
     print("=" * 50)
     
     for i, response in enumerate(maya_responses):
-        print(f"\\n📢 Maya Response {i+1}: {response}")
+        print(f"\n📢 Maya Response {i+1}: {response}")
         
         # Try synthesizing with Nova Sonic
         audio_data = synthesize_maya_voice_nova_sonic(response)
@@ -188,56 +175,10 @@ def check_nova_sonic_status():
         print(f"❌ Nova Sonic check failed: {str(e)}")
         return False
 
-def generate_nova_sonic_app_integration():
-    """Generate Nova Sonic integration for app.py"""
-    
-    print("\\n🔧 Generating Nova Sonic Integration Code")
+if __name__ == "__main__":
+    print("🚀 Deploying Nova Sonic Amy Integration")
     print("=" * 50)
     
-    integration_code = '''
-# Nova Sonic Amy Integration - AWS Exclusive
-def handle_nova_sonic_synthesis(text):
-    """Handle Nova Sonic Amy voice synthesis"""
-    
-    # Use Nova Sonic Amy exclusively for Maya's voice
-    audio_data = synthesize_maya_voice_nova_sonic(text)
-    
-    if audio_data:
-        return {
-            'success': True,
-            'audio_data': audio_data,
-            'voice': 'Amy (British Female)',
-            'provider': 'AWS Nova Sonic'
-        }
-    else:
-        return {
-            'success': False,
-            'error': 'Nova Sonic Amy synthesis failed',
-            'fallback_needed': True
-        }
-
-def handle_maya_conversation(user_input):
-    """Handle Maya AI conversation with Nova Sonic voice"""
-    
-    # Generate Maya's text response using Nova Micro
-    maya_text = generate_maya_response_nova_micro(user_input)
-    
-    # Synthesize Maya's voice using Nova Sonic Amy
-    maya_audio = handle_nova_sonic_synthesis(maya_text)
-    
-    return {
-        'maya_text': maya_text,
-        'maya_audio': maya_audio,
-        'conversation_id': generate_conversation_id()
-    }
-'''
-    
-    print("✅ Nova Sonic integration code generated")
-    print("   Add this code to app.py for Maya voice synthesis")
-    
-    return integration_code
-
-if __name__ == "__main__":
     # Check Nova Sonic status
     status_ok = check_nova_sonic_status()
     
@@ -245,33 +186,26 @@ if __name__ == "__main__":
     if status_ok:
         synthesis_ok = test_nova_sonic_real_time()
         
-        # Generate integration code
-        integration_code = generate_nova_sonic_app_integration()
-        
-        print("\\n🎯 NOVA SONIC AMY DEPLOYMENT STATUS:")
+        print("\n🎯 NOVA SONIC AMY DEPLOYMENT STATUS:")
         print(f"   Model Available: {status_ok}")
         print(f"   Synthesis Working: {synthesis_ok}")
         
         if synthesis_ok:
-            print("\\n✅ DEPLOYMENT READY:")
+            print("\n✅ DEPLOYMENT READY:")
             print("   Nova Sonic Amy voice integration successful")
             print("   Maya examiner can use British female voice")
             print("   Real-time conversation supported")
         else:
-            print("\\n⚠️ DEPLOYMENT ISSUES:")
+            print("\n⚠️ DEPLOYMENT ISSUES:")
             print("   Nova Sonic available but synthesis format unclear")
             print("   Check AWS documentation for latest Nova Sonic API")
     else:
-        print("\\n❌ DEPLOYMENT BLOCKED:")
+        print("\n❌ DEPLOYMENT BLOCKED:")
         print("   Nova Sonic model not accessible")
         print("   Check IAM permissions and model availability")
     
-    print("\\n🔑 REQUIRED PERMISSIONS:")
+    print("\n🔑 REQUIRED PERMISSIONS:")
     print("   bedrock:InvokeModel")
     print("   bedrock:InvokeModelWithResponseStream") 
     print("   bedrock:GetFoundationModel")
     print("   bedrock:ListFoundationModels")
-'''
-    
-    print("🎯 Nova Sonic Amy Integration Code Generated")
-    print("Ready for deployment to app.py")

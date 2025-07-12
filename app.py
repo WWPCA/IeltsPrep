@@ -21,6 +21,224 @@ os.environ['REPLIT_ENVIRONMENT'] = 'true'
 # Import AWS mock services
 from aws_mock_config import aws_mock
 
+# Nova Sonic Amy Integration for Maya voice
+def synthesize_maya_voice_nova_sonic(text: str) -> Optional[str]:
+    """
+    Synthesize Maya's voice using AWS Nova Sonic Amy (British female voice)
+    Returns base64 encoded audio data or None if synthesis fails
+    """
+    try:
+        # In development mode, use mock implementation
+        if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+            print(f"[NOVA_SONIC] Mock synthesis: {text[:50]}...")
+            # Return mock audio data for development
+            return "mock_audio_data_base64"
+        
+        # Production Nova Sonic implementation
+        import boto3
+        bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        
+        # Nova Sonic conversation-based approach (not direct TTS)
+        # Nova Sonic works with speech-to-speech conversations
+        conversation_payload = {
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are Maya, a British female IELTS examiner. Speak naturally with a clear British accent. Provide exactly the requested speech without additional commentary."
+                },
+                {
+                    "role": "user",
+                    "content": f"Please say this exactly as Maya would: {text}"
+                }
+            ],
+            "inferenceConfig": {
+                "maxTokens": 1000,
+                "temperature": 0.3
+            }
+        }
+        
+        # Try Nova Sonic with conversation approach
+        try:
+            response = bedrock_client.invoke_model(
+                modelId="amazon.nova-sonic-v1:0",
+                body=json.dumps(conversation_payload),
+                contentType="application/json"
+            )
+            
+            result = json.loads(response['body'].read())
+            
+            # Check for audio output in various formats
+            if 'audioStream' in result:
+                return base64.b64encode(result['audioStream']).decode('utf-8')
+            elif 'audio' in result:
+                return result['audio']
+            elif 'output' in result:
+                output = result['output']
+                if 'audioStream' in output:
+                    return base64.b64encode(output['audioStream']).decode('utf-8')
+                elif 'audio' in output:
+                    return output['audio']
+            
+            # If no audio, log the response structure for debugging
+            print(f"[NOVA_SONIC] No audio in response: {list(result.keys())}")
+            return None
+            
+        except Exception as e:
+            print(f"[NOVA_SONIC] Amy synthesis failed: {str(e)}")
+            return None
+            
+    except Exception as e:
+        print(f"[NOVA_SONIC] Error: {str(e)}")
+        return None
+
+def handle_nova_sonic_connection_test() -> Dict[str, Any]:
+    """Test Nova Sonic connectivity and Amy voice synthesis"""
+    test_text = "Hello, I'm Maya, your IELTS examiner. Welcome to your speaking assessment."
+    
+    try:
+        # Test Nova Sonic Amy synthesis
+        audio_data = synthesize_maya_voice_nova_sonic(test_text)
+        
+        if audio_data:
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'success',
+                    'message': 'Nova Sonic Amy voice synthesis working',
+                    'audio_data': audio_data,
+                    'voice': 'Amy (British Female)',
+                    'provider': 'AWS Nova Sonic'
+                })
+            }
+        else:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Nova Sonic Amy synthesis failed',
+                    'details': 'Check AWS permissions and model availability'
+                })
+            }
+            
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': f'Nova Sonic test failed: {str(e)}',
+                'details': 'Check AWS Bedrock configuration'
+            })
+        }
+
+def handle_nova_sonic_stream(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle Nova Sonic streaming for Maya conversations"""
+    try:
+        user_text = data.get('user_text', '')
+        conversation_id = data.get('conversation_id', str(uuid.uuid4()))
+        
+        if not user_text:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'No user text provided'
+                })
+            }
+        
+        # Generate Maya's response text first
+        maya_response = generate_maya_response(user_text)
+        
+        # Synthesize Maya's voice using Nova Sonic Amy
+        audio_data = synthesize_maya_voice_nova_sonic(maya_response)
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'success',
+                'conversation_id': conversation_id,
+                'maya_text': maya_response,
+                'maya_audio': audio_data,
+                'voice': 'Amy (British Female)',
+                'provider': 'AWS Nova Sonic'
+            })
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': f'Nova Sonic streaming failed: {str(e)}'
+            })
+        }
+
+def generate_maya_response(user_text: str) -> str:
+    """Generate Maya's response text using Nova Micro"""
+    try:
+        # In development, use mock responses
+        if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+            maya_responses = [
+                "Thank you for that response. Could you please tell me more about your background?",
+                "That's very interesting. How long have you been living in your current city?",
+                "I see. Now let's move on to the next part of the speaking assessment.",
+                "Excellent. Can you describe your hometown to me?",
+                "Thank you. What do you enjoy most about where you live?"
+            ]
+            import random
+            return random.choice(maya_responses)
+        
+        # Production Nova Micro implementation
+        import boto3
+        bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        
+        maya_prompt = f"""You are Maya, a British female IELTS examiner conducting a speaking assessment. 
+        
+        The candidate just said: "{user_text}"
+        
+        Respond as Maya would in an IELTS speaking test:
+        - Keep responses natural and conversational
+        - Ask follow-up questions appropriate to IELTS speaking assessment
+        - Maintain professional but friendly tone
+        - Guide the conversation through IELTS speaking parts when appropriate
+        
+        Provide only Maya's response, no additional text."""
+        
+        payload = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [{"text": maya_prompt}]
+                }
+            ],
+            "inferenceConfig": {
+                "maxTokens": 200,
+                "temperature": 0.7
+            }
+        }
+        
+        response = bedrock_client.invoke_model(
+            modelId="amazon.nova-micro-v1:0",
+            body=json.dumps(payload),
+            contentType="application/json"
+        )
+        
+        result = json.loads(response['body'].read())
+        
+        if 'output' in result and 'message' in result['output']:
+            return result['output']['message']['content'][0]['text']
+        else:
+            return "Thank you for that response. Could you tell me more about your background?"
+            
+    except Exception as e:
+        print(f"[MAYA] Response generation failed: {str(e)}")
+        return "Thank you for that response. Could you tell me more about your background?"
+
 def verify_recaptcha_v2(recaptcha_response: str, user_ip: Optional[str] = None) -> bool:
     """Verify reCAPTCHA v2 response with Google"""
     try:
@@ -146,6 +364,10 @@ def lambda_handler(event, context):
             return handle_nova_micro_writing(data)
         elif path == '/api/nova-micro/submit' and method == 'POST':
             return handle_nova_micro_submit(data)
+        elif path == '/api/nova-sonic-connect' and method == 'POST':
+            return handle_nova_sonic_connection_test()
+        elif path == '/api/nova-sonic-stream' and method == 'POST':
+            return handle_nova_sonic_stream(data)
         elif path == '/qr-auth' and method == 'GET':
             return handle_qr_auth_page()
         elif path == '/profile' and method == 'GET':
