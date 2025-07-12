@@ -461,6 +461,541 @@ def handle_database_schema_page() -> Dict[str, Any]:
             'body': f'<h1>Error loading database schema: {str(e)}</h1>'
         }
 
+def handle_assessment_access(path: str, headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle assessment access with better microphone/speaker permission design"""
+    try:
+        assessment_type = path.split('/')[-1]
+        
+        # For development, allow direct access to speaking assessment
+        if assessment_type == 'academic-speaking':
+            return handle_speaking_assessment_with_permissions()
+        elif assessment_type == 'academic-writing':
+            return handle_writing_assessment()
+        else:
+            return {
+                'statusCode': 404,
+                'headers': {'Content-Type': 'text/html'},
+                'body': f'<h1>Assessment type "{assessment_type}" not found</h1>'
+            }
+    except Exception as e:
+        print(f"[CLOUDWATCH] Assessment access error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error loading assessment: {str(e)}</h1>'
+        }
+
+def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
+    """Handle speaking assessment with proper microphone and speaker permissions"""
+    html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Speaking Assessment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+        .header { background-color: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .logo { background-color: #e31e24; color: white; padding: 8px 12px; font-weight: bold; font-size: 18px; }
+        .timer { background-color: #333; color: white; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
+        .main-content { display: flex; height: calc(100vh - 120px); background-color: #fff; }
+        .question-panel { width: 50%; padding: 20px; border-right: 1px solid #ddd; overflow-y: auto; }
+        .answer-panel { width: 50%; padding: 20px; display: flex; flex-direction: column; }
+        .part-header { background-color: #f8f8f8; padding: 10px 15px; margin-bottom: 20px; border-left: 4px solid #e31e24; }
+        .permission-check { margin-bottom: 20px; padding: 15px; background: #e8f4fd; border: 1px solid #0066cc; border-radius: 4px; }
+        .permission-status { padding: 10px; margin-bottom: 10px; border-radius: 4px; font-weight: bold; }
+        .permission-granted { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .permission-denied { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .permission-pending { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .maya-chat { flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 15px; background-color: #f9f9f9; display: flex; flex-direction: column; }
+        .maya-messages { flex: 1; overflow-y: auto; margin-bottom: 15px; min-height: 200px; }
+        .maya-message { padding: 10px; margin-bottom: 10px; background-color: white; border-radius: 4px; }
+        .maya-message.user { background-color: #e3f2fd; }
+        .maya-message.maya { background-color: #f3e5f5; }
+        .conversation-status { padding: 10px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px; }
+        .recording-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .footer { display: flex; justify-content: space-between; padding: 15px 20px; background-color: #f8f8f8; border-top: 1px solid #ddd; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background-color 0.3s; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-record { background-color: #dc3545; color: white; }
+        .btn-stop { background-color: #6c757d; color: white; }
+        .btn-submit { background-color: #28a745; color: white; }
+        .btn:disabled { background-color: #e9ecef; color: #6c757d; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { opacity: 0.9; }
+        .test-audio { margin-top: 10px; }
+        @media (max-width: 768px) {
+            .main-content { flex-direction: column; height: auto; }
+            .question-panel, .answer-panel { width: 100%; }
+            .question-panel { border-right: none; border-bottom: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="logo">IELTS GenAI</div>
+            <div style="font-size: 14px; color: #666;">Test taker: test@example.com</div>
+        </div>
+        <div class="timer" id="timer">--:--</div>
+    </div>
+    
+    <div class="main-content">
+        <div class="question-panel">
+            <div class="part-header">
+                <div style="font-size: 16px; font-weight: bold;">IELTS Speaking Assessment</div>
+                <div style="font-size: 14px; color: #666;">Complete 3-part assessment with Maya AI examiner</div>
+            </div>
+            
+            <div style="line-height: 1.6; margin-bottom: 20px;">
+                <h4>Assessment Structure:</h4>
+                <p><strong>Part 1:</strong> Interview (4-5 minutes)<br>
+                   <strong>Part 2:</strong> Long Turn (3-4 minutes)<br>
+                   <strong>Part 3:</strong> Discussion (4-5 minutes)</p>
+            </div>
+            
+            <div style="padding: 15px; background-color: #e8f4fd; border: 1px solid #0066cc; border-radius: 4px;">
+                <strong>Before Starting:</strong><br>
+                • Ensure you have a quiet environment<br>
+                • Test your microphone and speakers<br>
+                • Listen carefully to Maya's questions<br>
+                • Speak clearly and naturally<br>
+                • Complete all three parts of the assessment
+            </div>
+        </div>
+        
+        <div class="answer-panel">
+            <div class="permission-check">
+                <h4>Audio Setup Required</h4>
+                <p>Please grant microphone and speaker permissions to begin:</p>
+                
+                <div class="permission-status permission-pending" id="microphoneStatus">
+                    🎤 Microphone: Checking permissions...
+                </div>
+                
+                <div class="permission-status permission-pending" id="speakerStatus">
+                    🔊 Speakers: Checking audio output...
+                </div>
+                
+                <button class="btn btn-primary" id="setupAudioBtn">Test Audio Setup</button>
+                
+                <div class="test-audio" id="testAudio" style="display: none;">
+                    <p>Click to test Maya's voice:</p>
+                    <button class="btn btn-primary" id="testVoiceBtn">Test Maya's Voice</button>
+                    <button class="btn btn-primary" id="testMicBtn" style="margin-left: 10px;">Test Microphone</button>
+                </div>
+            </div>
+            
+            <div class="maya-chat" id="mayaChat" style="display: none;">
+                <div class="maya-messages" id="mayaMessages">
+                    <!-- Messages will be added here -->
+                </div>
+                
+                <div class="conversation-status" id="conversationStatus">
+                    Audio setup complete! Maya will begin the assessment automatically...
+                </div>
+                
+                <div class="recording-controls">
+                    <button class="btn btn-record" id="recordBtn" disabled>Start Recording</button>
+                    <button class="btn btn-stop" id="stopBtn" disabled>Stop Recording</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div>Current Part: <span id="currentPart">1</span> of 3</div>
+        <div>Question: <span id="currentQuestion">1</span> of <span id="totalQuestions">6</span></div>
+        <div><button class="btn btn-submit" id="submitBtn" disabled>Complete Assessment</button></div>
+    </div>
+    
+    <script>
+        let timeRemaining = 0;
+        let timerStarted = false;
+        let currentQuestionIndex = 0;
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+        let speechSynthesis = window.speechSynthesis;
+        let mayaVoice = null;
+        let audioStream = null;
+        let microphoneGranted = false;
+        let speakerTested = false;
+        
+        const timer = document.getElementById('timer');
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const conversationStatus = document.getElementById('conversationStatus');
+        const mayaMessages = document.getElementById('mayaMessages');
+        const currentPart = document.getElementById('currentPart');
+        const currentQuestion = document.getElementById('currentQuestion');
+        const setupAudioBtn = document.getElementById('setupAudioBtn');
+        const testAudio = document.getElementById('testAudio');
+        const testVoiceBtn = document.getElementById('testVoiceBtn');
+        const testMicBtn = document.getElementById('testMicBtn');
+        const mayaChat = document.getElementById('mayaChat');
+        const microphoneStatus = document.getElementById('microphoneStatus');
+        const speakerStatus = document.getElementById('speakerStatus');
+        
+        // Maya questions data
+        const mayaQuestions = [
+            {
+                "part": 1,
+                "question": "Hello! I am Maya, your AI examiner for this IELTS Speaking assessment. Let me start by asking you some questions about yourself. What is your name and where are you from?",
+                "expected_duration": 30
+            },
+            {
+                "part": 1,
+                "question": "That is interesting. Can you tell me about your work or studies?",
+                "expected_duration": 45
+            },
+            {
+                "part": 1,
+                "question": "What do you enjoy doing in your free time?",
+                "expected_duration": 45
+            },
+            {
+                "part": 2,
+                "question": "Now I will give you a topic card. You have one minute to prepare and then speak for 1-2 minutes. Describe a memorable journey you have taken. You should say: where you went, who you went with, what you did there, and explain why this journey was memorable for you.",
+                "expected_duration": 120,
+                "prep_time": 60
+            },
+            {
+                "part": 3,
+                "question": "Let us discuss travel and journeys in general. How has travel changed in your country over the past few decades?",
+                "expected_duration": 60
+            },
+            {
+                "part": 3,
+                "question": "What are the benefits of traveling to different countries?",
+                "expected_duration": 60
+            }
+        ];
+        
+        // Initialize Maya voice
+        function initializeMayaVoice() {
+            const voices = speechSynthesis.getVoices();
+            
+            // Find best British female voice
+            mayaVoice = voices.find(voice => 
+                voice.lang.includes('en-GB') && voice.name.toLowerCase().includes('female')
+            ) || voices.find(voice => 
+                voice.lang.includes('en-GB') && voice.name.toLowerCase().includes('woman')
+            ) || voices.find(voice => 
+                voice.lang.includes('en-GB')
+            ) || voices.find(voice => 
+                voice.lang.includes('en-US') && voice.name.toLowerCase().includes('female')
+            ) || voices.find(voice => 
+                voice.lang.includes('en')
+            ) || voices[0];
+            
+            console.log('Maya voice initialized:', mayaVoice?.name || 'Default voice');
+        }
+        
+        // Initialize voices
+        if (speechSynthesis.getVoices().length > 0) {
+            initializeMayaVoice();
+        } else {
+            speechSynthesis.onvoiceschanged = initializeMayaVoice;
+        }
+        
+        // Audio setup function
+        setupAudioBtn.addEventListener('click', async function() {
+            try {
+                // Request microphone permission
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphoneGranted = true;
+                
+                microphoneStatus.textContent = '🎤 Microphone: Access granted ✓';
+                microphoneStatus.className = 'permission-status permission-granted';
+                
+                // Show test audio controls
+                testAudio.style.display = 'block';
+                setupAudioBtn.textContent = 'Audio Setup Complete';
+                setupAudioBtn.disabled = true;
+                
+            } catch (error) {
+                console.error('Microphone access error:', error);
+                microphoneStatus.textContent = '🎤 Microphone: Access denied ✗';
+                microphoneStatus.className = 'permission-status permission-denied';
+                
+                alert('Microphone access is required for the speaking assessment. Please enable microphone permissions and try again.');
+            }
+        });
+        
+        // Test Maya's voice
+        testVoiceBtn.addEventListener('click', function() {
+            if (!mayaVoice) {
+                initializeMayaVoice();
+            }
+            
+            const testMessage = "Hello! This is Maya, your AI examiner. Can you hear me clearly?";
+            const utterance = new SpeechSynthesisUtterance(testMessage);
+            utterance.voice = mayaVoice;
+            utterance.rate = 0.85;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            utterance.onstart = function() {
+                speakerStatus.textContent = '🔊 Speakers: Testing audio output...';
+                speakerStatus.className = 'permission-status permission-pending';
+            };
+            
+            utterance.onend = function() {
+                speakerStatus.textContent = '🔊 Speakers: Audio output working ✓';
+                speakerStatus.className = 'permission-status permission-granted';
+                speakerTested = true;
+                
+                // Enable start assessment if both permissions are granted
+                if (microphoneGranted && speakerTested) {
+                    setTimeout(() => {
+                        startAssessment();
+                    }, 2000);
+                }
+            };
+            
+            speechSynthesis.speak(utterance);
+        });
+        
+        // Test microphone
+        testMicBtn.addEventListener('click', function() {
+            if (!audioStream) {
+                alert('Please grant microphone access first.');
+                return;
+            }
+            
+            const testRecorder = new MediaRecorder(audioStream);
+            const testChunks = [];
+            
+            testRecorder.ondataavailable = function(event) {
+                testChunks.push(event.data);
+            };
+            
+            testRecorder.onstop = function() {
+                const audioBlob = new Blob(testChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                
+                alert('Recording test complete! You can now hear your voice playback.');
+                audio.play();
+            };
+            
+            testRecorder.start();
+            testMicBtn.textContent = 'Recording... (3 sec)';
+            testMicBtn.disabled = true;
+            
+            setTimeout(() => {
+                testRecorder.stop();
+                testMicBtn.textContent = 'Test Microphone';
+                testMicBtn.disabled = false;
+            }, 3000);
+        });
+        
+        function startAssessment() {
+            // Hide permission check and show assessment
+            document.querySelector('.permission-check').style.display = 'none';
+            mayaChat.style.display = 'flex';
+            
+            // Start assessment
+            conversationStatus.textContent = 'Maya will begin speaking in 2 seconds...';
+            conversationStatus.style.backgroundColor = '#e8f4fd';
+            
+            setTimeout(() => {
+                loadNextQuestion();
+            }, 2000);
+        }
+        
+        function updateTimer() {
+            if (!timerStarted) return;
+            
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timer.textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+            
+            if (timeRemaining <= 0) {
+                alert('Assessment time is up!');
+                return;
+            }
+            
+            timeRemaining--;
+        }
+        
+        function startTimer() {
+            if (!timerStarted) {
+                timerStarted = true;
+                timeRemaining = 15 * 60; // 15 minutes
+                conversationStatus.textContent = 'Assessment timer started. Maya will now begin the conversation.';
+                conversationStatus.style.backgroundColor = '#d4edda';
+                setInterval(updateTimer, 1000);
+            }
+        }
+        
+        function addMayaMessage(message, isMaya = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'maya-message ' + (isMaya ? 'maya' : 'user');
+            messageDiv.innerHTML = isMaya ? '<strong>Maya (AI Examiner):</strong> ' + message : '<strong>You:</strong> ' + message;
+            mayaMessages.appendChild(messageDiv);
+            mayaMessages.scrollTop = mayaMessages.scrollHeight;
+        }
+        
+        function playMayaVoice(questionText) {
+            return new Promise((resolve) => {
+                if (!mayaVoice) {
+                    resolve();
+                    return;
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(questionText);
+                utterance.voice = mayaVoice;
+                utterance.rate = 0.85;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                utterance.onstart = function() {
+                    conversationStatus.textContent = 'Maya is speaking... Please listen carefully.';
+                    conversationStatus.style.backgroundColor = '#fff3cd';
+                };
+                
+                utterance.onend = function() {
+                    conversationStatus.textContent = 'Maya has finished. Please record your response.';
+                    conversationStatus.style.backgroundColor = '#d1ecf1';
+                    recordBtn.disabled = false;
+                    
+                    if (currentQuestionIndex === 0) {
+                        startTimer();
+                    }
+                    
+                    resolve();
+                };
+                
+                utterance.onerror = function(error) {
+                    console.error('Speech synthesis error:', error);
+                    conversationStatus.textContent = 'Maya question displayed. Please record your response.';
+                    conversationStatus.style.backgroundColor = '#d1ecf1';
+                    recordBtn.disabled = false;
+                    
+                    if (currentQuestionIndex === 0) {
+                        startTimer();
+                    }
+                    
+                    resolve();
+                };
+                
+                speechSynthesis.speak(utterance);
+            });
+        }
+        
+        function loadNextQuestion() {
+            if (currentQuestionIndex >= mayaQuestions.length) {
+                addMayaMessage('Thank you for completing the IELTS Speaking assessment. Your responses have been recorded.');
+                conversationStatus.textContent = 'Assessment complete! Click "Complete Assessment" to finish.';
+                conversationStatus.style.backgroundColor = '#d4edda';
+                submitBtn.disabled = false;
+                recordBtn.disabled = true;
+                return;
+            }
+            
+            const question = mayaQuestions[currentQuestionIndex];
+            
+            // Add Maya message
+            addMayaMessage(question.question);
+            currentPart.textContent = question.part;
+            currentQuestion.textContent = currentQuestionIndex + 1;
+            
+            // Play Maya voice
+            setTimeout(() => {
+                playMayaVoice(question.question);
+            }, 1000);
+        }
+        
+        // Recording controls
+        recordBtn.addEventListener('click', async function() {
+            try {
+                if (!audioStream) {
+                    alert('Please complete audio setup first.');
+                    return;
+                }
+                
+                mediaRecorder = new MediaRecorder(audioStream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = function(event) {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstart = function() {
+                    isRecording = true;
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    conversationStatus.textContent = 'Recording your response... Speak clearly and naturally.';
+                    conversationStatus.style.backgroundColor = '#fff3cd';
+                };
+                
+                mediaRecorder.onstop = function() {
+                    isRecording = false;
+                    recordBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    conversationStatus.textContent = 'Response recorded. Moving to next question...';
+                    conversationStatus.style.backgroundColor = '#d4edda';
+                    
+                    addMayaMessage('Response recorded for Part ' + mayaQuestions[currentQuestionIndex].part, false);
+                    
+                    // Move to next question
+                    currentQuestionIndex++;
+                    setTimeout(() => {
+                        loadNextQuestion();
+                    }, 2000);
+                };
+                
+                mediaRecorder.start();
+                
+                // Auto-stop after expected duration + 30 seconds
+                const maxDuration = (mayaQuestions[currentQuestionIndex].expected_duration || 60) + 30;
+                setTimeout(() => {
+                    if (isRecording) {
+                        mediaRecorder.stop();
+                    }
+                }, maxDuration * 1000);
+                
+            } catch (error) {
+                alert('Error starting recording: ' + error.message);
+                conversationStatus.textContent = 'Error: Could not start recording. Please check microphone permissions.';
+                conversationStatus.style.backgroundColor = '#f8d7da';
+            }
+        });
+        
+        stopBtn.addEventListener('click', function() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+            }
+        });
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Speaking assessment with permissions loaded');
+        });
+    </script>
+</body>
+</html>"""
+    
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache'
+        },
+        'body': html_content
+    }
+
+def handle_writing_assessment() -> Dict[str, Any]:
+    """Handle writing assessment"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': '<h1>Writing Assessment</h1><p>Writing assessment functionality will be implemented here.</p>'
+    }
+
 def handle_privacy_policy() -> Dict[str, Any]:
     """Serve privacy policy page"""
     html_content = """

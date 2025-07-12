@@ -100,19 +100,20 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 12, 2025: CLEAN UI AND VOICE EXPERIENCE DEPLOYED - User-Focused Interface Without Technical Details
-  - Successfully removed Nova Sonic Features box (users don't need to see backend technology details)
-  - Removed Nova Sonic Status box (not relevant to IELTS test experience)
-  - Added user-friendly assessment instructions focused on IELTS preparation
-  - Implemented hybrid voice system: Nova Sonic API with browser voice fallback for reliability
-  - Fixed voice connection issues with proper error handling and seamless fallback
-  - Clean interface now focuses on IELTS assessment experience without technical jargon
+- July 12, 2025: DEVELOPMENT VERSION RESTORED - Better Audio Permission Design Implemented
+  - Restored development version with superior audio permission design as user requested
+  - Implemented proper microphone and speaker permission testing before assessment begins
+  - Added comprehensive audio setup flow: "Test Audio Setup" → "Test Maya's Voice" → "Test Microphone"
+  - Clean UI without technical backend details (Nova Sonic Features/Status boxes removed)
+  - Professional permission status indicators with clear visual feedback (granted/denied/pending)
+  - Microphone test with 3-second recording and playback functionality
+  - Speaker test with Maya's voice sample for audio output verification
+  - Assessment only begins after successful audio permission setup
+  - Enhanced user experience with step-by-step audio configuration
+  - Fixed voice connection issues with reliable browser-based speech synthesis
   - Maya AI examiner provides clear audio instructions with professional British voice
-  - Fixed conversation timing: Maya speaks → user listens → user records response → next question loads
-  - Implemented proper 3-part IELTS Speaking structure with Part 1 (Interview), Part 2 (Long Turn), Part 3 (Discussion)
-  - Enhanced recording controls with proper microphone access and audio playback functionality
-  - Academic Speaking assessment now fully operational at www.ieltsaiprep.com/assessment/academic-speaking
-  - Production website now offers complete user-friendly assessment experience without backend complexity
+  - Academic Speaking assessment now fully operational at localhost:5000/assessment/academic-speaking
+  - Development version offers better user experience with comprehensive audio testing
 
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
   - Successfully resolved Lambda function dependency issues causing 500 internal server errors
