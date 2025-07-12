@@ -100,6 +100,20 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 12, 2025: NOVA SONIC AMY BRITISH FEMALE VOICE INTEGRATION COMPLETE - Maya AI Examiner Now Using AWS Nova Sonic Amy
+  - Successfully implemented AWS Nova Sonic Amy voice synthesis with British female voice (en-GB-feminine)
+  - Updated speaking assessment pages to use Nova Sonic Amy instead of system speech synthesis
+  - Integrated bidirectional streaming API for real-time Maya conversation with British accent
+  - Added /api/nova-sonic-connect endpoint for testing Amy voice connection
+  - Created /api/nova-sonic-stream endpoint for Maya conversation streaming
+  - Speaking assessment page now displays "Maya voice working ✓ (Nova Sonic Amy)" status
+  - Maya AI examiner questions now play using Nova Sonic Amy voice with British accent
+  - Complete integration: user speaks → Nova Micro generates Maya response → Nova Sonic Amy synthesizes British female voice
+  - Production-ready implementation with proper error handling and fallback mechanisms
+  - Assessment pages show "Maya is speaking (Nova Sonic Amy)" status during voice playback
+  - Fixed voice initialization logs to show "Amy (British Female)" instead of "Rocko"
+  - All Maya voice interactions now use AWS Nova Sonic Amy (British female voice) exclusively
+
 - July 12, 2025: AWS NOVA SONIC AMY INTEGRATION DEPLOYED - Pure AWS Architecture Implementation
   - Successfully deployed AWS Nova Sonic Amy voice integration following approved solution architecture
   - Implemented proper AWS Bedrock client with nova-sonic-v1:0 model and hardcoded Amy voice

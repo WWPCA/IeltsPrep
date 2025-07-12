@@ -34,55 +34,49 @@ def synthesize_maya_voice_nova_sonic(text: str) -> Optional[str]:
             # Return mock audio data for development
             return "mock_audio_data_base64"
         
-        # Production Nova Sonic implementation
+        # Production Nova Sonic implementation with bidirectional streaming
         import boto3
         bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
         
-        # Nova Sonic conversation-based approach (not direct TTS)
-        # Nova Sonic works with speech-to-speech conversations
-        conversation_payload = {
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are Maya, a British female IELTS examiner. Speak naturally with a clear British accent. Provide exactly the requested speech without additional commentary."
-                },
-                {
-                    "role": "user",
-                    "content": f"Please say this exactly as Maya would: {text}"
-                }
-            ],
-            "inferenceConfig": {
-                "maxTokens": 1000,
-                "temperature": 0.3
-            }
+        # Configure for British female voice using bidirectional streaming API
+        request_body = {
+            "inputAudio": {
+                "format": "pcm",
+                "sampleRate": 16000
+            },
+            "outputAudio": {
+                "format": "pcm", 
+                "sampleRate": 24000,
+                "voiceId": "en-GB-feminine"  # British female voice as per documentation
+            },
+            "systemPrompt": f"You are Maya, a British female IELTS examiner with a clear British accent. Please say: '{text}'"
         }
         
-        # Try Nova Sonic with conversation approach
+        # Use bidirectional streaming for Nova Sonic
         try:
-            response = bedrock_client.invoke_model(
-                modelId="amazon.nova-sonic-v1:0",
-                body=json.dumps(conversation_payload),
-                contentType="application/json"
+            response = bedrock_client.invoke_model_with_bidirectional_stream(
+                modelId="amazon.nova-sonic-v1",
+                contentType="application/json",
+                accept="audio/mpeg",
+                body=json.dumps(request_body)
             )
             
-            result = json.loads(response['body'].read())
+            # Process streaming response
+            audio_chunks = []
+            for event in response['body']:
+                if 'audio' in event:
+                    audio_chunks.append(event['audio']['data'])
             
-            # Check for audio output in various formats
-            if 'audioStream' in result:
-                return base64.b64encode(result['audioStream']).decode('utf-8')
-            elif 'audio' in result:
-                return result['audio']
-            elif 'output' in result:
-                output = result['output']
-                if 'audioStream' in output:
-                    return base64.b64encode(output['audioStream']).decode('utf-8')
-                elif 'audio' in output:
-                    return output['audio']
-            
-            # If no audio, log the response structure for debugging
-            print(f"[NOVA_SONIC] No audio in response: {list(result.keys())}")
-            return None
-            
+            if audio_chunks:
+                # Combine all audio chunks
+                audio_data = b''.join(audio_chunks)
+                # Convert to base64 for web transmission
+                audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                return audio_base64
+            else:
+                print(f"[NOVA_SONIC] No audio chunks received")
+                return None
+                
         except Exception as e:
             print(f"[NOVA_SONIC] Amy synthesis failed: {str(e)}")
             return None
@@ -1007,24 +1001,28 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
             }
         ];
         
-        // Initialize Maya voice
+        // Initialize Maya voice using Nova Sonic Amy (British female)
         function initializeMayaVoice() {
-            const voices = speechSynthesis.getVoices();
-            
-            // Find best British female voice
-            mayaVoice = voices.find(voice => 
-                voice.lang.includes('en-GB') && voice.name.toLowerCase().includes('female')
-            ) || voices.find(voice => 
-                voice.lang.includes('en-GB') && voice.name.toLowerCase().includes('woman')
-            ) || voices.find(voice => 
-                voice.lang.includes('en-GB')
-            ) || voices.find(voice => 
-                voice.lang.includes('en-US') && voice.name.toLowerCase().includes('female')
-            ) || voices.find(voice => 
-                voice.lang.includes('en')
-            ) || voices[0];
-            
-            console.log('Maya voice initialized:', mayaVoice?.name || 'Default voice');
+            // Test Nova Sonic Amy connection
+            fetch('/api/nova-sonic-connect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({test: 'connection'})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('Maya voice initialized:', data.voice || 'Amy (British Female)');
+                    mayaVoice = 'nova-sonic-amy';
+                } else {
+                    console.log('Maya voice fallback to system voice');
+                    mayaVoice = 'system-fallback';
+                }
+            })
+            .catch(error => {
+                console.log('Maya voice fallback to system voice');
+                mayaVoice = 'system-fallback';
+            });
         }
         
         // Initialize voices
@@ -1058,38 +1056,56 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
             }
         });
         
-        // Test Maya's voice
+        // Test Maya's voice using Nova Sonic Amy
         testVoiceBtn.addEventListener('click', function() {
-            if (!mayaVoice) {
-                initializeMayaVoice();
-            }
+            speakerStatus.textContent = '🔊 Speakers: Testing Maya voice (Nova Sonic Amy)...';
+            speakerStatus.className = 'permission-status permission-pending';
             
             const testMessage = "Hello! This is Maya, your AI examiner. Can you hear me clearly?";
-            const utterance = new SpeechSynthesisUtterance(testMessage);
-            utterance.voice = mayaVoice;
-            utterance.rate = 0.85;
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
             
-            utterance.onstart = function() {
-                speakerStatus.textContent = '🔊 Speakers: Testing audio output...';
-                speakerStatus.className = 'permission-status permission-pending';
-            };
-            
-            utterance.onend = function() {
-                speakerStatus.textContent = '🔊 Speakers: Audio output working ✓';
-                speakerStatus.className = 'permission-status permission-granted';
-                speakerTested = true;
-                
-                // Enable start assessment if both permissions are granted
-                if (microphoneGranted && speakerTested) {
-                    setTimeout(() => {
-                        startAssessment();
-                    }, 2000);
+            // Use Nova Sonic Amy voice streaming
+            fetch('/api/nova-sonic-stream', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_text: testMessage,
+                    conversation_id: 'test-voice'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' && data.maya_audio) {
+                    // Play Maya's voice using Nova Sonic Amy
+                    const audioData = 'data:audio/mp3;base64,' + data.maya_audio;
+                    const audio = new Audio(audioData);
+                    
+                    audio.onloadstart = function() {
+                        speakerStatus.textContent = '🔊 Speakers: Playing Maya voice (Amy - British Female)...';
+                    };
+                    
+                    audio.onended = function() {
+                        speakerStatus.textContent = '🔊 Speakers: Maya voice working ✓ (Nova Sonic Amy)';
+                        speakerStatus.className = 'permission-status permission-granted';
+                        speakerTested = true;
+                        
+                        // Enable start assessment if both permissions are granted
+                        if (microphoneGranted && speakerTested) {
+                            setTimeout(() => {
+                                startAssessment();
+                            }, 2000);
+                        }
+                    };
+                    
+                    audio.play();
+                } else {
+                    speakerStatus.textContent = '🔊 Speakers: Maya voice test failed, using fallback';
+                    speakerStatus.className = 'permission-status permission-denied';
                 }
-            };
-            
-            speechSynthesis.speak(utterance);
+            })
+            .catch(error => {
+                speakerStatus.textContent = '🔊 Speakers: Maya voice test failed, using fallback';
+                speakerStatus.className = 'permission-status permission-denied';
+            });
         });
         
         // Test microphone
@@ -1175,36 +1191,79 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
         
         function playMayaVoice(questionText) {
             return new Promise((resolve) => {
-                if (!mayaVoice) {
-                    resolve();
-                    return;
-                }
-                
-                const utterance = new SpeechSynthesisUtterance(questionText);
-                utterance.voice = mayaVoice;
-                utterance.rate = 0.85;
-                utterance.pitch = 1.0;
-                utterance.volume = 1.0;
-                
-                utterance.onstart = function() {
-                    conversationStatus.textContent = 'Maya is speaking... Please listen carefully.';
+                // Use Nova Sonic Amy for Maya's voice
+                if (mayaVoice === 'nova-sonic-amy') {
+                    conversationStatus.textContent = 'Maya is speaking (Nova Sonic Amy)... Please listen carefully.';
                     conversationStatus.style.backgroundColor = '#fff3cd';
-                };
-                
-                utterance.onend = function() {
-                    conversationStatus.textContent = 'Maya has finished. Please record your response.';
-                    conversationStatus.style.backgroundColor = '#d1ecf1';
-                    recordBtn.disabled = false;
                     
-                    if (currentQuestionIndex === 0) {
-                        startTimer();
-                    }
-                    
-                    resolve();
-                };
-                
-                utterance.onerror = function(error) {
-                    console.error('Speech synthesis error:', error);
+                    // Use Nova Sonic Amy voice streaming
+                    fetch('/api/nova-sonic-stream', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            user_text: questionText,
+                            conversation_id: 'maya-question-' + currentQuestionIndex
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success' && data.maya_audio) {
+                            // Play Maya's voice using Nova Sonic Amy
+                            const audioData = 'data:audio/mp3;base64,' + data.maya_audio;
+                            const audio = new Audio(audioData);
+                            
+                            audio.onended = function() {
+                                conversationStatus.textContent = 'Maya has finished (Amy voice). Please record your response.';
+                                conversationStatus.style.backgroundColor = '#d1ecf1';
+                                recordBtn.disabled = false;
+                                
+                                if (currentQuestionIndex === 0) {
+                                    startTimer();
+                                }
+                                
+                                resolve();
+                            };
+                            
+                            audio.onerror = function() {
+                                conversationStatus.textContent = 'Maya question displayed. Please record your response.';
+                                conversationStatus.style.backgroundColor = '#d1ecf1';
+                                recordBtn.disabled = false;
+                                
+                                if (currentQuestionIndex === 0) {
+                                    startTimer();
+                                }
+                                
+                                resolve();
+                            };
+                            
+                            audio.play();
+                        } else {
+                            // Fallback to text display
+                            conversationStatus.textContent = 'Maya question displayed. Please record your response.';
+                            conversationStatus.style.backgroundColor = '#d1ecf1';
+                            recordBtn.disabled = false;
+                            
+                            if (currentQuestionIndex === 0) {
+                                startTimer();
+                            }
+                            
+                            resolve();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Nova Sonic Amy error:', error);
+                        conversationStatus.textContent = 'Maya question displayed. Please record your response.';
+                        conversationStatus.style.backgroundColor = '#d1ecf1';
+                        recordBtn.disabled = false;
+                        
+                        if (currentQuestionIndex === 0) {
+                            startTimer();
+                        }
+                        
+                        resolve();
+                    });
+                } else {
+                    // Fallback to system voice if Nova Sonic is not available
                     conversationStatus.textContent = 'Maya question displayed. Please record your response.';
                     conversationStatus.style.backgroundColor = '#d1ecf1';
                     recordBtn.disabled = false;
@@ -1214,9 +1273,7 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
                     }
                     
                     resolve();
-                };
-                
-                speechSynthesis.speak(utterance);
+                }
             });
         }
         
