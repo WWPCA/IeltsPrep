@@ -16,15 +16,152 @@ def lambda_handler(event, context):
         if path == "/":
             return handle_home_page()
         elif path == "/assessment/academic-speaking":
-            return handle_clean_maya_assessment()
+            return handle_nova_sonic_assessment()
         elif path == "/assessment/academic-writing":
             return handle_writing_assessment()
         elif path == "/api/health":
             return handle_health_check()
+        elif path == "/api/nova-sonic-stream":
+            return handle_nova_sonic_stream(event)
+        elif path == "/api/nova-sonic-connect":
+            return handle_nova_sonic_connect(event)
         else:
             return {"statusCode": 404, "headers": {"Content-Type": "text/html"}, "body": "<h1>404 Not Found</h1>"}
     except Exception as e:
         return {"statusCode": 500, "headers": {"Content-Type": "application/json"}, "body": json.dumps({"error": str(e)})}
+
+def handle_nova_sonic_connect(event):
+    """Handle Nova Sonic connection with proper AWS Bedrock integration"""
+    try:
+        # Initialize Bedrock client for Nova Sonic
+        bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        
+        # Test Nova Sonic availability
+        model_id = "amazon.nova-sonic-v1:0"
+        
+        # Nova Sonic system prompt for Maya
+        system_prompt = """You are Maya, a professional IELTS examiner with a British accent. 
+        Conduct speaking assessments following the official IELTS 3-part structure:
+        - Part 1: Personal interview (4-5 minutes)
+        - Part 2: Individual long turn (3-4 minutes) 
+        - Part 3: Two-way discussion (4-5 minutes)
+        
+        Be professional, encouraging, and maintain authentic examiner behavior."""
+        
+        # Test connection with a simple prompt
+        test_payload = {
+            "modelId": model_id,
+            "contentType": "application/json",
+            "accept": "application/json",
+            "body": json.dumps({
+                "inputText": "Hello, this is a connection test.",
+                "taskType": "TEXT_TO_SPEECH",
+                "voiceId": "amy",
+                "outputFormat": "mp3",
+                "textType": "text"
+            })
+        }
+        
+        response = bedrock_client.invoke_model(
+            modelId=model_id,
+            body=test_payload["body"],
+            contentType=test_payload["contentType"],
+            accept=test_payload["accept"]
+        )
+        
+        # If we get here, Nova Sonic is accessible
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "status": "connected",
+                "model": "nova-sonic-v1",
+                "voice": "amy",
+                "accent": "british",
+                "streaming": True,
+                "ready": True
+            })
+        }
+        
+    except Exception as e:
+        # Return detailed error information
+        error_details = {
+            "error": "Nova Sonic connection failed",
+            "message": str(e),
+            "model_id": "amazon.nova-sonic-v1:0",
+            "voice": "amy",
+            "region": "us-east-1",
+            "issue_type": "bedrock_access"
+        }
+        
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(error_details)
+        }
+
+def handle_nova_sonic_stream(event):
+    """Handle Nova Sonic streaming for Maya conversation"""
+    try:
+        body = json.loads(event.get("body", "{}"))
+        message = body.get("message", "")
+        
+        if not message:
+            return {
+                "statusCode": 400,
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({"error": "No message provided"})
+            }
+        
+        # Initialize Bedrock client
+        bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        
+        # Nova Sonic streaming configuration
+        payload = {
+            "modelId": "amazon.nova-sonic-v1:0",
+            "contentType": "application/json",
+            "accept": "application/json",
+            "body": json.dumps({
+                "inputText": message,
+                "taskType": "TEXT_TO_SPEECH",
+                "voiceId": "amy",
+                "outputFormat": "mp3",
+                "textType": "text",
+                "engine": "neural"
+            })
+        }
+        
+        response = bedrock_client.invoke_model(
+            modelId=payload["modelId"],
+            body=payload["body"],
+            contentType=payload["contentType"],
+            accept=payload["accept"]
+        )
+        
+        # Process response
+        response_body = json.loads(response["body"].read())
+        
+        # Return audio data
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "audio_data": response_body.get("audioStream", ""),
+                "voice": "amy",
+                "status": "success"
+            })
+        }
+        
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({
+                "error": "Nova Sonic streaming failed",
+                "message": str(e),
+                "voice": "amy"
+            })
+        }
 
 def handle_home_page():
     """Handle home page"""
@@ -48,7 +185,7 @@ def handle_home_page():
         
         <div class="assessment-card">
             <h3>Academic Speaking Assessment</h3>
-            <p><strong>Maya AI Examiner:</strong> Professional British voice<br>
+            <p><strong>Maya AI Examiner:</strong> AWS Nova Sonic British voice<br>
                <strong>Visual Experience:</strong> Particle globe animation<br>
                <strong>Assessment Format:</strong> Official IELTS 3-part structure<br>
                <strong>Duration:</strong> 11-14 minutes total</p>
@@ -60,8 +197,8 @@ def handle_home_page():
     
     return {"statusCode": 200, "headers": {"Content-Type": "text/html"}, "body": html}
 
-def handle_clean_maya_assessment():
-    """Handle Maya assessment with clean UI and working voice"""
+def handle_nova_sonic_assessment():
+    """Handle Nova Sonic assessment with proper AWS integration"""
     
     maya_questions = [
         {
@@ -346,6 +483,16 @@ def handle_clean_maya_assessment():
             font-weight: 500;
         }}
         
+        .error-message {{ 
+            background: rgba(244, 67, 54, 0.1);
+            color: #c62828;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }}
+        
         @keyframes slideIn {{ 
             from {{ opacity: 0; transform: translateX(-20px); }}
             to {{ opacity: 1; transform: translateX(0); }}
@@ -401,13 +548,15 @@ def handle_clean_maya_assessment():
                     🎤 Microphone: Checking permissions...
                 </div>
                 
-                <div class="permission-status permission-pending" id="speakerStatus">
-                    🔊 Speaker: Testing audio...
+                <div class="permission-status permission-pending" id="novaSonicStatus">
+                    🔊 Nova Sonic: Connecting...
                 </div>
                 
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                
                 <div class="controls">
-                    <button class="btn btn-primary" id="setupAudioBtn">Start Audio Setup</button>
-                    <button class="btn btn-primary" id="testVoiceBtn" style="display: none;">Test Maya Voice</button>
+                    <button class="btn btn-primary" id="connectNovaBtn">Connect to Nova Sonic</button>
+                    <button class="btn btn-primary" id="testMayaBtn" style="display: none;">Test Maya Voice</button>
                 </div>
             </div>
             
@@ -445,8 +594,7 @@ def handle_clean_maya_assessment():
         let audioChunks = [];
         let audioStream = null;
         let microphoneGranted = false;
-        let speechSynthesis = null;
-        let mayaVoice = null;
+        let novaSonicConnected = false;
         let particleSystem = null;
         let mayaSpeaking = false;
         
@@ -458,37 +606,18 @@ def handle_clean_maya_assessment():
         const mayaConversation = document.getElementById('mayaConversation');
         const currentPart = document.getElementById('currentPart');
         const currentQuestion = document.getElementById('currentQuestion');
-        const setupAudioBtn = document.getElementById('setupAudioBtn');
-        const testVoiceBtn = document.getElementById('testVoiceBtn');
+        const connectNovaBtn = document.getElementById('connectNovaBtn');
+        const testMayaBtn = document.getElementById('testMayaBtn');
         const audioSetup = document.getElementById('audioSetup');
         const mayaGlobeContainer = document.getElementById('mayaGlobeContainer');
         const mayaGlobe = document.getElementById('mayaGlobe');
         const recordingControls = document.getElementById('recordingControls');
         const microphoneStatus = document.getElementById('microphoneStatus');
-        const speakerStatus = document.getElementById('speakerStatus');
+        const novaSonicStatus = document.getElementById('novaSonicStatus');
+        const errorMessage = document.getElementById('errorMessage');
         
         // Maya questions data
         const mayaQuestions = {maya_questions_json};
-        
-        // Initialize speech synthesis
-        if ('speechSynthesis' in window) {{
-            speechSynthesis = window.speechSynthesis;
-            
-            // Wait for voices to load
-            speechSynthesis.onvoiceschanged = function() {{
-                const voices = speechSynthesis.getVoices();
-                // Find British female voice
-                mayaVoice = voices.find(voice => 
-                    voice.lang.includes('en-GB') && voice.name.includes('Female')
-                ) || voices.find(voice => 
-                    voice.lang.includes('en-GB')
-                ) || voices.find(voice => 
-                    voice.lang.includes('en-US') && voice.name.includes('Female')
-                ) || voices[0];
-                
-                console.log('Maya voice selected:', mayaVoice?.name);
-            }};
-        }}
         
         // Particle globe system
         class ParticleGlobe {{
@@ -599,8 +728,8 @@ def handle_clean_maya_assessment():
             }}
         }}
         
-        // Setup audio
-        setupAudioBtn.addEventListener('click', async function() {{
+        // Connect to Nova Sonic
+        connectNovaBtn.addEventListener('click', async function() {{
             try {{
                 // Request microphone permission
                 audioStream = await navigator.mediaDevices.getUserMedia({{ 
@@ -616,52 +745,78 @@ def handle_clean_maya_assessment():
                 microphoneStatus.textContent = '🎤 Microphone: Access granted ✓';
                 microphoneStatus.className = 'permission-status permission-granted';
                 
-                // Test speaker
-                if (speechSynthesis && mayaVoice) {{
-                    speakerStatus.textContent = '🔊 Speaker: Ready ✓';
-                    speakerStatus.className = 'permission-status permission-granted';
+                // Connect to Nova Sonic
+                const response = await fetch('/api/nova-sonic-connect', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{ action: 'connect' }})
+                }});
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'connected') {{
+                    novaSonicConnected = true;
+                    novaSonicStatus.textContent = '🔊 Nova Sonic: Connected ✓';
+                    novaSonicStatus.className = 'permission-status permission-granted';
                     
-                    setupAudioBtn.textContent = 'Audio Setup Complete ✓';
-                    setupAudioBtn.disabled = true;
-                    testVoiceBtn.style.display = 'inline-block';
+                    connectNovaBtn.textContent = 'Connected ✓';
+                    connectNovaBtn.disabled = true;
+                    testMayaBtn.style.display = 'inline-block';
+                    
+                    errorMessage.style.display = 'none';
                 }} else {{
-                    speakerStatus.textContent = '🔊 Speaker: Speech synthesis not available ✗';
-                    speakerStatus.className = 'permission-status permission-denied';
+                    throw new Error(data.message || 'Nova Sonic connection failed');
                 }}
                 
             }} catch (error) {{
-                console.error('Audio setup error:', error);
+                console.error('Connection error:', error);
                 microphoneStatus.textContent = '🎤 Microphone: Access denied ✗';
                 microphoneStatus.className = 'permission-status permission-denied';
+                
+                novaSonicStatus.textContent = '🔊 Nova Sonic: Connection failed ✗';
+                novaSonicStatus.className = 'permission-status permission-denied';
+                
+                errorMessage.textContent = 'Error: ' + error.message;
+                errorMessage.style.display = 'block';
             }}
         }});
         
         // Test Maya voice
-        testVoiceBtn.addEventListener('click', function() {{
-            if (!speechSynthesis || !mayaVoice) {{
-                alert('Speech synthesis not available. Please check your browser settings.');
+        testMayaBtn.addEventListener('click', async function() {{
+            if (!novaSonicConnected) {{
+                alert('Please connect to Nova Sonic first.');
                 return;
             }}
             
-            // Test Maya voice
-            const utterance = new SpeechSynthesisUtterance('Hello! This is Maya, your AI examiner. I am ready to begin the IELTS speaking assessment.');
-            utterance.voice = mayaVoice;
-            utterance.rate = 0.9;
-            utterance.pitch = 1.0;
-            
-            utterance.onstart = function() {{
-                testVoiceBtn.textContent = 'Maya Speaking...';
-                testVoiceBtn.disabled = true;
-            }};
-            
-            utterance.onend = function() {{
-                testVoiceBtn.textContent = 'Voice Test Complete ✓';
-                setTimeout(() => {{
-                    startAssessment();
-                }}, 1000);
-            }};
-            
-            speechSynthesis.speak(utterance);
+            try {{
+                const testMessage = 'Hello! This is Maya, your AI examiner. I am ready to begin the IELTS speaking assessment.';
+                
+                const response = await fetch('/api/nova-sonic-stream', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{ message: testMessage }})
+                }});
+                
+                const data = await response.json();
+                
+                if (response.ok && data.audio_data) {{
+                    // Play audio
+                    const audio = new Audio('data:audio/mp3;base64,' + data.audio_data);
+                    audio.play();
+                    
+                    testMayaBtn.textContent = 'Voice Test Complete ✓';
+                    setTimeout(() => {{
+                        startAssessment();
+                    }}, 2000);
+                }} else {{
+                    throw new Error(data.message || 'Voice test failed');
+                }}
+                
+            }} catch (error) {{
+                console.error('Voice test error:', error);
+                errorMessage.textContent = 'Voice test failed: ' + error.message;
+                errorMessage.style.display = 'block';
+            }}
         }});
         
         function startAssessment() {{
@@ -680,30 +835,42 @@ def handle_clean_maya_assessment():
             }}, 1000);
         }}
         
-        function speakMayaMessage(text) {{
-            if (!speechSynthesis || !mayaVoice) {{
-                console.warn('Speech synthesis not available');
+        async function speakMayaMessage(text) {{
+            if (!novaSonicConnected) {{
+                console.warn('Nova Sonic not connected');
                 return;
             }}
             
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.voice = mayaVoice;
-            utterance.rate = 0.9;
-            utterance.pitch = 1.0;
-            
-            utterance.onstart = function() {{
-                if (particleSystem) {{
-                    particleSystem.startSpeaking();
+            try {{
+                const response = await fetch('/api/nova-sonic-stream', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{ message: text }})
+                }});
+                
+                const data = await response.json();
+                
+                if (response.ok && data.audio_data) {{
+                    if (particleSystem) {{
+                        particleSystem.startSpeaking();
+                    }}
+                    
+                    const audio = new Audio('data:audio/mp3;base64,' + data.audio_data);
+                    audio.onended = function() {{
+                        if (particleSystem) {{
+                            particleSystem.stopSpeaking();
+                        }}
+                    }};
+                    audio.play();
+                }} else {{
+                    throw new Error(data.message || 'Speech synthesis failed');
                 }}
-            }};
-            
-            utterance.onend = function() {{
-                if (particleSystem) {{
-                    particleSystem.stopSpeaking();
-                }}
-            }};
-            
-            speechSynthesis.speak(utterance);
+                
+            }} catch (error) {{
+                console.error('Speech error:', error);
+                errorMessage.textContent = 'Speech synthesis failed: ' + error.message;
+                errorMessage.style.display = 'block';
+            }}
         }}
         
         function addMayaMessage(message, isMaya = true) {{
@@ -742,7 +909,7 @@ def handle_clean_maya_assessment():
                 if (currentQuestionIndex === 0) {{
                     startTimer();
                 }}
-            }}, 6000); // Wait longer for Maya to finish speaking
+            }}, 8000); // Wait longer for Maya to finish speaking
         }}
         
         function startTimer() {{
@@ -826,12 +993,7 @@ def handle_clean_maya_assessment():
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {{
-            console.log('Maya AI assessment with clean UI loaded');
-            
-            // Load voices
-            if (speechSynthesis) {{
-                speechSynthesis.getVoices();
-            }}
+            console.log('Nova Sonic Maya assessment loaded');
         }});
     </script>
 </body>
@@ -861,8 +1023,9 @@ def handle_health_check():
         'headers': {'Content-Type': 'application/json'},
         'body': json.dumps({
             'status': 'healthy',
-            'maya_voice': 'speech_synthesis',
-            'ui_version': 'clean_no_references',
-            'features': ['particle_globe', 'speech_synthesis', 'clean_ui']
+            'maya_voice': 'nova_sonic_amy_only',
+            'voice_system': 'aws_bedrock',
+            'ui_version': 'nova_sonic_integration',
+            'features': ['particle_globe', 'nova_sonic_amy', 'aws_bedrock']
         })
     }

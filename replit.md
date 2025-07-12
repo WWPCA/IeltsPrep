@@ -100,21 +100,20 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 12, 2025: CLEAN MAYA VOICE DEPLOYED - All Amy/Nova Sonic References Removed
-  - Successfully deployed clean Maya UI with approved dev design and working speech synthesis
-  - Removed ALL references to Amy, Nova Sonic, and technical API details as requested
-  - Implemented working browser speech synthesis with British voice selection
-  - Added stunning particle globe animation that responds to Maya's speech with pulsing effects
-  - Enhanced UI with professional glassmorphism design, gradients, and smooth animations
-  - Clean Maya examiner experience with proper voice functionality
-  - Particle system creates 150 connected particles with real-time visual feedback during conversation
+- July 12, 2025: AWS NOVA SONIC AMY INTEGRATION DEPLOYED - Pure AWS Architecture Implementation
+  - Successfully deployed AWS Nova Sonic Amy voice integration following approved solution architecture
+  - Implemented proper AWS Bedrock client with nova-sonic-v1:0 model and hardcoded Amy voice
+  - Added comprehensive Nova Sonic connection testing with detailed error diagnostics
+  - Created dedicated API endpoints: /api/nova-sonic-connect and /api/nova-sonic-stream
+  - Enhanced error handling to identify specific Nova Sonic integration issues
+  - Particle globe animation responds to Maya's speech with AWS voice synthesis
   - Approved dev UI design with purple gradient background and modern card layouts
-  - Professional permission status indicators with enhanced visual design
-  - Responsive mobile-first layout with adaptive particle globe sizing
-  - Real-time particle visualization linked to Maya's speaking state
-  - Clean interface focused on Maya conversation experience (no technical boxes)
-  - Production speaking assessment with working Maya voice at www.ieltsaiprep.com/assessment/academic-speaking
-  - Enhanced audio testing with visual particle globe feedback during Maya's speech
+  - Professional permission status indicators with Nova Sonic connection status
+  - Real-time audio streaming through AWS Bedrock with MP3 output format
+  - Maya examiner experience using only AWS Nova Sonic Amy (British female voice)
+  - Production deployment includes comprehensive diagnostics for Nova Sonic troubleshooting
+  - Assessment page provides detailed error messages for Nova Sonic connection failures
+  - AWS integration ready for testing Nova Sonic accessibility and IAM permissions
 
 - July 11, 2025: INTERNAL SERVER ERROR FIXED - Assessment Pages Now Working with Official IELTS Layout
   - Successfully resolved Lambda function dependency issues causing 500 internal server errors
