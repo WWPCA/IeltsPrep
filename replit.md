@@ -100,6 +100,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 13, 2025: UI CLEANUP COMPLETE - Maya Examiner Only Shows User-Friendly Messages
+  - Removed all technical AWS Nova Sonic and voice ID references from user interface
+  - User-facing messages now only show "Maya" as the examiner name
+  - Cleaned up all status messages: "Maya voice working ✓", "Maya is speaking...", "Maya has finished"
+  - Removed technical details like "Nova Sonic en-GB-feminine" from console and UI messages
+  - Maintained all backend functionality while simplifying user experience
+  - Assessment pages now show professional, clean interface without technical AWS references
+  - Complete UI polish: users only see Maya as their IELTS examiner, no backend technology details
+
 - July 12, 2025: NOVA SONIC AMY BRITISH FEMALE VOICE INTEGRATION COMPLETE - Maya AI Examiner Now Using AWS Nova Sonic Amy
   - Successfully implemented AWS Nova Sonic Amy voice synthesis with British female voice (en-GB-feminine)
   - Updated speaking assessment pages to use Nova Sonic Amy instead of system speech synthesis
