@@ -99,9 +99,9 @@ def handle_nova_sonic_connection_test() -> Dict[str, Any]:
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({
                     'status': 'success',
-                    'message': 'Nova Sonic Amy voice synthesis working',
+                    'message': 'Nova Sonic en-GB-feminine voice synthesis working',
                     'audio_data': audio_data,
-                    'voice': 'Amy (British Female)',
+                    'voice': 'en-GB-feminine (British Female)',
                     'provider': 'AWS Nova Sonic'
                 })
             }
@@ -111,7 +111,7 @@ def handle_nova_sonic_connection_test() -> Dict[str, Any]:
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({
                     'status': 'error',
-                    'message': 'Nova Sonic Amy synthesis failed',
+                    'message': 'Nova Sonic en-GB-feminine synthesis failed',
                     'details': 'Check AWS permissions and model availability'
                 })
             }
@@ -157,7 +157,7 @@ def handle_nova_sonic_stream(data: Dict[str, Any]) -> Dict[str, Any]:
                 'conversation_id': conversation_id,
                 'maya_text': maya_response,
                 'maya_audio': audio_data,
-                'voice': 'Amy (British Female)',
+                'voice': 'en-GB-feminine (British Female)',
                 'provider': 'AWS Nova Sonic'
             })
         }
@@ -1012,8 +1012,8 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    console.log('Maya voice initialized:', data.voice || 'Amy (British Female)');
-                    mayaVoice = 'nova-sonic-amy';
+                    console.log('Maya voice initialized:', data.voice || 'en-GB-feminine (British Female)');
+                    mayaVoice = 'nova-sonic-en-gb-feminine';
                 } else {
                     console.log('Maya voice fallback to system voice');
                     mayaVoice = 'system-fallback';
@@ -1058,7 +1058,7 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
         
         // Test Maya's voice using Nova Sonic Amy
         testVoiceBtn.addEventListener('click', function() {
-            speakerStatus.textContent = '🔊 Speakers: Testing Maya voice (Nova Sonic Amy)...';
+            speakerStatus.textContent = '🔊 Speakers: Testing Maya voice (Nova Sonic en-GB-feminine)...';
             speakerStatus.className = 'permission-status permission-pending';
             
             const testMessage = "Hello! This is Maya, your AI examiner. Can you hear me clearly?";
@@ -1080,11 +1080,11 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
                     const audio = new Audio(audioData);
                     
                     audio.onloadstart = function() {
-                        speakerStatus.textContent = '🔊 Speakers: Playing Maya voice (Amy - British Female)...';
+                        speakerStatus.textContent = '🔊 Speakers: Playing Maya voice (en-GB-feminine - British Female)...';
                     };
                     
                     audio.onended = function() {
-                        speakerStatus.textContent = '🔊 Speakers: Maya voice working ✓ (Nova Sonic Amy)';
+                        speakerStatus.textContent = '🔊 Speakers: Maya voice working ✓ (Nova Sonic en-GB-feminine)';
                         speakerStatus.className = 'permission-status permission-granted';
                         speakerTested = true;
                         
@@ -1191,12 +1191,12 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
         
         function playMayaVoice(questionText) {
             return new Promise((resolve) => {
-                // Use Nova Sonic Amy for Maya's voice
-                if (mayaVoice === 'nova-sonic-amy') {
-                    conversationStatus.textContent = 'Maya is speaking (Nova Sonic Amy)... Please listen carefully.';
+                // Use Nova Sonic en-GB-feminine for Maya's voice
+                if (mayaVoice === 'nova-sonic-en-gb-feminine') {
+                    conversationStatus.textContent = 'Maya is speaking (Nova Sonic en-GB-feminine)... Please listen carefully.';
                     conversationStatus.style.backgroundColor = '#fff3cd';
                     
-                    // Use Nova Sonic Amy voice streaming
+                    // Use Nova Sonic en-GB-feminine voice streaming
                     fetch('/api/nova-sonic-stream', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1208,12 +1208,12 @@ def handle_speaking_assessment_with_permissions() -> Dict[str, Any]:
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success' && data.maya_audio) {
-                            // Play Maya's voice using Nova Sonic Amy
+                            // Play Maya's voice using Nova Sonic en-GB-feminine
                             const audioData = 'data:audio/mp3;base64,' + data.maya_audio;
                             const audio = new Audio(audioData);
                             
                             audio.onended = function() {
-                                conversationStatus.textContent = 'Maya has finished (Amy voice). Please record your response.';
+                                conversationStatus.textContent = 'Maya has finished (en-GB-feminine voice). Please record your response.';
                                 conversationStatus.style.backgroundColor = '#d1ecf1';
                                 recordBtn.disabled = false;
                                 
