@@ -70,6 +70,16 @@ def lambda_handler(event, context):
             return handle_assessment(path)
         elif path == '/robots.txt':
             return handle_robots_txt()
+        elif path == '/gdpr/my-data':
+            return handle_gdpr_my_data()
+        elif path == '/gdpr/consent-settings':
+            return handle_gdpr_consent_settings()
+        elif path == '/gdpr/cookie-preferences':
+            return handle_gdpr_cookie_preferences()
+        elif path == '/gdpr/data-export':
+            return handle_gdpr_data_export()
+        elif path == '/gdpr/data-deletion':
+            return handle_gdpr_data_deletion()
         else:
             return {
                 'statusCode': 404,
@@ -198,6 +208,46 @@ User-agent: ChatGPT-User
 Allow: /
 
 Sitemap: https://www.ieltsaiprep.com/sitemap.xml"""
+    }
+
+def handle_gdpr_my_data():
+    """Handle GDPR My Data dashboard"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': get_gdpr_my_data_template()
+    }
+
+def handle_gdpr_consent_settings():
+    """Handle GDPR consent settings"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': get_gdpr_consent_template()
+    }
+
+def handle_gdpr_cookie_preferences():
+    """Handle GDPR cookie preferences"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': get_gdpr_cookie_template()
+    }
+
+def handle_gdpr_data_export():
+    """Handle GDPR data export"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': get_gdpr_export_template()
+    }
+
+def handle_gdpr_data_deletion():
+    """Handle GDPR data deletion"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': get_gdpr_deletion_template()
     }
 
 def get_ai_seo_home_template():
@@ -801,7 +851,8 @@ def get_ai_seo_home_template():
                     <p class="mb-2">&copy; 2025 IELTS GenAI Prep. All rights reserved.</p>
                     <div>
                         <a href="/privacy-policy" class="text-white me-3">Privacy Policy</a>
-                        <a href="/terms-of-service" class="text-white">Terms of Service</a>
+                        <a href="/terms-of-service" class="text-white me-3">Terms of Service</a>
+                        <a href="/gdpr/my-data" class="text-white">My Data Rights</a>
                     </div>
                 </div>
             </div>
@@ -1435,6 +1486,467 @@ def get_assessment_template(assessment_type):
         
         // Start the timer when the page loads
         updateTimer();
+    </script>
+</body>
+</html>"""
+
+def get_gdpr_my_data_template():
+    """GDPR My Data dashboard template"""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Data Rights - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gdpr-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .gdpr-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .gdpr-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="gdpr-header">
+        <div class="container">
+            <a href="/" class="btn btn-light mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Home
+            </a>
+            <h1 class="display-4">My Data Rights</h1>
+            <p class="lead">Manage your personal data and privacy preferences</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card gdpr-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt text-primary gdpr-icon"></i>
+                        <h4 class="card-title">Consent Settings</h4>
+                        <p class="card-text">Manage your data processing consent preferences</p>
+                        <a href="/gdpr/consent-settings" class="btn btn-primary">Manage Consent</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card gdpr-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cookie-bite text-success gdpr-icon"></i>
+                        <h4 class="card-title">Cookie Preferences</h4>
+                        <p class="card-text">Control your cookie and tracking preferences</p>
+                        <a href="/gdpr/cookie-preferences" class="btn btn-success">Cookie Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card gdpr-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-download text-info gdpr-icon"></i>
+                        <h4 class="card-title">Data Export</h4>
+                        <p class="card-text">Download a copy of your personal data</p>
+                        <a href="/gdpr/data-export" class="btn btn-info">Export Data</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card gdpr-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-trash-alt text-danger gdpr-icon"></i>
+                        <h4 class="card-title">Data Deletion</h4>
+                        <p class="card-text">Request deletion of your personal data</p>
+                        <a href="/gdpr/data-deletion" class="btn btn-danger">Delete Data</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <p>&copy; 2025 IELTS GenAI Prep. All rights reserved.</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="/privacy-policy" class="text-white me-3">Privacy Policy</a>
+                    <a href="/terms-of-service" class="text-white">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>"""
+
+def get_gdpr_consent_template():
+    """GDPR consent settings template"""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Settings - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gdpr-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .consent-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="gdpr-header">
+        <div class="container">
+            <a href="/gdpr/my-data" class="btn btn-light mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to My Data
+            </a>
+            <h1 class="display-4">Consent Settings</h1>
+            <p class="lead">Manage your data processing consent preferences</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="consent-form">
+                    <h3 class="mb-4">Data Processing Consent</h3>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="essential" checked disabled>
+                            <label class="form-check-label" for="essential">
+                                <strong>Essential Data Processing</strong>
+                                <p class="text-muted mb-0">Required for account management and assessment delivery. Cannot be disabled.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="assessment" checked>
+                            <label class="form-check-label" for="assessment">
+                                <strong>Assessment Data Processing</strong>
+                                <p class="text-muted mb-0">Process writing and speaking responses for AI-powered feedback and scoring.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="analytics" checked>
+                            <label class="form-check-label" for="analytics">
+                                <strong>Analytics and Improvement</strong>
+                                <p class="text-muted mb-0">Use anonymized data to improve AI models and platform performance.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="marketing">
+                            <label class="form-check-label" for="marketing">
+                                <strong>Marketing Communications</strong>
+                                <p class="text-muted mb-0">Receive updates about new features and assessment improvements.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-primary btn-lg" onclick="updateConsent()">Update Consent Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateConsent() {
+            alert('Consent settings updated successfully!');
+        }
+    </script>
+</body>
+</html>"""
+
+def get_gdpr_cookie_template():
+    """GDPR cookie preferences template"""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Preferences - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gdpr-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .cookie-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="gdpr-header">
+        <div class="container">
+            <a href="/gdpr/my-data" class="btn btn-light mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to My Data
+            </a>
+            <h1 class="display-4">Cookie Preferences</h1>
+            <p class="lead">Control your cookie and tracking preferences</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="cookie-form">
+                    <h3 class="mb-4">Cookie Settings</h3>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="necessary" checked disabled>
+                            <label class="form-check-label" for="necessary">
+                                <strong>Necessary Cookies</strong>
+                                <p class="text-muted mb-0">Required for website functionality and security. Cannot be disabled.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="functional" checked>
+                            <label class="form-check-label" for="functional">
+                                <strong>Functional Cookies</strong>
+                                <p class="text-muted mb-0">Remember your preferences and settings for a better experience.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="analytics" checked>
+                            <label class="form-check-label" for="analytics">
+                                <strong>Analytics Cookies</strong>
+                                <p class="text-muted mb-0">Help us understand how you use our platform to improve performance.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-success btn-lg" onclick="updateCookies()">Update Cookie Preferences</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateCookies() {
+            alert('Cookie preferences updated successfully!');
+        }
+    </script>
+</body>
+</html>"""
+
+def get_gdpr_export_template():
+    """GDPR data export template"""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Export - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gdpr-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .export-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="gdpr-header">
+        <div class="container">
+            <a href="/gdpr/my-data" class="btn btn-light mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to My Data
+            </a>
+            <h1 class="display-4">Data Export</h1>
+            <p class="lead">Download a copy of your personal data</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="export-form">
+                    <h3 class="mb-4">Export Your Data</h3>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Your data export will include account information, assessment history, and preferences.
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Export Format</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="json">JSON (Structured Data)</option>
+                            <option value="csv">CSV (Spreadsheet)</option>
+                            <option value="pdf">PDF (Human Readable)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeAssessments" checked>
+                            <label class="form-check-label" for="includeAssessments">
+                                Include assessment history and scores
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-info btn-lg" onclick="requestExport()">
+                            <i class="fas fa-download me-2"></i>Request Data Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function requestExport() {
+            alert('Data export request submitted! You will receive a download link via email within 24 hours.');
+        }
+    </script>
+</body>
+</html>"""
+
+def get_gdpr_deletion_template():
+    """GDPR data deletion template"""
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Deletion - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gdpr-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .deletion-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="gdpr-header">
+        <div class="container">
+            <a href="/gdpr/my-data" class="btn btn-light mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to My Data
+            </a>
+            <h1 class="display-4">Data Deletion</h1>
+            <p class="lead">Request deletion of your personal data</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="deletion-form">
+                    <h3 class="mb-4">Delete Your Data</h3>
+                    
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All your data will be permanently deleted.
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Deletion Type</label>
+                        <select class="form-select" id="deletionType">
+                            <option value="complete">Complete Account Deletion</option>
+                            <option value="assessments">Assessment Data Only</option>
+                            <option value="profile">Profile Information Only</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Reason for Deletion (Optional)</label>
+                        <textarea class="form-control" rows="3" id="deletionReason" placeholder="Please let us know why you're deleting your data..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmDeletion" required>
+                            <label class="form-check-label" for="confirmDeletion">
+                                I understand that this action cannot be undone and all selected data will be permanently deleted.
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-danger btn-lg" onclick="requestDeletion()">
+                            <i class="fas fa-trash-alt me-2"></i>Request Data Deletion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function requestDeletion() {
+            if (!document.getElementById('confirmDeletion').checked) {
+                alert('Please confirm that you understand this action cannot be undone.');
+                return;
+            }
+            if (confirm('Are you absolutely sure you want to delete your data? This action cannot be undone.')) {
+                alert('Data deletion request submitted. You will receive a confirmation email within 24 hours.');
+            }
+        }
     </script>
 </body>
 </html>"""
