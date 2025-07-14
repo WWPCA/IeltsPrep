@@ -463,116 +463,200 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
         }
 
 def handle_home_page() -> Dict[str, Any]:
-    """Serve mobile-first home page with assessment access"""
+    """Serve comprehensive home page with professional design"""
     html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS GenAI Prep - Development Testing</title>
+    <title>IELTS GenAI Prep - Master IELTS with GenAI-Powered Scoring</title>
+    <meta name="description" content="The only AI-based IELTS platform with official band-aligned feedback. Master IELTS with GenAI-powered scoring and comprehensive assessment tools.">
+    <meta name="keywords" content="IELTS, GenAI, AI assessment, IELTS prep, band scoring, TrueScore, ClearScore, Maya AI">
+    <meta property="og:title" content="IELTS GenAI Prep - Master IELTS with GenAI-Powered Scoring">
+    <meta property="og:description" content="The only AI-based IELTS platform with official band-aligned feedback">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.ieltsaiprep.com">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; padding: 40px 0; color: white; }
-        .header h1 { font-size: 48px; margin-bottom: 10px; }
-        .header p { font-size: 18px; opacity: 0.9; }
-        .assessment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
-        .assessment-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s; }
-        .assessment-card:hover { transform: translateY(-5px); }
-        .assessment-card h3 { color: #333; margin-bottom: 15px; font-size: 24px; }
-        .assessment-card p { color: #666; line-height: 1.6; margin-bottom: 20px; }
-        .assessment-features { margin-bottom: 20px; }
-        .assessment-features li { margin-bottom: 8px; color: #555; }
-        .btn { display: inline-block; background: #e31e24; color: white; padding: 15px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; transition: background 0.3s; }
-        .btn:hover { background: #c21a1f; }
-        .dev-notice { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 30px; }
-        .dev-notice h4 { color: #856404; margin-bottom: 10px; }
-        .dev-notice p { color: #856404; margin: 0; }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .benefit-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .assessment-card {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+        .assessment-card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background: #e31e24;
+            border-color: #e31e24;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: #c21a1f;
+            border-color: #c21a1f;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: #e31e24 !important;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>IELTS GenAI Prep</h1>
-            <p>Development Testing Environment</p>
-        </div>
-        
-        <div class="dev-notice">
-            <h4>🧪 Development Testing Mode</h4>
-            <p>This is the development version with enhanced audio permission testing. Click the assessments below to test the improved user experience.</p>
-        </div>
-        
-        <div class="assessment-grid">
-            <div class="assessment-card">
-                <h3>📢 Academic Speaking Assessment</h3>
-                <p>Test the enhanced speaking assessment with proper microphone and speaker permission testing.</p>
-                <div class="assessment-features">
-                    <ul>
-                        <li>✅ Comprehensive audio setup flow</li>
-                        <li>✅ Microphone permission testing</li>
-                        <li>✅ Speaker test with Maya's voice</li>
-                        <li>✅ 3-second recording test</li>
-                        <li>✅ Professional permission indicators</li>
-                        <li>✅ Maya AI examiner with British voice</li>
-                    </ul>
-                </div>
-                <a href="/assessment/academic-speaking" class="btn">Test Speaking Assessment</a>
-            </div>
-            
-            <div class="assessment-card">
-                <h3>✍️ Academic Writing Assessment</h3>
-                <p>Test the writing assessment with authentic IELTS layout and two-column design.</p>
-                <div class="assessment-features">
-                    <ul>
-                        <li>✅ Official IELTS format</li>
-                        <li>✅ Two-column layout (50/50)</li>
-                        <li>✅ Question panel with charts</li>
-                        <li>✅ Answer panel with word count</li>
-                        <li>✅ Timer functionality</li>
-                        <li>✅ Professional branding</li>
-                    </ul>
-                </div>
-                <a href="/assessment/academic-writing" class="btn">Test Writing Assessment</a>
-            </div>
-            
-            <div class="assessment-card">
-                <h3>🎤 General Speaking Assessment</h3>
-                <p>Test the general speaking assessment with the same enhanced audio features.</p>
-                <div class="assessment-features">
-                    <ul>
-                        <li>✅ Same audio setup flow</li>
-                        <li>✅ General training questions</li>
-                        <li>✅ Maya AI examiner</li>
-                        <li>✅ 3-part IELTS structure</li>
-                        <li>✅ Recording controls</li>
-                        <li>✅ Professional UI</li>
-                    </ul>
-                </div>
-                <a href="/assessment/general-speaking" class="btn">Test General Speaking</a>
-            </div>
-            
-            <div class="assessment-card">
-                <h3>📝 General Writing Assessment</h3>
-                <p>Test the general writing assessment with letter writing format.</p>
-                <div class="assessment-features">
-                    <ul>
-                        <li>✅ Letter writing format</li>
-                        <li>✅ Two-column layout</li>
-                        <li>✅ Task instructions</li>
-                        <li>✅ Word count tracking</li>
-                        <li>✅ Timer functionality</li>
-                        <li>✅ Professional layout</li>
-                    </ul>
-                </div>
-                <a href="/assessment/general-writing" class="btn">Test General Writing</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">IELTS GenAI Prep</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/login">Login</a>
             </div>
         </div>
-        
-        <div style="text-align: center; margin-top: 50px; color: white;">
-            <p>Development Environment • Enhanced Audio Testing • Professional UI</p>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Master IELTS with GenAI-Powered Scoring</h1>
+            <p class="hero-subtitle">The only AI-based IELTS platform with official band-aligned feedback</p>
+            <p class="lead">As your personal GenAI IELTS Coach, our TrueScore® & ClearScore® technologies provide industry-leading standardized assessment with Maya AI examiner.</p>
+            <div class="mt-4">
+                <a href="/login" class="btn btn-primary btn-lg me-3">Get Started</a>
+                <a href="#how-it-works" class="btn btn-outline-light btn-lg">Learn More</a>
+            </div>
         </div>
-    </div>
+    </section>
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 text-center mb-4">
+                    <div class="benefit-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Official Band-Descriptive Feedback</h3>
+                    <p>Receive detailed feedback aligned with official IELTS band descriptors for accurate scoring.</p>
+                </div>
+                <div class="col-lg-4 text-center mb-4">
+                    <div class="benefit-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Mobile & Desktop Access</h3>
+                    <p>Complete assessments on any device with seamless synchronization across platforms.</p>
+                </div>
+                <div class="col-lg-4 text-center mb-4">
+                    <div class="benefit-icon">
+                        <i class="fas fa-target"></i>
+                    </div>
+                    <h3>Designed for Success</h3>
+                    <p>Comprehensive preparation tools designed to help you achieve your target IELTS band score.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">GenAI Assessed IELTS Modules</h2>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card assessment-card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title text-primary">TrueScore® Writing Assessment</h3>
+                            <p class="card-text">Advanced AI evaluation for both Academic and General Training writing tasks.</p>
+                            <ul class="list-unstyled">
+                                <li><span class="text-success">•</span> Task Achievement evaluation</li>
+                                <li><span class="text-success">•</span> Coherence & Cohesion analysis</li>
+                                <li><span class="text-success">•</span> Lexical Resource assessment</li>
+                                <li><span class="text-success">•</span> Grammar Range & Accuracy scoring</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card assessment-card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title text-info">ClearScore® Speaking Assessment</h3>
+                            <p class="card-text">Maya AI examiner provides authentic speaking assessment with real-time analysis.</p>
+                            <ul class="list-unstyled">
+                                <li><span class="text-info">•</span> Fluency & Coherence evaluation</li>
+                                <li><span class="text-info">•</span> Lexical Resource assessment</li>
+                                <li><span class="text-info">•</span> Grammar Range & Accuracy scoring</li>
+                                <li><span class="text-info">•</span> Pronunciation analysis</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5" id="how-it-works">
+        <div class="container">
+            <h2 class="text-center mb-5">How to Get Started</h2>
+            <div class="row">
+                <div class="col-lg-4 text-center mb-4">
+                    <div class="benefit-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>1. Download Mobile App</h3>
+                    <p>Get the IELTS GenAI Prep app from the App Store or Google Play Store.</p>
+                </div>
+                <div class="col-lg-4 text-center mb-4">
+                    <div class="benefit-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3>2. Purchase Assessment</h3>
+                    <p>Choose your assessment type for $36 and get 4 complete practice tests.</p>
+                </div>
+                <div class="col-lg-4 text-center mb-4">
+                    <div class="benefit-icon">
+                        <i class="fas fa-sync"></i>
+                    </div>
+                    <h3>3. Access Anywhere</h3>
+                    <p>Login with your mobile credentials on any device. Progress syncs automatically.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 IELTS GenAI Prep. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/privacy-policy" class="text-white me-3">Privacy Policy</a>
+                    <a href="/terms-of-service" class="text-white">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>"""
     
@@ -586,29 +670,281 @@ def handle_home_page() -> Dict[str, Any]:
     }
 
 def handle_login_page() -> Dict[str, Any]:
-    """Serve mobile-first login page"""
-    try:
-        with open('login.html', 'r', encoding='utf-8') as f:
-            html_content = f.read()
+    """Serve mobile-first login page with professional design"""
+    recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix')
+    
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+        .login-container {{
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }}
+        .header-section {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .header-section h1 {{
+            color: #e31e24;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }}
+        .header-section p {{
+            color: #666;
+            margin-bottom: 20px;
+        }}
+        .home-btn {{
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            color: #e31e24;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }}
+        .home-btn:hover {{
+            background: white;
+            color: #c21a1f;
+            transform: translateY(-2px);
+        }}
+        .info-box {{
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }}
+        .info-box h5 {{
+            color: #1976d2;
+            margin-bottom: 10px;
+        }}
+        .info-box p {{
+            color: #1976d2;
+            margin: 0;
+            font-size: 14px;
+        }}
+        .app-buttons {{
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }}
+        .app-btn {{
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }}
+        .app-store {{
+            background: #000;
+        }}
+        .google-play {{
+            background: #4285f4;
+        }}
+        .app-btn:hover {{
+            color: white;
+            transform: translateY(-2px);
+        }}
+        .form-group {{
+            margin-bottom: 20px;
+        }}
+        .form-label {{
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }}
+        .form-control {{
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }}
+        .form-control:focus {{
+            border-color: #e31e24;
+            box-shadow: 0 0 0 0.2rem rgba(227, 30, 36, 0.25);
+        }}
+        .btn-primary {{
+            background: #e31e24;
+            border-color: #e31e24;
+            width: 100%;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }}
+        .btn-primary:hover {{
+            background: #c21a1f;
+            border-color: #c21a1f;
+            transform: translateY(-2px);
+        }}
+        .forgot-password {{
+            text-align: center;
+            margin-top: 20px;
+        }}
+        .forgot-password a {{
+            color: #e31e24;
+            text-decoration: none;
+        }}
+        .forgot-password a:hover {{
+            text-decoration: underline;
+        }}
+        .footer-links {{
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }}
+        .footer-links a {{
+            color: #666;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }}
+        .footer-links a:hover {{
+            color: #e31e24;
+        }}
+    </style>
+</head>
+<body>
+    <a href="/" class="home-btn">
+        <i class="fas fa-home me-2"></i>Home
+    </a>
+    
+    <div class="login-container">
+        <div class="header-section">
+            <h1>Welcome Back</h1>
+            <p>Sign in to access your IELTS assessments</p>
+        </div>
         
-        # Replace hardcoded reCAPTCHA site key with environment variable
-        recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '')
-        html_content = html_content.replace('6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix', recaptcha_site_key)
+        <div class="info-box">
+            <h5><i class="fas fa-mobile-alt me-2"></i>New Users</h5>
+            <p>Download the mobile app first to create your account and purchase assessments. Then use those credentials to login here.</p>
+            <div class="app-buttons">
+                <a href="#" class="app-btn app-store">
+                    <i class="fab fa-apple me-1"></i>App Store
+                </a>
+                <a href="#" class="app-btn google-play">
+                    <i class="fab fa-google-play me-1"></i>Google Play
+                </a>
+            </div>
+        </div>
         
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'text/html',
-                'Cache-Control': 'no-cache'
-            },
-            'body': html_content
-        }
-    except FileNotFoundError:
-        return {
-            'statusCode': 404,
-            'headers': {'Content-Type': 'text/html'},
-            'body': '<h1>Login page not found</h1>'
-        }
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <div class="g-recaptcha" data-sitekey="{recaptcha_site_key}"></div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </button>
+        </form>
+        
+        <div class="forgot-password">
+            <a href="#">Forgot your password?</a>
+        </div>
+        
+        <div class="footer-links">
+            <a href="/privacy-policy">Privacy Policy</a>
+            <a href="/terms-of-service">Terms of Service</a>
+        </div>
+    </div>
+    
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {{
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const recaptchaResponse = grecaptcha.getResponse();
+            
+            if (!recaptchaResponse) {{
+                alert('Please complete the reCAPTCHA verification.');
+                return;
+            }}
+            
+            try {{
+                const response = await fetch('/api/login', {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json',
+                    }},
+                    body: JSON.stringify({{
+                        email: email,
+                        password: password,
+                        recaptcha_response: recaptchaResponse
+                    }})
+                }});
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {{
+                    // Set session cookie
+                    document.cookie = `web_session_id=${{data.session_id}}; path=/; max-age=3600`;
+                    
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard';
+                }} else {{
+                    alert(data.message || 'Login failed. Please try again.');
+                    grecaptcha.reset();
+                }}
+            }} catch (error) {{
+                console.error('Login error:', error);
+                alert('Login failed. Please try again.');
+                grecaptcha.reset();
+            }}
+        }});
+    </script>
+</body>
+</html>"""
+    
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache'
+        },
+        'body': html_content
+    }
 
 def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
     """Serve dashboard page with session verification"""
@@ -803,7 +1139,44 @@ def handle_database_schema_page() -> Dict[str, Any]:
         }
 
 def handle_assessment_access(path: str, headers: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle assessment access with better microphone/speaker permission design - NO LOGIN REQUIRED FOR DEV"""
+    """Handle assessment access with proper authentication validation"""
+    # Check for valid session cookie
+    cookie_header = headers.get('cookie', '')
+    session_id = None
+    
+    # Extract session ID from cookies
+    if 'web_session_id=' in cookie_header:
+        for cookie in cookie_header.split(';'):
+            if 'web_session_id=' in cookie:
+                session_id = cookie.split('=')[1].strip()
+                break
+    
+    if not session_id:
+        # No session found, redirect to login
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': '/login',
+                'Content-Type': 'text/html'
+            },
+            'body': ''
+        }
+    
+    # Verify session with mock services
+    session_data = aws_mock.get_session(session_id)
+    
+    if not session_data:
+        # Invalid session, redirect to login
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': '/login',
+                'Content-Type': 'text/html'
+            },
+            'body': ''
+        }
+    
+    # Valid session, proceed with assessment
     try:
         assessment_type = path.split('/')[-1]
         
