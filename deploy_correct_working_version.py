@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Restore the EXACT working version from yesterday with proper login page and GDPR compliance
+Deploy the CORRECT working version from yesterday's approved templates
 """
 
 import boto3
@@ -8,14 +8,14 @@ import json
 import zipfile
 import io
 
-def restore_working_production():
-    """Restore the exact working production version"""
+def deploy_correct_working_version():
+    """Deploy the correct working version with proper templates"""
     
     # Read the working_template.html
     with open('working_template.html', 'r', encoding='utf-8') as f:
         template_content = f.read()
     
-    # Create the EXACT working Lambda function from yesterday
+    # Create the correct Lambda function
     lambda_code = f'''
 import json
 import os
@@ -81,6 +81,8 @@ def lambda_handler(event, context):
             return handle_terms_of_service()
         elif path == '/dashboard':
             return handle_dashboard()
+        elif path == '/my-profile':
+            return handle_my_profile()
         elif path == '/robots.txt':
             return handle_robots_txt()
         elif path == '/gdpr/my-data':
@@ -120,7 +122,10 @@ def handle_login_page():
     """Serve login page with reCAPTCHA and mobile-first instructions"""
     recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
     
-    login_html = f'''<!DOCTYPE html>
+    return {{
+        'statusCode': 200,
+        'headers': {{'Content-Type': 'text/html'}},
+        'body': f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -130,19 +135,19 @@ def handle_login_page():
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
-        body {{
+        body {{ 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }}
-        .login-container {{
+        .login-container {{ 
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }}
-        .login-card {{
+        .login-card {{ 
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
@@ -151,14 +156,14 @@ def handle_login_page():
             max-width: 500px;
             width: 100%;
         }}
-        .login-header {{
+        .login-header {{ 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 20px 20px 0 0;
             padding: 30px;
             text-align: center;
         }}
-        .home-btn {{
+        .home-btn {{ 
             position: absolute;
             top: 20px;
             left: 20px;
@@ -170,12 +175,12 @@ def handle_login_page():
             text-decoration: none;
             transition: all 0.3s ease;
         }}
-        .home-btn:hover {{
+        .home-btn:hover {{ 
             background: rgba(255, 255, 255, 0.3);
             color: white;
             transform: translateY(-2px);
         }}
-        .info-banner {{
+        .info-banner {{ 
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border: 1px solid #2196f3;
             border-radius: 15px;
@@ -183,23 +188,23 @@ def handle_login_page():
             margin-bottom: 25px;
             text-align: center;
         }}
-        .info-banner h5 {{
+        .info-banner h5 {{ 
             color: #1976d2;
             margin-bottom: 15px;
             font-weight: 600;
         }}
-        .info-banner p {{
+        .info-banner p {{ 
             color: #0d47a1;
             margin-bottom: 15px;
             font-size: 14px;
         }}
-        .app-buttons {{
+        .app-buttons {{ 
             display: flex;
             gap: 15px;
             justify-content: center;
             flex-wrap: wrap;
         }}
-        .app-btn {{
+        .app-btn {{ 
             background: #1976d2;
             color: white;
             padding: 10px 20px;
@@ -211,23 +216,23 @@ def handle_login_page():
             align-items: center;
             gap: 8px;
         }}
-        .app-btn:hover {{
+        .app-btn:hover {{ 
             background: #1565c0;
             color: white;
             transform: translateY(-2px);
         }}
-        .form-control {{
+        .form-control {{ 
             border-radius: 10px;
             border: 2px solid #e9ecef;
             padding: 12px 16px;
             font-size: 16px;
             transition: all 0.3s ease;
         }}
-        .form-control:focus {{
+        .form-control:focus {{ 
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }}
-        .btn-primary {{
+        .btn-primary {{ 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 10px;
@@ -236,11 +241,11 @@ def handle_login_page():
             font-size: 16px;
             transition: all 0.3s ease;
         }}
-        .btn-primary:hover {{
+        .btn-primary:hover {{ 
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }}
-        .forbidden-msg {{
+        .forbidden-msg {{ 
             background: #fff3cd;
             border: 1px solid #ffeaa7;
             color: #856404;
@@ -249,19 +254,19 @@ def handle_login_page():
             margin-bottom: 20px;
             text-align: center;
         }}
-        .gdpr-links {{
+        .gdpr-links {{ 
             text-align: center;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #e9ecef;
         }}
-        .gdpr-links a {{
+        .gdpr-links a {{ 
             color: #667eea;
             text-decoration: none;
             margin: 0 10px;
             font-size: 14px;
         }}
-        .gdpr-links a:hover {{
+        .gdpr-links a:hover {{ 
             color: #764ba2;
         }}
     </style>
@@ -324,12 +329,6 @@ def handle_login_page():
                         <a href="/privacy-policy">Privacy Policy</a> and 
                         <a href="/terms-of-service">Terms of Service</a>
                     </small>
-                    <br>
-                    <small>
-                        <a href="/gdpr/my-data">My Data Rights</a> | 
-                        <a href="/gdpr/consent-settings">Consent Settings</a> | 
-                        <a href="/gdpr/cookie-preferences">Cookie Preferences</a>
-                    </small>
                 </div>
             </div>
         </div>
@@ -364,7 +363,6 @@ def handle_login_page():
             .then(response => response.json())
             .then(data => {{
                 if (data.success) {{
-                    alert('Login successful!');
                     window.location.href = '/dashboard';
                 }} else {{
                     alert('Login failed: ' + data.message);
@@ -379,12 +377,7 @@ def handle_login_page():
         }});
     </script>
 </body>
-</html>'''
-    
-    return {{
-        'statusCode': 200,
-        'headers': {{'Content-Type': 'text/html'}},
-        'body': login_html
+</html>"""
     }}
 
 def handle_login_post(body):
@@ -429,11 +422,11 @@ def handle_login_post(body):
         }}
 
 def handle_privacy_policy():
-    """Privacy policy with GDPR compliance"""
+    """Privacy policy with GDPR compliance only"""
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -471,39 +464,67 @@ def handle_privacy_policy():
                         <li><strong>Right to Withdraw Consent:</strong> You can withdraw consent at any time</li>
                         <li><strong>Right to Object:</strong> You can object to certain data processing</li>
                     </ul>
-                    <p class="mt-3">
-                        <a href="/gdpr/my-data" class="btn btn-success">
-                            <i class="bi bi-person-check"></i> Access Your Data Rights
-                        </a>
-                    </p>
                 </div>
                 
-                <h2>Data Collection and Use</h2>
-                <p>We collect and process personal data to provide IELTS assessment services, including:</p>
+                <h2>Data We Collect</h2>
+                <p>We collect the following types of information:</p>
                 <ul>
-                    <li>Account information (email, name)</li>
-                    <li>Assessment responses and results</li>
-                    <li>Usage analytics for service improvement</li>
+                    <li><strong>Account Information:</strong> Email address, name, and password</li>
+                    <li><strong>Assessment Data:</strong> Your IELTS practice responses and results</li>
+                    <li><strong>Usage Data:</strong> How you interact with our service</li>
+                    <li><strong>Device Information:</strong> Device type, operating system, and browser</li>
+                </ul>
+                
+                <h2>How We Use Your Data</h2>
+                <p>We use your personal data to:</p>
+                <ul>
+                    <li>Provide IELTS assessment services</li>
+                    <li>Generate personalized feedback and band scores</li>
+                    <li>Improve our AI assessment algorithms</li>
+                    <li>Communicate with you about your account and service updates</li>
+                    <li>Comply with legal obligations</li>
                 </ul>
                 
                 <h2>Data Security</h2>
-                <p>We implement industry-standard security measures to protect your data, including encryption in transit and at rest.</p>
+                <p>We implement industry-standard security measures including:</p>
+                <ul>
+                    <li>Encryption of data in transit and at rest</li>
+                    <li>Regular security audits and penetration testing</li>
+                    <li>Access controls and authentication systems</li>
+                    <li>Secure cloud infrastructure with AWS</li>
+                </ul>
                 
-                <h2>Contact Us</h2>
-                <p>For privacy-related questions or to exercise your GDPR rights, please contact us through our <a href="/gdpr/my-data">Data Rights Portal</a>.</p>
+                <h2>Data Retention</h2>
+                <p>We retain your data only as long as necessary to provide our services and comply with legal obligations. You can request deletion of your data at any time through your profile settings.</p>
+                
+                <h2>Your Rights</h2>
+                <p>Under GDPR, you have the right to:</p>
+                <ul>
+                    <li>Access your personal data</li>
+                    <li>Rectify inaccurate data</li>
+                    <li>Erase your data</li>
+                    <li>Export your data</li>
+                    <li>Withdraw consent</li>
+                    <li>Object to processing</li>
+                </ul>
+                
+                <p>To exercise these rights, please log in to your account and visit your profile settings.</p>
+                
+                <h2>Contact Information</h2>
+                <p>If you have questions about this privacy policy or your data rights, please contact us at privacy@ieltsaiprep.com</p>
             </div>
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }}
 
 def handle_terms_of_service():
-    """Terms of service"""
+    """Terms of service with no-refund policy from yesterday's approved template"""
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -515,6 +536,8 @@ def handle_terms_of_service():
         body {{ background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); }}
         .content-card {{ background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }}
         .header {{ background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%); color: white; border-radius: 15px 15px 0 0; }}
+        .pricing-section {{ background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 5px; }}
+        .refund-section {{ background: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; margin: 20px 0; border-radius: 5px; }}
     </style>
 </head>
 <body>
@@ -529,27 +552,74 @@ def handle_terms_of_service():
             <div class="p-4">
                 <p><strong>Last Updated:</strong> July 14, 2025</p>
                 
-                <h2>Service Terms</h2>
-                <p>By using our IELTS GenAI Prep service, you agree to these terms and our privacy policy.</p>
+                <h2>Service Agreement</h2>
+                <p>By using IELTS GenAI Prep, you agree to these terms of service and our privacy policy. These terms govern your use of our AI-powered IELTS assessment platform.</p>
                 
-                <h2>Assessment Products</h2>
-                <p>Our assessment products are priced at $36 each and include 4 attempts per purchase. Products are non-refundable.</p>
+                <div class="pricing-section">
+                    <h2 class="h4 text-warning"><i class="bi bi-credit-card"></i> Pricing and Products</h2>
+                    <p>Our assessment products are available for purchase through our mobile app:</p>
+                    <ul>
+                        <li><strong>Academic Writing Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
+                        <li><strong>General Writing Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
+                        <li><strong>Academic Speaking Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
+                        <li><strong>General Speaking Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
+                    </ul>
+                    <p>All purchases are processed through Apple App Store or Google Play Store billing systems.</p>
+                </div>
                 
-                <h2>GDPR Rights</h2>
-                <p>You have comprehensive data rights under GDPR. Visit our <a href="/gdpr/my-data">Data Rights Portal</a> to exercise these rights.</p>
+                <div class="refund-section">
+                    <h2 class="h4 text-danger"><i class="bi bi-exclamation-triangle"></i> No Refund Policy</h2>
+                    <p><strong>All purchases are final and non-refundable.</strong> Due to the digital nature of our AI assessment services, we do not offer refunds, returns, or exchanges for any reason, including but not limited to:</p>
+                    <ul>
+                        <li>Dissatisfaction with assessment results</li>
+                        <li>Technical issues during assessment</li>
+                        <li>Change of mind after purchase</li>
+                        <li>Duplicate purchases</li>
+                        <li>Accidental purchases</li>
+                    </ul>
+                    <p>Please carefully consider your purchase before completing the transaction. By purchasing our services, you acknowledge and agree to this no-refund policy.</p>
+                </div>
+                
+                <h2>User Responsibilities</h2>
+                <p>By using our service, you agree to:</p>
+                <ul>
+                    <li>Provide accurate and truthful information</li>
+                    <li>Use the service only for legitimate IELTS preparation purposes</li>
+                    <li>Not share your account credentials with others</li>
+                    <li>Not attempt to circumvent or manipulate our AI assessment systems</li>
+                    <li>Respect the intellectual property rights of our platform</li>
+                </ul>
+                
+                <h2>Service Availability</h2>
+                <p>We strive to provide continuous service availability, but we cannot guarantee uninterrupted access. We may temporarily suspend service for maintenance, updates, or technical issues.</p>
+                
+                <h2>Account Termination</h2>
+                <p>We reserve the right to terminate or suspend accounts that violate these terms of service or engage in fraudulent, abusive, or harmful behavior.</p>
+                
+                <h2>Privacy and Data</h2>
+                <p>Your privacy is important to us. Please review our <a href="/privacy-policy">Privacy Policy</a> to understand how we collect, use, and protect your personal information in compliance with GDPR.</p>
+                
+                <h2>Limitation of Liability</h2>
+                <p>IELTS GenAI Prep is provided "as is" without warranties of any kind. We are not liable for any direct, indirect, incidental, or consequential damages arising from your use of our service.</p>
+                
+                <h2>Changes to Terms</h2>
+                <p>We may update these terms of service from time to time. Continued use of our service after changes constitutes acceptance of the new terms.</p>
+                
+                <h2>Contact Information</h2>
+                <p>If you have questions about these terms of service, please contact us at support@ieltsaiprep.com</p>
             </div>
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }}
 
 def handle_dashboard():
-    """Dashboard with assessment access"""
+    """Dashboard with assessment access and link to My Profile"""
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -560,49 +630,160 @@ def handle_dashboard():
 </head>
 <body>
     <div class="container py-5">
-        <h1>Assessment Dashboard</h1>
         <div class="row">
             <div class="col-md-8">
-                <h3>Your Assessments</h3>
+                <h1>Assessment Dashboard</h1>
+                <p class="lead">Welcome back! Choose an assessment to continue your IELTS preparation.</p>
+                
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6 mb-4">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Academic Writing</h5>
+                                <h5 class="card-title"><i class="bi bi-pencil-square"></i> Academic Writing</h5>
                                 <p class="card-text">4 attempts remaining</p>
+                                <p class="small text-muted">TrueScore® AI Assessment</p>
                                 <a href="/assessment/academic-writing" class="btn btn-primary">Start Assessment</a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6 mb-4">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Academic Speaking</h5>
+                                <h5 class="card-title"><i class="bi bi-mic"></i> Academic Speaking</h5>
                                 <p class="card-text">4 attempts remaining</p>
+                                <p class="small text-muted">ClearScore® AI Assessment</p>
                                 <a href="/assessment/academic-speaking" class="btn btn-primary">Start Assessment</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-pencil-square"></i> General Writing</h5>
+                                <p class="card-text">4 attempts remaining</p>
+                                <p class="small text-muted">TrueScore® AI Assessment</p>
+                                <a href="/assessment/general-writing" class="btn btn-primary">Start Assessment</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-mic"></i> General Speaking</h5>
+                                <p class="card-text">4 attempts remaining</p>
+                                <p class="small text-muted">ClearScore® AI Assessment</p>
+                                <a href="/assessment/general-speaking" class="btn btn-primary">Start Assessment</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <h3>Data & Privacy</h3>
-                <div class="d-grid gap-2">
-                    <a href="/gdpr/my-data" class="btn btn-outline-primary">
-                        <i class="bi bi-person-check"></i> My Data Rights
-                    </a>
-                    <a href="/gdpr/consent-settings" class="btn btn-outline-secondary">
-                        <i class="bi bi-gear"></i> Consent Settings
-                    </a>
-                    <a href="/gdpr/cookie-preferences" class="btn btn-outline-info">
-                        <i class="bi bi-cookie"></i> Cookie Preferences
-                    </a>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-person-circle"></i> Account</h5>
+                        <div class="d-grid gap-2">
+                            <a href="/my-profile" class="btn btn-outline-primary">
+                                <i class="bi bi-person-gear"></i> My Profile
+                            </a>
+                            <a href="/privacy-policy" class="btn btn-outline-secondary">
+                                <i class="bi bi-shield-check"></i> Privacy Policy
+                            </a>
+                            <a href="/terms-of-service" class="btn btn-outline-info">
+                                <i class="bi bi-file-text"></i> Terms of Service
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
+    }}
+
+def handle_my_profile():
+    """My Profile page with data access and deletion functionality"""
+    return {{
+        'statusCode': 200,
+        'headers': {{'Content-Type': 'text/html'}},
+        'body': """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-8">
+                <h1><i class="bi bi-person-circle"></i> My Profile</h1>
+                <p class="lead">Manage your account settings and data privacy preferences</p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-download"></i> Export My Data</h5>
+                                <p class="card-text">Download a copy of all your personal data and assessment results</p>
+                                <a href="/gdpr/data-export" class="btn btn-primary">Export Data</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-trash"></i> Delete My Account</h5>
+                                <p class="card-text">Permanently delete your account and all associated data</p>
+                                <a href="/gdpr/data-deletion" class="btn btn-danger">Delete Account</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-gear"></i> Consent Settings</h5>
+                                <p class="card-text">Manage your data processing consent preferences</p>
+                                <a href="/gdpr/consent-settings" class="btn btn-outline-primary">Manage Consent</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-cookie"></i> Cookie Preferences</h5>
+                                <p class="card-text">Control how cookies are used on our website</p>
+                                <a href="/gdpr/cookie-preferences" class="btn btn-outline-secondary">Cookie Settings</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Your GDPR Rights</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success"></i> Access your data</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Correct inaccurate data</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Delete your data</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Export your data</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Withdraw consent</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Object to processing</li>
+                        </ul>
+                        <a href="/dashboard" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>"""
     }}
 
 def handle_robots_txt():
@@ -610,7 +791,7 @@ def handle_robots_txt():
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/plain'}},
-        'body': '''# Robots.txt for IELTS GenAI Prep - AI Search Optimized
+        'body': """# Robots.txt for IELTS GenAI Prep - AI Search Optimized
 
 # Allow all crawlers access to entire site
 User-agent: *
@@ -709,7 +890,7 @@ Crawl-delay: 1
 
 # Sitemap location
 Sitemap: https://www.ieltsaiprep.com/sitemap.xml
-'''
+"""
     }}
 
 def handle_assessment_pages(path):
@@ -729,89 +910,13 @@ def handle_assessment_pages(path):
 </body></html>'''
     }}
 
-# GDPR Endpoints
+# GDPR Endpoints (existing functionality preserved)
 def handle_gdpr_my_data():
-    """GDPR My Data dashboard"""
+    """Redirect to My Profile page"""
     return {{
-        'statusCode': 200,
-        'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Data Rights - IELTS GenAI Prep</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-md-8">
-                <h1><i class="bi bi-shield-check"></i> My Data Rights</h1>
-                <p class="lead">Manage your personal data and exercise your GDPR rights</p>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title"><i class="bi bi-download"></i> Export My Data</h5>
-                                <p class="card-text">Download a copy of all your personal data</p>
-                                <a href="/gdpr/data-export" class="btn btn-primary">Export Data</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title"><i class="bi bi-trash"></i> Delete My Account</h5>
-                                <p class="card-text">Permanently delete your account and all data</p>
-                                <a href="/gdpr/data-deletion" class="btn btn-danger">Delete Account</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title"><i class="bi bi-gear"></i> Consent Settings</h5>
-                                <p class="card-text">Manage your consent preferences</p>
-                                <a href="/gdpr/consent-settings" class="btn btn-outline-primary">Manage Consent</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title"><i class="bi bi-cookie"></i> Cookie Preferences</h5>
-                                <p class="card-text">Control cookie usage on our site</p>
-                                <a href="/gdpr/cookie-preferences" class="btn btn-outline-secondary">Cookie Settings</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Your Rights</h5>
-                        <ul class="list-unstyled">
-                            <li><i class="bi bi-check-circle text-success"></i> Access your data</li>
-                            <li><i class="bi bi-check-circle text-success"></i> Correct inaccurate data</li>
-                            <li><i class="bi bi-check-circle text-success"></i> Delete your data</li>
-                            <li><i class="bi bi-check-circle text-success"></i> Export your data</li>
-                            <li><i class="bi bi-check-circle text-success"></i> Withdraw consent</li>
-                            <li><i class="bi bi-check-circle text-success"></i> Object to processing</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>'''
+        'statusCode': 302,
+        'headers': {{'Location': '/my-profile'}},
+        'body': ''
     }}
 
 def handle_gdpr_consent_settings():
@@ -819,7 +924,7 @@ def handle_gdpr_consent_settings():
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -863,15 +968,15 @@ def handle_gdpr_consent_settings():
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle"></i> Update Preferences
                     </button>
-                    <a href="/gdpr/my-data" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Data Rights
+                    <a href="/my-profile" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Profile
                     </a>
                 </form>
             </div>
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }}
 
 def handle_gdpr_cookie_preferences():
@@ -879,7 +984,7 @@ def handle_gdpr_cookie_preferences():
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -923,15 +1028,15 @@ def handle_gdpr_cookie_preferences():
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle"></i> Save Preferences
                     </button>
-                    <a href="/gdpr/my-data" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Data Rights
+                    <a href="/my-profile" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Profile
                     </a>
                 </form>
             </div>
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }}
 
 def handle_gdpr_data_export():
@@ -939,7 +1044,7 @@ def handle_gdpr_data_export():
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -994,15 +1099,15 @@ def handle_gdpr_data_export():
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-download"></i> Request Export
                     </button>
-                    <a href="/gdpr/my-data" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Data Rights
+                    <a href="/my-profile" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Profile
                     </a>
                 </form>
             </div>
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }}
 
 def handle_gdpr_data_deletion():
@@ -1010,7 +1115,7 @@ def handle_gdpr_data_deletion():
     return {{
         'statusCode': 200,
         'headers': {{'Content-Type': 'text/html'}},
-        'body': '''<!DOCTYPE html>
+        'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1064,15 +1169,15 @@ def handle_gdpr_data_deletion():
                     <button type="submit" class="btn btn-danger">
                         <i class="bi bi-trash"></i> Delete My Account
                     </button>
-                    <a href="/gdpr/my-data" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Data Rights
+                    <a href="/my-profile" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Profile
                     </a>
                 </form>
             </div>
         </div>
     </div>
 </body>
-</html>'''
+</html>"""
     }}
 '''
     
@@ -1093,7 +1198,7 @@ def handle_gdpr_data_deletion():
             ZipFile=zip_content
         )
         
-        print(f"✅ EXACT working production version restored!")
+        print(f"✅ CORRECT working version deployed!")
         print(f"Function: {response['FunctionName']}")
         print(f"Last Modified: {response['LastModified']}")
         print(f"Code Size: {response['CodeSize']} bytes")
@@ -1105,18 +1210,16 @@ def handle_gdpr_data_deletion():
         return False
 
 if __name__ == "__main__":
-    success = restore_working_production()
+    success = deploy_correct_working_version()
     if success:
-        print("\n✅ PRODUCTION WEBSITE FULLY RESTORED!")
+        print("\n✅ WORKING VERSION DEPLOYED!")
         print("🌐 Website: https://www.ieltsaiprep.com")
-        print("✓ AI SEO template with comprehensive FAQs")
-        print("✓ Proper login page with reCAPTCHA and mobile-first instructions")
-        print("✓ Complete GDPR compliance infrastructure")
+        print("✓ Login page with reCAPTCHA and mobile-first instructions")
+        print("✓ Terms of Service with no-refund policy from yesterday's template")
+        print("✓ Privacy Policy with GDPR compliance")
+        print("✓ My Profile page with data access/deletion functionality")
         print("✓ Enhanced robots.txt for AI search visibility")
         print("✓ All working functionality preserved")
-        print("✓ Maya AI examiner and Nova Sonic voice maintained")
-        print("✓ Assessment functionality and workflows preserved")
-        print("✓ CloudFront security blocking maintained")
         print("✓ Test credentials: test@ieltsgenaiprep.com / test123")
     else:
-        print("\n❌ RESTORATION FAILED")
+        print("\n❌ DEPLOYMENT FAILED")
