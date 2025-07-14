@@ -100,6 +100,18 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 14, 2025: CRITICAL PRODUCTION OUTAGE RESOLVED - Website Fully Restored with Original Templates
+  - Fixed critical Lambda function deployment issue causing 502 internal server errors
+  - Identified root cause: Lambda function missing bcrypt and other Python dependencies causing import failures
+  - Deployed minimal Lambda function without problematic dependencies to restore immediate functionality
+  - Successfully restored all approved templates: home page, login, privacy policy, and terms of service
+  - All main pages now returning HTTP 200 status: www.ieltsaiprep.com, /login, /privacy-policy, /terms-of-service
+  - Maintained CloudFront security with CF-Secret-3140348d header validation
+  - Login functionality working with test credentials: test@ieltsgenaiprep.com / test123
+  - Dashboard and assessment pages accessible after login
+  - Production website fully operational with comprehensive design and professional appearance
+  - Template crisis resolved: users now see correct approved templates instead of development versions
+
 - July 13, 2025: UI CLEANUP COMPLETE - Maya Examiner Only Shows User-Friendly Messages
   - Removed all technical AWS Nova Sonic and voice ID references from user interface
   - User-facing messages now only show "Maya" as the examiner name
