@@ -212,6 +212,11 @@ class AWSMockServices:
         self.assessment_results_table = MockDynamoDBTable('ielts-genai-prep-assessment-results')
         self.assessment_rubrics_table = MockDynamoDBTable('ielts-genai-prep-assessment-rubrics')
         
+        # GDPR Compliance Tables
+        self.gdpr_consents_table = MockDynamoDBTable('ielts-genai-prep-gdpr-consents')
+        self.gdpr_data_requests_table = MockDynamoDBTable('ielts-genai-prep-gdpr-data-requests')
+        self.gdpr_cookie_preferences_table = MockDynamoDBTable('ielts-genai-prep-cookie-preferences')
+        
         # ElastiCache
         self.session_cache = MockElastiCache()
         
@@ -226,6 +231,7 @@ class AWSMockServices:
         self._setup_assessment_data()
         
         print(f"[AWS_MOCK] Services initialized for region: {self.region}")
+        print(f"[AWS_MOCK] GDPR compliance tables initialized")
         
         # Create test user for development
         self._create_test_user()
@@ -1105,7 +1111,10 @@ class AWSMockServices:
             'dynamodb_tables': {
                 'users': len(self.users_table.items),
                 'assessment_results': len(self.assessment_results_table.items),
-                'assessment_rubrics': len(self.assessment_rubrics_table.items)
+                'assessment_rubrics': len(self.assessment_rubrics_table.items),
+                'gdpr_consents': len(self.gdpr_consents_table.items),
+                'gdpr_data_requests': len(self.gdpr_data_requests_table.items),
+                'cookie_preferences': len(self.gdpr_cookie_preferences_table.items)
             },
             'elasticache': {
                 'active_sessions': len(self.session_cache.cache)
@@ -1115,8 +1124,157 @@ class AWSMockServices:
                 'metrics_recorded': len(self.cloudwatch.metrics)
             },
             'region': self.region,
-            'status': 'healthy'
+            'status': 'healthy',
+            'gdpr_compliance': True
         }
+    
+    # GDPR Compliance Methods
+    def get_user_consent(self, user_email: str) -> Dict[str, Any]:
+        """Get user's current consent settings"""
+        consent_data = self.gdpr_consents_table.get_item(user_email)
+        if not consent_data:
+            # Default consent settings for new users
+            return {
+                'user_email': user_email,
+                'data_processing': True,  # Required for service
+                'audio_processing': True,
+                'marketing_emails': False,
+                'analytics': False,
+                'third_party_sharing': False,
+                'last_updated': datetime.utcnow().isoformat()
+            }
+        return consent_data
+    
+    def update_user_consent(self, user_email: str, consent_data: Dict[str, Any]) -> bool:
+        """Update user's consent settings"""
+        consent_record = {
+            'user_email': user_email,
+            'data_processing': consent_data.get('data_processing', True),
+            'audio_processing': consent_data.get('audio_processing', False),
+            'marketing_emails': consent_data.get('marketing_emails', False),
+            'analytics': consent_data.get('analytics', False),
+            'third_party_sharing': consent_data.get('third_party_sharing', False),
+            'last_updated': datetime.utcnow().isoformat(),
+            'ip_address': consent_data.get('ip_address', ''),
+            'user_agent': consent_data.get('user_agent', '')
+        }
+        
+        result = self.gdpr_consents_table.put_item(consent_record)
+        if result:
+            self.log_event('GDPR_Consent', f'Consent updated for {user_email}')
+        return result
+    
+    def get_cookie_preferences(self, user_email: str) -> Dict[str, Any]:
+        """Get user's cookie preferences"""
+        cookie_prefs = self.gdpr_cookie_preferences_table.get_item(user_email)
+        if not cookie_prefs:
+            return {
+                'user_email': user_email,
+                'necessary': True,  # Always required
+                'functional': True,
+                'analytics': False,
+                'marketing': False,
+                'last_updated': datetime.utcnow().isoformat()
+            }
+        return cookie_prefs
+    
+    def update_cookie_preferences(self, user_email: str, preferences: Dict[str, Any]) -> bool:
+        """Update user's cookie preferences"""
+        cookie_record = {
+            'user_email': user_email,
+            'necessary': True,  # Always required
+            'functional': preferences.get('functional', True),
+            'analytics': preferences.get('analytics', False),
+            'marketing': preferences.get('marketing', False),
+            'last_updated': datetime.utcnow().isoformat()
+        }
+        
+        result = self.gdpr_cookie_preferences_table.put_item(cookie_record)
+        if result:
+            self.log_event('GDPR_Cookie', f'Cookie preferences updated for {user_email}')
+        return result
+    
+    def request_data_export(self, user_email: str, export_format: str = 'json', include_assessments: bool = True) -> str:
+        """Create data export request and return request ID"""
+        request_id = str(uuid.uuid4())
+        
+        # Get user data
+        user_data = self.users_table.get_item(user_email)
+        if not user_data:
+            return None
+        
+        # Get assessment results
+        assessment_data = []
+        if include_assessments:
+            assessment_data = self.get_user_assessments(user_email)
+        
+        # Get consent history
+        consent_data = self.get_user_consent(user_email)
+        
+        # Prepare export data
+        export_data = {
+            'user_profile': {
+                'email': user_data.get('email'),
+                'created_at': user_data.get('created_at'),
+                'last_login': user_data.get('last_login'),
+                'purchases': user_data.get('purchases', [])
+            },
+            'assessments': assessment_data,
+            'consent_history': consent_data,
+            'export_info': {
+                'request_id': request_id,
+                'format': export_format,
+                'created_at': datetime.utcnow().isoformat(),
+                'data_as_of': datetime.utcnow().isoformat()
+            }
+        }
+        
+        # Store export request
+        request_record = {
+            'request_id': request_id,
+            'user_email': user_email,
+            'request_type': 'data_export',
+            'format': export_format,
+            'include_assessments': include_assessments,
+            'status': 'completed',
+            'created_at': datetime.utcnow().isoformat(),
+            'completed_at': datetime.utcnow().isoformat(),
+            'export_data': export_data
+        }
+        
+        self.gdpr_data_requests_table.put_item(request_record)
+        self.log_event('GDPR_Export', f'Data export requested by {user_email} - {request_id}')
+        
+        return request_id
+    
+    def request_data_deletion(self, user_email: str, deletion_type: str = 'complete') -> str:
+        """Create data deletion request and return request ID"""
+        request_id = str(uuid.uuid4())
+        
+        # Store deletion request
+        request_record = {
+            'request_id': request_id,
+            'user_email': user_email,
+            'request_type': 'data_deletion',
+            'deletion_type': deletion_type,
+            'status': 'pending',
+            'created_at': datetime.utcnow().isoformat(),
+            'scheduled_for': (datetime.utcnow() + timedelta(days=30)).isoformat()
+        }
+        
+        self.gdpr_data_requests_table.put_item(request_record)
+        self.log_event('GDPR_Deletion', f'Data deletion requested by {user_email} - {request_id}')
+        
+        return request_id
+    
+    def get_gdpr_request_status(self, request_id: str) -> Optional[Dict[str, Any]]:
+        """Get status of GDPR request"""
+        return self.gdpr_data_requests_table.get_item(request_id)
+    
+    def get_user_gdpr_requests(self, user_email: str) -> List[Dict[str, Any]]:
+        """Get all GDPR requests for a user"""
+        all_requests = self.gdpr_data_requests_table.scan()
+        return [req for req in all_requests if req.get('user_email') == user_email]
 
 # Global instance for use across the application
 aws_mock = AWSMockServices()

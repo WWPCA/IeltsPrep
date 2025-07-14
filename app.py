@@ -380,6 +380,25 @@ def lambda_handler(event, context):
             return handle_privacy_policy()
         elif path == '/terms-of-service' and method == 'GET':
             return handle_terms_of_service()
+        # GDPR Compliance Routes
+        elif path == '/gdpr/my-data' and method == 'GET':
+            return handle_gdpr_my_data(headers)
+        elif path == '/gdpr/consent-settings' and method == 'GET':
+            return handle_gdpr_consent_settings(headers)
+        elif path == '/gdpr/update-consent' and method == 'POST':
+            return handle_gdpr_update_consent(data, headers)
+        elif path == '/gdpr/request-data-export' and method == 'GET':
+            return handle_gdpr_request_data_export(headers)
+        elif path == '/gdpr/export-data' and method == 'POST':
+            return handle_gdpr_export_data(data, headers)
+        elif path == '/gdpr/request-data-deletion' and method == 'GET':
+            return handle_gdpr_request_data_deletion(headers)
+        elif path == '/gdpr/delete-data' and method == 'POST':
+            return handle_gdpr_delete_data(data, headers)
+        elif path == '/gdpr/cookie-preferences' and method == 'GET':
+            return handle_gdpr_cookie_preferences(headers)
+        elif path == '/gdpr/update-cookies' and method == 'POST':
+            return handle_gdpr_update_cookies(data, headers)
         elif path == '/login' and method == 'GET':
             return handle_login_page()
         elif path == '/api/login' and method == 'POST':
@@ -2332,4 +2351,736 @@ def handle_get_assessment_result(query_params: Dict[str, Any]) -> Dict[str, Any]
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': str(e)})
+        }
+
+# GDPR Compliance Handler Functions
+def handle_gdpr_my_data(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR My Data dashboard page"""
+    try:
+        user_email = 'test@ieltsgenaiprep.com'
+        consent_data = aws_mock.get_user_consent(user_email)
+        
+        html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Data - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/profile">Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <h1 class="mb-4">My Data</h1>
+                
+                <div class="alert alert-info">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-info-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4>Your Privacy Matters</h4>
+                            <p class="mb-0">This dashboard helps you exercise your data privacy rights. You can access, export, or delete your data at any time.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="h5 mb-0"><i class="fas fa-cogs me-2"></i> Consent Settings</h2>
+                            </div>
+                            <div class="card-body">
+                                <p>Manage how we use your data and what you consent to.</p>
+                                <p class="text-muted small">Last updated: {consent_data.get('last_updated', 'Never')}</p>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <a href="/gdpr/consent-settings" class="btn btn-primary btn-sm w-100">Manage Consent</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="h5 mb-0"><i class="fas fa-download me-2"></i> Export Data</h2>
+                            </div>
+                            <div class="card-body">
+                                <p>Download a copy of your personal data in a portable format.</p>
+                                <p class="text-muted small">Available formats: JSON, CSV</p>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <a href="/gdpr/request-data-export" class="btn btn-primary btn-sm w-100">Export My Data</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h2 class="h5 mb-0"><i class="fas fa-trash-alt me-2"></i> Delete Data</h2>
+                            </div>
+                            <div class="card-body">
+                                <p>Request deletion of your personal data from our systems.</p>
+                                <p class="text-muted small">You can choose partial or complete deletion.</p>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <a href="/gdpr/request-data-deletion" class="btn btn-outline-danger btn-sm w-100">Request Deletion</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+        """
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_consent_settings(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR consent settings page"""
+    try:
+        user_email = 'test@ieltsgenaiprep.com'
+        consent_data = aws_mock.get_user_consent(user_email)
+        
+        html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Settings - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+            <a href="/gdpr/my-data" class="btn btn-outline-primary">Back to My Data</a>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h3 mb-0">Consent Settings</h1>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">Control how we use your data. These settings help us respect your privacy while providing our services.</p>
+                        
+                        <form action="/gdpr/update-consent" method="post">
+                            <div class="consent-categories">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Data Processing</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="data_processing" name="data_processing" checked disabled>
+                                                <label class="form-check-label" for="data_processing">Required</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">Essential data processing is required to provide our core services.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Audio Processing</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="audio_processing" name="audio_processing" {'checked' if consent_data.get('audio_processing') else ''}>
+                                                <label class="form-check-label" for="audio_processing">Optional</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">Consent to process your audio recordings for speaking assessment.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Marketing Emails</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="marketing_emails" name="marketing_emails" {'checked' if consent_data.get('marketing_emails') else ''}>
+                                                <label class="form-check-label" for="marketing_emails">Optional</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">Receive marketing emails about new features and updates.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Analytics</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="analytics" name="analytics" {'checked' if consent_data.get('analytics') else ''}>
+                                                <label class="form-check-label" for="analytics">Optional</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">Allow us to collect anonymous usage data to improve our services.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">Update Consent Settings</button>
+                                <a href="/gdpr/my-data" class="btn btn-outline-secondary ms-2">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+        """
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_update_consent(data: Dict[str, Any], headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR consent update"""
+    try:
+        user_email = 'test@ieltsgenaiprep.com'
+        
+        consent_data = {
+            'data_processing': True,
+            'audio_processing': data.get('audio_processing', False),
+            'marketing_emails': data.get('marketing_emails', False),
+            'analytics': data.get('analytics', False),
+            'ip_address': headers.get('x-forwarded-for', ''),
+            'user_agent': headers.get('user-agent', '')
+        }
+        
+        aws_mock.update_user_consent(user_email, consent_data)
+        
+        return {
+            'statusCode': 302,
+            'headers': {'Location': '/gdpr/my-data', 'Content-Type': 'text/html'},
+            'body': ''
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_request_data_export(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR data export request page"""
+    try:
+        html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Data Export - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+            <a href="/gdpr/my-data" class="btn btn-outline-primary">Back to My Data</a>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h3 mb-0">Request Data Export</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4>About Data Exports</h4>
+                                    <p class="mb-0">You can download a copy of your personal data in a portable format. This helps you exercise your right to data portability.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form action="/gdpr/export-data" method="post">
+                            <div class="mb-4">
+                                <label class="form-label">Export Format</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="format" id="format-json" value="json" checked>
+                                    <label class="form-check-label" for="format-json">JSON (recommended for complete data)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="format" id="format-csv" value="csv">
+                                    <label class="form-check-label" for="format-csv">CSV (better for spreadsheet programs)</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Data to Include</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="include_assessments" name="include_assessments" checked>
+                                    <label class="form-check-label" for="include_assessments">Include detailed assessment data</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">Request Data Export</button>
+                                <a href="/gdpr/my-data" class="btn btn-outline-secondary ms-2">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+        """
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_export_data(data: Dict[str, Any], headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR data export processing"""
+    try:
+        user_email = 'test@ieltsgenaiprep.com'
+        export_format = data.get('format', 'json')
+        include_assessments = data.get('include_assessments', False)
+        
+        request_id = aws_mock.request_data_export(user_email, export_format, include_assessments)
+        
+        if not request_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'text/html'},
+                'body': '<h1>Error</h1><p>Unable to process export request</p>'
+            }
+        
+        export_request = aws_mock.get_gdpr_request_status(request_id)
+        
+        if export_request and export_request.get('status') == 'completed':
+            export_data = export_request.get('export_data', {})
+            
+            if export_format == 'json':
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Content-Disposition': f'attachment; filename="ielts-data-export-{request_id}.json"'
+                    },
+                    'body': json.dumps(export_data, indent=2)
+                }
+            else:
+                csv_content = f"Email,Created At,Last Login\\n{user_email},{export_data.get('user_profile', {}).get('created_at', '')},{export_data.get('user_profile', {}).get('last_login', '')}"
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'text/csv',
+                        'Content-Disposition': f'attachment; filename="ielts-data-export-{request_id}.csv"'
+                    },
+                    'body': csv_content
+                }
+        
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Error</h1><p>Export request failed</p>'
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_request_data_deletion(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR data deletion request page"""
+    try:
+        html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Data Deletion - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+            <a href="/gdpr/my-data" class="btn btn-outline-primary">Back to My Data</a>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h1 class="h3 mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Request Data Deletion</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4>Important Notice</h4>
+                                    <p class="mb-0">Data deletion is permanent and cannot be undone. Please consider exporting your data first.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form action="/gdpr/delete-data" method="post">
+                            <div class="mb-4">
+                                <label class="form-label">Deletion Type</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="deletion_type" id="deletion-partial" value="partial">
+                                    <label class="form-check-label" for="deletion-partial">Partial deletion (keep purchase history for legal compliance)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="deletion_type" id="deletion-complete" value="complete" checked>
+                                    <label class="form-check-label" for="deletion-complete">Complete deletion (remove all personal data)</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" id="confirm_deletion" name="confirm_deletion" required>
+                                <label class="form-check-label" for="confirm_deletion">I understand that this action cannot be undone and confirm I want to delete my data.</label>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-danger">Request Data Deletion</button>
+                                <a href="/gdpr/my-data" class="btn btn-outline-secondary ms-2">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+        """
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_delete_data(data: Dict[str, Any], headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR data deletion processing"""
+    try:
+        user_email = 'test@ieltsgenaiprep.com'
+        deletion_type = data.get('deletion_type', 'complete')
+        confirm_deletion = data.get('confirm_deletion', False)
+        
+        if not confirm_deletion:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'text/html'},
+                'body': '<h1>Error</h1><p>Deletion confirmation required</p>'
+            }
+        
+        request_id = aws_mock.request_data_deletion(user_email, deletion_type)
+        
+        if not request_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'text/html'},
+                'body': '<h1>Error</h1><p>Unable to process deletion request</p>'
+            }
+        
+        success_html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Deletion Request Submitted - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow border-success">
+                    <div class="card-header bg-success text-white">
+                        <h1 class="h3 mb-0"><i class="fas fa-check-circle me-2"></i>Request Submitted</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4>Deletion Request Submitted</h4>
+                                    <p class="mb-0">Your data deletion request has been submitted successfully. Request ID: <strong>{request_id}</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4>What happens next?</h4>
+                        <ul>
+                            <li>Your request will be processed within 30 days</li>
+                            <li>You will receive an email confirmation when the deletion is complete</li>
+                            <li>Your account will be permanently closed after deletion</li>
+                        </ul>
+                        
+                        <div class="mt-4">
+                            <a href="/" class="btn btn-primary">Return to Home</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+        """
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': success_html
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_cookie_preferences(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR cookie preferences page"""
+    try:
+        user_email = 'test@ieltsgenaiprep.com'
+        cookie_prefs = aws_mock.get_cookie_preferences(user_email)
+        
+        html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Preferences - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">IELTS GenAI Prep</a>
+            <a href="/gdpr/my-data" class="btn btn-outline-primary">Back to My Data</a>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h3 mb-0">Cookie Preferences</h1>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">Manage your cookie preferences. These settings control how we use cookies on our website.</p>
+                        
+                        <form action="/gdpr/update-cookies" method="post">
+                            <div class="cookie-categories">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Necessary Cookies</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="necessary" name="necessary" checked disabled>
+                                                <label class="form-check-label" for="necessary">Required</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">These cookies are essential for the website to function properly.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Functional Cookies</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="functional" name="functional" {'checked' if cookie_prefs.get('functional') else ''}>
+                                                <label class="form-check-label" for="functional">Optional</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">These cookies enhance your experience by remembering preferences.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Analytics Cookies</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="analytics" name="analytics" {'checked' if cookie_prefs.get('analytics') else ''}>
+                                                <label class="form-check-label" for="analytics">Optional</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">These cookies help us understand how you use our website.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h2 class="h5 mb-0">Marketing Cookies</h2>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="marketing" name="marketing" {'checked' if cookie_prefs.get('marketing') else ''}>
+                                                <label class="form-check-label" for="marketing">Optional</label>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mt-2 mb-0">These cookies are used to deliver personalized advertisements.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">Update Cookie Preferences</button>
+                                <a href="/gdpr/my-data" class="btn btn-outline-secondary ms-2">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+        """
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
+        }
+
+def handle_gdpr_update_cookies(data: Dict[str, Any], headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle GDPR cookie preferences update"""
+    try:
+        user_email = 'test@ieltsgenaiprep.com'
+        
+        cookie_prefs = {
+            'functional': data.get('functional', False),
+            'analytics': data.get('analytics', False),
+            'marketing': data.get('marketing', False)
+        }
+        
+        aws_mock.update_cookie_preferences(user_email, cookie_prefs)
+        
+        return {
+            'statusCode': 302,
+            'headers': {'Location': '/gdpr/my-data', 'Content-Type': 'text/html'},
+            'body': ''
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error</h1><p>{str(e)}</p>'
         }
