@@ -1,144 +1,282 @@
 #!/usr/bin/env python3
 """
-Verify Production Requirements Compliance
-Check all requirements against the production Lambda deployment
+Verify Production Requirements - Complete Package Review
+Systematic verification of all 8 requirements
 """
 
-import json
 import zipfile
+import re
+import json
 
-def verify_production_requirements():
-    """Verify all production requirements are met"""
+def verify_all_requirements():
+    """Verify all 8 requirements systematically"""
     
-    print("=== VERIFYING PRODUCTION REQUIREMENTS ===")
+    print("=== PRODUCTION PACKAGE VERIFICATION ===")
+    print("Package: google_play_compliant_lambda.zip")
+    print("Verification Date: July 15, 2025")
+    print()
     
-    # Check 1: Original working template
-    print("\n1. ✅ Original working template verification:")
     try:
-        with open('working_template_backup_20250714_192410.html', 'r') as f:
-            template_content = f.read()
-        print("   ✓ Original template file found")
-        print("   ✓ Title: IELTS GenAI Prep - AI-Powered IELTS Assessment Platform")
-        print("   ✓ AI SEO optimizations included")
-        print("   ✓ GDPR compliance mentions present")
-    except FileNotFoundError:
-        print("   ❌ Original template file not found")
-    
-    # Check 2: Nova Sonic en-GB-feminine voice
-    print("\n2. ✅ Nova Sonic en-GB-feminine voice verification:")
-    print("   ✓ Voice ID: en-GB-feminine configured")
-    print("   ✓ British female voice for Maya AI examiner")
-    print("   ✓ Nova Sonic integration in production Lambda")
-    print("   ✓ Frontend voice testing functionality")
-    
-    # Check 3: Nova Micro writing assessment
-    print("\n3. ✅ Nova Micro writing assessment verification:")
-    print("   ✓ Submit button integrated")
-    print("   ✓ Essay text processing")
-    print("   ✓ IELTS rubric evaluation")
-    print("   ✓ Band scoring with detailed feedback")
-    print("   ✓ Results saved to DynamoDB")
-    
-    # Check 4: User profile with account deletion
-    print("\n4. ✅ User profile page verification:")
-    print("   ✓ Account information display")
-    print("   ✓ Assessment history tracking")
-    print("   ✓ Account deletion option with warnings")
-    print("   ✓ GDPR data rights section")
-    print("   ✓ Email confirmation for deletion")
-    
-    # Check 5: Easy navigation to assessments
-    print("\n5. ✅ Assessment navigation verification:")
-    print("   ✓ Dashboard with 4 assessment cards")
-    print("   ✓ Clear 'Start Assessment' buttons")
-    print("   ✓ Assessment attempt tracking")
-    print("   ✓ Nova AI status indicators")
-    print("   ✓ Direct links to assessment pages")
-    
-    # Check 6: SES email functionality
-    print("\n6. ✅ SES email functionality verification:")
-    print("   ✓ Welcome email on sign up")
-    print("   ✓ Account deletion confirmation email")
-    print("   ✓ Professional HTML email templates")
-    print("   ✓ Branded design with TrueScore®/ClearScore®")
-    print("   ✓ AWS SES integration configured")
-    
-    # Check 7: DynamoDB integration (no mock data)
-    print("\n7. ✅ DynamoDB integration verification:")
-    print("   ✓ Production table names configured:")
-    print("      - ielts-genai-prep-users")
-    print("      - ielts-genai-prep-sessions")
-    print("      - ielts-genai-prep-assessments")
-    print("      - ielts-assessment-questions")
-    print("      - ielts-assessment-rubrics")
-    print("   ✓ No mock data references")
-    print("   ✓ No development data references")
-    print("   ✓ Proper error handling for DynamoDB operations")
-    
-    # Check 8: Production Lambda package
-    print("\n8. ✅ Production Lambda package verification:")
-    try:
-        with zipfile.ZipFile('complete_production_lambda.zip', 'r') as z:
-            files = z.namelist()
-            print(f"   ✓ Package exists: complete_production_lambda.zip")
-            print(f"   ✓ Files included: {files}")
-            
-            # Check Lambda function content
+        with zipfile.ZipFile('google_play_compliant_lambda.zip', 'r') as z:
             lambda_content = z.read('lambda_function.py').decode('utf-8')
             
-            # Verify no mock references
-            if 'aws_mock' in lambda_content.lower():
-                print("   ❌ Mock references found in production code")
-            else:
-                print("   ✓ No mock references in production code")
+            print("✅ Package successfully extracted")
+            print(f"   Lambda function size: {len(lambda_content)} characters")
+            print()
+            
+            # 1. Original Working Template Verification
+            print("1. ORIGINAL WORKING TEMPLATE VERIFICATION:")
+            if 'original_template' in lambda_content:
+                print("   ✅ Original template integration found")
                 
-            # Verify DynamoDB table names
-            if 'ielts-genai-prep-users' in lambda_content:
-                print("   ✓ Production DynamoDB table names configured")
+                # Check for specific template components
+                if 'IELTS GenAI Prep' in lambda_content:
+                    print("   ✅ Title: IELTS GenAI Prep found")
+                if 'AI-Powered IELTS Assessment Platform' in lambda_content:
+                    print("   ✅ Subtitle: AI-Powered IELTS Assessment Platform found")
+                if 'TrueScore' in lambda_content and 'ClearScore' in lambda_content:
+                    print("   ✅ Branding: TrueScore® and ClearScore® found")
+                if 'privacy-policy' in lambda_content and 'terms-of-service' in lambda_content:
+                    print("   ✅ Legal pages: Privacy Policy and Terms of Service found")
+                if 'gdpr' in lambda_content.lower():
+                    print("   ✅ GDPR compliance: GDPR references found")
+                    
+                print("   ✅ REQUIREMENT 1: PASSED")
             else:
-                print("   ❌ Production DynamoDB table names not found")
+                print("   ❌ Original template integration NOT found")
+                print("   ❌ REQUIREMENT 1: FAILED")
+            print()
+            
+            # 2. AI SEO Robots.txt Verification
+            print("2. AI SEO ROBOTS.TXT VERIFICATION:")
+            if 'robots.txt' in lambda_content:
+                print("   ✅ robots.txt endpoint found")
                 
-            # Verify Nova Sonic configuration
-            if 'en-GB-feminine' in lambda_content:
-                print("   ✓ Nova Sonic en-GB-feminine voice configured")
+                # Check for AI crawler permissions
+                if 'GPTBot' in lambda_content:
+                    print("   ✅ GPTBot permission found")
+                if 'ClaudeBot' in lambda_content:
+                    print("   ✅ ClaudeBot permission found")
+                if 'Google-Extended' in lambda_content:
+                    print("   ✅ Google-Extended permission found")
+                if 'Allow: /' in lambda_content:
+                    print("   ✅ Allow all paths found")
+                    
+                print("   ✅ REQUIREMENT 2: PASSED")
             else:
-                print("   ❌ Nova Sonic voice configuration not found")
+                print("   ❌ robots.txt endpoint NOT found")
+                print("   ❌ REQUIREMENT 2: FAILED")
+            print()
+            
+            # 3. Nova Sonic EN-GB Voice Verification
+            print("3. NOVA SONIC EN-GB VOICE VERIFICATION:")
+            if 'nova-sonic' in lambda_content:
+                print("   ✅ Nova Sonic integration found")
+                
+                # Check for specific voice configuration
+                if 'en-GB-feminine' in lambda_content:
+                    print("   ✅ EN-GB feminine voice found")
+                if 'synthesize_maya_voice_nova_sonic' in lambda_content:
+                    print("   ✅ Maya voice synthesis function found")
+                if 'bedrock-runtime' in lambda_content:
+                    print("   ✅ AWS Bedrock runtime integration found")
+                if 'nova-sonic-connect' in lambda_content:
+                    print("   ✅ Nova Sonic connection test endpoint found")
+                if 'nova-sonic-stream' in lambda_content:
+                    print("   ✅ Nova Sonic streaming endpoint found")
+                    
+                print("   ✅ REQUIREMENT 3: PASSED")
+            else:
+                print("   ❌ Nova Sonic integration NOT found")
+                print("   ❌ REQUIREMENT 3: FAILED")
+            print()
+            
+            # 4. Nova Micro Writing Assessment Verification
+            print("4. NOVA MICRO WRITING ASSESSMENT VERIFICATION:")
+            if 'nova-micro-writing' in lambda_content:
+                print("   ✅ Nova Micro writing endpoint found")
+                
+                # Check for assessment components
+                if 'evaluate_writing_with_nova_micro' in lambda_content:
+                    print("   ✅ Writing evaluation function found")
+                if 'essay_text' in lambda_content and 'submit' in lambda_content:
+                    print("   ✅ Essay submission with submit button found")
+                if 'overall_band' in lambda_content and 'criteria_scores' in lambda_content:
+                    print("   ✅ IELTS scoring system found")
+                if 'detailed_feedback' in lambda_content:
+                    print("   ✅ Detailed feedback system found")
+                    
+                print("   ✅ REQUIREMENT 4: PASSED")
+            else:
+                print("   ❌ Nova Micro writing endpoint NOT found")
+                print("   ❌ REQUIREMENT 4: FAILED")
+            print()
+            
+            # 5. User Profile with Account Deletion Verification
+            print("5. USER PROFILE WITH ACCOUNT DELETION VERIFICATION:")
+            if 'my-profile' in lambda_content or 'profile' in lambda_content:
+                print("   ✅ Profile page found")
+                
+                # Check for account deletion features
+                if 'account-deletion' in lambda_content:
+                    print("   ✅ Account deletion endpoint found")
+                if 'delete_user_account' in lambda_content:
+                    print("   ✅ Account deletion function found")
+                if 'get_user_assessment_history' in lambda_content:
+                    print("   ✅ Assessment history display found")
+                    
+                print("   ✅ REQUIREMENT 5: PASSED")
+            else:
+                print("   ❌ Profile page NOT found")
+                print("   ❌ REQUIREMENT 5: FAILED")
+            print()
+            
+            # 6. Easy Assessment Navigation Verification
+            print("6. EASY ASSESSMENT NAVIGATION VERIFICATION:")
+            if 'dashboard' in lambda_content:
+                print("   ✅ Dashboard page found")
+                
+                # Check for assessment navigation
+                if 'assessment/' in lambda_content:
+                    print("   ✅ Assessment routing found")
+                if 'academic-writing' in lambda_content and 'general-writing' in lambda_content:
+                    print("   ✅ Writing assessments found")
+                if 'academic-speaking' in lambda_content and 'general-speaking' in lambda_content:
+                    print("   ✅ Speaking assessments found")
+                if 'Start Assessment' in lambda_content:
+                    print("   ✅ Start Assessment buttons found")
+                    
+                print("   ✅ REQUIREMENT 6: PASSED")
+            else:
+                print("   ❌ Dashboard page NOT found")
+                print("   ❌ REQUIREMENT 6: FAILED")
+            print()
+            
+            # 7. SES Email Functionality Verification
+            print("7. SES EMAIL FUNCTIONALITY VERIFICATION:")
+            if 'send_welcome_email' in lambda_content:
+                print("   ✅ Welcome email function found")
+                
+                # Check for SES components
+                if 'send_account_deletion_email' in lambda_content:
+                    print("   ✅ Account deletion email function found")
+                if 'boto3.client(\'ses\'' in lambda_content:
+                    print("   ✅ AWS SES client integration found")
+                if 'welcome@ieltsaiprep.com' in lambda_content:
+                    print("   ✅ Welcome email sender found")
+                if 'noreply@ieltsaiprep.com' in lambda_content:
+                    print("   ✅ No-reply email sender found")
+                if 'HTML' in lambda_content and 'professional' in lambda_content:
+                    print("   ✅ Professional HTML email templates found")
+                    
+                print("   ✅ REQUIREMENT 7: PASSED")
+            else:
+                print("   ❌ Welcome email function NOT found")
+                print("   ❌ REQUIREMENT 7: FAILED")
+            print()
+            
+            # 8. Production DynamoDB Verification
+            print("8. PRODUCTION DYNAMODB VERIFICATION:")
+            
+            # Extract all DynamoDB table references
+            table_pattern = r"'([^']*ielts[^']*?)'"
+            tables = re.findall(table_pattern, lambda_content)
+            
+            if tables:
+                print(f"   ✅ DynamoDB tables found: {len(set(tables))}")
+                for table in set(tables):
+                    print(f"      - {table}")
+                
+                # Check for production table naming
+                prod_tables = [t for t in tables if 'ielts-genai-prep-' in t or 'ielts-assessment-' in t]
+                if prod_tables:
+                    print(f"   ✅ Production table naming: {len(set(prod_tables))} production tables")
+                
+                # Check for mock/dev references
+                mock_patterns = [r'mock', r'dev', r'test.*data', r'fake', r'dummy']
+                mock_found = []
+                for pattern in mock_patterns:
+                    matches = re.findall(pattern, lambda_content.lower())
+                    mock_found.extend(matches)
+                
+                if not mock_found:
+                    print("   ✅ No mock/dev data references found")
+                    print("   ✅ REQUIREMENT 8: PASSED")
+                else:
+                    print(f"   ❌ Mock/dev references found: {mock_found}")
+                    print("   ❌ REQUIREMENT 8: FAILED")
+            else:
+                print("   ❌ No DynamoDB tables found")
+                print("   ❌ REQUIREMENT 8: FAILED")
+            print()
+            
+            # Summary
+            print("=== VERIFICATION SUMMARY ===")
+            
+            requirements_status = []
+            
+            # Count passed requirements
+            if 'original_template' in lambda_content:
+                requirements_status.append("✅ 1. Original Template")
+            else:
+                requirements_status.append("❌ 1. Original Template")
+                
+            if 'robots.txt' in lambda_content:
+                requirements_status.append("✅ 2. AI SEO robots.txt")
+            else:
+                requirements_status.append("❌ 2. AI SEO robots.txt")
+                
+            if 'nova-sonic' in lambda_content and 'en-GB-feminine' in lambda_content:
+                requirements_status.append("✅ 3. Nova Sonic EN-GB Voice")
+            else:
+                requirements_status.append("❌ 3. Nova Sonic EN-GB Voice")
+                
+            if 'nova-micro-writing' in lambda_content:
+                requirements_status.append("✅ 4. Nova Micro Writing")
+            else:
+                requirements_status.append("❌ 4. Nova Micro Writing")
+                
+            if 'profile' in lambda_content and 'account-deletion' in lambda_content:
+                requirements_status.append("✅ 5. User Profile & Deletion")
+            else:
+                requirements_status.append("❌ 5. User Profile & Deletion")
+                
+            if 'dashboard' in lambda_content:
+                requirements_status.append("✅ 6. Assessment Navigation")
+            else:
+                requirements_status.append("❌ 6. Assessment Navigation")
+                
+            if 'send_welcome_email' in lambda_content:
+                requirements_status.append("✅ 7. SES Email System")
+            else:
+                requirements_status.append("❌ 7. SES Email System")
+                
+            if tables and not mock_found:
+                requirements_status.append("✅ 8. Production DynamoDB")
+            else:
+                requirements_status.append("❌ 8. Production DynamoDB")
+            
+            for status in requirements_status:
+                print(status)
+            
+            passed = len([s for s in requirements_status if '✅' in s])
+            total = len(requirements_status)
+            
+            print(f"\nOverall Score: {passed}/{total} requirements passed")
+            
+            if passed == total:
+                print("🎉 ALL REQUIREMENTS VERIFIED - PRODUCTION READY")
+                return True
+            else:
+                print("⚠️  SOME REQUIREMENTS NOT MET - NEEDS ATTENTION")
+                return False
                 
     except FileNotFoundError:
-        print("   ❌ Production Lambda package not found")
-    
-    # Check 9: CloudFront security
-    print("\n9. ✅ CloudFront security verification:")
-    print("   ✓ CF-Secret-3140348d header validation")
-    print("   ✓ Direct access blocking")
-    print("   ✓ Production domain support")
-    
-    # Check 10: GDPR compliance
-    print("\n10. ✅ GDPR compliance verification:")
-    print("   ✓ Privacy policy with AI technology disclosure")
-    print("   ✓ Terms of service with no-refund policy")
-    print("   ✓ Consent checkboxes on login")
-    print("   ✓ Data deletion functionality")
-    print("   ✓ User data rights information")
-    
-    print("\n=== PRODUCTION REQUIREMENTS SUMMARY ===")
-    print("✅ All 10 requirements verified and implemented")
-    print("✅ Production Lambda package ready for deployment")
-    print("✅ No mock or development data references")
-    print("✅ Complete DynamoDB integration")
-    print("✅ Nova Sonic en-GB-feminine voice standardized")
-    print("✅ SES email system fully configured")
-    print("✅ GDPR compliance implemented")
-    
-    print("\n🚀 DEPLOYMENT READY:")
-    print("   Upload complete_production_lambda.zip to AWS Lambda")
-    print("   Configure environment variables:")
-    print("   - RECAPTCHA_V2_SECRET_KEY")
-    print("   - AWS_ACCESS_KEY_ID")
-    print("   - AWS_SECRET_ACCESS_KEY")
-    print("   - AWS_REGION=us-east-1")
-    
-    return True
+        print("❌ Package file not found: google_play_compliant_lambda.zip")
+        return False
+    except Exception as e:
+        print(f"❌ Error during verification: {str(e)}")
+        return False
 
 if __name__ == "__main__":
-    verify_production_requirements()
+    verify_all_requirements()
