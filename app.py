@@ -46,36 +46,33 @@ def synthesize_maya_voice_nova_sonic(text: str) -> Optional[str]:
                 "sampleRate": 16000
             },
             "outputAudio": {
-                "format": "pcm", 
-                "sampleRate": 24000,
-                "voiceId": "en-GB-feminine"  # British female voice as per documentation
+                "format": "mp3", 
+                "sampleRate": 24000
+            },
+            "voice": {
+                "id": "Amy"  # British female voice (Amy)
             },
             "systemPrompt": f"You are Maya, a British female IELTS examiner with a clear British accent. Please say: '{text}'"
         }
         
-        # Use bidirectional streaming for Nova Sonic
+        # Use Nova Sonic Amy voice synthesis
         try:
-            response = bedrock_client.invoke_model_with_bidirectional_stream(
-                modelId="amazon.nova-sonic-v1",
+            response = bedrock_client.invoke_model(
+                modelId="amazon.nova-sonic-v1:0",
                 contentType="application/json",
-                accept="audio/mpeg",
+                accept="application/json",
                 body=json.dumps(request_body)
             )
             
-            # Process streaming response
-            audio_chunks = []
-            for event in response['body']:
-                if 'audio' in event:
-                    audio_chunks.append(event['audio']['data'])
+            # Process Nova Sonic Amy response
+            response_body = json.loads(response['body'].read())
             
-            if audio_chunks:
-                # Combine all audio chunks
-                audio_data = b''.join(audio_chunks)
-                # Convert to base64 for web transmission
-                audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                return audio_base64
+            if 'audio' in response_body:
+                # Extract base64 encoded audio data
+                audio_data = response_body['audio']
+                return audio_data
             else:
-                print(f"[NOVA_SONIC] No audio chunks received")
+                print(f"[NOVA_SONIC] No audio data in response")
                 return None
                 
         except Exception as e:
