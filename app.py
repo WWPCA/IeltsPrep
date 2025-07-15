@@ -2382,10 +2382,411 @@ def get_assessment_template(assessment_type: str, user_email: str, session_id: s
         
         return template
     
-    # Speaking assessments - continue with existing logic
+    # Speaking assessments - Nova Sonic integration with Maya AI examiner
     elif 'speaking' in assessment_type:
-        # Continue with existing speaking template
-        pass
+        # Prepare variables for speaking assessment
+        assessment_title = assessment_type.replace('_', ' ').title()
+        speaking_prompt = nova_prompts.get('opening_prompt', 'Hello! I\'m Maya, your IELTS examiner. Let\'s begin your speaking assessment.')
+        
+        # Speaking assessment template with Nova Sonic integration
+        template = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{assessment_title} Assessment</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; min-height: 100vh; }}
+        .container {{ max-width: 1200px; margin: 0 auto; padding: 20px; }}
+        .assessment-header {{ background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header-top {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }}
+        .logo {{ background: #e31e24; color: white; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 18px; }}
+        .timer {{ background: #333; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 18px; }}
+        .user-info {{ color: #666; font-size: 14px; }}
+        .assessment-card {{ background: white; border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .maya-section {{ text-align: center; margin-bottom: 30px; }}
+        .maya-avatar {{ width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(45deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-size: 24px; font-weight: bold; }}
+        .maya-status {{ background: #e8f5e8; color: #2d5a2d; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-bottom: 20px; font-weight: bold; }}
+        .speaking-controls {{ display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; }}
+        .control-btn {{ padding: 15px 30px; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; }}
+        .test-voice-btn {{ background: #4CAF50; color: white; }}
+        .test-voice-btn:hover {{ background: #45a049; }}
+        .test-voice-btn:disabled {{ background: #cccccc; cursor: not-allowed; }}
+        .start-btn {{ background: #e31e24; color: white; font-size: 18px; }}
+        .start-btn:hover {{ background: #c41e3a; }}
+        .start-btn:disabled {{ background: #cccccc; cursor: not-allowed; }}
+        .permissions-section {{ background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; }}
+        .permission-item {{ display: flex; align-items: center; margin: 10px 0; }}
+        .permission-status {{ width: 20px; height: 20px; border-radius: 50%; margin-right: 10px; }}
+        .permission-granted {{ background: #4CAF50; }}
+        .permission-denied {{ background: #f44336; }}
+        .permission-pending {{ background: #ff9800; }}
+        .conversation-area {{ background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; min-height: 300px; }}
+        .conversation-log {{ max-height: 250px; overflow-y: auto; }}
+        .message {{ margin: 10px 0; padding: 10px; border-radius: 8px; }}
+        .maya-message {{ background: #e3f2fd; border-left: 4px solid #2196F3; }}
+        .user-message {{ background: #f1f8e9; border-left: 4px solid #4CAF50; }}
+        .audio-controls {{ display: flex; justify-content: center; gap: 15px; margin-top: 20px; }}
+        .audio-btn {{ padding: 12px 24px; border: none; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s; }}
+        .record-btn {{ background: #f44336; color: white; }}
+        .record-btn:hover {{ background: #da190b; }}
+        .record-btn.recording {{ background: #ff9800; animation: pulse 1s infinite; }}
+        .stop-btn {{ background: #757575; color: white; }}
+        .stop-btn:hover {{ background: #616161; }}
+        @keyframes pulse {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0.7; }} 100% {{ opacity: 1; }} }}
+        .footer {{ text-align: center; margin-top: 30px; }}
+        .footer-text {{ color: rgba(255,255,255,0.8); font-size: 14px; }}
+        @media (max-width: 768px) {{
+            .container {{ padding: 10px; }}
+            .header-top {{ flex-direction: column; gap: 10px; }}
+            .speaking-controls {{ flex-direction: column; align-items: center; }}
+            .audio-controls {{ flex-direction: column; align-items: center; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="assessment-header">
+            <div class="header-top">
+                <div class="logo">IELTS GenAI</div>
+                <div class="timer" id="timer">15:00</div>
+            </div>
+            <div class="user-info">Test taker: {user_email} | Assessment: {assessment_title}</div>
+        </div>
+        
+        <div class="assessment-card">
+            <div class="maya-section">
+                <div class="maya-avatar">M</div>
+                <h2>Maya - Your IELTS Examiner</h2>
+                <div class="maya-status" id="mayaStatus">Ready to begin your speaking assessment</div>
+            </div>
+            
+            <div class="permissions-section">
+                <h3>Permission Status</h3>
+                <div class="permission-item">
+                    <div class="permission-status permission-pending" id="micStatus"></div>
+                    <span>Microphone Access</span>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-status permission-pending" id="speakerStatus"></div>
+                    <span>Speaker/Audio Output</span>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-status permission-pending" id="novaStatus"></div>
+                    <span>Nova Sonic Connection</span>
+                </div>
+            </div>
+            
+            <div class="speaking-controls">
+                <button class="control-btn test-voice-btn" id="testVoiceBtn">Test Maya's Voice</button>
+                <button class="control-btn start-btn" id="startBtn" disabled>Start Assessment</button>
+            </div>
+            
+            <div class="conversation-area" id="conversationArea" style="display: none;">
+                <h3>Conversation with Maya</h3>
+                <div class="conversation-log" id="conversationLog"></div>
+                <div class="audio-controls">
+                    <button class="audio-btn record-btn" id="recordBtn">Start Recording</button>
+                    <button class="audio-btn stop-btn" id="stopBtn" disabled>Stop Recording</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-text">Question ID: {question_id} | Nova Sonic EN-GB-feminine Voice Active</div>
+        </div>
+    </div>
+
+    <script>
+        let conversationId = 'speaking-{session_id}-{question_id}';
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+        let assessmentStarted = false;
+        let timerInterval;
+        let timeRemaining = 15 * 60; // 15 minutes
+        
+        // DOM elements
+        const testVoiceBtn = document.getElementById('testVoiceBtn');
+        const startBtn = document.getElementById('startBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const conversationArea = document.getElementById('conversationArea');
+        const conversationLog = document.getElementById('conversationLog');
+        const mayaStatus = document.getElementById('mayaStatus');
+        const micStatus = document.getElementById('micStatus');
+        const speakerStatus = document.getElementById('speakerStatus');
+        const novaStatus = document.getElementById('novaStatus');
+        const timer = document.getElementById('timer');
+        
+        // Initialize assessment
+        async function initializeAssessment() {{
+            // Check microphone permissions
+            try {{
+                const stream = await navigator.mediaDevices.getUserMedia({{ audio: true }});
+                micStatus.className = 'permission-status permission-granted';
+                speakerStatus.className = 'permission-status permission-granted';
+                stream.getTracks().forEach(track => track.stop());
+            }} catch (error) {{
+                micStatus.className = 'permission-status permission-denied';
+                speakerStatus.className = 'permission-status permission-denied';
+                alert('Microphone access is required for the speaking assessment.');
+                return;
+            }}
+            
+            // Test Nova Sonic connection
+            await testNovaConnection();
+        }}
+        
+        async function testNovaConnection() {{
+            try {{
+                const response = await fetch('/api/nova-sonic-connect', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{ test: 'connection' }})
+                }});
+                
+                if (response.ok) {{
+                    const data = await response.json();
+                    novaStatus.className = 'permission-status permission-granted';
+                    mayaStatus.textContent = 'Maya voice ready ✓ (British Female)';
+                    testVoiceBtn.disabled = false;
+                    startBtn.disabled = false;
+                    
+                    // Test voice synthesis
+                    if (data.audio_data) {{
+                        console.log('Nova Sonic connection successful');
+                    }}
+                }} else {{
+                    novaStatus.className = 'permission-status permission-denied';
+                    mayaStatus.textContent = 'Maya voice connection failed';
+                }}
+            }} catch (error) {{
+                novaStatus.className = 'permission-status permission-denied';
+                mayaStatus.textContent = 'Nova Sonic connection error';
+                console.error('Nova Sonic connection error:', error);
+            }}
+        }}
+        
+        async function testMayaVoice() {{
+            testVoiceBtn.disabled = true;
+            testVoiceBtn.textContent = 'Testing...';
+            mayaStatus.textContent = 'Maya is speaking...';
+            
+            try {{
+                const response = await fetch('/api/nova-sonic-stream', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        user_text: 'Hello Maya, can you introduce yourself?',
+                        conversation_id: conversationId + '-test'
+                    }})
+                }});
+                
+                if (response.ok) {{
+                    const data = await response.json();
+                    if (data.maya_audio) {{
+                        // Play Maya's voice
+                        const audio = new Audio('data:audio/mp3;base64,' + data.maya_audio);
+                        await audio.play();
+                        mayaStatus.textContent = 'Maya voice test successful ✓';
+                        
+                        // Add test message to conversation log
+                        addMessage('Maya', data.maya_text || 'Hello! I\'m Maya, your British IELTS examiner. I\'m ready to begin your speaking assessment.');
+                    }} else {{
+                        mayaStatus.textContent = 'Maya voice test failed';
+                    }}
+                }} else {{
+                    mayaStatus.textContent = 'Maya voice test failed';
+                }}
+            }} catch (error) {{
+                mayaStatus.textContent = 'Maya voice test error';
+                console.error('Maya voice test error:', error);
+            }}
+            
+            testVoiceBtn.disabled = false;
+            testVoiceBtn.textContent = 'Test Maya\'s Voice';
+        }}
+        
+        async function startAssessment() {{
+            assessmentStarted = true;
+            conversationArea.style.display = 'block';
+            startBtn.style.display = 'none';
+            testVoiceBtn.style.display = 'none';
+            
+            // Start timer
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            // Maya's opening message
+            mayaStatus.textContent = 'Maya is introducing the assessment...';
+            
+            try {{
+                const response = await fetch('/api/nova-sonic-stream', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        user_text: 'Please start the IELTS speaking assessment with the opening introduction.',
+                        conversation_id: conversationId
+                    }})
+                }});
+                
+                if (response.ok) {{
+                    const data = await response.json();
+                    if (data.maya_audio) {{
+                        const audio = new Audio('data:audio/mp3;base64,' + data.maya_audio);
+                        await audio.play();
+                        addMessage('Maya', data.maya_text || '{speaking_prompt}');
+                        mayaStatus.textContent = 'Maya has finished speaking - your turn!';
+                        recordBtn.disabled = false;
+                    }}
+                }}
+            }} catch (error) {{
+                console.error('Assessment start error:', error);
+                mayaStatus.textContent = 'Error starting assessment';
+            }}
+        }}
+        
+        async function startRecording() {{
+            try {{
+                const stream = await navigator.mediaDevices.getUserMedia({{ audio: true }});
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {{
+                    audioChunks.push(event.data);
+                }};
+                
+                mediaRecorder.onstop = () => {{
+                    const audioBlob = new Blob(audioChunks, {{ type: 'audio/wav' }});
+                    const reader = new FileReader();
+                    reader.onload = () => {{
+                        const base64Audio = reader.result.split(',')[1];
+                        processUserResponse(base64Audio);
+                    }};
+                    reader.readAsDataURL(audioBlob);
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                }};
+                
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.disabled = true;
+                recordBtn.textContent = 'Recording...';
+                recordBtn.classList.add('recording');
+                stopBtn.disabled = false;
+                
+            }} catch (error) {{
+                console.error('Recording error:', error);
+                alert('Recording failed. Please try again.');
+            }}
+        }}
+        
+        function stopRecording() {{
+            if (mediaRecorder && isRecording) {{
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.disabled = false;
+                recordBtn.textContent = 'Start Recording';
+                recordBtn.classList.remove('recording');
+                stopBtn.disabled = true;
+                mayaStatus.textContent = 'Processing your response...';
+            }}
+        }}
+        
+        async function processUserResponse(audioData) {{
+            try {{
+                addMessage('You', 'Audio response recorded');
+                
+                const response = await fetch('/api/nova-sonic-stream', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        user_text: 'User provided an audio response',
+                        audio_data: audioData,
+                        conversation_id: conversationId
+                    }})
+                }});
+                
+                if (response.ok) {{
+                    const data = await response.json();
+                    if (data.maya_audio) {{
+                        const audio = new Audio('data:audio/mp3;base64,' + data.maya_audio);
+                        await audio.play();
+                        addMessage('Maya', data.maya_text || 'Thank you for your response. Let\'s continue with the next question.');
+                        mayaStatus.textContent = 'Maya has finished speaking - your turn!';
+                    }}
+                }} else {{
+                    mayaStatus.textContent = 'Error processing response';
+                }}
+            }} catch (error) {{
+                console.error('Response processing error:', error);
+                mayaStatus.textContent = 'Error processing response';
+            }}
+        }}
+        
+        function addMessage(speaker, text) {{
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (speaker === 'Maya' ? 'maya-message' : 'user-message');
+            messageDiv.innerHTML = `<strong>${{speaker}}:</strong> ${{text}}`;
+            conversationLog.appendChild(messageDiv);
+            conversationLog.scrollTop = conversationLog.scrollHeight;
+        }}
+        
+        function updateTimer() {{
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timer.textContent = `${{minutes}}:${{seconds.toString().padStart(2, '0')}}`;
+            
+            if (timeRemaining <= 0) {{
+                clearInterval(timerInterval);
+                alert('Time is up! Your speaking assessment is complete.');
+                // Auto-submit assessment
+                submitAssessment();
+            }}
+            
+            timeRemaining--;
+        }}
+        
+        async function submitAssessment() {{
+            try {{
+                const response = await fetch('/api/submit-assessment', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        assessment_type: '{assessment_type}',
+                        question_id: '{question_id}',
+                        user_email: '{user_email}',
+                        session_id: '{session_id}',
+                        conversation_id: conversationId
+                    }})
+                }});
+                
+                if (response.ok) {{
+                    alert('Assessment submitted successfully!');
+                    window.location.href = '/dashboard';
+                }} else {{
+                    alert('Error submitting assessment. Please try again.');
+                }}
+            }} catch (error) {{
+                console.error('Submission error:', error);
+                alert('Network error. Please try again.');
+            }}
+        }}
+        
+        // Event listeners
+        testVoiceBtn.addEventListener('click', testMayaVoice);
+        startBtn.addEventListener('click', startAssessment);
+        recordBtn.addEventListener('click', startRecording);
+        stopBtn.addEventListener('click', stopRecording);
+        
+        // Initialize when page loads
+        window.addEventListener('load', initializeAssessment);
+    </script>
+</body>
+</html>"""
+        
+        return template
     
     # Default fallback
     return f"<h1>Assessment type {assessment_type} not supported</h1>"
