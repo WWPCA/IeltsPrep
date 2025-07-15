@@ -495,12 +495,33 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
 
 def handle_home_page() -> Dict[str, Any]:
     """Serve comprehensive home page with professional design"""
-    html_content = """<!DOCTYPE html>
+    try:
+        # Load the original working template
+        with open('working_template_backup_20250714_192410.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+    except FileNotFoundError:
+        # Fallback to simple template if file not found
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS GenAI Prep - Master IELTS with GenAI-Powered Scoring</title>
+    <title>IELTS GenAI Prep - AI-Powered IELTS Assessment Platform</title>
     <meta name="description" content="The only AI-based IELTS platform with official band-aligned feedback. Master IELTS with GenAI-powered scoring and comprehensive assessment tools.">
     <meta name="keywords" content="IELTS, GenAI, AI assessment, IELTS prep, band scoring, TrueScore, ClearScore, Maya AI">
     <meta property="og:title" content="IELTS GenAI Prep - Master IELTS with GenAI-Powered Scoring">
@@ -690,15 +711,7 @@ def handle_home_page() -> Dict[str, Any]:
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>"""
-    
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'text/html',
-            'Cache-Control': 'no-cache'
-        },
-        'body': html_content
-    }
+        }
 
 def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
     """Handle user login with credential verification"""
