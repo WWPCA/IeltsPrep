@@ -50,7 +50,7 @@ def synthesize_maya_voice_nova_sonic(text: str) -> Optional[str]:
                 "sampleRate": 24000
             },
             "voice": {
-                "id": "Amy"  # British female voice (Amy)
+                "id": "en-GB-feminine"  # British female voice
             },
             "systemPrompt": f"You are Maya, a British female IELTS examiner with a clear British accent. Please say: '{text}'"
         }
