@@ -1326,7 +1326,7 @@ def handle_login_page():
                             </div>
                             
                             <div class="recaptcha-container">
-                                <div class="g-recaptcha" data-sitekey="6LfKOhcqAAAAAFKgJsYtFmNfJvnKPP3vLkJGd1J2"></div>
+                                <div class="g-recaptcha" data-sitekey="{RECAPTCHA_SITE_KEY}"></div>
                             </div>
                             
                             <div class="error-message" id="errorMessage"></div>
@@ -1475,6 +1475,10 @@ def handle_login_page():
     </script>
 </body>
 </html>"""
+    
+    # Replace reCAPTCHA site key with environment variable
+    recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
+    html_content = html_content.replace('{RECAPTCHA_SITE_KEY}', recaptcha_site_key)
     
     return {
         'statusCode': 200,
