@@ -114,6 +114,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Production DynamoDB tables: 7 tables with proper production naming (ielts-genai-prep-*, ielts-assessment-*)
   - CloudFront security validation maintained with CF-Secret-3140348d header
   - Package size optimized to 23KB with zero placeholder text - PERFECT FOR AWS LAMBDA DEPLOYMENT
+  - VOICE CONSISTENCY FIXED: Corrected "Amy" reference to consistent "en-GB-feminine" voice configuration
 
 - July 15, 2025: COMPLETE PRODUCTION LAMBDA DEPLOYMENT READY - EN-GB-feminine Voice Standardized with Full API Integration
   - Successfully standardized Nova Sonic voice to en-GB-feminine in both development and production environments

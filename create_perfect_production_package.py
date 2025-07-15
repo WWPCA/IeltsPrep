@@ -1085,7 +1085,7 @@ def handle_nova_sonic_connection():
                 'headers': {{'Content-Type': 'application/json'}},
                 'body': json.dumps({{
                     'success': True,
-                    'status': 'Nova Sonic Amy voice connected',
+                    'status': 'Nova Sonic en-GB-feminine voice connected',
                     'voice_id': 'en-GB-feminine',
                     'message': 'Maya voice working ✓'
                 }})
