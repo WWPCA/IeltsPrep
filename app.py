@@ -376,6 +376,8 @@ def lambda_handler(event, context):
             return handle_user_registration(data)
         elif path == '/api/login' and method == 'POST':
             return handle_user_login(data)
+        elif path == '/api/account-deletion' and method == 'POST':
+            return handle_account_deletion(data)
         elif path == '/login' and method == 'GET':
             return handle_login_page()
         elif path == '/dashboard' and method == 'GET':
@@ -392,6 +394,8 @@ def lambda_handler(event, context):
             return handle_nova_sonic_connection_test()
         elif path == '/api/nova-sonic-stream' and method == 'POST':
             return handle_nova_sonic_stream(data)
+        elif path == '/api/delete-account' and method == 'POST':
+            return handle_account_deletion(data)
         elif path == '/qr-auth' and method == 'GET':
             return handle_qr_auth_page()
         elif path == '/profile' and method == 'GET':
@@ -699,6 +703,118 @@ def handle_home_page() -> Dict[str, Any]:
         'body': html_content
     }
 
+def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle user login with credential verification"""
+    try:
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not email or not password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Email and password are required'})
+            }
+        
+        # Verify user credentials
+        user = aws_mock.verify_credentials(email, password)
+        if not user:
+            return {
+                'statusCode': 401,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Invalid credentials'})
+            }
+        
+        # Create session
+        session_id = str(uuid.uuid4())
+        session_data = {
+            'session_id': session_id,
+            'user_email': email,
+            'user_id': user.get('user_id', email),
+            'created_at': datetime.utcnow().isoformat(),
+            'expires_at': (datetime.utcnow() + timedelta(hours=1)).isoformat()
+        }
+        
+        if aws_mock.create_session(session_data):
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': True,
+                    'session_id': session_id,
+                    'user_email': email,
+                    'message': 'Login successful'
+                })
+            }
+        else:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Session creation failed'})
+            }
+        
+    except Exception as e:
+        print(f"[ERROR] Login handler error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': f'Internal server error: {str(e)}'})
+        }
+
+def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle user registration with welcome email"""
+    try:
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not email or not password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Email and password are required'})
+            }
+        
+        # Create user account
+        user_data = {
+            'email': email,
+            'password': password,
+            'created_at': datetime.utcnow().isoformat(),
+            'account_status': 'active',
+            'purchases': []
+        }
+        
+        if aws_mock.create_user(user_data):
+            # Send welcome email
+            try:
+                send_welcome_email(email)
+                print(f"[EMAIL] Welcome email sent to {email}")
+            except Exception as e:
+                print(f"[EMAIL] Failed to send welcome email: {str(e)}")
+            
+            return {
+                'statusCode': 201,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': True,
+                    'message': 'Registration successful',
+                    'user_email': email
+                })
+            }
+        else:
+            return {
+                'statusCode': 409,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'User already exists'})
+            }
+        
+    except Exception as e:
+        print(f"[ERROR] Registration handler error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': f'Internal server error: {str(e)}'})
+        }
+
 def handle_login_page() -> Dict[str, Any]:
     """Serve mobile-first login page with professional design"""
     recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix')
@@ -979,8 +1095,8 @@ def handle_login_page() -> Dict[str, Any]:
 def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
     """Serve dashboard page with session verification"""
     try:
-        # Check for valid session cookie
-        cookie_header = headers.get('cookie', '')
+        # Check for valid session cookie (case insensitive)
+        cookie_header = headers.get('cookie', headers.get('Cookie', ''))
         session_id = None
         
         # Extract session ID from cookies
@@ -1016,8 +1132,187 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             }
         
         # Valid session, serve dashboard
-        with open('dashboard.html', 'r', encoding='utf-8') as f:
-            html_content = f.read()
+        user_email = session_data.get('user_email', 'test@ieltsgenaiprep.com')
+        
+        # Get user's purchased assessments and attempts
+        user_assessments = aws_mock.get_user_assessments(user_email)
+        assessment_history = aws_mock.get_assessment_history(user_email)
+        
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body {{
+            background-color: #f8f9fa;
+        }}
+        .dashboard-header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+        }}
+        .assessment-card {{
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }}
+        .assessment-card:hover {{
+            transform: translateY(-5px);
+        }}
+        .attempts-badge {{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }}
+        .nav-pills .nav-link.active {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">IELTS GenAI Prep</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/profile">Profile</a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-tachometer-alt"></i> Welcome back, {user_email.split('@')[0].title()}</h1>
+                    <p class="lead">Your IELTS preparation dashboard with AI-powered assessments</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-database"></i> DynamoDB Question System Active
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">Your Assessments</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card assessment-card h-100">
+                            <div class="card-body position-relative">
+                                <div class="attempts-badge">
+                                    <i class="fas fa-redo"></i> {user_assessments.get('academic_writing', {}).get('attempts_left', 4)} attempts left
+                                </div>
+                                <h5 class="card-title text-primary">
+                                    <i class="fas fa-pen-alt"></i> Academic Writing
+                                </h5>
+                                <p class="card-text">TrueScore® AI evaluation with official IELTS rubrics</p>
+                                <ul class="list-unstyled small">
+                                    <li>• Task Achievement evaluation</li>
+                                    <li>• Coherence & Cohesion analysis</li>
+                                    <li>• Lexical Resource assessment</li>
+                                    <li>• Grammar Range & Accuracy scoring</li>
+                                </ul>
+                                <a href="/assessment/academic-writing" class="btn btn-primary">Start Assessment</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card assessment-card h-100">
+                            <div class="card-body position-relative">
+                                <div class="attempts-badge">
+                                    <i class="fas fa-redo"></i> {user_assessments.get('general_writing', {}).get('attempts_left', 4)} attempts left
+                                </div>
+                                <h5 class="card-title text-success">
+                                    <i class="fas fa-edit"></i> General Writing
+                                </h5>
+                                <p class="card-text">TrueScore® AI evaluation for General Training</p>
+                                <ul class="list-unstyled small">
+                                    <li>• Task Achievement evaluation</li>
+                                    <li>• Coherence & Cohesion analysis</li>
+                                    <li>• Lexical Resource assessment</li>
+                                    <li>• Grammar Range & Accuracy scoring</li>
+                                </ul>
+                                <a href="/assessment/general-writing" class="btn btn-success">Start Assessment</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card assessment-card h-100">
+                            <div class="card-body position-relative">
+                                <div class="attempts-badge">
+                                    <i class="fas fa-redo"></i> {user_assessments.get('academic_speaking', {}).get('attempts_left', 4)} attempts left
+                                </div>
+                                <h5 class="card-title text-info">
+                                    <i class="fas fa-microphone"></i> Academic Speaking
+                                </h5>
+                                <p class="card-text">ClearScore® AI with Maya examiner (Nova Sonic Amy)</p>
+                                <ul class="list-unstyled small">
+                                    <li>• Maya AI examiner with British voice</li>
+                                    <li>• 3-part IELTS speaking structure</li>
+                                    <li>• Real-time conversation analysis</li>
+                                    <li>• Pronunciation assessment</li>
+                                </ul>
+                                <a href="/assessment/academic-speaking" class="btn btn-info">Start Assessment</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card assessment-card h-100">
+                            <div class="card-body position-relative">
+                                <div class="attempts-badge">
+                                    <i class="fas fa-redo"></i> {user_assessments.get('general_speaking', {}).get('attempts_left', 4)} attempts left
+                                </div>
+                                <h5 class="card-title text-warning">
+                                    <i class="fas fa-comments"></i> General Speaking
+                                </h5>
+                                <p class="card-text">ClearScore® AI for General Training</p>
+                                <ul class="list-unstyled small">
+                                    <li>• Maya AI examiner with British voice</li>
+                                    <li>• 3-part IELTS speaking structure</li>
+                                    <li>• Real-time conversation analysis</li>
+                                    <li>• Pronunciation assessment</li>
+                                </ul>
+                                <a href="/assessment/general-speaking" class="btn btn-warning">Start Assessment</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3>Assessment History</h3>
+                <div class="card">
+                    <div class="card-body">
+                        {get_assessment_history_html(assessment_history)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>"""
         
         return {
             'statusCode': 200,
@@ -1065,8 +1360,8 @@ def handle_qr_auth_page() -> Dict[str, Any]:
 def handle_profile_page(headers: Dict[str, Any]) -> Dict[str, Any]:
     """Serve user profile page with session verification"""
     try:
-        # Check for valid session cookie
-        cookie_header = headers.get('cookie', '')
+        # Check for valid session cookie (case insensitive)
+        cookie_header = headers.get('cookie', headers.get('Cookie', ''))
         session_id = None
         
         # Extract session ID from cookies
@@ -1100,8 +1395,17 @@ def handle_profile_page(headers: Dict[str, Any]) -> Dict[str, Any]:
                 'body': ''
             }
         
-        # Check session expiry
-        if session_data.get('expires_at', 0) < time.time():
+        # Check session expiry (handle string datetime format)
+        expires_at = session_data.get('expires_at', 0)
+        if isinstance(expires_at, str):
+            # Parse datetime string to timestamp
+            try:
+                from datetime import datetime
+                expires_at = datetime.fromisoformat(expires_at).timestamp()
+            except:
+                expires_at = 0
+        
+        if expires_at < time.time():
             # Session expired
             return {
                 'statusCode': 302,
@@ -1112,9 +1416,242 @@ def handle_profile_page(headers: Dict[str, Any]) -> Dict[str, Any]:
                 'body': ''
             }
         
-        # Load profile page template
-        with open('templates/profile.html', 'r', encoding='utf-8') as f:
-            html_content = f.read()
+        # Load profile page with account management
+        user_email = session_data.get('user_email', 'test@ieltsgenaiprep.com')
+        user_profile = aws_mock.get_user_profile(user_email)
+        
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body {{
+            background-color: #f8f9fa;
+        }}
+        .profile-header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+        }}
+        .profile-card {{
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }}
+        .danger-zone {{
+            border: 2px solid #dc3545;
+            border-radius: 10px;
+            background: #fff5f5;
+        }}
+        .btn-danger {{
+            background: #dc3545;
+        }}
+        .nav-pills .nav-link.active {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">IELTS GenAI Prep</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link active" href="/profile">Profile</a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="profile-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-user"></i> User Profile</h1>
+                    <p class="lead">Account settings and data management</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-shield-alt"></i> GDPR Compliant
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card profile-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-user-circle"></i> Account Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Email:</strong> {user_email}</p>
+                                <p><strong>Account Created:</strong> {user_profile.get('created_at', 'Not available')}</p>
+                                <p><strong>Last Login:</strong> {user_profile.get('last_login', 'Not available')}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Assessment Attempts:</strong> {user_profile.get('total_attempts', 0)}</p>
+                                <p><strong>Assessments Completed:</strong> {user_profile.get('completed_assessments', 0)}</p>
+                                <p><strong>Account Status:</strong> <span class="badge bg-success">Active</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card profile-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-line"></i> Assessment History</h5>
+                    </div>
+                    <div class="card-body">
+                        {get_user_assessment_history_html(user_email)}
+                    </div>
+                </div>
+                
+                <div class="card profile-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-shield-alt"></i> Data Privacy</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Your data privacy rights under GDPR:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="/gdpr/my-data" class="btn btn-outline-primary btn-sm mb-2">
+                                    <i class="fas fa-download"></i> Export My Data
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/gdpr/consent-settings" class="btn btn-outline-info btn-sm mb-2">
+                                    <i class="fas fa-cog"></i> Privacy Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card profile-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-envelope"></i> Email Preferences</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">
+                                Assessment reminders
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="emailUpdates" checked>
+                            <label class="form-check-label" for="emailUpdates">
+                                Product updates
+                            </label>
+                        </div>
+                        <button class="btn btn-sm btn-primary mt-2">Save Preferences</button>
+                    </div>
+                </div>
+                
+                <div class="danger-zone p-3">
+                    <h5 class="text-danger"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
+                    <p class="small text-muted">Deleting your account is permanent and cannot be undone.</p>
+                    <button class="btn btn-danger btn-sm" onclick="showDeleteWarning()">
+                        <i class="fas fa-trash"></i> Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Account Warning Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle"></i> Confirm Account Deletion
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <strong>Warning:</strong> This action cannot be undone!
+                    </div>
+                    <p>Deleting your account will permanently remove:</p>
+                    <ul class="text-danger">
+                        <li>Your assessment history and results</li>
+                        <li>Your purchased assessment attempts</li>
+                        <li>All personal data and preferences</li>
+                        <li>Access to your mobile app purchases</li>
+                    </ul>
+                    <p><strong>Are you sure you want to delete your account?</strong></p>
+                    <div class="form-group mt-3">
+                        <label for="confirmEmail">Type your email address to confirm:</label>
+                        <input type="email" class="form-control" id="confirmEmail" placeholder="Enter your email">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteAccount()">
+                        <i class="fas fa-trash"></i> Delete Account Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showDeleteWarning() {{
+            const modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+            modal.show();
+        }}
+        
+        function deleteAccount() {{
+            const confirmEmail = document.getElementById('confirmEmail').value;
+            const userEmail = '{user_email}';
+            
+            if (confirmEmail !== userEmail) {{
+                alert('Email confirmation does not match. Please type your email address exactly.');
+                return;
+            }}
+            
+            if (confirm('This is your final warning. Are you absolutely sure you want to delete your account?')) {{
+                // Send delete request
+                fetch('/api/delete-account', {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json',
+                    }},
+                    body: JSON.stringify({{
+                        email: userEmail,
+                        confirmation: confirmEmail
+                    }})
+                }})
+                .then(response => response.json())
+                .then(data => {{
+                    if (data.success) {{
+                        alert('Your account has been deleted successfully.');
+                        window.location.href = '/';
+                    }} else {{
+                        alert('Error deleting account: ' + data.error);
+                    }}
+                }})
+                .catch(error => {{
+                    alert('Error deleting account: ' + error);
+                }});
+            }}
+        }}
+    </script>
+</body>
+</html>"""
         
         return {
             'statusCode': 200,
@@ -1138,6 +1675,406 @@ def handle_profile_page(headers: Dict[str, Any]) -> Dict[str, Any]:
             'headers': {'Content-Type': 'text/html'},
             'body': f'<h1>Error loading profile: {str(e)}</h1>'
         }
+
+def get_assessment_history_html(assessment_history: list) -> str:
+    """Generate HTML for assessment history display"""
+    if not assessment_history:
+        return """
+        <div class="text-center py-4">
+            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No assessment history yet. Start your first assessment!</p>
+        </div>
+        """
+    
+    html = """
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Assessment Type</th>
+                    <th>Date</th>
+                    <th>Band Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for assessment in assessment_history[-5:]:  # Show last 5 assessments
+        assessment_type = assessment.get('assessment_type', 'Unknown').replace('-', ' ').title()
+        date = assessment.get('timestamp', 'Unknown')
+        band_score = assessment.get('overall_band', 'N/A')
+        status = 'Completed' if assessment.get('completed', False) else 'In Progress'
+        assessment_id = assessment.get('assessment_id', '')
+        
+        html += f"""
+                <tr>
+                    <td><i class="fas fa-file-alt"></i> {assessment_type}</td>
+                    <td>{date}</td>
+                    <td><span class="badge bg-primary">Band {band_score}</span></td>
+                    <td><span class="badge bg-success">{status}</span></td>
+                    <td>
+                        <a href="/api/assessment-result?id={assessment_id}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+        """
+    
+    html += """
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    return html
+
+def get_user_assessment_history_html(user_email: str) -> str:
+    """Generate HTML for user's assessment history in profile"""
+    assessment_history = aws_mock.get_assessment_history(user_email)
+    
+    if not assessment_history:
+        return """
+        <div class="text-center py-4">
+            <i class="fas fa-history fa-2x text-muted mb-3"></i>
+            <p class="text-muted">No assessment history available</p>
+        </div>
+        """
+    
+    html = """
+    <div class="row">
+    """
+    
+    for assessment in assessment_history[-3:]:  # Show last 3 assessments
+        assessment_type = assessment.get('assessment_type', 'Unknown').replace('-', ' ').title()
+        date = assessment.get('timestamp', 'Unknown')
+        band_score = assessment.get('overall_band', 'N/A')
+        
+        html += f"""
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6 class="card-title">{assessment_type}</h6>
+                    <p class="card-text">
+                        <span class="badge bg-primary">Band {band_score}</span><br>
+                        <small class="text-muted">{date}</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        """
+    
+    html += """
+    </div>
+    """
+    
+    return html
+
+def handle_account_deletion(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle account deletion with confirmation and warnings"""
+    try:
+        email = data.get('email', '')
+        confirmation = data.get('confirmation', '')
+        
+        if not email or not confirmation:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Email and confirmation required'
+                })
+            }
+        
+        if email != confirmation:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Email confirmation does not match'
+                })
+            }
+        
+        # Check if user exists
+        user_profile = aws_mock.get_user_profile(email)
+        if not user_profile:
+            return {
+                'statusCode': 404,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'User not found'
+                })
+            }
+        
+        # Send confirmation email before deletion
+        send_account_deletion_email(email)
+        
+        # Delete user data from all tables
+        aws_mock.delete_user_completely(email)
+        
+        print(f"[ACCOUNT_DELETION] Account deleted successfully: {email}")
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'success': True,
+                'message': 'Account deleted successfully'
+            })
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Account deletion failed: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'success': False,
+                'error': f'Account deletion failed: {str(e)}'
+            })
+        }
+
+def send_account_deletion_email(email: str) -> None:
+    """Send account deletion confirmation email via AWS SES"""
+    try:
+        # In production, this would use AWS SES
+        if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+            print(f"[SES_MOCK] Account deletion email sent to: {email}")
+            return
+        
+        import boto3
+        
+        ses_client = boto3.client('ses', region_name='us-east-1')
+        
+        subject = "IELTS GenAI Prep - Account Deletion Confirmation"
+        
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f8f9fa; }}
+                .footer {{ background: #333; color: white; padding: 20px; text-align: center; }}
+                .alert {{ background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 20px 0; border-radius: 5px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>IELTS GenAI Prep</h1>
+                    <p>Account Deletion Confirmation</p>
+                </div>
+                
+                <div class="content">
+                    <h2>Account Successfully Deleted</h2>
+                    
+                    <p>Hello,</p>
+                    
+                    <p>We have successfully processed your account deletion request for <strong>{email}</strong>.</p>
+                    
+                    <div class="alert">
+                        <strong>What was deleted:</strong>
+                        <ul>
+                            <li>Your assessment history and results</li>
+                            <li>Your purchased assessment attempts</li>
+                            <li>All personal data and preferences</li>
+                            <li>Account access credentials</li>
+                        </ul>
+                    </div>
+                    
+                    <p>Your account and all associated data have been permanently removed from our systems in compliance with GDPR regulations.</p>
+                    
+                    <p>If you have any questions or need assistance, please contact our support team.</p>
+                    
+                    <p>Thank you for using IELTS GenAI Prep.</p>
+                </div>
+                
+                <div class="footer">
+                    <p>&copy; 2025 IELTS GenAI Prep. All rights reserved.</p>
+                    <p>This email was sent to confirm your account deletion request.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_body = f"""
+        IELTS GenAI Prep - Account Deletion Confirmation
+        
+        Hello,
+        
+        We have successfully processed your account deletion request for {email}.
+        
+        What was deleted:
+        - Your assessment history and results
+        - Your purchased assessment attempts
+        - All personal data and preferences
+        - Account access credentials
+        
+        Your account and all associated data have been permanently removed from our systems in compliance with GDPR regulations.
+        
+        If you have any questions or need assistance, please contact our support team.
+        
+        Thank you for using IELTS GenAI Prep.
+        
+        © 2025 IELTS GenAI Prep. All rights reserved.
+        """
+        
+        response = ses_client.send_email(
+            Source='noreply@ieltsaiprep.com',
+            Destination={
+                'ToAddresses': [email]
+            },
+            Message={
+                'Subject': {'Data': subject},
+                'Body': {
+                    'Text': {'Data': text_body},
+                    'Html': {'Data': html_body}
+                }
+            }
+        )
+        
+        print(f"[SES] Account deletion email sent to {email}: {response['MessageId']}")
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to send account deletion email: {str(e)}")
+
+def send_welcome_email(email: str) -> None:
+    """Send welcome email to new users via AWS SES"""
+    try:
+        # In production, this would use AWS SES
+        if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+            print(f"[SES_MOCK] Welcome email sent to: {email}")
+            return
+        
+        import boto3
+        
+        ses_client = boto3.client('ses', region_name='us-east-1')
+        
+        subject = "Welcome to IELTS GenAI Prep - Your AI-Powered IELTS Preparation"
+        
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f8f9fa; }}
+                .footer {{ background: #333; color: white; padding: 20px; text-align: center; }}
+                .cta-button {{ background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }}
+                .feature {{ background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #667eea; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Welcome to IELTS GenAI Prep!</h1>
+                    <p>Your AI-Powered IELTS Preparation Platform</p>
+                </div>
+                
+                <div class="content">
+                    <h2>Hello {email.split('@')[0].title()},</h2>
+                    
+                    <p>Welcome to IELTS GenAI Prep! We're excited to help you achieve your IELTS goals with our advanced AI-powered assessment platform.</p>
+                    
+                    <div class="feature">
+                        <h3>🎯 TrueScore® Writing Assessment</h3>
+                        <p>Get detailed feedback on your writing with official IELTS rubrics and AI-powered evaluation.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <h3>🎙️ ClearScore® Speaking Assessment</h3>
+                        <p>Practice with Maya, our AI examiner, using AWS Nova Sonic British voice technology.</p>
+                    </div>
+                    
+                    <div class="feature">
+                        <h3>📱 Multi-Platform Access</h3>
+                        <p>Access your assessments on mobile app or desktop with seamless synchronization.</p>
+                    </div>
+                    
+                    <a href="https://www.ieltsaiprep.com/dashboard" class="cta-button">Start Your Assessment</a>
+                    
+                    <p><strong>Getting Started:</strong></p>
+                    <ol>
+                        <li>Download our mobile app from App Store or Google Play</li>
+                        <li>Purchase your assessment package ($36 for 4 attempts)</li>
+                        <li>Login to the website using your mobile credentials</li>
+                        <li>Start your AI-powered IELTS preparation</li>
+                    </ol>
+                    
+                    <p>If you have any questions, visit our support center or contact our team.</p>
+                    
+                    <p>Best of luck with your IELTS preparation!</p>
+                    
+                    <p>The IELTS GenAI Prep Team</p>
+                </div>
+                
+                <div class="footer">
+                    <p>&copy; 2025 IELTS GenAI Prep. All rights reserved.</p>
+                    <p>Visit us at <a href="https://www.ieltsaiprep.com" style="color: #667eea;">www.ieltsaiprep.com</a></p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_body = f"""
+        Welcome to IELTS GenAI Prep!
+        
+        Hello {email.split('@')[0].title()},
+        
+        Welcome to IELTS GenAI Prep! We're excited to help you achieve your IELTS goals with our advanced AI-powered assessment platform.
+        
+        Features:
+        - TrueScore® Writing Assessment with official IELTS rubrics
+        - ClearScore® Speaking Assessment with Maya AI examiner
+        - Multi-platform access (mobile app and desktop)
+        
+        Getting Started:
+        1. Download our mobile app from App Store or Google Play
+        2. Purchase your assessment package ($36 for 4 attempts)
+        3. Login to the website using your mobile credentials
+        4. Start your AI-powered IELTS preparation
+        
+        Visit https://www.ieltsaiprep.com/dashboard to get started.
+        
+        If you have any questions, contact our support team.
+        
+        Best of luck with your IELTS preparation!
+        
+        The IELTS GenAI Prep Team
+        
+        © 2025 IELTS GenAI Prep. All rights reserved.
+        """
+        
+        response = ses_client.send_email(
+            Source='welcome@ieltsaiprep.com',
+            Destination={
+                'ToAddresses': [email]
+            },
+            Message={
+                'Subject': {'Data': subject},
+                'Body': {
+                    'Text': {'Data': text_body},
+                    'Html': {'Data': html_body}
+                }
+            }
+        )
+        
+        print(f"[SES] Welcome email sent to {email}: {response['MessageId']}")
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to send welcome email: {str(e)}")
 
 def handle_database_schema_page() -> Dict[str, Any]:
     """Serve database schema documentation page"""

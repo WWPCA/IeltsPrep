@@ -21,7 +21,12 @@ class MockDynamoDBTable:
     
     def put_item(self, item: Dict[str, Any]) -> bool:
         """Store item with automatic TTL cleanup"""
-        item_key = item.get('user_id', item.get('session_id', item.get('email')))
+        # For users table, use email as key; for others, use their primary key
+        if self.table_name == 'ielts-genai-prep-users':
+            item_key = item.get('email')
+        else:
+            item_key = item.get('user_id', item.get('session_id', item.get('email')))
+        
         if not item_key:
             return False
         
@@ -451,9 +456,132 @@ class AWSMockServices:
         """Store assessment result in DynamoDB"""
         return self.assessment_results_table.put_item(result_data)
     
-    def get_user_assessments(self, user_email: str) -> list:
-        """Get all assessments for a user from DynamoDB"""
-        return self.assessment_results_table.scan(f"user_email = '{user_email}'")
+    def get_user_assessments(self, user_email: str) -> Dict[str, Dict[str, Any]]:
+        """Get user's purchased assessments with attempt counts"""
+        user = self.users_table.get_item(user_email)
+        if not user or 'purchases' not in user:
+            # Return default assessments for testing
+            return {
+                'academic_writing': {'attempts_left': 4, 'total_attempts': 4},
+                'general_writing': {'attempts_left': 4, 'total_attempts': 4},
+                'academic_speaking': {'attempts_left': 4, 'total_attempts': 4},
+                'general_speaking': {'attempts_left': 4, 'total_attempts': 4}
+            }
+        
+        assessment_data = {}
+        for purchase in user['purchases']:
+            assessment_type = purchase.get('assessment_type')
+            if assessment_type:
+                assessment_data[assessment_type] = {
+                    'attempts_left': purchase.get('assessments_remaining', 4),
+                    'total_attempts': 4,
+                    'purchase_date': purchase.get('purchase_date', ''),
+                    'last_used': purchase.get('last_used', ''),
+                    'price': purchase.get('price', 36.00)
+                }
+        
+        return assessment_data
+    
+    def get_assessment_history(self, user_email: str) -> list:
+        """Get assessment history for a user from DynamoDB"""
+        results = self.assessment_results_table.scan(f"user_email = '{user_email}'")
+        
+        if not results:
+            # Return mock assessment history for testing
+            return [
+                {
+                    'assessment_id': f'test_assessment_{int(time.time())}',
+                    'assessment_type': 'academic-writing',
+                    'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+                    'overall_band': 7.5,
+                    'completed': True,
+                    'user_email': user_email
+                },
+                {
+                    'assessment_id': f'test_assessment_{int(time.time())-3600}',
+                    'assessment_type': 'general-speaking',
+                    'timestamp': (datetime.utcnow() - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S'),
+                    'overall_band': 8.0,
+                    'completed': True,
+                    'user_email': user_email
+                }
+            ]
+        
+        return results
+    
+    def get_user_profile(self, user_email: str) -> Dict[str, Any]:
+        """Get user profile information"""
+        user = self.users_table.get_item(user_email)
+        if not user:
+            # Return basic profile for testing
+            return {
+                'email': user_email,
+                'created_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+                'last_login': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+                'total_attempts': 0,
+                'completed_assessments': 0,
+                'account_status': 'active'
+            }
+        
+        # Calculate statistics
+        total_attempts = 0
+        completed_assessments = 0
+        
+        if 'purchases' in user:
+            for purchase in user['purchases']:
+                total_attempts += purchase.get('assessments_used', 0)
+                if purchase.get('assessments_used', 0) > 0:
+                    completed_assessments += 1
+        
+        return {
+            'email': user_email,
+            'created_at': user.get('created_at', 'Unknown'),
+            'last_login': user.get('last_login', 'Unknown'),
+            'total_attempts': total_attempts,
+            'completed_assessments': completed_assessments,
+            'account_status': 'active',
+            'username': user.get('username', user_email.split('@')[0])
+        }
+    
+    def delete_user_completely(self, user_email: str) -> bool:
+        """Delete all user data across all tables (GDPR compliance)"""
+        try:
+            # Delete from users table
+            self.users_table.delete_item(user_email)
+            
+            # Delete from assessment results table
+            user_assessments = self.assessment_results_table.scan(f"user_email = '{user_email}'")
+            for assessment in user_assessments:
+                assessment_id = assessment.get('assessment_id')
+                if assessment_id:
+                    self.assessment_results_table.delete_item(assessment_id)
+            
+            # Delete from auth tokens table
+            tokens = self.auth_tokens_table.scan(f"user_email = '{user_email}'")
+            for token in tokens:
+                token_id = token.get('token_id')
+                if token_id:
+                    self.auth_tokens_table.delete_item(token_id)
+            
+            # Delete from GDPR tables
+            self.gdpr_consent_table.delete_item(user_email)
+            self.gdpr_requests_table.delete_item(user_email)
+            
+            # Clear from session cache
+            sessions_to_delete = []
+            for session_id, session_data in self.session_cache.items():
+                if session_data.get('user_email') == user_email:
+                    sessions_to_delete.append(session_id)
+            
+            for session_id in sessions_to_delete:
+                del self.session_cache[session_id]
+            
+            print(f"[GDPR_DELETION] All data deleted for user: {user_email}")
+            return True
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to delete user data: {str(e)}")
+            return False
     
     def add_user_purchase(self, user_id: str, purchase_data: Dict[str, Any]) -> bool:
         """Add purchase to user record with 4 assessment attempts"""
