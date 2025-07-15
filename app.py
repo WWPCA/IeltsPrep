@@ -28,11 +28,12 @@ def synthesize_maya_voice_nova_sonic(text: str) -> Optional[str]:
     Returns base64 encoded audio data or None if synthesis fails
     """
     try:
-        # In development mode, use mock implementation
+        # In development mode, create properly formatted base64 audio data
         if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
             print(f"[NOVA_SONIC] Mock synthesis: {text[:50]}...")
-            # Return mock audio data for development
-            return "mock_audio_data_base64"
+            # Create properly formatted mock audio data for development
+            mock_audio = b"MOCK_AUDIO_DATA_EN_GB_FEMININE_VOICE"
+            return base64.b64encode(mock_audio).decode('utf-8')
         
         # Production Nova Sonic implementation with bidirectional streaming
         import boto3
