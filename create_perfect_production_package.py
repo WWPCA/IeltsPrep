@@ -1949,18 +1949,20 @@ def handle_assessment_access(path, headers):
     """Assessment pages with content reporting integration"""
     assessment_type = path.split('/')[-1]
     
+    assessment_title = assessment_type.replace('-', ' ').title()
+    
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{assessment_type.replace('-', ' ').title()}} Assessment - IELTS GenAI Prep</title>
+    <title>{assessment_title} Assessment - IELTS GenAI Prep</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
 </head>
 <body style="background: #f8f9fa;">
     <div class="container py-5">
-        <h1><i class="fas fa-file-alt"></i> {{assessment_type.replace('-', ' ').title()}} Assessment</h1>
+        <h1><i class="fas fa-file-alt"></i> {assessment_title} Assessment</h1>
         <p class="lead">Complete your IELTS assessment with AI-powered feedback</p>
         
         <div class="row">
