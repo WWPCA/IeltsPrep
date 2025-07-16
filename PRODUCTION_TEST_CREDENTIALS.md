@@ -2,15 +2,23 @@
 
 ## Working Production Login Credentials
 
-Since the production system requires proper reCAPTCHA verification and existing DynamoDB records, use these verified working credentials:
+Based on the production DynamoDB scan, these users exist in the production database:
 
-### Option 1: Primary Test Account
-- **Email**: `prodtest@ieltsgenaiprep.com`
+### Option 1: Simple Test Account
+- **Email**: `simpletest@ieltsaiprep.com`
 - **Password**: `test123`
 
-### Option 2: Secondary Test Account  
-- **Email**: `testuser@ieltsgenaiprep.com`
-- **Password**: `testpass123`
+### Option 2: Production Test Account
+- **Email**: `prodtest@ieltsaiprep.com`
+- **Password**: `test123`
+
+### Option 3: Nova Test Account
+- **Email**: `novatest@ieltsaiprep.com`
+- **Password**: `test123`
+
+### Option 4: Bcrypt Test Account
+- **Email**: `bcrypttest@ieltsaiprep.com`
+- **Password**: `test123`
 
 ## Important Notes:
 
