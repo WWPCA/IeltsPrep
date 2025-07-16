@@ -493,6 +493,94 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
             'body': json.dumps({'error': str(e)})
         }
 
+def handle_robots_txt() -> Dict[str, Any]:
+    """Handle robots.txt endpoint with enhanced AI SEO optimization"""
+    robots_content = """User-agent: *
+Allow: /
+
+# AI Search Engine Bots - Enhanced SEO Optimization
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: BingPreview
+Allow: /
+
+User-agent: SlackBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: BaiduSpider
+Allow: /
+
+User-agent: NaverBot
+Allow: /
+
+# AI Model Training Bots
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: OpenAI-SearchBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Gemini-Pro
+Allow: /
+
+Sitemap: https://www.ieltsaiprep.com/sitemap.xml
+"""
+    
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'text/plain',
+            'Cache-Control': 'public, max-age=86400'
+        },
+        'body': robots_content
+    }
+
 def handle_home_page() -> Dict[str, Any]:
     """Serve comprehensive home page with professional design"""
     try:
@@ -1015,12 +1103,12 @@ def handle_login_page() -> Dict[str, Any]:
         <form id="loginForm">
             <div class="form-group">
                 <label for="email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="email" name="email" required>
+                <input type="email" class="form-control" id="email" name="email" required autocomplete="off" value="">
             </div>
             
             <div class="form-group">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
+                <input type="password" class="form-control" id="password" name="password" required autocomplete="off" value="">
             </div>
             
             <div class="form-group">
