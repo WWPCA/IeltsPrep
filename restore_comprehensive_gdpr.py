@@ -63,9 +63,7 @@ def restore_comprehensive_gdpr():
                         <li><strong>Right to Object:</strong> You can object to certain data processing</li>
                     </ul>
                     <p class="mt-3">
-                        <a href="/gdpr/my-data" class="btn btn-success">
-                            <i class="bi bi-person-check"></i> Access Your Data Rights
-                        </a>
+                        <strong>To exercise these rights, please contact us directly at privacy@ieltsaiprep.com</strong>
                     </p>
                 </div>
                 
@@ -125,7 +123,7 @@ def restore_comprehensive_gdpr():
                     <li>Object to processing</li>
                 </ul>
                 
-                <p>To exercise these rights, please log in to your account and visit your <a href="/gdpr/my-data">GDPR Dashboard</a>.</p>
+                <p>To exercise these rights, please contact us directly at privacy@ieltsaiprep.com</p>
                 
                 <h2>Contact Information</h2>
                 <p>If you have questions about this privacy policy or your data rights, please contact us at privacy@ieltsaiprep.com</p>

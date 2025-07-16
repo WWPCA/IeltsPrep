@@ -3063,7 +3063,7 @@ def handle_privacy_policy() -> Dict[str, Any]:
                                 <li><strong>Right to Object:</strong> Object to processing of your data</li>
                             </ul>
                             <div class="alert alert-info">
-                                <strong>Exercise Your Rights:</strong> You can manage your data rights through your <a href="/gdpr/my-data">GDPR Dashboard</a> or contact us directly.
+                                <strong>Exercise Your Rights:</strong> To exercise these rights, please contact us directly at privacy@ieltsaiprep.com
                             </div>
                         </section>
 
