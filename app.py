@@ -372,7 +372,7 @@ def lambda_handler(event, context):
         elif path == '/api/register' and method == 'POST':
             return handle_user_registration(data)
         elif path == '/mobile-registration' and method == 'GET':
-            return handle_mobile_registration_page()
+            return handle_mobile_registration_page(headers)
         elif path == '/api/login' and method == 'POST':
             return handle_user_login(data)
         elif path == '/api/account-deletion' and method == 'POST':
@@ -898,7 +898,7 @@ def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle user registration with welcome email - only after payment verification"""
+    """Handle user registration with welcome email - MOBILE APP ONLY after payment verification"""
     try:
         email = data.get('email', '').strip()
         password = data.get('password', '').strip()
@@ -911,21 +911,46 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Email and password are required'})
             }
         
-        # Verify purchase data exists (payment must have been successful)
+        # Critical security check: Verify purchase data exists and is valid
         if not purchase_data or not purchase_data.get('productId'):
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({'error': 'Valid purchase required for registration'})
+                'body': json.dumps({'error': 'Valid App Store or Google Play purchase required for registration'})
             }
         
-        # Create user account with purchase information
+        # Verify purchase came from valid app store platform
+        platform = purchase_data.get('platform', '').lower()
+        if platform not in ['apple', 'google']:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Registration requires valid App Store or Google Play purchase'})
+            }
+        
+        # Additional verification: Check for required purchase identifiers
+        if platform == 'apple' and not purchase_data.get('transactionId'):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Invalid Apple App Store purchase data'})
+            }
+        
+        if platform == 'google' and not purchase_data.get('orderId'):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Invalid Google Play Store purchase data'})
+            }
+        
+        # Create user account with verified purchase information
         user_data = {
             'email': email,
             'password': password,
             'created_at': datetime.utcnow().isoformat(),
             'account_status': 'active',
-            'purchases': [purchase_data]
+            'purchases': [purchase_data],
+            'registration_source': 'mobile_app_purchase'
         }
         
         if aws_mock.create_user(user_data):
@@ -943,7 +968,8 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
                     'success': True,
                     'message': 'Registration successful',
                     'user_email': email,
-                    'purchase_confirmed': True
+                    'purchase_confirmed': True,
+                    'platform': platform
                 })
             }
         else:
@@ -961,9 +987,42 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
             'body': json.dumps({'error': f'Internal server error: {str(e)}'})
         }
 
-def handle_mobile_registration_page() -> Dict[str, Any]:
-    """Serve mobile registration page after successful payment"""
+def handle_mobile_registration_page(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Serve mobile registration page after successful payment - MOBILE APP ONLY"""
     try:
+        # Security check: Only allow access from mobile app context
+        user_agent = headers.get('User-Agent', '').lower()
+        origin = headers.get('Origin', '')
+        
+        # Check for mobile app indicators
+        is_mobile_app = (
+            'capacitor' in user_agent or 
+            'ionic' in user_agent or
+            'cordova' in user_agent or
+            'ieltsaiprep' in user_agent or
+            origin.startswith('capacitor://') or
+            origin.startswith('ionic://') or
+            headers.get('X-Capacitor-Platform') is not None
+        )
+        
+        if not is_mobile_app:
+            return {
+                'statusCode': 403,
+                'headers': {'Content-Type': 'text/html'},
+                'body': '''
+                <!DOCTYPE html>
+                <html>
+                <head><title>Access Restricted</title></head>
+                <body>
+                    <h1>Access Restricted</h1>
+                    <p>Registration is only available through the mobile app after completing an App Store or Google Play purchase.</p>
+                    <p>Please download our mobile app to register and purchase assessments.</p>
+                    <a href="/">Return to Home</a>
+                </body>
+                </html>
+                '''
+            }
+        
         with open('mobile_registration_flow.html', 'r', encoding='utf-8') as f:
             html_content = f.read()
         
@@ -971,7 +1030,9 @@ def handle_mobile_registration_page() -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'text/html',
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-cache',
+                'X-Frame-Options': 'DENY',
+                'X-Content-Type-Options': 'nosniff'
             },
             'body': html_content
         }

@@ -180,7 +180,14 @@
         // Verify that payment was actually confirmed before allowing registration
         const paymentVerified = localStorage.getItem('purchaseVerified') === 'true';
         if (!paymentVerified || !purchaseData.productId) {
-            alert('Payment verification required. Please complete your purchase first.');
+            alert('Payment verification required. Please complete your purchase through the mobile app first.');
+            window.location.href = '/';
+            return;
+        }
+        
+        // Additional security check: Verify this is running in mobile app context
+        if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
+            alert('Registration is only available through the mobile app after App Store or Google Play purchase.');
             window.location.href = '/';
             return;
         }
