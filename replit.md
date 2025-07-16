@@ -36,7 +36,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - **Multi-Modal Support**: Text, audio, and visual assessment capabilities
 
 ### Mobile App Integration
-- **In-App Purchases**: $49.99.00 per assessment product across both platforms
+- **In-App Purchases**: $36.49 USD (mobile app) / $49.99 CAD (website) per assessment product
 - **Regional API Routing**: Automatic selection of nearest Lambda endpoint
 - **Native Platform Features**: Leverages Capacitor 7.3.0 for device capabilities
 - **Dual-Platform Access**: Users can complete assessments directly in mobile app OR access via desktop/laptop through QR code
@@ -99,6 +99,17 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - **Environment Switching**: Seamless transition between local and serverless modes
 
 ## Recent Changes
+
+- July 16, 2025: PRICING UPDATED ACROSS ALL MOBILE PURCHASE INTEGRATION FILES - USD and CAD Currency Alignment Complete
+  - ✅ UPDATED: Mobile purchase integration files from $36.00 to $36.49 USD 
+  - ✅ UPDATED: App.py pricing references to show $36.49 USD and $49.99 CAD appropriately
+  - ✅ UPDATED: Mobile-app-config.js already correctly configured with $36.49 USD pricing
+  - ✅ UPDATED: Static, iOS, and Android mobile purchase integration files to $36.49 USD
+  - ✅ UPDATED: Test mobile simulator files to reflect new pricing structure
+  - ✅ CONFIRMED: Website pricing correctly shows $49.99 CAD for Canadian market
+  - ✅ CONFIRMED: Mobile app pricing correctly shows $36.49 USD for app store billing
+  - Currency Strategy: Mobile app uses USD pricing ($36.49), website uses CAD pricing ($49.99)
+  - All pricing references now properly differentiate between USD and CAD markets
 
 - July 16, 2025: GITHUB BACKUP COMPLETED - Essential Production Files Successfully Backed Up to New Repository
   - ✅ COMPLETED: Created new GitHub repository with all essential production files

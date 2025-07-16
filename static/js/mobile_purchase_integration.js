@@ -8,25 +8,25 @@ class MobilePurchaseManager {
         this.products = {
             'academic_speaking': {
                 id: 'com.ieltsaiprep.academic_speaking',
-                price: '$36.00',
+                price: '$36.49',
                 title: 'Academic Speaking Assessment',
                 description: 'AI-powered speaking assessment with Maya examiner'
             },
             'academic_writing': {
                 id: 'com.ieltsaiprep.academic_writing', 
-                price: '$36.00',
+                price: '$36.49',
                 title: 'Academic Writing Assessment',
                 description: 'Comprehensive writing evaluation with detailed feedback'
             },
             'general_speaking': {
                 id: 'com.ieltsaiprep.general_speaking',
-                price: '$36.00', 
+                price: '$36.49', 
                 title: 'General Training Speaking Assessment',
                 description: 'Speaking practice for General Training IELTS'
             },
             'general_writing': {
                 id: 'com.ieltsaiprep.general_writing',
-                price: '$36.00',
+                price: '$36.49',
                 title: 'General Training Writing Assessment', 
                 description: 'Writing assessment for General Training IELTS'
             }
