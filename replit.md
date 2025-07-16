@@ -100,6 +100,19 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 16, 2025: COMPREHENSIVE TEMPLATE PRICING SUCCESSFULLY UPDATED - All Website Pricing Now Shows $36.49 USD / $49.99 CAD
+  - ✅ FIXED: Comprehensive template (working_template_backup_20250714_192410.html) pricing updated throughout
+  - ✅ UPDATED: All 4 assessment pricing cards now show correct dual pricing ($36.49 USD mobile / $49.99 CAD website)
+  - ✅ UPDATED: FAQ section pricing reference updated to reflect accurate pricing structure
+  - ✅ UPDATED: Schema markup pricing information updated for SEO optimization
+  - ✅ UPDATED: "How to Get Started" section pricing updated to show both USD and CAD options
+  - ✅ DEPLOYED: Fixed comprehensive template deployed to production Lambda (ielts-genai-prep-api)
+  - ✅ RESOLVED: AWS mock dependency issues causing 502 errors by removing local dependencies
+  - ✅ CONFIRMED: Website loading complete comprehensive template with TrueScore® and ClearScore® branding
+  - ✅ CONFIRMED: All pricing references consistently show $36.49 USD (mobile app) / $49.99 CAD (website)
+  - Template Status: 50KB comprehensive template with enhanced SEO, FAQ sections, and professional branding
+  - Production Status: ✅ FULLY FUNCTIONAL pricing display at www.ieltsaiprep.com
+
 - July 16, 2025: PRICING UPDATED ACROSS ALL MOBILE PURCHASE INTEGRATION FILES - USD and CAD Currency Alignment Complete
   - ✅ UPDATED: Mobile purchase integration files from $36.00 to $36.49 USD 
   - ✅ UPDATED: App.py pricing references to show $36.49 USD and $49.99 CAD appropriately
