@@ -371,6 +371,8 @@ def lambda_handler(event, context):
             return handle_mobile_qr_scan(data)
         elif path == '/api/register' and method == 'POST':
             return handle_user_registration(data)
+        elif path == '/mobile-registration' and method == 'GET':
+            return handle_mobile_registration_page()
         elif path == '/api/login' and method == 'POST':
             return handle_user_login(data)
         elif path == '/api/account-deletion' and method == 'POST':
@@ -896,10 +898,11 @@ def handle_user_login(data: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle user registration with welcome email"""
+    """Handle user registration with welcome email - only after payment verification"""
     try:
         email = data.get('email', '').strip()
         password = data.get('password', '').strip()
+        purchase_data = data.get('purchase_data', {})
         
         if not email or not password:
             return {
@@ -908,13 +911,21 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Email and password are required'})
             }
         
-        # Create user account
+        # Verify purchase data exists (payment must have been successful)
+        if not purchase_data or not purchase_data.get('productId'):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Valid purchase required for registration'})
+            }
+        
+        # Create user account with purchase information
         user_data = {
             'email': email,
             'password': password,
             'created_at': datetime.utcnow().isoformat(),
             'account_status': 'active',
-            'purchases': []
+            'purchases': [purchase_data]
         }
         
         if aws_mock.create_user(user_data):
@@ -931,7 +942,8 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
                 'body': json.dumps({
                     'success': True,
                     'message': 'Registration successful',
-                    'user_email': email
+                    'user_email': email,
+                    'purchase_confirmed': True
                 })
             }
         else:
@@ -947,6 +959,35 @@ def handle_user_registration(data: Dict[str, Any]) -> Dict[str, Any]:
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': f'Internal server error: {str(e)}'})
+        }
+
+def handle_mobile_registration_page() -> Dict[str, Any]:
+    """Serve mobile registration page after successful payment"""
+    try:
+        with open('mobile_registration_flow.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+        
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Registration page not found</h1>'
+        }
+    except Exception as e:
+        print(f"[ERROR] Mobile registration page error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error loading registration page: {str(e)}</h1>'
         }
 
 def handle_login_page() -> Dict[str, Any]:

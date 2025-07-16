@@ -245,6 +245,20 @@ class MobilePurchaseManager {
                 // Show success notification with Toast
                 await window.apiClient.showPurchaseConfirmation(productTitle);
                 
+                // ONLY after successful payment verification - redirect to registration
+                if (verification.data && verification.data.payment_verified === true) {
+                    // Store purchase data for registration
+                    localStorage.setItem('purchaseProductId', purchaseData.productId);
+                    localStorage.setItem('purchaseTransactionId', purchaseData.transactionId);
+                    localStorage.setItem('purchasePlatform', 'apple');
+                    localStorage.setItem('purchaseVerified', 'true');
+                    
+                    // Redirect to registration page only after payment confirmation
+                    window.location.href = '/mobile-registration?productId=' + purchaseData.productId + '&transactionId=' + purchaseData.transactionId + '&platform=apple';
+                } else {
+                    throw new Error('Payment verification incomplete');
+                }
+                
                 // Unlock content in app and update DynamoDB
                 await this.unlockAssessmentModule(purchaseData.productId, verification.data);
                 
@@ -305,6 +319,20 @@ class MobilePurchaseManager {
                 
                 // Show success notification with Toast
                 await window.apiClient.showPurchaseConfirmation(productTitle);
+                
+                // ONLY after successful payment verification - redirect to registration
+                if (verification.data && verification.data.payment_verified === true) {
+                    // Store purchase data for registration
+                    localStorage.setItem('purchaseProductId', purchaseData.productId);
+                    localStorage.setItem('purchaseOrderId', purchaseData.orderId);
+                    localStorage.setItem('purchasePlatform', 'google');
+                    localStorage.setItem('purchaseVerified', 'true');
+                    
+                    // Redirect to registration page only after payment confirmation
+                    window.location.href = '/mobile-registration?productId=' + purchaseData.productId + '&orderId=' + purchaseData.orderId + '&platform=google';
+                } else {
+                    throw new Error('Payment verification incomplete');
+                }
                 
                 // Unlock content in app and update DynamoDB
                 await this.unlockAssessmentModule(purchaseData.productId, verification.data);
