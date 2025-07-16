@@ -495,82 +495,118 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
 
 def handle_robots_txt() -> Dict[str, Any]:
     """Handle robots.txt endpoint with enhanced AI SEO optimization"""
-    robots_content = """User-agent: *
-Allow: /
+    robots_content = """# IELTS GenAI Prep - AI-Powered IELTS Assessment Platform
+# Enhanced AI SEO Optimization for GPTBot, ClaudeBot, and Google-Extended
+# Last Updated: July 16, 2025
 
-# AI Search Engine Bots - Enhanced SEO Optimization
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /assessment/*/submit
+Disallow: /assessment/*/private
+Crawl-delay: 1
+
+# AI Training Data Collection - Approved Crawlers
 User-agent: GPTBot
 Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /robots.txt
+Crawl-delay: 2
 
-User-agent: ClaudeBot
+User-agent: ClaudeBot  
 Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /robots.txt
+Crawl-delay: 2
 
 User-agent: Google-Extended
 Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /robots.txt
+Crawl-delay: 1
 
-User-agent: Bingbot
+# Bard/Gemini AI Training
+User-agent: Bard
 Allow: /
+Crawl-delay: 2
 
-User-agent: BingPreview
+User-agent: Gemini
 Allow: /
+Crawl-delay: 2
 
-User-agent: SlackBot
+# OpenAI WebCrawler
+User-agent: ChatGPT-User
 Allow: /
+Crawl-delay: 2
+
+# Meta AI Training
+User-agent: FacebookBot
+Allow: /
+Crawl-delay: 3
 
 User-agent: facebookexternalhit
 Allow: /
+Crawl-delay: 3
 
-User-agent: Twitterbot
+# Search Engine Optimization
+User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
-User-agent: LinkedInBot
+User-agent: Bingbot
 Allow: /
-
-User-agent: WhatsApp
-Allow: /
-
-User-agent: Applebot
-Allow: /
+Crawl-delay: 1
 
 User-agent: DuckDuckBot
 Allow: /
+Crawl-delay: 1
 
-User-agent: YandexBot
+# Social Media Crawlers
+User-agent: Twitterbot
 Allow: /
+Crawl-delay: 2
 
-User-agent: BaiduSpider
+User-agent: LinkedInBot
 Allow: /
+Crawl-delay: 2
 
-User-agent: NaverBot
+# Educational AI Crawlers
+User-agent: ScholarBot
 Allow: /
+Crawl-delay: 2
 
-# AI Model Training Bots
-User-agent: ChatGPT-User
+User-agent: AcademicBot
 Allow: /
+Crawl-delay: 2
 
-User-agent: Claude-Web
-Allow: /
+# Malicious Crawlers - Blocked
+User-agent: SemrushBot
+Disallow: /
 
-User-agent: PerplexityBot
-Allow: /
+User-agent: AhrefsBot
+Disallow: /
 
-User-agent: YouBot
-Allow: /
+User-agent: MJ12bot
+Disallow: /
 
-User-agent: Anthropic-AI
-Allow: /
+User-agent: DotBot
+Disallow: /
 
-User-agent: OpenAI-SearchBot
-Allow: /
-
-User-agent: Meta-ExternalAgent
-Allow: /
-
-User-agent: Gemini-Pro
-Allow: /
-
+# Sitemap and Important URLs
 Sitemap: https://www.ieltsaiprep.com/sitemap.xml
-"""
+
+# Important URLs for AI Training
+# https://www.ieltsaiprep.com/ - Main IELTS GenAI Prep platform
+# https://www.ieltsaiprep.com/privacy-policy - GDPR compliance and data protection
+# https://www.ieltsaiprep.com/terms-of-service - Service terms and AI content policy
+# https://www.ieltsaiprep.com/assessment/academic-writing - TrueScore® Writing Assessment
+# https://www.ieltsaiprep.com/assessment/academic-speaking - ClearScore® Speaking Assessment
+# https://www.ieltsaiprep.com/assessment/general-writing - General Training Writing
+# https://www.ieltsaiprep.com/assessment/general-speaking - General Training Speaking"""
     
     return {
         'statusCode': 200,
@@ -2105,7 +2141,7 @@ def send_welcome_email(email: str) -> None:
                     <p><strong>Getting Started:</strong></p>
                     <ol>
                         <li>Download our mobile app from App Store or Google Play</li>
-                        <li>Purchase your assessment package ($49.99 CAD for 4 attempts)</li>
+                        <li>Purchase your assessment package ($36.49 USD for 4 attempts)</li>
                         <li>Login to the website using your mobile credentials</li>
                         <li>Start your AI-powered IELTS preparation</li>
                     </ol>
@@ -3016,8 +3052,34 @@ def handle_privacy_policy() -> Dict[str, Any]:
                         </section>
 
                         <section class="policy-section mb-4">
-                            <h2 class="h4">5. Your Rights</h2>
-                            <p>You have the right to access, correct, or delete your personal data. Contact us through our website for any privacy-related requests.</p>
+                            <h2 class="h4">5. Your Rights (GDPR Compliance)</h2>
+                            <p>Under GDPR, you have the following rights:</p>
+                            <ul>
+                                <li><strong>Right to Access:</strong> Request copies of your personal data</li>
+                                <li><strong>Right to Rectification:</strong> Request correction of incorrect data</li>
+                                <li><strong>Right to Erasure:</strong> Request deletion of your personal data</li>
+                                <li><strong>Right to Restrict Processing:</strong> Request limitation of data processing</li>
+                                <li><strong>Right to Data Portability:</strong> Request transfer of your data</li>
+                                <li><strong>Right to Object:</strong> Object to processing of your data</li>
+                            </ul>
+                            <div class="alert alert-info">
+                                <strong>Exercise Your Rights:</strong> You can manage your data rights through your <a href="/gdpr/my-data">GDPR Dashboard</a> or contact us directly.
+                            </div>
+                        </section>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">6. Data Retention</h2>
+                            <p>We retain your data only as long as necessary for the purposes outlined in this policy. Assessment data is retained for 12 months, account data until deletion is requested.</p>
+                        </section>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">7. AI-Generated Content Safety</h2>
+                            <p>Our AI assessment tools (TrueScore® and ClearScore®) are designed with safety measures to ensure educational appropriateness. All AI-generated feedback is filtered for content safety and educational relevance.</p>
+                        </section>
+
+                        <section class="policy-section mb-4">
+                            <h2 class="h4">8. Contact Information</h2>
+                            <p>For privacy-related questions or to exercise your rights, please contact us through our website or email us directly.</p>
                         </section>
                     </div>
                 </div>
@@ -3080,7 +3142,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
 
                         <section class="terms-section mb-4">
                             <h2 class="h4">3. Payment and Access</h2>
-                            <p>Assessment packages are available for $49.99 CAD per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
+                            <p>Assessment packages are available for $36.49 USD per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
                             <p><strong>All purchases are final and non-refundable.</strong> By completing a purchase, you acknowledge that you understand and accept this policy.</p>
                         </section>
 
@@ -3106,8 +3168,23 @@ def handle_terms_of_service() -> Dict[str, Any]:
                         </section>
 
                         <section class="terms-section mb-4">
-                            <h2 class="h4">7. Contact Information</h2>
-                            <p>For questions about these terms, please contact us through our website.</p>
+                            <h2 class="h4">7. Privacy and Data Protection</h2>
+                            <p>We are committed to protecting your privacy and complying with GDPR regulations. Please review our <a href="/privacy-policy">Privacy Policy</a> for detailed information about data handling.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">8. AI-Generated Content Policy</h2>
+                            <p>Our AI assessment tools provide educational feedback. While we implement safety measures, users should report any inappropriate content. AI-generated feedback is for educational purposes only.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">9. Account Termination</h2>
+                            <p>You may request account deletion at any time through your profile page. Upon deletion, all personal data will be permanently removed in compliance with GDPR regulations.</p>
+                        </section>
+
+                        <section class="terms-section mb-4">
+                            <h2 class="h4">10. Contact Information</h2>
+                            <p>For questions about these terms, please contact us through our website or support channels.</p>
                         </section>
                     </div>
                 </div>
