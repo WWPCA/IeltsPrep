@@ -345,7 +345,7 @@ def handle_home_page():
                                 </div>
                                 <div>
                                     <strong>2. Purchase</strong><br>
-                                    <small>$36 for 4 assessments</small>
+                                    <small>$49.99 for 4 assessments</small>
                                 </div>
                             </div>
                         </div>
@@ -377,7 +377,7 @@ def handle_home_page():
             <div class="row g-4">
                 <div class="col-lg-6">
                     <div class="card assessment-card h-100 position-relative" style="border-left: 6px solid var(--primary-color);">
-                        <div class="pricing-badge">$36 CAD</div>
+                        <div class="pricing-badge">$49.99 CAD</div>
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="bi bi-mortarboard text-primary me-3" style="font-size: 2.5rem;"></i>
@@ -399,7 +399,7 @@ def handle_home_page():
                 
                 <div class="col-lg-6">
                     <div class="card assessment-card h-100 position-relative" style="border-left: 6px solid var(--danger-color);">
-                        <div class="pricing-badge">$36 CAD</div>
+                        <div class="pricing-badge">$49.99 CAD</div>
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="bi bi-mic text-danger me-3" style="font-size: 2.5rem;"></i>
@@ -421,7 +421,7 @@ def handle_home_page():
                 
                 <div class="col-lg-6">
                     <div class="card assessment-card h-100 position-relative" style="border-left: 6px solid var(--success-color);">
-                        <div class="pricing-badge">$36 CAD</div>
+                        <div class="pricing-badge">$49.99 CAD</div>
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="bi bi-pencil text-success me-3" style="font-size: 2.5rem;"></i>
@@ -443,7 +443,7 @@ def handle_home_page():
                 
                 <div class="col-lg-6">
                     <div class="card assessment-card h-100 position-relative" style="border-left: 6px solid var(--warning-color);">
-                        <div class="pricing-badge">$36 CAD</div>
+                        <div class="pricing-badge">$49.99 CAD</div>
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="bi bi-chat-square text-warning me-3" style="font-size: 2.5rem;"></i>

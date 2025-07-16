@@ -50,7 +50,7 @@
 - **Implementation:** handle_dashboard_page() with 4 assessment cards
 - **Navigation Features:** Clear "Start Assessment" buttons for all 4 types
 - **Assessment Types:** Academic Writing, General Writing, Academic Speaking, General Speaking
-- **Pricing Display:** $36 for 4 attempts per assessment type
+- **Pricing Display:** $49.99 for 4 attempts per assessment type
 - **Verification:** Dashboard provides easy access to all purchased assessments
 
 ### ✅ 7. SES Email Confirmation System

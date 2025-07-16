@@ -118,7 +118,7 @@ def lambda_handler(event, context):
 <h5>Service Description</h5>
 <p>IELTS GenAI Prep provides AI-powered IELTS assessment preparation tools for Academic and General Training.</p>
 <h5>Payment Terms</h5>
-<p>Assessment packages are available for $36 CAD each through mobile app stores.</p>
+<p>Assessment packages are available for $49.99 CAD each through mobile app stores.</p>
 <h5>Usage Rights</h5>
 <p>You may use our services for personal IELTS preparation purposes.</p>
 <p><a href="/" class="btn btn-primary">Back to Home</a></p>

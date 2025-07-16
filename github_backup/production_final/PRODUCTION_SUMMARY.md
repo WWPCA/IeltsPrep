@@ -19,7 +19,7 @@ Successfully deployed AI SEO optimized IELTS AI prep platform with complete Goog
 - **3-part speaking structure** (Interview, Long Turn, Discussion)
 - **Real-time features**: word counting, 20:00 timer, recording controls
 - **16 unique questions** (4 per assessment type) from DynamoDB
-- **4 attempts per $36 purchase** management system
+- **4 attempts per $49.99 purchase** management system
 - **Session-based security** throughout entire flow
 
 ### GDPR Compliance

@@ -19,8 +19,8 @@ def fix_login_template():
         login_template = f.read()
     
     # Verify templates
-    if '$36' not in home_template:
-        print("ERROR: Home template missing $36 pricing!")
+    if '$49.99' not in home_template:
+        print("ERROR: Home template missing $49.99 pricing!")
         return False
     
     if 'bootstrap' not in login_template.lower():
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
         return serve_home_page()
 
 def serve_home_page():
-    """Serve home page with correct $36 pricing"""
+    """Serve home page with correct $49.99 pricing"""
     template_b64 = "{home_b64}"
     html_content = base64.b64decode(template_b64.encode('ascii')).decode('utf-8')
     
@@ -118,7 +118,7 @@ def serve_dashboard_page():
     try:
         # Test home page
         home_response = requests.get('https://www.ieltsaiprep.com/')
-        home_success = '$36' in home_response.text and home_response.text.count('$36') >= 4
+        home_success = '$49.99' in home_response.text and home_response.text.count('$36') >= 4
         
         # Test login page
         login_response = requests.get('https://www.ieltsaiprep.com/login')

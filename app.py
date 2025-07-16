@@ -769,7 +769,7 @@ def handle_home_page() -> Dict[str, Any]:
                         <i class="fas fa-credit-card"></i>
                     </div>
                     <h3>2. Purchase Assessment</h3>
-                    <p>Choose your assessment type for $36 and get 4 complete practice tests.</p>
+                    <p>Choose your assessment type for $39.99 and get 4 complete practice tests.</p>
                 </div>
                 <div class="col-lg-4 text-center mb-4">
                     <div class="benefit-icon">
@@ -2105,7 +2105,7 @@ def send_welcome_email(email: str) -> None:
                     <p><strong>Getting Started:</strong></p>
                     <ol>
                         <li>Download our mobile app from App Store or Google Play</li>
-                        <li>Purchase your assessment package ($36 for 4 attempts)</li>
+                        <li>Purchase your assessment package ($49.99 CAD for 4 attempts)</li>
                         <li>Login to the website using your mobile credentials</li>
                         <li>Start your AI-powered IELTS preparation</li>
                     </ol>
@@ -2140,7 +2140,7 @@ def send_welcome_email(email: str) -> None:
         
         Getting Started:
         1. Download our mobile app from App Store or Google Play
-        2. Purchase your assessment package ($36 for 4 attempts)
+        2. Purchase your assessment package ($36.49 USD for 4 attempts)
         3. Login to the website using your mobile credentials
         4. Start your AI-powered IELTS preparation
         
@@ -3080,7 +3080,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
 
                         <section class="terms-section mb-4">
                             <h2 class="h4">3. Payment and Access</h2>
-                            <p>Assessment packages are available for $36.00 per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
+                            <p>Assessment packages are available for $49.99 CAD per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
                             <p><strong>All purchases are final and non-refundable.</strong> By completing a purchase, you acknowledge that you understand and accept this policy.</p>
                         </section>
 

@@ -629,7 +629,7 @@ def handle_home_page() -> Dict[str, Any]:
                         <i class="fas fa-credit-card"></i>
                     </div>
                     <h3>2. Purchase Assessment</h3>
-                    <p>Choose your assessment type for $36 and get 4 complete practice tests.</p>
+                    <p>Choose your assessment type for $49.99 and get 4 complete practice tests.</p>
                 </div>
                 <div class="col-lg-4 text-center mb-4">
                     <div class="benefit-icon">
@@ -2015,7 +2015,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
 
                         <section class="terms-section mb-4">
                             <h2 class="h4">3. Payment and Access</h2>
-                            <p>Assessment packages are available for $36.00 per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
+                            <p>Assessment packages are available for $49.99 per assessment type through mobile app stores. After purchase, you can access assessments on both mobile and desktop platforms.</p>
                             <p><strong>All purchases are final and non-refundable.</strong> By completing a purchase, you acknowledge that you understand and accept this policy.</p>
                         </section>
 

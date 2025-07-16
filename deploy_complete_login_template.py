@@ -31,16 +31,16 @@ def deploy_complete_login_template():
         home_template = f.read()
     
     # Verify home template has correct pricing
-    if '$36' not in home_template:
-        print("ERROR: Home template does not contain correct $36 pricing!")
+    if '$49.99' not in home_template:
+        print("ERROR: Home template does not contain correct $49.99 pricing!")
         return False
     
-    pricing_count = home_template.count('$36')
+    pricing_count = home_template.count('$49.99')
     if pricing_count < 4:
-        print(f"ERROR: Home template only has {pricing_count} instances of $36!")
+        print(f"ERROR: Home template only has {pricing_count} instances of $49.99!")
         return False
     
-    print(f"Home template verified: Found {pricing_count} instances of $36 pricing")
+    print(f"Home template verified: Found {pricing_count} instances of $49.99 pricing")
     
     # Encode templates
     home_b64 = base64.b64encode(home_template.encode('utf-8')).decode('ascii')
@@ -249,7 +249,7 @@ def lambda_handler(event, context):
         }}
 
 def serve_home_page():
-    """Serve comprehensive home page with correct $36 pricing"""
+    """Serve comprehensive home page with correct $49.99 pricing"""
     template_b64 = "{home_b64}"
     html_content = base64.b64decode(template_b64.encode('ascii')).decode('utf-8')
     
@@ -362,8 +362,8 @@ def handle_health_check():
     try:
         # Test home page
         home_response = requests.get('https://www.ieltsaiprep.com/')
-        if '$36' in home_response.text and home_response.text.count('$36') >= 4:
-            print('SUCCESS: Home page verified with correct $36 pricing')
+        if '$49.99' in home_response.text and home_response.text.count('$49.99') >= 4:
+            print('SUCCESS: Home page verified with correct $49.99 pricing')
         else:
             print('WARNING: Home page pricing may be incorrect')
         

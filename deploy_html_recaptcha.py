@@ -458,7 +458,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
                             <p>IELTS GenAI Prep provides AI-powered IELTS assessment services using our proprietary TrueScore® and ClearScore® technologies.</p>
                             
                             <h3>Assessment Products</h3>
-                            <p>Each assessment product costs $36 CAD and provides 4 unique assessment attempts. Products are available for Academic Writing, General Writing, Academic Speaking, and General Speaking.</p>
+                            <p>Each assessment product costs $49.99 CAD and provides 4 unique assessment attempts. Products are available for Academic Writing, General Writing, Academic Speaking, and General Speaking.</p>
                             
                             <h3>User Responsibilities</h3>
                             <p>Users must provide accurate information and use the platform in accordance with IELTS preparation guidelines.</p>

@@ -25,7 +25,7 @@ This directory contains the final production code for the IELTS GenAI Prep platf
 - Maya AI with 3-part speaking assessment structure
 - Real-time features: word counting, timer countdown (20:00), recording controls
 - Unique question system with 16 questions (4 per assessment type)
-- Assessment attempt management (4 attempts per $36 purchase)
+- Assessment attempt management (4 attempts per $49.99 purchase)
 - Session-based security throughout entire flow
 
 ✅ **GDPR Compliance**

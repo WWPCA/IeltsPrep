@@ -47,7 +47,7 @@ def home_page():
                         <h3>Academic Writing</h3>
                     </div>
                     <div class="card-body text-center">
-                        <h1 class="text-success">$36<small class="text-muted"> for 4 assessments</small></h1>
+                        <h1 class="text-success">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                         <p>TrueScore GenAI Writing Assessment</p>
                         <ul class="list-unstyled">
                             <li>4 Unique Assessments Included</li>
@@ -65,7 +65,7 @@ def home_page():
                         <h3>General Writing</h3>
                     </div>
                     <div class="card-body text-center">
-                        <h1 class="text-success">$36<small class="text-muted"> for 4 assessments</small></h1>
+                        <h1 class="text-success">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                         <p>TrueScore GenAI Writing Assessment</p>
                         <ul class="list-unstyled">
                             <li>4 Unique Assessments Included</li>
@@ -83,7 +83,7 @@ def home_page():
                         <h3>Academic Speaking</h3>
                     </div>
                     <div class="card-body text-center">
-                        <h1 class="text-primary">$36<small class="text-muted"> for 4 assessments</small></h1>
+                        <h1 class="text-primary">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                         <p>ClearScore GenAI Speaking Assessment</p>
                         <ul class="list-unstyled">
                             <li>4 Unique Assessments Included</li>
@@ -101,7 +101,7 @@ def home_page():
                         <h3>General Speaking</h3>
                     </div>
                     <div class="card-body text-center">
-                        <h1 class="text-primary">$36<small class="text-muted"> for 4 assessments</small></h1>
+                        <h1 class="text-primary">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                         <p>ClearScore GenAI Speaking Assessment</p>
                         <ul class="list-unstyled">
                             <li>4 Unique Assessments Included</li>
@@ -116,7 +116,7 @@ def home_page():
         
         <div class="alert alert-info mt-5">
             <h5>How to Get Started</h5>
-            <p>Download our mobile app to purchase assessments for $36.00 each</p>
+            <p>Download our mobile app to purchase assessments for $49.99.00 each</p>
             <ol>
                 <li>Download mobile app (iOS/Android)</li>
                 <li>Create account and purchase assessments</li>

@@ -28,25 +28,25 @@ Click **"In-App Purchases"** in the left sidebar, then create these 4 products:
 - **Type:** Non-Consumable
 - **Reference Name:** Academic Writing Assessment
 - **Product ID:** com.ieltsgenaiprep.academic.writing
-- **Price:** $36.00 USD
+- **Price:** $36.49 USD
 
 ### Product 2: General Writing Assessment  
 - **Type:** Non-Consumable
 - **Reference Name:** General Writing Assessment
 - **Product ID:** com.ieltsgenaiprep.general.writing
-- **Price:** $36.00 USD
+- **Price:** $36.49 USD
 
 ### Product 3: Academic Speaking Assessment
 - **Type:** Non-Consumable
 - **Reference Name:** Academic Speaking Assessment
 - **Product ID:** com.ieltsgenaiprep.academic.speaking
-- **Price:** $36.00 USD
+- **Price:** $36.49 USD
 
 ### Product 4: General Speaking Assessment
 - **Type:** Non-Consumable
 - **Reference Name:** General Speaking Assessment
 - **Product ID:** com.ieltsgenaiprep.general.speaking
-- **Price:** $36.00 USD
+- **Price:** $36.49 USD
 
 ## Step 5: Upload App Screenshots
 Currently showing: "0 of 3 App Previews | 0 of 10 Screenshots"

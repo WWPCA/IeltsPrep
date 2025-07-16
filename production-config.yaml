@@ -52,7 +52,7 @@ data:
   IOS_BUNDLE_ID: "com.ieltsaiprep.genai"
   ANDROID_PACKAGE_NAME: "com.ieltsaiprep.genai"
   APP_STORE_PRODUCT_IDS: "academic_speaking_assessment,academic_writing_assessment,general_speaking_assessment,general_writing_assessment"
-  PRODUCT_PRICE_USD: "36.00"
+  PRODUCT_PRICE_USD: "36.49"
   
   # Assessment Configuration
   ASSESSMENT_TYPES: "academic_speaking,academic_writing,general_speaking,general_writing"

@@ -24,7 +24,7 @@
 - **Product ID**: `academic_speaking_assessment`
 - **Reference Name**: Academic Speaking Assessment
 - **Type**: Non-Consumable
-- **Price**: $36.00 USD (Tier 36)
+- **Price**: $36.49 USD (Tier 36)
 - **Display Name**: Academic Speaking Assessment
 - **Description**: "Complete IELTS Academic Speaking assessment with AI examiner Maya. Includes real-time conversation practice, detailed feedback, and band score evaluation."
 
@@ -32,7 +32,7 @@
 - **Product ID**: `academic_writing_assessment`
 - **Reference Name**: Academic Writing Assessment
 - **Type**: Non-Consumable
-- **Price**: $36.00 USD (Tier 36)
+- **Price**: $36.49 USD (Tier 36)
 - **Display Name**: Academic Writing Assessment
 - **Description**: "IELTS Academic Writing Tasks 1 & 2 assessment with AI-powered evaluation. Get detailed feedback on task achievement, coherence, lexical resource, and grammatical accuracy."
 
@@ -40,7 +40,7 @@
 - **Product ID**: `general_speaking_assessment`
 - **Reference Name**: General Training Speaking Assessment
 - **Type**: Non-Consumable
-- **Price**: $36.00 USD (Tier 36)
+- **Price**: $36.49 USD (Tier 36)
 - **Display Name**: General Training Speaking Assessment
 - **Description**: "IELTS General Training Speaking assessment covering everyday topics. Practice with AI examiner Maya and receive comprehensive band score feedback."
 
@@ -48,7 +48,7 @@
 - **Product ID**: `general_writing_assessment`
 - **Reference Name**: General Training Writing Assessment
 - **Type**: Non-Consumable
-- **Price**: $36.00 USD (Tier 36)
+- **Price**: $36.49 USD (Tier 36)
 - **Display Name**: General Training Writing Assessment
 - **Description**: "IELTS General Training Writing Tasks 1 & 2 assessment. Get expert feedback on letter writing and essay composition with detailed scoring."
 
@@ -77,7 +77,7 @@ Prepare for IELTS success with our AI-powered assessment platform featuring Maya
 • Global availability with regional optimization
 
 💎 PREMIUM FEATURES
-• Individual assessment purchases ($36 each)
+• Individual assessment purchases ($36.49 each)
 • No subscription required
 • Lifetime access to purchased assessments
 • Regular content updates
@@ -283,7 +283,7 @@ class iOSPurchaseManager {
 Welcome to IELTS GenAI Prep Beta!
 
 TEST SCENARIOS:
-1. Purchase any assessment module ($36)
+1. Purchase any assessment module ($36.49)
 2. Complete the QR authentication flow
 3. Access your assessment on ieltsaiprep.com
 4. Test speaking assessment with Maya AI

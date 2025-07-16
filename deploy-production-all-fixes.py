@@ -281,7 +281,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
                         </ul>
                         
                         <h4>Pricing and Purchases</h4>
-                        <p>Assessment products are available for $36.00 CAD each through mobile app stores:</p>
+                        <p>Assessment products are available for $49.99 CAD each through mobile app stores:</p>
                         <ul>
                             <li>Academic Writing Assessment (4 attempts)</li>
                             <li>General Writing Assessment (4 attempts)</li>

@@ -346,7 +346,7 @@ def handle_website_home():
                                 <h3 class="my-0 font-weight-bold">Academic Writing</h3>
                             </div>
                             <div class="card-body">
-                                <h1 class="card-title pricing-card-title text-center">$36<small class="text-muted"> for 4 assessments</small></h1>
+                                <h1 class="card-title pricing-card-title text-center">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                                 <ul class="list-unstyled mt-3 mb-4">
                                     <li><i class="fas fa-check text-success me-2"></i>4 Unique Assessments Included</li>
                                     <li><i class="fas fa-check text-success me-2"></i>Task 1 & Task 2 Assessment</li>
@@ -367,7 +367,7 @@ def handle_website_home():
                                 <h3 class="my-0 font-weight-bold">General Training Writing</h3>
                             </div>
                             <div class="card-body">
-                                <h1 class="card-title pricing-card-title text-center">$36<small class="text-muted"> for 4 assessments</small></h1>
+                                <h1 class="card-title pricing-card-title text-center">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                                 <ul class="list-unstyled mt-3 mb-4">
                                     <li><i class="fas fa-check text-success me-2"></i>4 Unique Assessments Included</li>
                                     <li><i class="fas fa-check text-success me-2"></i>Letter & Essay Assessment</li>
@@ -401,7 +401,7 @@ def handle_website_home():
                                 <h3 class="my-0 font-weight-bold">Academic Speaking</h3>
                             </div>
                             <div class="card-body">
-                                <h1 class="card-title pricing-card-title text-center">$36<small class="text-muted"> for 4 assessments</small></h1>
+                                <h1 class="card-title pricing-card-title text-center">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                                 <ul class="list-unstyled mt-3 mb-4">
                                     <li><i class="fas fa-check text-primary me-2"></i>4 Unique Assessments Included</li>
                                     <li><i class="fas fa-check text-primary me-2"></i>Interactive Maya AI Examiner</li>
@@ -422,7 +422,7 @@ def handle_website_home():
                                 <h3 class="my-0 font-weight-bold">General Training Speaking</h3>
                             </div>
                             <div class="card-body">
-                                <h1 class="card-title pricing-card-title text-center">$36<small class="text-muted"> for 4 assessments</small></h1>
+                                <h1 class="card-title pricing-card-title text-center">$49.99<small class="text-muted"> for 4 assessments</small></h1>
                                 <ul class="list-unstyled mt-3 mb-4">
                                     <li><i class="fas fa-check text-primary me-2"></i>4 Unique Assessments Included</li>
                                     <li><i class="fas fa-check text-primary me-2"></i>Maya AI Conversation Partner</li>
@@ -457,7 +457,7 @@ def handle_website_home():
                         <i class="fas fa-credit-card fa-3x text-warning"></i>
                     </div>
                     <h4>2. Purchase & Register</h4>
-                    <p>Create your account and purchase assessment packages for $36.00 each through secure app store billing</p>
+                    <p>Create your account and purchase assessment packages for $49.99.00 each through secure app store billing</p>
                 </div>
                 <div class="col-md-4 mb-4 text-center">
                     <div class="mb-3">

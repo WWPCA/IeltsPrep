@@ -1036,7 +1036,7 @@ def handle_terms_of_service():
                                 <p>IELTS GenAI Prep provides AI-powered IELTS assessment services with Nova Sonic en-GB-feminine voice technology and Nova Micro evaluation systems.</p>
                                 
                                 <h3>Pricing</h3>
-                                <p>Assessment products are available for $36.00 each, providing 4 comprehensive assessments per purchase across Academic and General Training modules.</p>
+                                <p>Assessment products are available for $49.99 each, providing 4 comprehensive assessments per purchase across Academic and General Training modules.</p>
                                 
                                 <h3>Technology</h3>
                                 <p>Our platform uses TrueScore® for Writing assessments and ClearScore® for Speaking assessments, powered by AWS Nova Sonic and Nova Micro technologies.</p>

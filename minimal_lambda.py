@@ -275,7 +275,7 @@ def get_home_template():
                                 <li><i class="fas fa-check text-success me-2"></i>Lexical Resource Assessment</li>
                                 <li><i class="fas fa-check text-success me-2"></i>Grammar Range & Accuracy</li>
                             </ul>
-                            <p class="fw-bold text-success">$36 for 4 Assessments</p>
+                            <p class="fw-bold text-success">$49.99 for 4 Assessments</p>
                         </div>
                     </div>
                 </div>
@@ -291,7 +291,7 @@ def get_home_template():
                                 <li><i class="fas fa-check text-info me-2"></i>Grammar Range Assessment</li>
                                 <li><i class="fas fa-check text-info me-2"></i>Pronunciation Review</li>
                             </ul>
-                            <p class="fw-bold text-info">$36 for 4 Assessments</p>
+                            <p class="fw-bold text-info">$49.99 for 4 Assessments</p>
                         </div>
                     </div>
                 </div>
@@ -338,7 +338,7 @@ def get_home_template():
                         <span class="fs-2 fw-bold">2</span>
                     </div>
                     <h4 class="mt-3">Choose Your Assessment</h4>
-                    <p>Select from Academic/General Writing or Speaking - $36 for 4 assessments</p>
+                    <p>Select from Academic/General Writing or Speaking - $49.99 for 4 assessments</p>
                 </div>
                 <div class="col-md-4 text-center mb-4">
                     <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
@@ -674,7 +674,7 @@ def get_terms_template():
                             <p>IELTS GenAI Prep provides AI-powered IELTS assessment services including Writing and Speaking evaluations.</p>
                             
                             <h2>Pricing and Payment</h2>
-                            <p>Each assessment product is priced at $36 CAD and includes 4 assessment attempts. All purchases are processed through Apple App Store or Google Play Store.</p>
+                            <p>Each assessment product is priced at $49.99 CAD and includes 4 assessment attempts. All purchases are processed through Apple App Store or Google Play Store.</p>
                             
                             <h2>Refund Policy</h2>
                             <p>All purchases are non-refundable. Please contact Apple or Google for App Store refund policies.</p>

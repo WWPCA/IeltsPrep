@@ -622,7 +622,7 @@ def handle_terms_of_service():
                 <ul>
                     <li>AI-powered IELTS Writing and Speaking assessments</li>
                     <li>TrueScore® and ClearScore® assessment technologies</li>
-                    <li>$36 CAD per assessment product (4 assessments per purchase)</li>
+                    <li>$49.99 CAD per assessment product (4 assessments per purchase)</li>
                 </ul>
                 
                 <h3>User Responsibilities</h3>

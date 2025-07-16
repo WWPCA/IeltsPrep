@@ -55,7 +55,7 @@ def lambda_handler(event, context):
                     <p>To access assessments:</p>
                     <ol>
                         <li>Download our mobile app from App Store or Google Play</li>
-                        <li>Create account and purchase assessment packages ($36 each)</li>
+                        <li>Create account and purchase assessment packages ($4999 each)</li>
                         <li>Return here and login with your mobile app credentials</li>
                     </ol>
                 </div>
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
                     <p>To access our GenAI assessment platform:</p>
                     <ol>
                         <li><strong>Download</strong> IELTS GenAI Prep from App Store or Google Play</li>
-                        <li><strong>Register</strong> and purchase assessment packages ($36.00 each)</li>
+                        <li><strong>Register</strong> and purchase assessment packages ($49.99 each)</li>
                         <li><strong>Login</strong> on this website using your mobile app credentials</li>
                     </ol>
                     <p class="mb-0">One account works on both mobile and web platforms!</p>

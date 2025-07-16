@@ -22,8 +22,8 @@ def deploy_fixed_recaptcha():
         print("ERROR: Login template not updated with test reCAPTCHA key")
         return False
     
-    if '$36' not in home_template:
-        print("ERROR: Home template missing $36 pricing")
+    if '$49.99' not in home_template:
+        print("ERROR: Home template missing $49.99 pricing")
         return False
     
     print("Templates verified - deploying...")
@@ -51,7 +51,7 @@ def lambda_handler(event, context):
         return serve_home_page()
 
 def serve_home_page():
-    """Serve home page with correct $36 pricing"""
+    """Serve home page with correct $49.99 pricing"""
     template_b64 = "{home_b64}"
     html_content = base64.b64decode(template_b64.encode('ascii')).decode('utf-8')
     

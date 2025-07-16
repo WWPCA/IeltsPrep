@@ -533,7 +533,7 @@ def handle_terms_of_service():
                 <p>By using our IELTS GenAI Prep service, you agree to these terms and our privacy policy.</p>
                 
                 <h2>Assessment Products</h2>
-                <p>Our assessment products are priced at $36 each and include 4 attempts per purchase. Products are non-refundable.</p>
+                <p>Our assessment products are priced at $49.99 each and include 4 attempts per purchase. Products are non-refundable.</p>
                 
                 <h2>GDPR Rights</h2>
                 <p>You have comprehensive data rights under GDPR. Visit our <a href="/gdpr/my-data">Data Rights Portal</a> to exercise these rights.</p>

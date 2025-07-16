@@ -305,7 +305,7 @@ if __name__ == "__main__":
         print("   • ClearScore® Speaking Assessment with blue bullet points")
         print("   • Updated 'Why Choose IELTS GenAI Prep' section")
         print("   • Improved 'How to Get Started' 3-step process")
-        print("   • All $36 pricing maintained consistently")
+        print("   • All $49.99 pricing maintained consistently")
         print("\n🌐 Website: https://www.ieltsaiprep.com")
     else:
         print("\n❌ DEPLOYMENT FAILED!")

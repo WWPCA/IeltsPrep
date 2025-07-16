@@ -36,7 +36,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - **Multi-Modal Support**: Text, audio, and visual assessment capabilities
 
 ### Mobile App Integration
-- **In-App Purchases**: $36.00 per assessment product across both platforms
+- **In-App Purchases**: $49.99 per assessment product across both platforms
 - **Regional API Routing**: Automatic selection of nearest Lambda endpoint
 - **Native Platform Features**: Leverages Capacitor 7.3.0 for device capabilities
 - **Dual-Platform Access**: Users can complete assessments directly in mobile app OR access via desktop/laptop through QR code
@@ -175,7 +175,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
     * Maya AI with 3-part speaking assessment structure (Interview, Long Turn, Discussion)
     * Real-time features: word counting, timer countdown (20:00), recording controls
     * Unique question system with 16 questions (4 per assessment type) from DynamoDB
-    * Assessment attempt management (4 attempts per $36 purchase)
+    * Assessment attempt management (4 attempts per $49.99 purchase)
     * Session-based security throughout entire assessment flow
     * User profile page with assessment history and GDPR data access
     * Complete API endpoints: /api/nova-sonic-connect, /api/nova-sonic-stream, /api/submit-assessment
@@ -342,7 +342,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Successfully deployed the exact privacy policy and terms of service templates from user's preview images
   - Templates feature clean blue headers, "Back to Home" buttons, and simple organized sections
   - Privacy policy includes TrueScore® and ClearScore® branding with concise content structure
-  - Terms of service covers $36 assessment pricing and non-refundable purchase policy
+  - Terms of service covers $49.99 assessment pricing and non-refundable purchase policy
   - Both pages show "Last Updated: June 16, 2025" and match the approved preview design exactly
   - All existing functionality preserved: CloudFront blocking, home page, login, and dashboard
   - Lambda function deployment completed without breaking any existing features
@@ -459,7 +459,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Built comprehensive user profile page with assessment history and progress tracking
   - Added Maya AI examiner with 3-part speaking assessment structure (Interview, Long Turn, Discussion)
   - Implemented real-time features: word counting, timer countdown, recording controls
-  - Created assessment attempt management system (4 attempts per $36 purchase)
+  - Created assessment attempt management system (4 attempts per $49.99 purchase)
   - Added session-based security throughout entire assessment flow
   - Enhanced user experience with structured question banks, unique question IDs, and progress tracking
   - Production website www.ieltsaiprep.com now provides complete IELTS assessment experience
@@ -515,7 +515,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - July 4, 2025: COMPREHENSIVE PRIVACY PAGES DEPLOYED - Professional Legal Documentation Complete
   - Deployed comprehensive privacy policy and terms of service pages matching preview design
   - Privacy policy includes detailed TrueScore® and ClearScore® technology information
-  - Terms of service covers $36 CAD assessment products and app store purchase policies
+  - Terms of service covers $49.99 CAD assessment products and app store purchase policies
   - Professional card-based design with gradient headers and organized sections
   - Both pages feature "Back to Home" buttons and responsive mobile design
   - Production pages live at www.ieltsaiprep.com/privacy-policy and www.ieltsaiprep.com/terms-of-service
@@ -543,7 +543,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Completely refreshed "Why Choose IELTS GenAI Prep" section with concise, benefit-focused content
   - Replaced section with three key benefits: Official Band-Descriptive Feedback, Mobile & Desktop Access, and Designed for Success
   - Changed "How to Access Your GenAI Assessments" to cleaner "How to Get Started" heading
-  - Updated 3-step process with more direct messaging emphasizing $36 for 4 assessments and automatic progress syncing
+  - Updated 3-step process with more direct messaging emphasizing $49.99 for 4 assessments and automatic progress syncing
   - Production deployment successful at 16:11:40 UTC, restored at 16:21:26 UTC after fixing Lambda dependency issues - all enhancements confirmed working at www.ieltsaiprep.com
   - Enhanced typography and visual formatting throughout assessment criteria sections
 
@@ -553,7 +553,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Added detailed "As your personal GenAI IELTS Coach" section with technology explanations
   - Implemented clean 3-step process layout without card boxes for better readability
   - Fixed color contrast issues by changing all colored headings to white text for better accessibility
-  - Maintained all $36 pricing references throughout the site (6 instances verified)
+  - Maintained all $49.99 pricing references throughout the site (6 instances verified)
   - Live website www.ieltsaiprep.com now shows updated comprehensive content with improved user experience
 
 - July 4, 2025: COMPREHENSIVE TEMPLATE UPDATES COMPLETE - Privacy Pages and Navigation Fixed
@@ -561,7 +561,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Removed "Legal" dropdown button from header navigation as requested
   - Maintained privacy policy and terms of service links in footer for proper access
   - Privacy policy now includes detailed TrueScore® and ClearScore® technology information
-  - Terms of service covers $36 CAD assessment products and app store purchase policies
+  - Terms of service covers $49.99 CAD assessment products and app store purchase policies
   - All pages now use consistent professional Bootstrap styling and comprehensive content
 
 - July 4, 2025: LOGIN PAGE TEMPLATE AND RECAPTCHA FIXED - Complete Website Consistency
@@ -569,15 +569,15 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Updated login page with working reCAPTCHA configuration using Google test site key
   - Eliminated "ERROR for site owner: Invalid site key" message on login form
   - Both home page and login page now use consistent professional design templates
-  - Maintained correct $36 pricing on home page (5 instances verified)
+  - Maintained correct $49.99 pricing on home page (5 instances verified)
   - Complete website at www.ieltsaiprep.com now provides seamless professional experience
 
 - June 21, 2025: REPLIT PREVIEW TEMPLATE DEPLOYED - AWS Production Fixed
   - Deployed exact working template from Replit preview to AWS Lambda production
-  - Fixed pricing display issue: all 4 assessment products now correctly show $36 for 4 assessments
+  - Fixed pricing display issue: all 4 assessment products now correctly show $49.99 for 4 assessments
   - AWS website now matches Replit preview exactly with comprehensive design
   - All assessment cards display proper pricing: Academic Writing, General Writing, Academic Speaking, General Speaking
-  - Instructions section correctly shows $36.00 each for app store billing
+  - Instructions section correctly shows $49.99 each for app store billing
   - Website at www.ieltsaiprep.com production-ready and matches approved design
 
 - June 20, 2025: DNS SIMPLIFIED TO WWW-ONLY - Single Domain Configuration Complete
@@ -592,7 +592,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
   - Updated Capacitor configuration to use www.ieltsaiprep.com domain
   - iOS platform synced successfully with 6 Capacitor plugins
   - Created comprehensive App Store deployment guide and assets
-  - Configured 4 in-app purchase products at $36 each (Academic/General Writing/Speaking)
+  - Configured 4 in-app purchase products at $49.99 each (Academic/General Writing/Speaking)
   - App Store metadata, deployment script, and technical documentation completed
   - Ready for Apple Developer Account setup and Xcode archiving process
 
@@ -614,7 +614,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - June 20, 2025: COMPREHENSIVE WEBSITE DESIGN DEPLOYED - Complete Preview Template Now Live
   - Successfully updated Lambda function to serve detailed home page design matching user's comprehensive preview template
   - Deployed enhanced website with complete TrueScore® Writing Assessment and ClearScore® Speaking Assessment sections
-  - Implemented detailed pricing cards showing $36 for 4 assessments across all product types (Academic/General Writing/Speaking)
+  - Implemented detailed pricing cards showing $49.99 for 4 assessments across all product types (Academic/General Writing/Speaking)
   - Added comprehensive "GenAI Assessed IELTS Modules" section with professional branding and feature descriptions
   - Enhanced "Why Choose IELTS GenAI Prep" section with detailed assessment preparation information
   - Professional domain ieltsaiprep.com now serves complete design matching user specifications exactly
@@ -645,7 +645,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - June 18, 2025: WEBSITE DEPLOYMENT CORRECTED - AWS Lambda Frontend Fixed to Match Exact Design
   - Fixed critical deployment issue where Lambda function was serving incorrect HTML template
   - Replaced Lambda's HTML with exact Bootstrap-based template from working Replit preview
-  - Verified deployed website now shows correct 4 separate assessment products at $36 each
+  - Verified deployed website now shows correct 4 separate assessment products at $49.99 each
   - Confirmed visual design matches user specifications: proper styling, colors, and layout
   - Production endpoint: https://n0cpf1rmvc.execute-api.us-east-1.amazonaws.com/prod now serves correct design
 

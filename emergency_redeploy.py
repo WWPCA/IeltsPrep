@@ -15,16 +15,16 @@ def emergency_redeploy():
         template_content = f.read()
     
     # Verify template has correct pricing
-    if '$36' not in template_content:
-        print("ERROR: Template does not contain correct $36 pricing!")
+    if '$49.99' not in template_content:
+        print("ERROR: Template does not contain correct $49.99 pricing!")
         return False
     
-    pricing_count = template_content.count('$36')
+    pricing_count = template_content.count('$49.99')
     if pricing_count < 4:
-        print(f"ERROR: Template only has {pricing_count} instances of $36, expected at least 4!")
+        print(f"ERROR: Template only has {pricing_count} instances of $49.99, expected at least 4!")
         return False
     
-    print(f"Template verified: Found {pricing_count} instances of $36 pricing")
+    print(f"Template verified: Found {pricing_count} instances of $49.99 pricing")
     
     # Encode template
     template_b64 = base64.b64encode(template_content.encode('utf-8')).decode('ascii')
@@ -111,8 +111,8 @@ def serve_dashboard_page():
     import requests
     try:
         response = requests.get('https://www.ieltsaiprep.com/')
-        if '$36' in response.text and response.text.count('$36') >= 4:
-            print('SUCCESS: Website verified with correct $36 pricing')
+        if '$49.99' in response.text and response.text.count('$49.99') >= 4:
+            print('SUCCESS: Website verified with correct $49.99 pricing')
             return True
         else:
             print('ERROR: Website deployment may have failed')

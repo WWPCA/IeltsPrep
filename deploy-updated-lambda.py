@@ -122,7 +122,7 @@ def lambda_handler(event, context):
                     <p>To access assessments, please:</p>
                     <ol>
                         <li>Download our mobile app from the App Store or Google Play</li>
-                        <li>Create account and purchase assessment packages ($36 each)</li>
+                        <li>Create account and purchase assessment packages ($49.99 each)</li>
                         <li>Return to this website and login with your mobile app credentials</li>
                     </ol>
                 </body>

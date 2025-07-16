@@ -715,7 +715,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
                         <h3>Service Description</h3>
                         <p>IELTS GenAI Prep provides AI-powered IELTS assessment services.</p>
                         <h3>Assessment Products</h3>
-                        <p>Each assessment costs $36 CAD and provides 4 unique attempts.</p>
+                        <p>Each assessment costs $49.99 CAD and provides 4 unique attempts.</p>
                         <h3>User Responsibilities</h3>
                         <p>Users must provide accurate information and follow IELTS guidelines.</p>
                         <div class="mt-4">

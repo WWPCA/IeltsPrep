@@ -22,8 +22,8 @@ def deploy_comprehensive_privacy_template():
         print("ERROR: Login template not updated with privacy policy links")
         return False
     
-    if '$36' not in home_template:
-        print("ERROR: Home template missing $36 pricing")
+    if '$49.99' not in home_template:
+        print("ERROR: Home template missing $49.99 pricing")
         return False
     
     print("Templates verified - deploying comprehensive privacy and terms pages...")
@@ -153,7 +153,7 @@ def deploy_comprehensive_privacy_template():
 
                         <section class="terms-section mb-4">
                             <h2 class="h4">2. Purchase Terms</h2>
-                            <p>Each assessment package costs $36 CAD and includes 4 unique assessments.</p>
+                            <p>Each assessment package costs $49.99 CAD and includes 4 unique assessments.</p>
                             <p>Purchases are processed through mobile app stores (Apple App Store, Google Play Store) with their respective billing systems.</p>
                         </section>
 
@@ -219,7 +219,7 @@ def lambda_handler(event, context):
         return serve_home_page()
 
 def serve_home_page():
-    """Serve home page with correct $36 pricing"""
+    """Serve home page with correct $49.99 pricing"""
     template_b64 = "{home_b64}"
     html_content = base64.b64decode(template_b64.encode('ascii')).decode('utf-8')
     

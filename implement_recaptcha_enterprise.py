@@ -873,7 +873,7 @@ def lambda_handler(event, context):
                     <div class="card-body">
                         <p><strong>Last updated:</strong> July 7, 2025</p>
                         <h3>Assessment Products</h3>
-                        <p>Each assessment product costs $36 CAD and provides 4 unique assessment attempts.</p>
+                        <p>Each assessment product costs $49.99 CAD and provides 4 unique assessment attempts.</p>
                         <h3>Security</h3>
                         <p>Our platform uses reCAPTCHA Enterprise for enhanced security and fraud protection.</p>
                         <a href="/" class="btn btn-success">Back to Home</a>

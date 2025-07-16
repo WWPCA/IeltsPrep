@@ -1489,7 +1489,7 @@ def lambda_handler(event, context):
                     <div class="card-body">
                         <p><strong>Last updated:</strong> July 8, 2025</p>
                         <h3>Assessment Products</h3>
-                        <p>Each assessment product costs $36 CAD and provides 4 unique assessment attempts. Our AI system ensures no question repetition across multiple purchases.</p>
+                        <p>Each assessment product costs $49.99 CAD and provides 4 unique assessment attempts. Our AI system ensures no question repetition across multiple purchases.</p>
                         <h3>DynamoDB Question System</h3>
                         <p>Questions are dynamically loaded from AWS DynamoDB to ensure unique delivery and continuous question bank expansion.</p>
                         <h3>Assessment Attempts</h3>

@@ -1719,10 +1719,10 @@ def handle_terms_of_service():
             <h3>2. Service Description</h3>
             <p>IELTS GenAI Prep provides AI-powered IELTS assessment services including:</p>
             <ul>
-                <li><strong>Academic Writing Assessment:</strong> $36 for 4 attempts</li>
-                <li><strong>General Writing Assessment:</strong> $36 for 4 attempts</li>
-                <li><strong>Academic Speaking Assessment:</strong> $36 for 4 attempts</li>
-                <li><strong>General Speaking Assessment:</strong> $36 for 4 attempts</li>
+                <li><strong>Academic Writing Assessment:</strong> $49.99 for 4 attempts</li>
+                <li><strong>General Writing Assessment:</strong> $49.99 for 4 attempts</li>
+                <li><strong>Academic Speaking Assessment:</strong> $49.99 for 4 attempts</li>
+                <li><strong>General Speaking Assessment:</strong> $49.99 for 4 attempts</li>
             </ul>
             
             <h3>3. Payment and Refund Policy</h3>

@@ -485,7 +485,7 @@ class AWSMockServices:
             'receipt_data': purchase_data.get('receipt_data'),
             'assessments_remaining': 4,
             'assessments_used': 0,
-            'price': 36.00,
+            'price': 49.99,
             'currency': 'USD'
         }
         
@@ -530,7 +530,7 @@ class AWSMockServices:
                     'total': 4,
                     'purchased_at': purchase.get('purchase_date', ''),
                     'last_used': purchase.get('last_used', ''),
-                    'price': purchase.get('price', 36.00)
+                    'price': purchase.get('price', 49.99)
                 }
         
         return assessment_counts

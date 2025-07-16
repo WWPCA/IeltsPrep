@@ -319,7 +319,7 @@ def send_welcome_email(email: str) -> None:
                     <p><strong>Getting Started:</strong></p>
                     <ol>
                         <li>Download our mobile app from App Store or Google Play</li>
-                        <li>Purchase your assessment package ($36 for 4 attempts)</li>
+                        <li>Purchase your assessment package ($49.99 for 4 attempts)</li>
                         <li>Login to the website using your mobile credentials</li>
                         <li>Start your AI-powered IELTS preparation</li>
                     </ol>
@@ -354,7 +354,7 @@ def send_welcome_email(email: str) -> None:
         
         Getting Started:
         1. Download our mobile app from App Store or Google Play
-        2. Purchase your assessment package ($36 for 4 attempts)
+        2. Purchase your assessment package ($49.99 for 4 attempts)
         3. Login to the website using your mobile credentials
         4. Start your AI-powered IELTS preparation
         
@@ -1131,7 +1131,7 @@ def handle_terms_of_service() -> Dict[str, Any]:
             
             <div class="section">
                 <h2>Pricing and Purchases</h2>
-                <p>Assessment packages are available for $36.00 each, providing:</p>
+                <p>Assessment packages are available for $49.99 each, providing:</p>
                 <ul>
                     <li>4 assessment attempts per purchase</li>
                     <li>Detailed AI-powered feedback</li>

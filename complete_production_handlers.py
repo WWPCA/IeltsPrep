@@ -427,7 +427,7 @@ def handle_dashboard_page(headers):
                             <div class="assessment-card-body">
                                 <div class="attempts-info">
                                     <strong>4 attempts remaining</strong>
-                                    <p class="mb-0 text-muted">$36 for complete assessment package</p>
+                                    <p class="mb-0 text-muted">$49.99 for complete assessment package</p>
                                 </div>
                                 <div class="nova-status">
                                     <span class="status-indicator"></span>
@@ -451,7 +451,7 @@ def handle_dashboard_page(headers):
                             <div class="assessment-card-body">
                                 <div class="attempts-info">
                                     <strong>4 attempts remaining</strong>
-                                    <p class="mb-0 text-muted">$36 for complete assessment package</p>
+                                    <p class="mb-0 text-muted">$49.99 for complete assessment package</p>
                                 </div>
                                 <div class="nova-status">
                                     <span class="status-indicator"></span>
@@ -477,7 +477,7 @@ def handle_dashboard_page(headers):
                             <div class="assessment-card-body">
                                 <div class="attempts-info">
                                     <strong>4 attempts remaining</strong>
-                                    <p class="mb-0 text-muted">$36 for complete assessment package</p>
+                                    <p class="mb-0 text-muted">$49.99 for complete assessment package</p>
                                 </div>
                                 <div class="nova-status">
                                     <span class="status-indicator"></span>
@@ -501,7 +501,7 @@ def handle_dashboard_page(headers):
                             <div class="assessment-card-body">
                                 <div class="attempts-info">
                                     <strong>4 attempts remaining</strong>
-                                    <p class="mb-0 text-muted">$36 for complete assessment package</p>
+                                    <p class="mb-0 text-muted">$49.99 for complete assessment package</p>
                                 </div>
                                 <div class="nova-status">
                                     <span class="status-indicator"></span>

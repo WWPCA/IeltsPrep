@@ -559,10 +559,10 @@ def handle_terms_of_service():
                     <h2 class="h4 text-warning"><i class="bi bi-credit-card"></i> Pricing and Products</h2>
                     <p>Our assessment products are available for purchase through our mobile app:</p>
                     <ul>
-                        <li><strong>Academic Writing Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
-                        <li><strong>General Writing Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
-                        <li><strong>Academic Speaking Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
-                        <li><strong>General Speaking Assessment:</strong> $36.00 CAD (includes 4 attempts)</li>
+                        <li><strong>Academic Writing Assessment:</strong> $49.99 CAD (includes 4 attempts)</li>
+                        <li><strong>General Writing Assessment:</strong> $49.99 CAD (includes 4 attempts)</li>
+                        <li><strong>Academic Speaking Assessment:</strong> $49.99 CAD (includes 4 attempts)</li>
+                        <li><strong>General Speaking Assessment:</strong> $49.99 CAD (includes 4 attempts)</li>
                     </ul>
                     <p>All purchases are processed through Apple App Store or Google Play Store billing systems.</p>
                 </div>

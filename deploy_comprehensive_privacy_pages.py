@@ -301,7 +301,7 @@ def create_lambda_with_comprehensive_privacy():
             
             <div class="policy-content">
                 <div class="highlight">
-                    <strong>Assessment Products:</strong> Each TrueScore® and ClearScore® assessment product costs $36 CAD and provides 4 unique assessment attempts.
+                    <strong>Assessment Products:</strong> Each TrueScore® and ClearScore® assessment product costs $49.99 CAD and provides 4 unique assessment attempts.
                 </div>
 
                 <section class="policy-section">
@@ -324,7 +324,7 @@ def create_lambda_with_comprehensive_privacy():
                     <h2><i class="fas fa-credit-card"></i> 3. Payment Terms</h2>
                     <p>Assessment purchases are processed through official app stores:</p>
                     <ul>
-                        <li>Each assessment product costs $36 CAD</li>
+                        <li>Each assessment product costs $49.99 CAD</li>
                         <li>Provides 4 unique assessment attempts per purchase</li>
                         <li>Payments processed through Apple App Store or Google Play Store</li>
                         <li>All sales are final - no refunds available</li>

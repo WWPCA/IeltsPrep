@@ -520,7 +520,7 @@ def lambda_handler(event, context):
                         <p><strong>Last updated:</strong> July 4, 2025</p>
                         
                         <h3>Assessment Products</h3>
-                        <p>Each assessment product costs $36 CAD and provides 4 unique assessment attempts.</p>
+                        <p>Each assessment product costs $49.99 CAD and provides 4 unique assessment attempts.</p>
                         
                         <h3>Refund Policy</h3>
                         <p>All purchases are final and non-refundable as per App Store policies.</p>
@@ -574,7 +574,7 @@ try:
     print('  • Comprehensive home page with complete design')
     print('  • Professional navigation and branding')
     print('  • TrueScore® and ClearScore® assessment sections')
-    print('  • Detailed pricing information ($36 for 4 assessments)')
+    print('  • Detailed pricing information ($49.99 for 4 assessments)')
     print('  • Working login page with mobile-first instructions')
     print('  • Enhanced dashboard with all 4 assessment cards')
     print('  • Individual assessment pages for each type')

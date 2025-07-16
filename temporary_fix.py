@@ -157,7 +157,7 @@ def handle_terms_of_service():
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'text/html'},
-        'body': '<html><head><title>Terms of Service - IELTS GenAI Prep</title></head><body><div class="container py-5"><h1>Terms of Service</h1><p><em>Last Updated: June 16, 2025</em></p><p>Assessment products are $36 each for 4 assessments and are non-refundable.</p><a href="/" class="btn btn-primary">Back to Home</a></div></body></html>'
+        'body': '<html><head><title>Terms of Service - IELTS GenAI Prep</title></head><body><div class="container py-5"><h1>Terms of Service</h1><p><em>Last Updated: June 16, 2025</em></p><p>Assessment products are $49.99 each for 4 assessments and are non-refundable.</p><a href="/" class="btn btn-primary">Back to Home</a></div></body></html>'
     }
 
 def handle_profile_page():
@@ -297,7 +297,7 @@ def get_home_html():
 <div class="col-md-4 text-center mb-4">
 <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
 <h5>2. Purchase Assessments</h5>
-<p>$36 for 4 comprehensive assessments</p>
+<p>$49.99 for 4 comprehensive assessments</p>
 </div>
 <div class="col-md-4 text-center mb-4">
 <i class="fas fa-chart-line fa-3x text-info mb-3"></i>

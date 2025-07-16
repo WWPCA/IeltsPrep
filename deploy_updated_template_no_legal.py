@@ -29,12 +29,12 @@ def deploy_updated_template_no_legal():
         return False
     
     # Verify pricing is still correct
-    if '$36' not in home_template:
-        print("ERROR: Home template missing $36 pricing")
+    if '$49.99' not in home_template:
+        print("ERROR: Home template missing $49.99 pricing")
         return False
     
-    pricing_count = home_template.count('$36')
-    print(f"Template verified: Legal button removed, footer links present, {pricing_count} instances of $36 pricing")
+    pricing_count = home_template.count('$49.99')
+    print(f"Template verified: Legal button removed, footer links present, {pricing_count} instances of $49.99 pricing")
     
     # Encode templates
     home_b64 = base64.b64encode(home_template.encode('utf-8')).decode('ascii')
@@ -161,7 +161,7 @@ def deploy_updated_template_no_legal():
 
                         <section class="terms-section mb-4">
                             <h2 class="h4">2. Purchase Terms</h2>
-                            <p>Each assessment package costs $36 CAD and includes 4 unique assessments.</p>
+                            <p>Each assessment package costs $49.99 CAD and includes 4 unique assessments.</p>
                             <p>Purchases are processed through mobile app stores (Apple App Store, Google Play Store) with their respective billing systems.</p>
                         </section>
 

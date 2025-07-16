@@ -34,8 +34,8 @@ const PRODUCTION_CONFIG = {
       generalSpeaking: 'com.ieltsgenaiprep.general.speaking'
     },
     prices: {
-      cad: 36.00,
-      usd: 27.00
+      cad: 49.99,
+      usd: 36.49
     }
   },
   

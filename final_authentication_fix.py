@@ -1024,7 +1024,7 @@ TERMS_OF_SERVICE_TEMPLATE = """<!DOCTYPE html>
                     <li>TrueScore® Writing Assessment technology using AWS Nova Micro</li>
                     <li>ClearScore® Speaking Assessment technology using AWS Nova Sonic</li>
                     <li>Maya AI examiner for interactive speaking practice</li>
-                    <li>$36 CAD per assessment product (4 assessments per purchase)</li>
+                    <li>$49.99 CAD per assessment product (4 assessments per purchase)</li>
                     <li>Available for both Academic and General Training IELTS</li>
                 </ul>
                 

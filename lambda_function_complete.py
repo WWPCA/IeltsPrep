@@ -435,7 +435,7 @@ def handle_home_page():
                             <h4>Academic Writing</h4>
                         </div>
                         <div class="card-body text-center">
-                            <div class="display-4 mb-3">$36</div>
+                            <div class="display-4 mb-3">$49.99</div>
                             <p class="text-muted">4 unique assessments</p>
                             <ul class="list-unstyled">
                                 <li><i class="fas fa-check text-success me-2"></i>Task 1 & Task 2 Practice</li>
@@ -454,7 +454,7 @@ def handle_home_page():
                             <h4>Academic Speaking</h4>
                         </div>
                         <div class="card-body text-center">
-                            <div class="display-4 mb-3">$36</div>
+                            <div class="display-4 mb-3">$49.99</div>
                             <p class="text-muted">4 unique assessments</p>
                             <ul class="list-unstyled">
                                 <li><i class="fas fa-check text-primary me-2"></i>3-Part Speaking Test</li>
@@ -473,7 +473,7 @@ def handle_home_page():
                             <h4>General Writing</h4>
                         </div>
                         <div class="card-body text-center">
-                            <div class="display-4 mb-3">$36</div>
+                            <div class="display-4 mb-3">$49.99</div>
                             <p class="text-muted">4 unique assessments</p>
                             <ul class="list-unstyled">
                                 <li><i class="fas fa-check text-success me-2"></i>Letter & Essay Practice</li>
@@ -492,7 +492,7 @@ def handle_home_page():
                             <h4>General Speaking</h4>
                         </div>
                         <div class="card-body text-center">
-                            <div class="display-4 mb-3">$36</div>
+                            <div class="display-4 mb-3">$49.99</div>
                             <p class="text-muted">4 unique assessments</p>
                             <ul class="list-unstyled">
                                 <li><i class="fas fa-check text-primary me-2"></i>3-Part Speaking Test</li>
@@ -533,7 +533,7 @@ def handle_home_page():
                             <i class="fas fa-credit-card fa-2x"></i>
                         </div>
                         <h4>Purchase Assessments</h4>
-                        <p class="text-muted">Choose your assessment type and purchase $36 for 4 unique assessments through secure app store billing.</p>
+                        <p class="text-muted">Choose your assessment type and purchase $49.99 for 4 unique assessments through secure app store billing.</p>
                     </div>
                 </div>
                 

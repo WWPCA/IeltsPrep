@@ -23,8 +23,8 @@ def deploy_fixed_privacy_links():
         return False
     
     # Verify home template still has correct pricing
-    if '$36' not in home_template:
-        print("ERROR: Home template missing $36 pricing")
+    if '$49.99' not in home_template:
+        print("ERROR: Home template missing $49.99 pricing")
         return False
     
     print("Templates verified - deploying...")
@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         return serve_home_page()
 
 def serve_home_page():
-    """Serve home page with correct $36 pricing"""
+    """Serve home page with correct $49.99 pricing"""
     template_b64 = "{home_b64}"
     html_content = base64.b64decode(template_b64.encode('ascii')).decode('utf-8')
     
@@ -178,7 +178,7 @@ def serve_terms_of_service():
                         <p>IELTS GenAI Prep provides AI-powered IELTS test preparation services through mobile applications and web platform access.</p>
                         
                         <h2>Purchase Terms</h2>
-                        <p>Assessment packages are purchased through mobile app stores (Apple App Store, Google Play) at $36 CAD each for 4 unique assessments.</p>
+                        <p>Assessment packages are purchased through mobile app stores (Apple App Store, Google Play) at $49.99 CAD each for 4 unique assessments.</p>
                         
                         <h2>AI Assessment Services</h2>
                         <p>Our platform uses advanced AI technology including Amazon Nova Sonic for speaking assessments and Nova Micro for writing evaluations.</p>

@@ -343,7 +343,7 @@ def get_ai_seo_home_template():
           "name": "How much does it cost to use IELTS GenAI Prep?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Each module (Writing or Speaking) is priced at $36 for four AI-graded assessments. This includes band scores and detailed feedback on every attempt."
+            "text": "Each module (Writing or Speaking) is priced at $49.99 for four AI-graded assessments. This includes band scores and detailed feedback on every attempt."
           }
         },
         {
@@ -720,7 +720,7 @@ def get_ai_seo_home_template():
                         </div>
                     </div>
                     <h4>Choose Your Assessment</h4>
-                    <p class="text-muted">Select Academic or General Training modules. Each assessment pack costs $36 for 4 comprehensive evaluations.</p>
+                    <p class="text-muted">Select Academic or General Training modules. Each assessment pack costs $49.99 for 4 comprehensive evaluations.</p>
                 </div>
                 <div class="col-lg-4 text-center mb-4">
                     <div class="mb-4">
@@ -752,7 +752,7 @@ def get_ai_seo_home_template():
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Lexical Resource Assessment</li>
                                 <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Grammar Range & Accuracy</li>
                             </ul>
-                            <h5 class="text-success mb-3">$36 for 4 Assessments</h5>
+                            <h5 class="text-success mb-3">$49.99 for 4 Assessments</h5>
                             <p class="text-muted small">Available in Academic and General Training formats</p>
                         </div>
                     </div>
@@ -769,7 +769,7 @@ def get_ai_seo_home_template():
                                 <li class="mb-2"><i class="fas fa-check text-info me-2"></i>Grammar Range Assessment</li>
                                 <li class="mb-2"><i class="fas fa-check text-info me-2"></i>Pronunciation Review</li>
                             </ul>
-                            <h5 class="text-info mb-3">$36 for 4 Assessments</h5>
+                            <h5 class="text-info mb-3">$49.99 for 4 Assessments</h5>
                             <p class="text-muted small">Interactive AI examiner with real-time feedback</p>
                         </div>
                     </div>
@@ -817,7 +817,7 @@ def get_ai_seo_home_template():
                             </h2>
                             <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body">
-                                    Each module (Writing or Speaking) is priced at $36 for four AI-graded assessments. This includes band scores and detailed feedback on every attempt.
+                                    Each module (Writing or Speaking) is priced at $49.99 for four AI-graded assessments. This includes band scores and detailed feedback on every attempt.
                                 </div>
                             </div>
                         </div>
@@ -1175,7 +1175,7 @@ def get_terms_template():
                             <p>IELTS GenAI Prep provides AI-powered IELTS assessment services including TrueScore® Writing Assessment and ClearScore® Speaking Assessment for both Academic and General Training modules.</p>
                             
                             <h2>Pricing and Payment</h2>
-                            <p>Each assessment product is priced at $36 CAD and includes 4 assessment attempts with detailed AI-generated feedback. All purchases are processed through Apple App Store or Google Play Store in-app purchase systems.</p>
+                            <p>Each assessment product is priced at $49.99 CAD and includes 4 assessment attempts with detailed AI-generated feedback. All purchases are processed through Apple App Store or Google Play Store in-app purchase systems.</p>
                             
                             <h2>Assessment Services</h2>
                             <p>Our AI assessment technologies provide instant feedback aligned with official IELTS band descriptors. Each assessment includes detailed analysis across all IELTS criteria including Task Achievement, Coherence & Cohesion, Lexical Resource, and Grammatical Range & Accuracy.</p>

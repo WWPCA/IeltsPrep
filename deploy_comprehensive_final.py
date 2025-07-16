@@ -115,7 +115,7 @@ def handle_home_page():
 <div class="col-md-6"><h3>ClearScore® Speaking Assessment</h3><p>Interactive Maya AI examiner with real-time feedback</p></div></div>
 <div class="text-center mt-5"><h2>How It Works</h2><div class="row">
 <div class="col-md-4"><h5>1. Download App</h5><p>Get our mobile app from App Store or Google Play</p></div>
-<div class="col-md-4"><h5>2. Purchase Assessments</h5><p>$36 for 4 comprehensive assessments</p></div>
+<div class="col-md-4"><h5>2. Purchase Assessments</h5><p>$49.99 for 4 comprehensive assessments</p></div>
 <div class="col-md-4"><h5>3. Take Assessments</h5><p>Complete on mobile or login here for desktop access</p></div>
 </div></div><div class="mt-5"><h2>FAQ</h2><details><summary>How accurate are the AI assessments?</summary>
 <p>Our TrueScore and ClearScore technologies are aligned with official IELTS band descriptors.</p></details></div>
@@ -157,7 +157,7 @@ def handle_terms_of_service():
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head><body><div class="container py-5"><h1>Terms of Service</h1>
 <p><em>Last Updated: June 16, 2025</em></p>
-<p>Assessment products are $36 each for 4 assessments and are non-refundable.</p>
+<p>Assessment products are $49.99 each for 4 assessments and are non-refundable.</p>
 <a href="/" class="btn btn-primary">Back to Home</a></div></body></html>'''
     
     return {

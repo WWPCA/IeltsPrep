@@ -1723,10 +1723,10 @@ def handle_terms_of_service():
             <h3>2. Service Description</h3>
             <p>IELTS GenAI Prep provides AI-powered IELTS assessment services including:</p>
             <ul>
-                <li><strong>Academic Writing Assessment:</strong> $36 for 4 attempts</li>
-                <li><strong>General Writing Assessment:</strong> $36 for 4 attempts</li>
-                <li><strong>Academic Speaking Assessment:</strong> $36 for 4 attempts</li>
-                <li><strong>General Speaking Assessment:</strong> $36 for 4 attempts</li>
+                <li><strong>Academic Writing Assessment:</strong> $49.99 for 4 attempts</li>
+                <li><strong>General Writing Assessment:</strong> $49.99 for 4 attempts</li>
+                <li><strong>Academic Speaking Assessment:</strong> $49.99 for 4 attempts</li>
+                <li><strong>General Speaking Assessment:</strong> $49.99 for 4 attempts</li>
             </ul>
             
             <h3>3. Payment and Refund Policy</h3>
@@ -1810,7 +1810,7 @@ def handle_dashboard_page(headers):
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Academic Writing Assessment</h5>
-                        <p class="card-text">$36 for 4 attempts</p>
+                        <p class="card-text">$49.99 for 4 attempts</p>
                         <a href="/assessment/academic-writing" class="btn btn-primary">Start Assessment</a>
                     </div>
                 </div>
@@ -1820,7 +1820,7 @@ def handle_dashboard_page(headers):
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">General Writing Assessment</h5>
-                        <p class="card-text">$36 for 4 attempts</p>
+                        <p class="card-text">$49.99 for 4 attempts</p>
                         <a href="/assessment/general-writing" class="btn btn-primary">Start Assessment</a>
                     </div>
                 </div>
@@ -1830,7 +1830,7 @@ def handle_dashboard_page(headers):
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Academic Speaking Assessment</h5>
-                        <p class="card-text">$36 for 4 attempts</p>
+                        <p class="card-text">$49.99 for 4 attempts</p>
                         <a href="/assessment/academic-speaking" class="btn btn-primary">Start Assessment</a>
                     </div>
                 </div>
@@ -1840,7 +1840,7 @@ def handle_dashboard_page(headers):
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">General Speaking Assessment</h5>
-                        <p class="card-text">$36 for 4 attempts</p>
+                        <p class="card-text">$49.99 for 4 attempts</p>
                         <a href="/assessment/general-speaking" class="btn btn-primary">Start Assessment</a>
                     </div>
                 </div>

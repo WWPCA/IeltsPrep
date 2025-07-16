@@ -409,10 +409,10 @@ def handle_terms_of_service():
                 
                 <h2>Pricing and Products</h2>
                 <ul>
-                    <li>Academic Writing Assessment: $36.00 CAD (includes 4 attempts)</li>
-                    <li>General Writing Assessment: $36.00 CAD (includes 4 attempts)</li>
-                    <li>Academic Speaking Assessment: $36.00 CAD (includes 4 attempts)</li>
-                    <li>General Speaking Assessment: $36.00 CAD (includes 4 attempts)</li>
+                    <li>Academic Writing Assessment: $49.99 CAD (includes 4 attempts)</li>
+                    <li>General Writing Assessment: $49.99 CAD (includes 4 attempts)</li>
+                    <li>Academic Speaking Assessment: $49.99 CAD (includes 4 attempts)</li>
+                    <li>General Speaking Assessment: $49.99 CAD (includes 4 attempts)</li>
                 </ul>
                 
                 <div class="refund-section">
@@ -895,7 +895,7 @@ if __name__ == "__main__":
         print("✓ Maya AI with 3-part speaking assessment structure")
         print("✓ Real-time features: word counting, timer countdown, recording controls")
         print("✓ Unique question system with 16 questions (4 per assessment type)")
-        print("✓ Assessment attempt management (4 attempts per $36 purchase)")
+        print("✓ Assessment attempt management (4 attempts per $49.99 purchase)")
         print("✓ Session-based security throughout entire flow")
         print("✓ User profile page with assessment history")
         print("✓ Complete API endpoints for Nova Sonic and assessment submission")
