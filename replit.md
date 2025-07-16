@@ -100,18 +100,16 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
-- July 16, 2025: COMPREHENSIVE GDPR COMPLIANCE DEPLOYED - Dashboard Links Removed Per User Request
-  - ✅ RESTORED: Comprehensive GDPR templates from previous production deployment
-  - ✅ ENHANCED: Privacy policy updated with comprehensive GDPR compliance sections
-  - ✅ ENHANCED: Terms of service updated with AI content policy and GDPR references
-  - ✅ ENHANCED: Robots.txt updated with comprehensive AI crawler permissions (GPTBot, ClaudeBot, Google-Extended)
-  - ✅ REMOVED: GDPR dashboard links replaced with direct contact instructions
-  - ✅ ADDED: AI-generated content safety policy sections
-  - ✅ ADDED: Account termination and data deletion policy sections
+- July 16, 2025: SIMPLIFIED PRIVACY POLICY DEPLOYED - GDPR Rights Section Removed Per User Request
+  - ✅ SIMPLIFIED: Removed GDPR rights section and email addresses from privacy policy
+  - ✅ FOCUSED: Privacy policy now only states data usage purposes for GDPR compliance
+  - ✅ CLARIFIED: Explicitly states voice recordings are not saved, only assessment feedback
+  - ✅ MAINTAINED: Terms of service with AI content policy and data protection
+  - ✅ MAINTAINED: Robots.txt with comprehensive AI crawler permissions (GPTBot, ClaudeBot, Google-Extended)
   - ✅ MAINTAINED: $36.49 USD pricing throughout all templates
-  - ✅ VERIFIED: Privacy policy shows comprehensive GDPR rights sections with contact email
+  - ✅ VERIFIED: Privacy policy shows only data usage purposes and voice recording policy
   - ✅ VERIFIED: Terms of service includes AI content policy and data protection
-  - Template Status: Enhanced GDPR compliance with direct contact method
+  - Template Status: Simplified privacy policy with essential GDPR compliance only
   - Production Status: ✅ FULLY COMPLIANT with Google Play policies at www.ieltsaiprep.com
 
 - July 16, 2025: USD-ONLY PRICING SUCCESSFULLY IMPLEMENTED - All Website Pricing Now Shows $36.49 USD Only

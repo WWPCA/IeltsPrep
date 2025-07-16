@@ -3051,35 +3051,21 @@ def handle_privacy_policy() -> Dict[str, Any]:
                             <p>We implement industry-standard security measures including encryption and access controls. Voice data is processed in real-time and not stored permanently.</p>
                         </section>
 
+
+
                         <section class="policy-section mb-4">
-                            <h2 class="h4">5. Your Rights (GDPR Compliance)</h2>
-                            <p>Under GDPR, you have the following rights:</p>
-                            <ul>
-                                <li><strong>Right to Access:</strong> Request copies of your personal data</li>
-                                <li><strong>Right to Rectification:</strong> Request correction of incorrect data</li>
-                                <li><strong>Right to Erasure:</strong> Request deletion of your personal data</li>
-                                <li><strong>Right to Restrict Processing:</strong> Request limitation of data processing</li>
-                                <li><strong>Right to Data Portability:</strong> Request transfer of your data</li>
-                                <li><strong>Right to Object:</strong> Object to processing of your data</li>
-                            </ul>
-                            <div class="alert alert-info">
-                                <strong>Exercise Your Rights:</strong> To exercise these rights, please contact us directly at privacy@ieltsaiprep.com
-                            </div>
+                            <h2 class="h4">5. Data Retention</h2>
+                            <p>We retain your data only as long as necessary for the purposes outlined in this policy. We do not save your voice recordings - only the assessment feedback is retained for 12 months.</p>
                         </section>
 
                         <section class="policy-section mb-4">
-                            <h2 class="h4">6. Data Retention</h2>
-                            <p>We retain your data only as long as necessary for the purposes outlined in this policy. Assessment data is retained for 12 months, account data until deletion is requested.</p>
-                        </section>
-
-                        <section class="policy-section mb-4">
-                            <h2 class="h4">7. AI-Generated Content Safety</h2>
+                            <h2 class="h4">6. AI-Generated Content Safety</h2>
                             <p>Our AI assessment tools (TrueScore® and ClearScore®) are designed with safety measures to ensure educational appropriateness. All AI-generated feedback is filtered for content safety and educational relevance.</p>
                         </section>
 
                         <section class="policy-section mb-4">
-                            <h2 class="h4">8. Contact Information</h2>
-                            <p>For privacy-related questions or to exercise your rights, please contact us through our website or email us directly.</p>
+                            <h2 class="h4">7. Contact Information</h2>
+                            <p>For privacy-related questions, please contact us through our website.</p>
                         </section>
                     </div>
                 </div>
