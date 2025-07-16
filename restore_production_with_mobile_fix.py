@@ -1,34 +1,32 @@
 #!/usr/bin/env python3
 """
-Restore original production Lambda with ONLY mobile registration security fix
+Restore production Lambda using existing templates with mobile registration fix
 """
 
 import boto3
 import json
 import zipfile
 import io
+import base64
 
-def restore_production_lambda():
-    """Restore original production Lambda with mobile registration fix"""
+def create_production_lambda_with_existing_templates():
+    """Create production Lambda using existing app.py and templates"""
     
-    # Read the current working app.py (original production code)
+    # Read the current app.py (main production application)
     with open('app.py', 'r', encoding='utf-8') as f:
-        original_code = f.read()
+        app_code = f.read()
     
-    # Read the mobile registration template
-    with open('mobile_registration_flow.html', 'r', encoding='utf-8') as f:
-        mobile_reg_html = f.read()
-    
-    # Modify ONLY the mobile registration handler to add security
-    # Find the existing handle_mobile_registration_page function and replace it
-    mobile_registration_handler = '''def handle_mobile_registration_page(headers: Dict[str, Any]) -> Dict[str, Any]:
-    """Mobile registration page - App Store purchase required"""
+    # Only modify the mobile registration handler to add security
+    # Keep all existing templates intact
+    mobile_security_patch = '''
+def handle_mobile_registration_page(headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Mobile registration page - App Store/Google Play purchase required"""
     try:
         # Check for mobile app user agent
         user_agent = headers.get('User-Agent', '').lower()
         origin = headers.get('Origin', '')
         
-        # Detect mobile app
+        # Mobile app detection
         is_mobile_app = (
             'capacitor' in user_agent or 
             'ionic' in user_agent or
@@ -39,7 +37,7 @@ def restore_production_lambda():
             headers.get('X-Capacitor-Platform') is not None
         )
         
-        # Block web browser access - only allow mobile app
+        # Block web browser access - App Store/Google Play purchase required
         if not is_mobile_app:
             return {
                 'statusCode': 403,
@@ -47,23 +45,20 @@ def restore_production_lambda():
                 'body': '<html><head><title>Access Restricted</title></head><body><h1>Access Restricted</h1><p>Registration is only available through the mobile app after completing an App Store or Google Play purchase.</p><p><a href="/">Return to Home</a></p></body></html>'
             }
         
-        # Load and return the mobile registration template for mobile app users
+        # For mobile app, serve the existing mobile registration template
         try:
             with open('mobile_registration_flow.html', 'r', encoding='utf-8') as f:
                 html_content = f.read()
         except FileNotFoundError:
-            # Fallback if template not found
-            html_content = """<!DOCTYPE html>
-<html><head><title>Mobile Registration</title></head>
-<body><h1>Mobile Registration</h1>
-<p>Registration page for mobile app users with App Store purchases.</p>
-</body></html>"""
+            # Fallback if template file not found
+            html_content = '<html><head><title>Mobile Registration</title></head><body><h1>Mobile Registration</h1><p>Complete your registration after App Store purchase.</p><form method="post" action="/api/register"><div><label>Email:</label><input type="email" name="email" required></div><div><label>Password:</label><input type="password" name="password" required></div><button type="submit">Register</button></form></body></html>'
         
         return {
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'text/html',
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-cache',
+                'X-Frame-Options': 'DENY'
             },
             'body': html_content
         }
@@ -73,53 +68,32 @@ def restore_production_lambda():
             'statusCode': 500,
             'headers': {'Content-Type': 'text/html'},
             'body': f'<html><body><h1>Registration Error</h1><p>{str(e)}</p></body></html>'
-        }'''
-    
-    # Replace the existing mobile registration handler
-    import re
-    
-    # Find and replace the mobile registration handler
-    pattern = r'def handle_mobile_registration_page\(headers: Dict\[str, Any\]\) -> Dict\[str, Any\]:.*?(?=\n\ndef|\nclass|\n# |$)'
-    
-    if re.search(pattern, original_code, re.DOTALL):
-        modified_code = re.sub(pattern, mobile_registration_handler, original_code, flags=re.DOTALL)
-    else:
-        # If handler doesn't exist, add it
-        modified_code = original_code + '\n\n' + mobile_registration_handler
-    
-    # Embed the mobile registration template in the Lambda
-    template_embed = f'''
-# Mobile registration HTML template
-MOBILE_REGISTRATION_HTML = """{mobile_reg_html}"""
+        }
 '''
     
-    # Add template at the top after imports
-    lines = modified_code.split('\n')
-    insert_index = 0
-    for i, line in enumerate(lines):
-        if line.startswith('import ') or line.startswith('from '):
-            insert_index = i + 1
-        elif line.strip() == '' and insert_index > 0:
-            break
+    # Find and replace only the mobile registration handler
+    import re
     
-    lines.insert(insert_index, template_embed)
+    # Look for the existing mobile registration handler
+    pattern = r'def handle_mobile_registration_page\(headers: Dict\[str, Any\]\) -> Dict\[str, Any\]:.*?(?=\n\ndef|\Z)'
     
-    # Update the handler to use embedded template
-    final_code = '\n'.join(lines).replace(
-        "with open('mobile_registration_flow.html', 'r', encoding='utf-8') as f:\n            html_content = f.read()",
-        "html_content = MOBILE_REGISTRATION_HTML"
-    )
+    if re.search(pattern, app_code, re.DOTALL):
+        # Replace with secured version
+        app_code = re.sub(pattern, mobile_security_patch.strip(), app_code, flags=re.DOTALL)
+    else:
+        # If not found, append the handler
+        app_code += '\n\n' + mobile_security_patch
     
-    return final_code
+    return app_code
 
-def deploy_to_lambda():
-    """Deploy to production Lambda"""
+def deploy_to_production():
+    """Deploy restored production Lambda"""
     
     try:
-        # Create the restored code with mobile security fix
-        lambda_code = restore_production_lambda()
+        # Create the production Lambda code using existing templates
+        lambda_code = create_production_lambda_with_existing_templates()
         
-        # Create AWS client
+        # Create AWS Lambda client
         lambda_client = boto3.client('lambda', region_name='us-east-1')
         
         # Create ZIP package
@@ -136,9 +110,10 @@ def deploy_to_lambda():
             ZipFile=zip_data
         )
         
-        print(f"✅ Production restored with mobile security fix")
-        print(f"📦 Size: {len(zip_data)} bytes")
-        print(f"🔒 Mobile registration now requires App Store purchase")
+        print(f"✅ Production Lambda restored with existing templates")
+        print(f"📦 Package size: {len(zip_data)} bytes")
+        print(f"🔒 Mobile registration security added")
+        print(f"📋 All existing templates preserved")
         
         return True
         
@@ -146,37 +121,56 @@ def deploy_to_lambda():
         print(f"❌ Deployment failed: {str(e)}")
         return False
 
-def test_production():
-    """Test the restored production"""
+def test_restored_production():
+    """Test restored production endpoints"""
     
     import requests
     import time
     
     print("⏳ Testing restored production...")
-    time.sleep(3)
+    time.sleep(5)
     
-    # Test home page (should work)
-    try:
-        home_response = requests.get('https://www.ieltsaiprep.com/', timeout=10)
-        print(f"   Home page: {home_response.status_code}")
-    except Exception as e:
-        print(f"   Home page: Error - {str(e)}")
+    test_endpoints = [
+        ('/', 'Home page'),
+        ('/mobile-registration', 'Mobile registration (web access)'),
+        ('/login', 'Login page'),
+        ('/dashboard', 'Dashboard'),
+        ('/privacy-policy', 'Privacy policy'),
+        ('/terms-of-service', 'Terms of service'),
+        ('/robots.txt', 'Robots.txt'),
+        ('/api/health', 'Health check')
+    ]
     
-    # Test mobile registration (should be 403 for web)
+    for path, description in test_endpoints:
+        try:
+            response = requests.get(f'https://www.ieltsaiprep.com{path}', timeout=10)
+            status_emoji = "✅" if response.status_code == 200 else "❌" if response.status_code >= 400 else "⚠️"
+            print(f"   {status_emoji} {description}: {response.status_code}")
+        except Exception as e:
+            print(f"   ❌ {description}: {str(e)}")
+    
+    # Test mobile registration with mobile user agent
     try:
-        reg_response = requests.get('https://www.ieltsaiprep.com/mobile-registration', timeout=10)
-        print(f"   Mobile registration (web): {reg_response.status_code}")
+        mobile_response = requests.get(
+            'https://www.ieltsaiprep.com/mobile-registration',
+            headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Capacitor'},
+            timeout=10
+        )
+        status_emoji = "✅" if mobile_response.status_code == 200 else "❌"
+        print(f"   {status_emoji} Mobile registration (mobile app): {mobile_response.status_code}")
     except Exception as e:
-        print(f"   Mobile registration (web): Error - {str(e)}")
+        print(f"   ❌ Mobile registration (mobile app): {str(e)}")
 
 if __name__ == "__main__":
-    print("🔄 Restoring production Lambda with mobile security fix...")
+    print("🚀 Restoring production Lambda with existing templates...")
+    print("📋 Preserving: current_approved_template.html and all existing templates")
+    print("🔐 Adding: Mobile registration security for App Store/Google Play")
     
-    success = deploy_to_lambda()
+    success = deploy_to_production()
     
     if success:
-        print("✅ PRODUCTION RESTORED")
-        test_production()
-        print("📱 Original templates preserved, mobile security added")
+        print("✅ PRODUCTION RESTORED WITH EXISTING TEMPLATES")
+        test_restored_production()
+        print("📱 Mobile registration secured without template changes")
     else:
-        print("❌ RESTORE FAILED")
+        print("❌ RESTORATION FAILED")
