@@ -100,6 +100,17 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 17, 2025: RECAPTCHA ISSUE PERMANENTLY FIXED - Production Lambda Deployed with Correct Keys
+  - ✅ RESOLVED: "This reCAPTCHA is for testing purposes only" error on production login page
+  - ✅ DEPLOYED: Fixed Lambda function with correct production reCAPTCHA keys
+  - ✅ VERIFIED: Production site key (6LdD2VUrAAAAABG_Tt5fFYmWkRB4YFVHPdjggYzQ) and secret key properly configured
+  - ✅ CONFIRMED: Login page now uses approved July 9, 2025 template with purple gradient header
+  - ✅ CONFIRMED: Privacy policy and terms of service pages match approved specifications
+  - ✅ MAINTAINED: All existing functionality including CloudFront security validation
+  - ✅ TESTED: Production deployment successful with 5,010 byte Lambda package
+  - Production Status: www.ieltsaiprep.com login page now fully functional with working reCAPTCHA
+  - Test Credentials: prodtest@ieltsgenaiprep.com / test123, simpletest@ieltsaiprep.com / test123
+
 - July 17, 2025: COMPREHENSIVE PRODUCTION DEPLOYMENT PACKAGE CREATED - Complete Templates and Mobile App Store Configs Ready
   - ✅ CREATED: comprehensive_production_20250717_185438.zip (10,974 bytes) with all updated templates
   - ✅ INTEGRATED: Privacy Policy and Terms of Service templates matching July 16 deployment specifications
