@@ -1,0 +1,137 @@
+{
+  "app_info": {
+    "name": "IELTS GenAI Prep",
+    "package_name": "com.ieltsaiprep.app",
+    "version_name": "1.0.0",
+    "version_code": 1,
+    "category": "Education",
+    "content_rating": "Everyone",
+    "target_audience": "General"
+  },
+  "pricing": {
+    "app_price": "Free",
+    "in_app_products": [
+      {
+        "product_id": "academic_writing_assessment",
+        "title": "Academic Writing Assessment",
+        "description": "4 AI-graded Academic Writing assessments with detailed feedback",
+        "price": "$36.49",
+        "type": "managed_product"
+      },
+      {
+        "product_id": "general_writing_assessment",
+        "title": "General Writing Assessment",
+        "description": "4 AI-graded General Training Writing assessments with detailed feedback",
+        "price": "$36.49",
+        "type": "managed_product"
+      },
+      {
+        "product_id": "academic_speaking_assessment",
+        "title": "Academic Speaking Assessment",
+        "description": "4 AI-graded Academic Speaking assessments with Maya AI examiner",
+        "price": "$36.49",
+        "type": "managed_product"
+      },
+      {
+        "product_id": "general_speaking_assessment",
+        "title": "General Speaking Assessment",
+        "description": "4 AI-graded General Training Speaking assessments with Maya AI examiner",
+        "price": "$36.49",
+        "type": "managed_product"
+      }
+    ]
+  },
+  "store_listing": {
+    "short_description": "AI-powered IELTS assessment with official band-aligned feedback",
+    "full_description": "IELTS GenAI Prep is the only AI-powered IELTS assessment platform with official band-aligned feedback. Get instant, accurate scoring using TrueScore\u00ae writing assessment and ClearScore\u00ae speaking assessment with Maya AI examiner.\\n\\nKey Features:\\n\u2022 TrueScore\u00ae AI Writing Assessment with official IELTS rubric alignment\\n\u2022 ClearScore\u00ae AI Speaking Assessment with Maya AI examiner\\n\u2022 Cross-platform access - use on mobile and desktop\\n\u2022 Authentic feedback matching official IELTS marking criteria\\n\u2022 $36.49 USD for 4 comprehensive assessments per type\\n\\nPerfect for Academic and General Training IELTS preparation with AI technology that understands official band descriptors.",
+    "privacy_policy_url": "https://www.ieltsaiprep.com/privacy-policy",
+    "website": "https://www.ieltsaiprep.com"
+  },
+  "data_safety": {
+    "data_collected": {
+      "personal_info": {
+        "email_address": {
+          "collected": true,
+          "shared": false,
+          "optional": false
+        },
+        "name": {
+          "collected": false,
+          "shared": false,
+          "optional": true
+        }
+      },
+      "financial_info": {
+        "purchase_history": {
+          "collected": true,
+          "shared": false,
+          "optional": false
+        }
+      },
+      "health_fitness": {
+        "health_info": {
+          "collected": false,
+          "shared": false,
+          "optional": false
+        }
+      },
+      "messages": {
+        "other_user_communications": {
+          "collected": true,
+          "shared": false,
+          "optional": false
+        }
+      },
+      "audio": {
+        "voice_audio": {
+          "collected": true,
+          "shared": false,
+          "optional": false
+        }
+      },
+      "files_docs": {
+        "files_docs": {
+          "collected": true,
+          "shared": false,
+          "optional": false
+        }
+      }
+    },
+    "data_usage": {
+      "app_functionality": true,
+      "analytics": false,
+      "advertising": false,
+      "account_management": true
+    },
+    "security_practices": {
+      "encryption_in_transit": true,
+      "encryption_at_rest": true,
+      "data_deletion": true,
+      "user_controls": true
+    }
+  },
+  "content_rating": {
+    "questionnaire_responses": {
+      "violence": "None",
+      "sexual_content": "None",
+      "profanity": "None",
+      "substances": "None",
+      "gambling": "None",
+      "user_generated_content": "Yes - Educational content only",
+      "location_sharing": "No",
+      "personal_info_sharing": "No"
+    }
+  },
+  "technical_requirements": {
+    "min_sdk_version": 21,
+    "target_sdk_version": 34,
+    "permissions": [
+      "android.permission.INTERNET",
+      "android.permission.RECORD_AUDIO",
+      "com.android.vending.BILLING"
+    ],
+    "hardware_features": [
+      "android.hardware.microphone"
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "app_info": {
+    "name": "IELTS GenAI Prep",
+    "bundle_id": "com.ieltsaiprep.app",
+    "version": "1.0.0",
+    "build_number": "1",
+    "category": "Education",
+    "primary_category": "Education",
+    "secondary_category": "Reference"
+  },
+  "pricing": {
+    "app_price": "Free",
+    "in_app_purchases": [
+      {
+        "product_id": "academic_writing_assessment",
+        "reference_name": "Academic Writing Assessment",
+        "price_tier": "Tier 3",
+        "price_usd": 36.49,
+        "type": "consumable"
+      },
+      {
+        "product_id": "general_writing_assessment",
+        "reference_name": "General Writing Assessment",
+        "price_tier": "Tier 3",
+        "price_usd": 36.49,
+        "type": "consumable"
+      },
+      {
+        "product_id": "academic_speaking_assessment",
+        "reference_name": "Academic Speaking Assessment",
+        "price_tier": "Tier 3",
+        "price_usd": 36.49,
+        "type": "consumable"
+      },
+      {
+        "product_id": "general_speaking_assessment",
+        "reference_name": "General Speaking Assessment",
+        "price_tier": "Tier 3",
+        "price_usd": 36.49,
+        "type": "consumable"
+      }
+    ]
+  },
+  "metadata": {
+    "description": "IELTS GenAI Prep is the only AI-powered IELTS assessment platform with official band-aligned feedback. Get instant, accurate scoring using TrueScore\u00ae writing assessment and ClearScore\u00ae speaking assessment with Maya AI examiner. Perfect your IELTS skills with authentic AI feedback that matches official IELTS marking criteria.",
+    "keywords": "IELTS,test prep,AI assessment,English learning,speaking practice,writing feedback,band score,exam preparation",
+    "promotional_text": "Master IELTS with AI-powered scoring that matches official marking criteria. Get instant feedback on writing and speaking.",
+    "marketing_url": "https://www.ieltsaiprep.com",
+    "privacy_policy_url": "https://www.ieltsaiprep.com/privacy-policy",
+    "support_url": "https://www.ieltsaiprep.com/terms-of-service"
+  },
+  "app_review_info": {
+    "demo_account_required": true,
+    "demo_account_username": "prodtest@ieltsgenaiprep.com",
+    "demo_account_password": "test123",
+    "notes": "This app requires users to purchase assessments through in-app purchases. Demo account has pre-purchased access to all 4 assessment types. The app connects to www.ieltsaiprep.com for cross-platform access."
+  },
+  "capabilities": {
+    "in_app_purchase": true,
+    "network_extensions": false,
+    "push_notifications": false,
+    "background_processing": false,
+    "camera": false,
+    "microphone": true,
+    "location": false
+  },
+  "deployment_info": {
+    "minimum_os_version": "12.0",
+    "device_requirements": "iPhone, iPad",
+    "supported_languages": [
+      "English"
+    ],
+    "age_rating": "4+",
+    "content_rights": "Does Not Use Third-Party Content"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "appId": "com.ieltsaiprep.app",
+  "appName": "IELTS GenAI Prep",
+  "webDir": "dist",
+  "server": {
+    "url": "https://www.ieltsaiprep.com",
+    "cleartext": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#667eea",
+      "showSpinner": false
+    },
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#667eea"
+    }
+  },
+  "ios": {
+    "scheme": "IELTS GenAI Prep",
+    "webContentsDebuggingEnabled": false
+  },
+  "android": {
+    "allowMixedContent": true,
+    "webContentsDebuggingEnabled": false
+  }
+}
