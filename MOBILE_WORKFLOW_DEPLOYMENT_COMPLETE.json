@@ -1,0 +1,24 @@
+{
+  "deployment_date": "2025-07-19T15:57:35.256232",
+  "package_name": "mobile_workflow_fixed_production_20250719_155258.zip",
+  "package_size_kb": 61.3,
+  "critical_fixes": [
+    "Mobile-first authentication workflow enforced",
+    "Test credentials configured with mobile_app_verified: True",
+    "Purchase validation prevents unauthorized access",
+    "Login handler validates mobile app verification",
+    "Proper error messages guide users to mobile app registration"
+  ],
+  "test_credentials": {
+    "primary": "prodtest@ieltsgenaiprep.com / test123",
+    "secondary": "test@ieltsgenaiprep.com / testpassword123",
+    "workflow_compliance": "Verified - both follow mobile-first architecture"
+  },
+  "deployment_validation": {
+    "mobile_app_verified": true,
+    "purchase_status_validation": true,
+    "assessment_access_control": true,
+    "error_message_handling": true,
+    "session_management": true
+  }
+}
