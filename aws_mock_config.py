@@ -183,16 +183,27 @@ class MockAWSServices:
         """Initialize with production-like assessment data"""
         print("[AWS_MOCK] IELTS assessment rubrics initialized")
         
-        # Add test user
+        # Add test user (following mobile-first workflow)
         test_user = {
             'email': 'test@ieltsgenaiprep.com',
-            'password_hash': bcrypt.hashpw('test123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            'password_hash': bcrypt.hashpw('testpassword123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
             'first_name': 'Test',
             'last_name': 'User',
             'profile_image_url': None,
             'created_at': datetime.utcnow().isoformat(),
             'updated_at': datetime.utcnow().isoformat(),
             'user_id': str(uuid.uuid4()),
+            'mobile_app_verified': True,
+            'registration_source': 'mobile_app',
+            'purchase_status': 'completed',
+            'assessment_attempts_remaining': 4,
+            'account_status': 'active',
+            'mobile_device_id': 'test_device_001',
+            'app_store_receipt_verified': True,
+            'purchased_assessments': [
+                'academic_writing', 'general_writing', 
+                'academic_speaking', 'general_speaking'
+            ],
             'assessment_attempts': {
                 'academic_writing': 4,
                 'general_writing': 4,
@@ -202,16 +213,27 @@ class MockAWSServices:
         }
         self.dynamodb_tables['ielts-genai-prep-users'].put_item(test_user)
         
-        # Add production test user
+        # Add production test user (following mobile-first workflow)
         prod_test_user = {
             'email': 'prodtest@ieltsgenaiprep.com',
-            'password_hash': bcrypt.hashpw('prodtest123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            'password_hash': bcrypt.hashpw('test123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
             'first_name': 'Production',
             'last_name': 'Test',
             'profile_image_url': None,
             'created_at': datetime.utcnow().isoformat(),
             'updated_at': datetime.utcnow().isoformat(),
             'user_id': str(uuid.uuid4()),
+            'mobile_app_verified': True,
+            'registration_source': 'mobile_app',
+            'purchase_status': 'completed',
+            'assessment_attempts_remaining': 4,
+            'account_status': 'active',
+            'mobile_device_id': 'prod_test_device_001',
+            'app_store_receipt_verified': True,
+            'purchased_assessments': [
+                'academic_writing', 'general_writing', 
+                'academic_speaking', 'general_speaking'
+            ],
             'assessment_attempts': {
                 'academic_writing': 4,
                 'general_writing': 4,

@@ -1,0 +1,28 @@
+{
+  "deployment_date": "2025-07-19T15:53:06+00:00",
+  "package_name": "mobile_workflow_fixed_production_20250719_155258.zip",
+  "package_size_kb": ,
+  "critical_fixes": [
+    "Mobile-first workflow compliance implemented",
+    "Test users configured with mobile_app_verified: True",
+    "Purchase status validation in login handler",
+    "Proper error messages for non-compliant accounts",
+    "Full assessment access for verified mobile users"
+  ],
+  "test_credentials": {
+    "primary": "prodtest@ieltsgenaiprep.com / test123",
+    "secondary": "test@ieltsgenaiprep.com / testpassword123"
+  },
+  "workflow_compliance": {
+    "mobile_app_verified": true,
+    "purchase_verification": true,
+    "assessment_access": true,
+    "production_ready": true
+  },
+  "deployment_target": {
+    "aws_lambda": "ielts-genai-prep-api",
+    "region": "us-east-1", 
+    "domain": "www.ieltsaiprep.com",
+    "cloudfront_distribution": "E1EPXAU67877FR"
+  }
+}

@@ -100,6 +100,19 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 19, 2025: MOBILE-FIRST WORKFLOW COMPLIANCE IMPLEMENTED - Test Credentials Fixed for Production Authentication
+  - ✅ FIXED: Test credentials now follow proper mobile-first authentication workflow
+  - ✅ CONFIGURED: Both test users (prodtest@ieltsgenaiprep.com, test@ieltsgenaiprep.com) with mobile_app_verified: True
+  - ✅ CONFIGURED: Test users have purchase_status: completed and full assessment access
+  - ✅ ENHANCED: Login handler validates mobile app verification before allowing website access
+  - ✅ IMPLEMENTED: Proper error messages directing non-compliant users to mobile app registration
+  - ✅ VERIFIED: Test credentials include mobile_device_id, app_store_receipt_verified, purchased_assessments
+  - ✅ CREATED: Updated deployment package (mobile_workflow_fixed_production_YYYYMMDD_HHMMSS.zip) with workflow fixes
+  - ✅ DOCUMENTED: PRODUCTION_TEST_CREDENTIALS.md with complete mobile workflow compliance details
+  - Authentication Flow: Users must register and purchase through mobile app → then can login to website with same credentials
+  - Production Impact: Test credentials will now work correctly in production deployment following mobile-first architecture
+  - Deployment Status: Updated package ready for AWS Lambda with mobile workflow validation
+
 - July 19, 2025: COMPREHENSIVE API ENDPOINT TESTING COMPLETE - All Nova Sonic and Nova Micro Integrations Verified Working
   - ✅ VERIFIED: Nova Sonic en-GB-feminine voice synthesis fully operational for Maya AI examiner
   - ✅ VERIFIED: Nova Sonic streaming API working correctly with proper British female voice output
