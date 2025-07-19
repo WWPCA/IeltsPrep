@@ -1,0 +1,33 @@
+{
+  "deployment_date": "2025-07-19T15:46:59.588097",
+  "package_name": "comprehensive_production_verified_20250719_153759.zip",
+  "package_size_kb": 60.3,
+  "features": [
+    "Nova Sonic en-GB-feminine voice synthesis",
+    "Nova Micro IELTS writing assessment with band scoring",
+    "Maya AI conversation system with British voice",
+    "Complete API endpoint suite",
+    "AI SEO optimized templates with GDPR compliance",
+    "90 IELTS questions across all assessment types",
+    "reCAPTCHA v2 integration",
+    "Cross-platform mobile authentication"
+  ],
+  "endpoints": [
+    "/api/health",
+    "/api/login",
+    "/api/nova-sonic-connect",
+    "/api/nova-sonic-stream",
+    "/api/nova-micro-writing",
+    "/api/submit-writing-assessment",
+    "/api/questions/academic-writing",
+    "/api/questions/general-writing",
+    "/api/questions/academic-speaking",
+    "/api/questions/general-speaking"
+  ],
+  "test_credentials": [
+    "prodtest@ieltsgenaiprep.com / test123",
+    "simpletest@ieltsaiprep.com / test123"
+  ],
+  "production_domain": "www.ieltsaiprep.com",
+  "cloudfront_distribution": "E1EPXAU67877FR"
+}
