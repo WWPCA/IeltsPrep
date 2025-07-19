@@ -98,9 +98,7 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - **Flask Compatibility Layer**: Maintains existing template compatibility
 - **Environment Switching**: Seamless transition between local and serverless modes
 
-## Recent Changes
 
-- July 19, 2025: MOBILE-FIRST WORKFLOW COMPLIANCE IMPLEMENTED - Test Credentials Fixed for Production Authentication
   - ✅ FIXED: Test credentials now follow proper mobile-first authentication workflow
   - ✅ CONFIGURED: Both test users (prodtest@ieltsgenaiprep.com, test@ieltsgenaiprep.com) with mobile_app_verified: True
   - ✅ CONFIGURED: Test users have purchase_status: completed and full assessment access

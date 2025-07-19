@@ -1,76 +1,179 @@
 {
-  "app_info": {
-    "name": "IELTS GenAI Prep",
+  "app_store_metadata": {
+    "app_name": "IELTS GenAI Prep",
+    "subtitle": "AI-Powered IELTS Assessment Platform",
+    "promotional_text": "Master IELTS with the world's only AI-powered assessment platform featuring TrueScore® and ClearScore® technologies.",
+    "description": "Transform your IELTS preparation with IELTS GenAI Prep, the revolutionary AI-powered assessment platform that provides authentic, standardized scoring for Writing and Speaking modules.\n\n✨ FEATURES:\n• TrueScore® AI Writing Assessment with official IELTS band descriptors\n• ClearScore® AI Speaking Assessment with Maya AI examiner\n• Cross-platform access: Complete assessments on mobile or desktop\n• Instant feedback with detailed improvement recommendations\n• British female AI examiner for authentic IELTS speaking experience\n\n🎯 ASSESSMENT TYPES:\n• Academic Writing Task 2 Essays\n• General Training Writing Task 1 & 2\n• Academic Speaking (3-part structure)\n• General Training Speaking Assessment\n\n🚀 HOW IT WORKS:\n1. Purchase assessments in mobile app ($36.49 USD each)\n2. Complete assessments directly in app OR login to website\n3. Receive instant AI-powered feedback with band scores\n4. Track progress and improvement over time\n\n📱 CROSS-PLATFORM EXPERIENCE:\nStart on mobile, continue on desktop. Your progress syncs automatically between devices for maximum flexibility.\n\n🔒 PRIVACY & SECURITY:\nYour data is protected with enterprise-grade security. Voice recordings are processed for assessment only and never stored.\n\nDownload now and experience the future of IELTS preparation with AI technology that understands your unique learning needs.",
+    "keywords": "IELTS,AI assessment,speaking,writing,test prep,Maya AI,TrueScore,ClearScore,English test,language learning,IELTS preparation,AI tutor,band score,academic writing,general training",
+    "primary_category": "Education",
+    "secondary_category": "Reference",
+    "age_rating": "4+",
+    "content_description": "Educational content for IELTS test preparation with AI-powered assessment tools"
+  },
+  "in_app_purchases": [
+    {
+      "product_id": "com.ieltsaiprep.academic_writing",
+      "reference_name": "Academic Writing Assessment",
+      "type": "Non-Consumable",
+      "price_tier": "Tier 36",
+      "price_usd": "$36.49",
+      "display_name": "Academic Writing Assessment",
+      "description": "TrueScore® AI-powered Academic Writing assessment with instant band scoring and detailed feedback following official IELTS rubrics."
+    },
+    {
+      "product_id": "com.ieltsaiprep.general_writing", 
+      "reference_name": "General Writing Assessment",
+      "type": "Non-Consumable",
+      "price_tier": "Tier 36",
+      "price_usd": "$36.49",
+      "display_name": "General Writing Assessment",
+      "description": "TrueScore® AI-powered General Training Writing assessment for Task 1 letters and Task 2 essays with comprehensive feedback."
+    },
+    {
+      "product_id": "com.ieltsaiprep.academic_speaking",
+      "reference_name": "Academic Speaking Assessment", 
+      "type": "Non-Consumable",
+      "price_tier": "Tier 36",
+      "price_usd": "$36.49",
+      "display_name": "Academic Speaking Assessment",
+      "description": "ClearScore® AI-powered Academic Speaking assessment with Maya AI examiner featuring authentic British voice and 3-part IELTS structure."
+    },
+    {
+      "product_id": "com.ieltsaiprep.general_speaking",
+      "reference_name": "General Speaking Assessment",
+      "type": "Non-Consumable", 
+      "price_tier": "Tier 36",
+      "price_usd": "$36.49",
+      "display_name": "General Speaking Assessment",
+      "description": "ClearScore® AI-powered General Training Speaking assessment with Maya AI examiner and real-time conversation analysis."
+    }
+  ],
+  "app_privacy": {
+    "data_collected": {
+      "contact_info": {
+        "email_address": {
+          "collected": true,
+          "linked_to_user": true,
+          "used_for_tracking": false,
+          "purposes": ["App Functionality", "Developer Communications"]
+        }
+      },
+      "user_content": {
+        "audio_data": {
+          "collected": true,
+          "linked_to_user": false,
+          "used_for_tracking": false, 
+          "purposes": ["App Functionality"],
+          "description": "Voice recordings processed for speaking assessment only, not stored permanently"
+        },
+        "other_user_content": {
+          "collected": true,
+          "linked_to_user": true,
+          "used_for_tracking": false,
+          "purposes": ["App Functionality"],
+          "description": "Writing samples for assessment and feedback"
+        }
+      },
+      "usage_data": {
+        "product_interaction": {
+          "collected": true,
+          "linked_to_user": false,
+          "used_for_tracking": false,
+          "purposes": ["Analytics", "App Functionality"]
+        }
+      },
+      "diagnostics": {
+        "crash_data": {
+          "collected": true,
+          "linked_to_user": false,
+          "used_for_tracking": false,
+          "purposes": ["App Functionality"]
+        },
+        "performance_data": {
+          "collected": true,
+          "linked_to_user": false,
+          "used_for_tracking": false,
+          "purposes": ["App Functionality"]
+        }
+      }
+    },
+    "data_not_collected": [
+      "Name",
+      "Phone Number", 
+      "Physical Address",
+      "Payment Info (handled by Apple)",
+      "Photos",
+      "Videos",
+      "Browsing History",
+      "Search History",
+      "Identifiers for Advertising",
+      "Precise Location",
+      "Coarse Location",
+      "Sensitive Info",
+      "Financial Info",
+      "Health & Fitness",
+      "Contacts",
+      "Messages"
+    ]
+  },
+  "app_review_information": {
+    "contact_info": {
+      "first_name": "IELTS",
+      "last_name": "GenAI Support",
+      "phone": "+1-555-IELTS-AI",
+      "email": "appstore@ieltsaiprep.com"
+    },
+    "demo_account": {
+      "required": true,
+      "username": "appstore_reviewer@ieltsaiprep.com",
+      "password": "AppStore2025!",
+      "instructions": "This demo account has full access to all assessment types. Test the mobile-first workflow: 1) Create account in mobile app, 2) Purchase assessment, 3) Login to website www.ieltsaiprep.com with same credentials for desktop access."
+    },
+    "notes": "This app implements a mobile-first authentication workflow where users must register and purchase through the mobile app first, then can optionally login to the website www.ieltsaiprep.com using the same credentials for desktop/laptop access. All in-app purchases are handled through Apple's billing system at $36.49 USD per assessment type.",
+    "version_details": {
+      "whats_new": "Initial release featuring AI-powered IELTS assessment with TrueScore® Writing and ClearScore® Speaking technologies. Cross-platform mobile and web access with Maya AI examiner."
+    }
+  },
+  "build_configuration": {
     "bundle_id": "com.ieltsaiprep.app",
     "version": "1.0.0",
     "build_number": "1",
-    "category": "Education",
-    "primary_category": "Education",
-    "secondary_category": "Reference"
-  },
-  "pricing": {
-    "app_price": "Free",
-    "in_app_purchases": [
-      {
-        "product_id": "academic_writing_assessment",
-        "reference_name": "Academic Writing Assessment",
-        "price_tier": "Tier 3",
-        "price_usd": 36.49,
-        "type": "consumable"
-      },
-      {
-        "product_id": "general_writing_assessment",
-        "reference_name": "General Writing Assessment",
-        "price_tier": "Tier 3",
-        "price_usd": 36.49,
-        "type": "consumable"
-      },
-      {
-        "product_id": "academic_speaking_assessment",
-        "reference_name": "Academic Speaking Assessment",
-        "price_tier": "Tier 3",
-        "price_usd": 36.49,
-        "type": "consumable"
-      },
-      {
-        "product_id": "general_speaking_assessment",
-        "reference_name": "General Speaking Assessment",
-        "price_tier": "Tier 3",
-        "price_usd": 36.49,
-        "type": "consumable"
-      }
-    ]
-  },
-  "metadata": {
-    "description": "IELTS GenAI Prep is the only AI-powered IELTS assessment platform with official band-aligned feedback. Get instant, accurate scoring using TrueScore\u00ae writing assessment and ClearScore\u00ae speaking assessment with Maya AI examiner. Perfect your IELTS skills with authentic AI feedback that matches official IELTS marking criteria.",
-    "keywords": "IELTS,test prep,AI assessment,English learning,speaking practice,writing feedback,band score,exam preparation",
-    "promotional_text": "Master IELTS with AI-powered scoring that matches official marking criteria. Get instant feedback on writing and speaking.",
-    "marketing_url": "https://www.ieltsaiprep.com",
-    "privacy_policy_url": "https://www.ieltsaiprep.com/privacy-policy",
-    "support_url": "https://www.ieltsaiprep.com/terms-of-service"
-  },
-  "app_review_info": {
-    "demo_account_required": true,
-    "demo_account_username": "prodtest@ieltsgenaiprep.com",
-    "demo_account_password": "test123",
-    "notes": "This app requires users to purchase assessments through in-app purchases. Demo account has pre-purchased access to all 4 assessment types. The app connects to www.ieltsaiprep.com for cross-platform access."
-  },
-  "capabilities": {
-    "in_app_purchase": true,
-    "network_extensions": false,
-    "push_notifications": false,
-    "background_processing": false,
-    "camera": false,
-    "microphone": true,
-    "location": false
-  },
-  "deployment_info": {
-    "minimum_os_version": "12.0",
-    "device_requirements": "iPhone, iPad",
-    "supported_languages": [
-      "English"
+    "deployment_target": "13.0",
+    "supported_devices": ["iPhone", "iPad"],
+    "supported_orientations": ["Portrait", "Landscape"],
+    "capabilities": [
+      "In-App Purchase",
+      "Audio Recording",
+      "Internet Access",
+      "Push Notifications"
     ],
-    "age_rating": "4+",
-    "content_rights": "Does Not Use Third-Party Content"
+    "privacy_permissions": {
+      "microphone": "Required for speaking assessment with Maya AI examiner",
+      "internet": "Required for AI assessment processing and cross-platform sync"
+    }
+  },
+  "testing_information": {
+    "testflight_groups": [
+      {
+        "name": "Internal Testing",
+        "type": "Internal",
+        "max_testers": 25,
+        "description": "Development team testing of mobile-first workflow and in-app purchases"
+      },
+      {
+        "name": "Beta Testing",
+        "type": "External", 
+        "max_testers": 100,
+        "description": "Public beta testing of AI assessment functionality and cross-platform features"
+      }
+    ],
+    "test_scenarios": [
+      "Mobile app account creation and authentication",
+      "In-app purchase flow for all 4 assessment types",
+      "Speaking assessment with Maya AI examiner",
+      "Writing assessment with TrueScore® feedback",
+      "Cross-platform login to www.ieltsaiprep.com",
+      "Assessment completion and progress tracking"
+    ]
   }
 }
