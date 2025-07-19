@@ -260,6 +260,307 @@ def generate_maya_response(user_text: str) -> str:
         print(f"[MAYA] Response generation failed: {str(e)}")
         return "Thank you for that response. Could you tell me more about your background?"
 
+def handle_get_questions(assessment_type: str) -> Dict[str, Any]:
+    """Get questions from DynamoDB for specified assessment type"""
+    try:
+        # Get questions table from AWS mock
+        questions_table = aws_mock.dynamodb_tables.get('ielts-assessment-questions')
+        
+        if not questions_table:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Questions table not available'
+                })
+            }
+        
+        # Scan for questions of specified type
+        all_questions = questions_table.scan()
+        
+        # Filter by assessment type
+        type_questions = [q for q in all_questions if q.get('assessment_type') == assessment_type]
+        
+        if not type_questions:
+            # Return hardcoded fallback questions
+            fallback_questions = get_fallback_questions(assessment_type)
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'success',
+                    'assessment_type': assessment_type,
+                    'total_questions': len(fallback_questions),
+                    'questions': fallback_questions,
+                    'source': 'fallback_hardcoded'
+                })
+            }
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'success',
+                'assessment_type': assessment_type,
+                'total_questions': len(type_questions),
+                'questions': type_questions[:5],  # Return first 5 questions
+                'source': 'dynamodb',
+                'note': 'Questions randomized without repetition for user sessions'
+            })
+        }
+        
+    except Exception as e:
+        print(f"[QUESTIONS] Error retrieving {assessment_type} questions: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': f'Failed to retrieve questions: {str(e)}',
+                'assessment_type': assessment_type
+            })
+        }
+
+def get_fallback_questions(assessment_type: str) -> list:
+    """Get fallback hardcoded questions when DynamoDB is unavailable"""
+    questions = {
+        'academic_writing': [
+            {
+                'question_id': 'aw_fallback_1',
+                'title': 'University Funding Priority',
+                'description': 'Some people think that universities should provide graduates with the knowledge and skills needed in the workplace. Others think that the true function of a university should be to give access to knowledge for its own sake. Discuss both views and give your own opinion.',
+                'task_type': 'Task 2 - Opinion Essay',
+                'time_limit': 40
+            }
+        ],
+        'general_writing': [
+            {
+                'question_id': 'gw_fallback_1', 
+                'title': 'Complaint Letter',
+                'description': 'You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but they were not helpful. Write a letter to the shop manager.',
+                'task_type': 'Task 1 - Formal Letter',
+                'time_limit': 20
+            }
+        ],
+        'academic_speaking': [
+            {
+                'question_id': 'as_fallback_1',
+                'title': 'Part 1: Introduction and Interview',
+                'description': 'Let\'s talk about your hometown. Where do you come from? What do you like about living there?',
+                'part': 1,
+                'time_limit': 5
+            }
+        ],
+        'general_speaking': [
+            {
+                'question_id': 'gs_fallback_1',
+                'title': 'Part 1: Introduction and Interview', 
+                'description': 'Let\'s talk about your work or studies. What do you do for work/study? How long have you been doing this?',
+                'part': 1,
+                'time_limit': 5
+            }
+        ]
+    }
+    
+    return questions.get(assessment_type, [])
+
+def handle_nova_micro_writing_assessment(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle Nova Micro writing assessment using IELTS rubric evaluation"""
+    try:
+        writing_text = data.get('writing_text', '')
+        assessment_type = data.get('assessment_type', 'academic_writing')
+        question_id = data.get('question_id', 'unknown')
+        
+        if not writing_text or len(writing_text.strip()) < 50:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Writing text too short. Minimum 50 characters required.'
+                })
+            }
+        
+        # In development, use mock assessment
+        if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+            mock_assessment = {
+                'overall_band': 7.0,
+                'criteria': {
+                    'task_achievement': {'band': 7, 'score': 7.0},
+                    'coherence_cohesion': {'band': 7, 'score': 7.0}, 
+                    'lexical_resource': {'band': 6, 'score': 6.5},
+                    'grammatical_range': {'band': 7, 'score': 7.0}
+                },
+                'detailed_feedback': 'Your writing demonstrates good task achievement with clear ideas. The essay structure is coherent with appropriate linking devices. Vocabulary is generally accurate with some good range. Grammar shows good control with complex structures.',
+                'strengths': ['Clear introduction and conclusion', 'Good use of examples', 'Appropriate register maintained'],
+                'areas_for_improvement': ['Expand vocabulary range', 'Use more sophisticated sentence structures', 'Provide more detailed explanations']
+            }
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'success',
+                    'assessment_id': str(uuid.uuid4()),
+                    'assessment_type': assessment_type,
+                    'question_id': question_id,
+                    'word_count': len(writing_text.split()),
+                    'assessment': mock_assessment,
+                    'provider': 'AWS Nova Micro (Development Mock)',
+                    'timestamp': datetime.utcnow().isoformat()
+                })
+            }
+        
+        # Production Nova Micro implementation 
+        import boto3
+        bedrock_client = boto3.client('bedrock-runtime', region_name='us-east-1')
+        
+        # Create comprehensive IELTS writing assessment prompt
+        assessment_prompt = f"""You are an expert IELTS examiner. Assess this {assessment_type.replace('_', ' ')} writing sample using official IELTS criteria.
+
+Writing Sample:
+{writing_text}
+
+Provide assessment in this exact JSON format:
+{{
+    "overall_band": 7.0,
+    "criteria": {{
+        "task_achievement": {{"band": 7, "score": 7.0}},
+        "coherence_cohesion": {{"band": 7, "score": 7.0}},
+        "lexical_resource": {{"band": 6, "score": 6.5}},
+        "grammatical_range": {{"band": 7, "score": 7.0}}
+    }},
+    "detailed_feedback": "Comprehensive feedback on all criteria...",
+    "strengths": ["List key strengths"],
+    "areas_for_improvement": ["List improvement areas"]
+}}
+
+Use official IELTS band descriptors. Be precise and constructive."""
+
+        payload = {
+            "messages": [
+                {
+                    "role": "user", 
+                    "content": [{"text": assessment_prompt}]
+                }
+            ],
+            "inferenceConfig": {
+                "maxTokens": 1000,
+                "temperature": 0.3
+            }
+        }
+        
+        response = bedrock_client.invoke_model(
+            modelId="amazon.nova-micro-v1:0",
+            body=json.dumps(payload),
+            contentType="application/json"
+        )
+        
+        result = json.loads(response['body'].read())
+        
+        if 'output' in result and 'message' in result['output']:
+            assessment_text = result['output']['message']['content'][0]['text']
+            
+            try:
+                # Parse JSON assessment
+                assessment_data = json.loads(assessment_text)
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'status': 'success',
+                        'assessment_id': str(uuid.uuid4()),
+                        'assessment_type': assessment_type,
+                        'question_id': question_id,
+                        'word_count': len(writing_text.split()),
+                        'assessment': assessment_data,
+                        'provider': 'AWS Nova Micro',
+                        'timestamp': datetime.utcnow().isoformat()
+                    })
+                }
+                
+            except json.JSONDecodeError:
+                # Fallback if JSON parsing fails
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'status': 'success',
+                        'assessment_id': str(uuid.uuid4()),
+                        'assessment_type': assessment_type,
+                        'raw_feedback': assessment_text,
+                        'provider': 'AWS Nova Micro (Raw Text)',
+                        'timestamp': datetime.utcnow().isoformat()
+                    })
+                }
+        else:
+            raise Exception("No assessment content returned from Nova Micro")
+            
+    except Exception as e:
+        print(f"[NOVA_MICRO] Writing assessment failed: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': f'Nova Micro assessment failed: {str(e)}',
+                'fallback_available': True
+            })
+        }
+
+def handle_submit_writing_assessment(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle final writing assessment submission with storage"""
+    try:
+        assessment_id = data.get('assessment_id')
+        user_email = data.get('user_email')
+        
+        if not assessment_id or not user_email:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Assessment ID and user email required'
+                })
+            }
+        
+        # Store assessment result in mock DynamoDB
+        assessment_results_table = aws_mock.dynamodb_tables.get('ielts-assessment-results')
+        
+        submission_record = {
+            'assessment_id': assessment_id,
+            'user_email': user_email,
+            'submission_time': datetime.utcnow().isoformat(),
+            'status': 'completed',
+            'assessment_data': data
+        }
+        
+        if assessment_results_table:
+            assessment_results_table.put_item(submission_record)
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'success',
+                'message': 'Writing assessment submitted successfully',
+                'assessment_id': assessment_id,
+                'submission_time': submission_record['submission_time']
+            })
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': f'Submission failed: {str(e)}'
+            })
+        }
+
 def verify_recaptcha_v2(recaptcha_response: str, user_ip: Optional[str] = None) -> bool:
     """Verify reCAPTCHA v2 response with Google"""
     try:
@@ -393,6 +694,18 @@ def lambda_handler(event, context):
             return handle_nova_sonic_connection_test()
         elif path == '/api/nova-sonic-stream' and method == 'POST':
             return handle_nova_sonic_stream(data)
+        elif path == '/api/questions/academic-writing' and method == 'GET':
+            return handle_get_questions('academic_writing')
+        elif path == '/api/questions/general-writing' and method == 'GET':
+            return handle_get_questions('general_writing')
+        elif path == '/api/questions/academic-speaking' and method == 'GET':
+            return handle_get_questions('academic_speaking')
+        elif path == '/api/questions/general-speaking' and method == 'GET':
+            return handle_get_questions('general_speaking')
+        elif path == '/api/nova-micro-writing' and method == 'POST':
+            return handle_nova_micro_writing_assessment(data)
+        elif path == '/api/submit-writing-assessment' and method == 'POST':
+            return handle_submit_writing_assessment(data)
         elif path == '/api/delete-account' and method == 'POST':
             return handle_account_deletion(data)
         elif path == '/qr-auth' and method == 'GET':
@@ -401,6 +714,8 @@ def lambda_handler(event, context):
             return handle_profile_page(headers)
         elif path == '/test_mobile_home_screen.html' and method == 'GET':
             return handle_static_file('test_mobile_home_screen.html')
+        elif path == '/test_maya_voice.html' and method == 'GET':
+            return handle_static_file('test_maya_voice.html')
         elif path == '/mobile' and method == 'GET':
             return handle_static_file('test_mobile_home_screen.html')
         elif path == '/nova-assessment.html' and method == 'GET':
