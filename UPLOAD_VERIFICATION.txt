@@ -1,0 +1,18 @@
+
+Production File Checksums:
+=========================
+6b6655c17c3f56c3e683241318580862026f61c41c715ac37de88d7f60c7bd4b  app.py
+20acd13afb9573b76bd5110557ee294f467f55f7f60332f393665e3bb981b095  aws_mock_config.py
+41346b76fce6dde3e23a486f7f72f933591accbe44f5c4630fa03877b28f5f22  main.py
+5cfa70261e274f665df2204ab300b5d699adc11491d43e69a1b7f186fe1afcc8  working_template_backup_20250714_192410.html
+21dfb4c21b4b825fa83ea2e0e2d5fa4e9f2d9f0c5c9bb281d1d73a15fde25cb4  test_maya_voice.html
+14c8d29434153f49324a6214dcf622f8000d3d7c7ec4fadd6fba91999e3ff675  comprehensive_production_verified_20250719_153759.zip
+
+Deployment Package Details:
+=========================
+-rw-r--r-- 1 runner runner 61712 Jul 19 15:37 comprehensive_production_verified_20250719_153759.zip
+
+API Endpoint Status:
+===================
+HTTP/1.1 404 OK
+HTTP/1.1 404 OK
