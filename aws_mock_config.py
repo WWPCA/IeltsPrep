@@ -7,6 +7,7 @@ import os
 import json
 import time
 import uuid
+import random
 import bcrypt
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
@@ -687,7 +688,6 @@ class AWSMockServices:
             available_questions = question_bank
         
         # Return random question from available pool
-        import random
         return random.choice(available_questions) if available_questions else None
 
     def _get_question_bank(self, assessment_type: str) -> List[Dict[str, Any]]:
@@ -1200,6 +1200,25 @@ class AWSMockServices:
         bank = question_banks.get(assessment_type, [])
         print(f"[COMPREHENSIVE] Loaded {len(bank)} questions for {assessment_type} - Full Migration Complete")
         return bank
+
+    def mark_question_as_used(self, user_email: str, assessment_type: str, question_id: str) -> bool:
+        """Mark question as used by user to prevent repetition"""
+        user = self.users_table.get_item(user_email)
+        if not user:
+            return False
+        
+        if 'completed_assessments' not in user:
+            user['completed_assessments'] = []
+        
+        # Add this assessment to completed list
+        assessment_record = {
+            'question_id': question_id,
+            'assessment_type': assessment_type,
+            'completed_at': datetime.utcnow().isoformat()
+        }
+        
+        user['completed_assessments'].append(assessment_record)
+        return self.users_table.put_item(user)
 
     def record_completed_assessment(self, user_email: str, assessment_type: str, question_id: str, result_data: Dict[str, Any]) -> bool:
         """Record completed assessment and use attempt"""
