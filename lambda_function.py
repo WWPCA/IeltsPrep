@@ -1099,7 +1099,7 @@ LOGIN_TEMPLATE = """<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <a href="{{ url_for('index') }}" class="home-button">
+    <a href="/" class="home-button">
         <i class="fas fa-home"></i>
     </a>
     
@@ -1124,7 +1124,7 @@ LOGIN_TEMPLATE = """<!DOCTYPE html>
                 <p class="mt-3 mb-0"><small>One account works on both mobile app and website!</small></p>
             </div>
             
-            <form method="POST" action="{{ url_for('login') }}">
+            <form method="POST" action="/login">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email Address</label>
                     <input type="email" class="form-control" id="email" name="email" required>
@@ -1149,8 +1149,8 @@ LOGIN_TEMPLATE = """<!DOCTYPE html>
             </form>
             
             <div class="footer-links">
-                <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
-                <a href="{{ url_for('terms_of_service') }}">Terms of Service</a>
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms-of-service">Terms of Service</a>
             </div>
         </div>
     </div>
@@ -1237,7 +1237,7 @@ PRIVACY_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div class="container">
-            <a href="{{ url_for('index') }}" class="back-button">
+            <a href="/" class="back-button">
                 <i class="fas fa-arrow-left"></i> Back to Home
             </a>
             <h1>Privacy Policy</h1>
@@ -1392,7 +1392,7 @@ TERMS_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div class="container">
-            <a href="{{ url_for('index') }}" class="back-button">
+            <a href="/" class="back-button">
                 <i class="fas fa-arrow-left"></i> Back to Home
             </a>
             <h1>Terms of Service</h1>
