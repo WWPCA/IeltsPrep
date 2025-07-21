@@ -384,7 +384,7 @@ HOME_TEMPLATE = """<!DOCTYPE html>
                     </h1>
                     
                     <p class="h4 mb-4" style="font-size: 1.3rem; line-height: 1.4; font-weight: 500; color: rgba(255,255,255,0.95); margin-bottom: 2rem;">
-                        IELTS GenAI Prep is the only AI-based IELTS preparation platform offering instant band-aligned feedback on Writing and Speaking. Powered by TrueScore® and ClearScore®, we replicate official examiner standards using GenAI technology.
+                        Powered by TrueScore® and ClearScore®, we replicate official examiner standards using GenAI technology.
                     </p>
                     
                     <!-- Benefits with icons -->
