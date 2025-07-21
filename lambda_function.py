@@ -1855,6 +1855,42 @@ Disallow: /
 Sitemap: https://www.ieltsaiprep.com/sitemap.xml"""
     }
 
+def serve_home_page():
+    """Serve the main home page"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': HOME_TEMPLATE
+    }
+
+def serve_login_page():
+    """Serve the login page"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': LOGIN_TEMPLATE
+    }
+
+def serve_privacy_policy():
+    """Serve the privacy policy page"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': PRIVACY_TEMPLATE
+    }
+
+def serve_terms_of_service():
+    """Serve the terms of service page"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': TERMS_TEMPLATE
+    }
+
+def serve_robots_txt():
+    """Serve robots.txt file"""
+    return ROBOTS_TXT_CONTENT
+
 def handle_health_check():
     """Health check with mobile verification status"""
     return {
@@ -1878,3 +1914,51 @@ def handle_health_check():
             ]
         })
     }
+
+def lambda_handler(event, context):
+    """Main AWS Lambda handler function"""
+    try:
+        # Validate CloudFront secret header
+        headers = event.get('headers', {})
+        cf_secret = headers.get('CF-Secret-3140348d')
+        
+        if cf_secret != 'valid':
+            return {
+                'statusCode': 403,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Forbidden'})
+            }
+        
+        # Get request details
+        path = event.get('path', '/')
+        method = event.get('httpMethod', 'GET')
+        
+        # Route requests
+        if path == '/':
+            return serve_home_page()
+        elif path == '/login':
+            return serve_login_page()
+        elif path == '/privacy-policy':
+            return serve_privacy_policy()
+        elif path == '/terms-of-service':
+            return serve_terms_of_service()
+        elif path == '/robots.txt':
+            return serve_robots_txt()
+        elif path == '/api/health':
+            return handle_health_check()
+        else:
+            return {
+                'statusCode': 404,
+                'headers': {'Content-Type': 'text/html'},
+                'body': '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>The requested page was not found.</p></body></html>'
+            }
+            
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'error': 'Internal server error',
+                'message': str(e)
+            })
+        }
