@@ -28,6 +28,9 @@ HOME_TEMPLATE = """<!DOCTYPE html>
     <meta name="twitter:description" content="The only AI-powered IELTS assessment platform with standardized band scoring using TrueScore® and ClearScore® technologies.">
     <title>IELTS GenAI Prep - AI-Powered IELTS Assessment Platform</title>
     
+    <!-- Favicon for Google search results -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23007bff'/><text x='50' y='60' text-anchor='middle' fill='white' font-family='Arial' font-size='35' font-weight='bold'>I</text></svg>">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
