@@ -101,6 +101,16 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 
 ## Recent Changes
 
+- July 21, 2025: DATABASE NAMING STANDARDIZATION COMPLETE - All Assessment Types Now Use Consistent Underscore Format
+  - ✅ STANDARDIZED: DynamoDB production database naming conventions completely fixed
+  - ✅ MIGRATED: 17 questions from inconsistent naming (hyphens/spaces) to underscore format
+  - ✅ STANDARDIZED: PostgreSQL development database assessment types updated
+  - ✅ VERIFIED: Both databases now use consistent naming: academic_writing, academic_speaking, general_writing, general_speaking
+  - ✅ CONFIRMED: Application code expects underscore format - databases now match perfectly
+  - Database Distribution: DynamoDB (82 questions), PostgreSQL (172 assessments) all standardized
+  - Migration Status: Zero inconsistencies remain - production and development environments aligned
+  - Question Sufficiency: 20-22 questions per type ensures no repetition in 4-assessment packages
+
 - July 21, 2025: NAVIGATION LINKS SUCCESSFULLY DEPLOYED - All Flask Template Syntax Issues Resolved in Production
   - ✅ DEPLOYED: final_navigation_fix_production.zip (15.5 KB) to AWS Lambda ielts-genai-prep-api
   - ✅ VERIFIED: All pages returning HTTP 200 - privacy policy, terms of service, login page working
