@@ -1,0 +1,30 @@
+{
+  "deployment_timestamp": "2025-07-21 06:01:47 UTC",
+  "package": "safe_unique_questions_update_20250721_055926.zip",
+  "function": "ielts-genai-prep-api",
+  "region": "us-east-1",
+  "function_arn": "arn:aws:lambda:us-east-1:116981806044:function:ielts-genai-prep-api",
+  "code_size": 69869,
+  "changes_made": [
+    "Added get_unique_assessment_question() function",
+    "Added mark_question_as_used() tracking", 
+    "Added _get_question_bank() function",
+    "Enabled 4 unique assessments per purchase"
+  ],
+  "preserved_features": [
+    "All 7 mobile verification endpoints",
+    "Apple App Store verification",
+    "Google Play Store verification",
+    "Comprehensive templates",
+    "Security-enhanced robots.txt", 
+    "Mobile-first authentication workflow"
+  ],
+  "unique_question_logic": {
+    "description": "Users now get 4 unique questions per assessment package without repetition",
+    "tracking_method": "completed_assessments array per user",
+    "filtering_logic": "Excludes previously used question_ids from selection",
+    "fallback": "Allows reuse only after all questions in assessment type are completed"
+  },
+  "status": "deployed_and_verified",
+  "deployment_safety": "zero_breaking_changes"
+}

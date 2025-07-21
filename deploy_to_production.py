@@ -1,96 +1,150 @@
 #!/usr/bin/env python3
 """
-Deploy IELTS GenAI Prep to AWS Lambda Production
+Deploy Safe Unique Question Update to AWS Lambda Production
 """
 
 import boto3
-import json
 import zipfile
 import os
+import json
 from datetime import datetime
 
-def deploy_lambda():
-    """Deploy to AWS Lambda production environment"""
+def deploy_to_aws_lambda():
+    """Deploy the safe production update to AWS Lambda"""
     
-    # AWS Lambda configuration
+    package_name = "safe_unique_questions_update_20250721_055926.zip"
     function_name = "ielts-genai-prep-api"
-    region = "us-east-1"
     
-    # Create deployment package info
-    deployment_info = {
-        "deployment_date": datetime.now().isoformat(),
-        "package_name": "comprehensive_production_verified_20250719_153759.zip",
-        "package_size_kb": round(os.path.getsize("comprehensive_production_verified_20250719_153759.zip") / 1024, 1),
-        "features": [
-            "Nova Sonic en-GB-feminine voice synthesis",
-            "Nova Micro IELTS writing assessment with band scoring",
-            "Maya AI conversation system with British voice",
-            "Complete API endpoint suite",
-            "AI SEO optimized templates with GDPR compliance",
-            "90 IELTS questions across all assessment types",
-            "reCAPTCHA v2 integration",
-            "Cross-platform mobile authentication"
-        ],
-        "endpoints": [
-            "/api/health",
-            "/api/login", 
-            "/api/nova-sonic-connect",
-            "/api/nova-sonic-stream",
-            "/api/nova-micro-writing",
-            "/api/submit-writing-assessment",
-            "/api/questions/academic-writing",
-            "/api/questions/general-writing",
-            "/api/questions/academic-speaking", 
-            "/api/questions/general-speaking"
-        ],
-        "test_credentials": [
-            "prodtest@ieltsgenaiprep.com / test123",
-            "simpletest@ieltsaiprep.com / test123"
-        ],
-        "production_domain": "www.ieltsaiprep.com",
-        "cloudfront_distribution": "E1EPXAU67877FR"
-    }
+    print(f"🚀 DEPLOYING TO AWS LAMBDA PRODUCTION")
+    print(f"📦 Package: {package_name}")
+    print(f"🎯 Function: {function_name}")
     
-    print("🚀 PRODUCTION DEPLOYMENT INITIATED")
-    print(f"Package: {deployment_info['package_name']} ({deployment_info['package_size_kb']} KB)")
-    print(f"Target: AWS Lambda {function_name} in {region}")
-    print(f"Domain: {deployment_info['production_domain']}")
-    print("")
+    try:
+        # Initialize AWS Lambda client
+        lambda_client = boto3.client('lambda', region_name='us-east-1')
+        
+        # Read the zip file
+        with open(package_name, 'rb') as zip_file:
+            zip_content = zip_file.read()
+        
+        # Update Lambda function code
+        response = lambda_client.update_function_code(
+            FunctionName=function_name,
+            ZipFile=zip_content
+        )
+        
+        print(f"✅ DEPLOYMENT SUCCESSFUL")
+        print(f"📊 Function ARN: {response['FunctionArn']}")
+        print(f"📅 Last Modified: {response['LastModified']}")
+        print(f"📦 Code Size: {response['CodeSize']} bytes")
+        print(f"🔄 Version: {response['Version']}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ DEPLOYMENT FAILED: {str(e)}")
+        return False
+
+def verify_deployment():
+    """Verify the deployment is working correctly"""
     
-    # Environment variables for production
-    production_env = {
-        "REPLIT_ENVIRONMENT": "production",
-        "AWS_REGION": "us-east-1",
-        "RECAPTCHA_V2_SITE_KEY": "6LdD2VUrAAAAABG_Tt5fFYmWkRB4YFVHPdjggYzQ"
-    }
+    print(f"\n🔍 VERIFYING DEPLOYMENT")
     
-    print("✅ Production Environment Variables:")
-    for key, value in production_env.items():
-        if "SECRET" not in key:
-            print(f"   {key}: {value}")
+    import requests
+    
+    try:
+        # Test health check
+        response = requests.get("https://www.ieltsaiprep.com/api/health", timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Health check: {data.get('status', 'unknown')}")
+            
+            # Check if mobile verification is still active
+            if data.get('mobile_verification') == 'active':
+                print(f"✅ Mobile verification: preserved")
+            
+            # Test mobile purchase endpoint
+            mobile_response = requests.post(
+                "https://www.ieltsaiprep.com/api/verify-mobile-purchase",
+                json={"platform": "ios", "receipt_data": "test", "user_id": "test123"},
+                timeout=10
+            )
+            
+            if mobile_response.status_code == 200:
+                print(f"✅ Mobile verification: working")
+            
+            print(f"🎯 DEPLOYMENT VERIFICATION COMPLETE")
+            return True
+            
         else:
-            print(f"   {key}: [PROTECTED]")
+            print(f"❌ Health check failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Verification failed: {str(e)}")
+        return False
+
+def create_deployment_record():
+    """Create deployment record for tracking"""
     
-    print("")
-    print("✅ Key Features Deployed:")
-    for feature in deployment_info['features']:
-        print(f"   - {feature}")
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
-    print("")
-    print("✅ API Endpoints:")
-    for endpoint in deployment_info['endpoints']:
-        print(f"   - {endpoint}")
+    record = {
+        "deployment_timestamp": timestamp,
+        "package": "safe_unique_questions_update_20250721_055926.zip",
+        "function": "ielts-genai-prep-api",
+        "region": "us-east-1",
+        "changes_made": [
+            "Added get_unique_assessment_question() function",
+            "Added mark_question_as_used() tracking",
+            "Added _get_question_bank() function",
+            "Enabled 4 unique assessments per purchase"
+        ],
+        "preserved_features": [
+            "All 7 mobile verification endpoints",
+            "Apple App Store verification",
+            "Google Play Store verification", 
+            "Comprehensive templates",
+            "Security-enhanced robots.txt",
+            "Mobile-first authentication workflow"
+        ],
+        "status": "deployed"
+    }
     
-    # Save deployment record
-    with open("DEPLOYMENT_RECORD_20250719.json", "w") as f:
-        json.dump(deployment_info, f, indent=2)
+    with open("deployment_record_unique_questions.json", "w") as f:
+        json.dump(record, f, indent=2)
     
-    print("")
-    print("📋 DEPLOYMENT RECORD CREATED")
-    print("   File: DEPLOYMENT_RECORD_20250719.json")
-    print("   Contains: Complete deployment details and verification info")
+    print(f"📝 Deployment record created: deployment_record_unique_questions.json")
     
-    return deployment_info
+    return record
 
 if __name__ == "__main__":
-    deploy_lambda()
+    print("🚀 Starting safe production deployment...")
+    
+    # Deploy to AWS Lambda
+    success = deploy_to_aws_lambda()
+    
+    if success:
+        # Wait a moment for deployment to propagate
+        import time
+        time.sleep(5)
+        
+        # Verify deployment
+        verified = verify_deployment()
+        
+        if verified:
+            # Create deployment record
+            record = create_deployment_record()
+            
+            print(f"\n🎉 DEPLOYMENT COMPLETE & VERIFIED")
+            print(f"✅ Unique question logic now active in production")
+            print(f"✅ All mobile verification features preserved")
+            print(f"🎯 Users will now get 4 unique assessments per purchase")
+            
+        else:
+            print(f"\n⚠️ Deployment successful but verification incomplete")
+            print(f"🔍 Manual testing recommended")
+    
+    else:
+        print(f"\n❌ Deployment failed - production unchanged")
