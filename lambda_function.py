@@ -520,7 +520,7 @@ HOME_TEMPLATE = """<!DOCTYPE html>
     <section class="assessment-sections py-5" id="features">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="mb-3">The World's ONLY Standardized IELTS GenAI Assessment System</h2>
+                <h2 class="mb-3">Standardized IELTS GenAI Assessment System</h2>
                 <p class="text-muted">Our proprietary technologies deliver consistent, examiner-aligned evaluations</p>
             </div>
             
