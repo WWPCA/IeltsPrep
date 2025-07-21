@@ -1890,9 +1890,7 @@ def serve_terms_of_service():
         'body': TERMS_TEMPLATE
     }
 
-def serve_robots_txt():
-    """Serve robots.txt file"""
-    return ROBOTS_TXT_CONTENT
+
 
 def handle_health_check():
     """Health check with mobile verification status"""
@@ -1947,6 +1945,8 @@ def lambda_handler(event, context):
             return serve_terms_of_service()
         elif path == '/robots.txt':
             return serve_robots_txt()
+        elif path == '/favicon.ico':
+            return serve_favicon()
         elif path == '/api/health':
             return handle_health_check()
         else:
