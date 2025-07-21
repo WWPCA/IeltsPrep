@@ -99,6 +99,22 @@ IELTS GenAI Prep is a comprehensive AI-powered IELTS test preparation platform t
 - **Environment Switching**: Seamless transition between local and serverless modes
 
 
+## Recent Changes
+
+- July 21, 2025: CRITICAL SECURITY UPDATE - Enhanced robots.txt Protection Against Content Scraping and Bot Attacks
+  - ✅ IMPLEMENTED: Security-enhanced robots.txt based on visualcapitalist.com best practices
+  - ✅ PROTECTED: Authentication endpoints (/login, /register, /auth/) from bot attacks
+  - ✅ SECURED: API endpoints with comprehensive protection against structure discovery
+  - ✅ BLOCKED: Proprietary IELTS assessment content from AI training crawlers (GPTBot, ClaudeBot, Google-Extended)
+  - ✅ ENHANCED: Rate limiting from 1-2 seconds to 10-60 seconds based on bot type
+  - ✅ PROTECTED: File system security blocking .log, .json, .zip, .env, .config files
+  - ✅ BLOCKED: Aggressive crawlers (AhrefsBot, SemrushBot, MJ12bot) completely
+  - ✅ MAINTAINED: SEO benefits for search engines while protecting proprietary content
+  - Security Impact: Critical vulnerabilities resolved - login forms, assessment questions, and API structure now protected
+  - Content Protection: TrueScore® and ClearScore® algorithms protected from competitive scraping
+  - Compliance: Enhanced GDPR compliance with user data endpoint protection
+
+- July 19, 2025: MOBILE-FIRST WORKFLOW COMPLIANCE IMPLEMENTED - Test Credentials Fixed for Production Authentication
   - ✅ FIXED: Test credentials now follow proper mobile-first authentication workflow
   - ✅ CONFIGURED: Both test users (prodtest@ieltsgenaiprep.com, test@ieltsgenaiprep.com) with mobile_app_verified: True
   - ✅ CONFIGURED: Test users have purchase_status: completed and full assessment access

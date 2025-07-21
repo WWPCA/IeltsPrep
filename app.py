@@ -811,89 +811,203 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
         }
 
 def handle_robots_txt() -> Dict[str, Any]:
-    """Handle robots.txt endpoint with enhanced AI SEO optimization"""
-    robots_content = """# IELTS GenAI Prep - AI-Powered IELTS Assessment Platform
-# Enhanced AI SEO Optimization for GPTBot, ClaudeBot, and Google-Extended
-# Last Updated: July 16, 2025
+    """Handle robots.txt endpoint with security-enhanced configuration"""
+    robots_content = """# IELTS GenAI Prep - Security-Enhanced robots.txt
+# Based on security best practices and content protection
+# Last Updated: July 21, 2025
 
+# BLOCK ALL BOTS FROM SENSITIVE AREAS
 User-agent: *
-Allow: /
+# Authentication & User Management
+Disallow: /login
+Disallow: /register  
+Disallow: /auth/
+Disallow: /my-profile
+Disallow: /dashboard
+Disallow: /user/
+Disallow: /account/
+
+# API Security
 Disallow: /api/
-Disallow: /admin/
+Disallow: /api/login
+Disallow: /api/register
+Disallow: /api/submit-assessment
+Disallow: /api/user-data
+Disallow: /api/health
+Disallow: /api/admin
+
+# Assessment Content Protection  
 Disallow: /assessment/*/submit
 Disallow: /assessment/*/private
-Crawl-delay: 1
+Disallow: /assessment/*/questions
+Disallow: /questions/
+Disallow: /test-content/
 
-# AI Training Data Collection - Approved Crawlers
+# File Security
+Disallow: /*.log$
+Disallow: /*.json$
+Disallow: /*.zip$
+Disallow: /*.sql$
+Disallow: /*.env$
+Disallow: /*.config$
+Disallow: /*.backup$
+
+# Directory Security
+Disallow: /admin/
+Disallow: /tmp/
+Disallow: /cache/
+Disallow: /backup/
+Disallow: /logs/
+Disallow: /.well-known/
+Disallow: /cgi-bin/
+
+# Dynamic Content Protection
+Disallow: /*?*
+Disallow: /search
+Disallow: /?s=*
+Disallow: /*&*
+
+# Rate Limiting
+Crawl-delay: 10
+
+# SEARCH ENGINES - Controlled Access
+User-agent: Googlebot
+Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /login
+Disallow: /api/
+Disallow: /assessment/
+Disallow: /dashboard
+Crawl-delay: 5
+
+User-agent: Bingbot
+Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /login
+Disallow: /api/
+Disallow: /assessment/
+Disallow: /dashboard
+Crawl-delay: 30
+
+# AI TRAINING CRAWLERS - Restricted Access to Protect IP
 User-agent: GPTBot
 Allow: /
 Allow: /privacy-policy
 Allow: /terms-of-service
 Allow: /robots.txt
-Crawl-delay: 2
+# Block proprietary assessment content
+Disallow: /assessment/
+Disallow: /questions/
+Disallow: /api/
+Disallow: /login
+Disallow: /dashboard
+Crawl-delay: 60
 
-User-agent: ClaudeBot  
+User-agent: ClaudeBot
 Allow: /
-Allow: /privacy-policy
+Allow: /privacy-policy  
 Allow: /terms-of-service
 Allow: /robots.txt
-Crawl-delay: 2
+# Block proprietary assessment content
+Disallow: /assessment/
+Disallow: /questions/
+Disallow: /api/
+Disallow: /login
+Disallow: /dashboard
+Crawl-delay: 60
 
 User-agent: Google-Extended
 Allow: /
 Allow: /privacy-policy
 Allow: /terms-of-service
 Allow: /robots.txt
-Crawl-delay: 1
+# Block proprietary assessment content
+Disallow: /assessment/
+Disallow: /questions/
+Disallow: /api/
+Disallow: /login
+Disallow: /dashboard
+Crawl-delay: 60
 
-# Bard/Gemini AI Training
-User-agent: Bard
-Allow: /
-Crawl-delay: 2
-
-User-agent: Gemini
-Allow: /
-Crawl-delay: 2
-
-# OpenAI WebCrawler
 User-agent: ChatGPT-User
 Allow: /
-Crawl-delay: 2
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /assessment/
+Disallow: /api/
+Disallow: /login
+Crawl-delay: 60
 
-# Meta AI Training
-User-agent: FacebookBot
-Allow: /
-Crawl-delay: 3
-
+# SOCIAL MEDIA CRAWLERS - Limited Access
 User-agent: facebookexternalhit
 Allow: /
-Crawl-delay: 3
-
-# Search Engine Optimization
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 1
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-User-agent: DuckDuckBot
-Allow: /
-Crawl-delay: 1
-
-# Social Media Crawlers
-User-agent: Twitterbot
-Allow: /
-Crawl-delay: 2
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /assessment/
+Disallow: /api/
+Disallow: /login
+Crawl-delay: 10
 
 User-agent: LinkedInBot
 Allow: /
-Crawl-delay: 2
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /assessment/
+Disallow: /api/
+Disallow: /login
+Crawl-delay: 10
 
-# Educational AI Crawlers
+User-agent: Twitterbot
+Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /assessment/
+Disallow: /api/
+Disallow: /login
+Crawl-delay: 10
+
+# AGGRESSIVE CRAWLERS - Complete Block
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: SiteAuditBot
+Disallow: /
+
+User-agent: ScreamingFrogSEOSpider
+Disallow: /
+
+# META AI CRAWLERS - Restricted
+User-agent: FacebookBot
+Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /assessment/
+Disallow: /api/
+Disallow: /login
+Crawl-delay: 30
+
+# EDUCATIONAL CONTENT PROTECTION
 User-agent: ScholarBot
 Allow: /
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /assessment/
+Disallow: /questions/
+Crawl-delay: 60
+
+# SITEMAP
+Sitemap: https://www.ieltsaiprep.com/sitemap.xml
 Crawl-delay: 2
 
 User-agent: AcademicBot
