@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- IELTS GenAI Prep Logo - Letter "I" with AI elements -->
+    <group android:scaleX="0.8"
+           android:scaleY="0.8"
+           android:pivotX="54"
+           android:pivotY="54">
+        
+        <!-- Main "I" Letter Shape -->
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M40,25 L68,25 L68,35 L58,35 L58,73 L68,73 L68,83 L40,83 L40,73 L50,73 L50,35 L40,35 Z"/>
+        
+        <!-- AI Circuit Elements -->
+        <circle
+            android:fillColor="#6366f1"
+            android:cx="32"
+            android:cy="40"
+            android:radius="3"/>
+        
+        <circle
+            android:fillColor="#6366f1"
+            android:cx="76"
+            android:cy="40"
+            android:radius="3"/>
+            
+        <circle
+            android:fillColor="#6366f1"
+            android:cx="32"
+            android:cy="68"
+            android:radius="3"/>
+        
+        <circle
+            android:fillColor="#6366f1"
+            android:cx="76"
+            android:cy="68"
+            android:radius="3"/>
+        
+        <!-- Connection Lines -->
+        <path
+            android:strokeColor="#6366f1"
+            android:strokeWidth="2"
+            android:pathData="M35,40 L40,35"/>
+            
+        <path
+            android:strokeColor="#6366f1"
+            android:strokeWidth="2"
+            android:pathData="M73,40 L68,35"/>
+            
+        <path
+            android:strokeColor="#6366f1"
+            android:strokeWidth="2"
+            android:pathData="M35,68 L40,73"/>
+            
+        <path
+            android:strokeColor="#6366f1"
+            android:strokeWidth="2"
+            android:pathData="M73,68 L68,73"/>
+            
+        <!-- Accent Dots -->
+        <circle
+            android:fillColor="#10b981"
+            android:cx="54"
+            android:cy="20"
+            android:radius="2"/>
+            
+        <circle
+            android:fillColor="#10b981"
+            android:cx="54"
+            android:cy="88"
+            android:radius="2"/>
+    </group>
+</vector>

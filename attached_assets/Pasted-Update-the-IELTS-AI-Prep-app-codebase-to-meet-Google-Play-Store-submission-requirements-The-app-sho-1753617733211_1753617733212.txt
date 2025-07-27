@@ -1,0 +1,30 @@
+Update the IELTS AI Prep app codebase to meet Google Play Store submission requirements. The app should accept payments from users, allow login with email and password, and enable access to app features from both the mobile webapp and the website ieltsaiprep.com using the same credentials. The architecture is entirely hosted on AWS, utilizing DynamoDB, Nova Sonic, and Nova Micro for backend services. Use the existing files as a base and implement the following changes:
+
+App Icon:
+Replace the placeholder icon (current blue "X" design) with a custom 512x512 PNG icon reflecting the "IELTS GenAI Prep" brand logo (keep logo consistant with what has been used in the ieltsaiprep.com webite). Follow Google's Adaptive Icon Guidelines by creating an ic_launcher.xml file in android/app/src/main/res/mipmap-anydpi-v26 with foreground and background layers. Update all mipmap-* directories with appropriately sized versions (48x48, 72x72, etc.).
+User Login:
+Add a login form to index.html with fields for email and password. Use HTML, CSS, and JavaScript to handle form submission.
+Integrate AWS authentication (e.g., Amazon Cognito) to manage email/password login, leveraging the existing AWS architecture. Use the @capacitor-community/http plugin to communicate with the Cognito endpoint. Store the authentication token (e.g., JWT from Cognito) in local storage using the @capacitor/storage plugin for cross-platform access.
+Update MainActivity.java to handle native authentication callbacks if needed, extending BridgeActivity with an onCreate method to initialize AWS SDK or Cognito dependencies.
+Payment Integration:
+Implement Google Pay using the @capacitor/google-pay plugin for in-app purchases. Configure the plugin in capacitor.config.json and add the necessary dependencies in the app module build.gradle.
+Integrate payment processing with an AWS service (e.g., AWS Lambda or Amazon Pay) to handle transactions, storing payment data in DynamoDB. In MainActivity.java, override onCreate to initialize the payment service and handle payment intents via AWS API calls.
+Test the payment flow per Google Play Billing Library guidelines and include a privacy policy link in index.html for user data handling.
+Cross-Platform Access:
+Ensure the web content in the dist directory (specified in capacitor.config.json) mirrors the frontend of ieltsaiprep.com. Use the AWS-hosted backend (e.g., Nova Sonic or Nova Micro APIs) for user data synchronization with DynamoDB.
+Implement single sign-on (SSO) by passing the Cognito authentication token between the webapp and website. Update JavaScript in index.html to manage this token and interact with AWS APIs.
+Gradle and Build Configuration:
+Remove the unused cordovaAndroidVersion from variables.gradle to avoid confusion.
+Enable minifyEnabled true in the release build type of the app module build.gradle and update proguard-rules.pro to preserve Capacitor plugin classes, AWS SDK classes, and payment library classes (e.g., -keep class com.getcapacitor.** { *; }, -keep class com.amazonaws.** { *; }).
+Consider updating gradle-wrapper.properties to use the latest stable Gradle version (e.g., 8.7) by changing distributionUrl to https://services.gradle.org/distributions/gradle-8.7-all.zip if available as of July 27, 2025.
+Add any required permissions (e.g., INTERNET) to AndroidManifest.xml if not automatically handled by Capacitor.
+Frontend Development:
+Enhance index.html to include a basic layout with navigation to login, payment, and app features. Use CSS for styling and ensure responsiveness.
+Build the dist directory content using a framework like React or vanilla JavaScript, ensuring compatibility with Capacitor and AWS API calls (e.g., using the AWS SDK for JavaScript).
+AWS Integration:
+Configure the app to interact with DynamoDB for storing user data, Nova Sonic for real-time features (if applicable), and Nova Micro for microservices (e.g., API endpoints). Use AWS SDK or API Gateway to connect the frontend to these services.
+Ensure proper IAM roles and security policies are set up on AWS to allow Capacitor app access.
+Testing and Compliance:
+Test the app on Android versions from SDK 22 to 34 using Android Studio or an emulator, including AWS API calls and payment flows.
+Ensure compliance with Google Play policies, including a functional privacy policy (hosted on AWS S3 or similar) and proper error handling for login, payment, and AWS service failures.
+Use the existing file structure and update all relevant files accordingly. Ensure the app builds successfully in Android Studio and meets all submission criteria, leveraging the AWS architecture with DynamoDB, Nova Sonic, and Nova Micro.
