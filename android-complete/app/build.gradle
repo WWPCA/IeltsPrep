@@ -18,8 +18,9 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
 }
@@ -35,6 +36,26 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation "com.capacitorjs:core:6.1.2"
+    
+    // Capacitor plugins for enhanced functionality
+    implementation 'com.capacitorjs:storage:6.0.2'
+    implementation 'com.capacitorjs:network:6.0.2'
+    implementation 'com.capacitorjs:toast:6.0.2'
+    implementation 'com.capacitorjs:device:6.0.1'
+    implementation 'com.capacitorjs:app:6.0.1'
+    implementation 'com.capacitorjs:keyboard:6.0.2'
+    implementation 'com.capacitorjs:status-bar:6.0.1'
+    implementation 'com.capacitorjs:splash-screen:6.0.2'
+    
+    // Google Pay and billing
+    implementation 'com.android.billingclient:billing:6.1.0'
+    implementation 'com.google.android.gms:play-services-wallet:19.2.1'
+    
+    // AWS SDK for mobile authentication
+    implementation 'com.amazonaws:aws-android-sdk-core:2.75.1'
+    implementation 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.75.1'
+    implementation 'com.amazonaws:aws-android-sdk-cognitoauth:2.75.1'
+    
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

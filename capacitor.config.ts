@@ -11,26 +11,34 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#6366f1',
+      backgroundColor: '#667eea',
       showSpinner: false,
       splashFullScreen: false,
       splashImmersive: false
     },
     StatusBar: {
       style: 'dark',
-      backgroundColor: '#6366f1'
+      backgroundColor: '#667eea'
     },
     Keyboard: {
       resize: 'body',
       style: 'dark',
       resizeOnFullScreen: true
     },
-    PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert']
+    Storage: {
+      group: 'IELTS_APP_STORAGE'
     },
-    LocalNotifications: {
-      smallIcon: 'ic_stat_icon_config_sample',
-      iconColor: '#6366f1'
+    Device: {
+      androidId: true
+    },
+    Network: {
+      enabled: true
+    },
+    GooglePay: {
+      enabled: true,
+      environment: 'TEST', // Change to 'PRODUCTION' for release
+      merchantId: 'com.ieltsaiprep.app',
+      merchantName: 'IELTS GenAI Prep'
     }
   },
   ios: {
