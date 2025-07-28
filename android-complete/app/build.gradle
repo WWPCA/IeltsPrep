@@ -16,11 +16,21 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            // Configure your release signing here
+            // keyAlias 'your-key-alias'
+            // keyPassword 'your-key-password'
+            // storeFile file('path/to/your/keystore.jks')
+            // storePassword 'your-store-password'
+        }
+    }
+    
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.debug // Change to signingConfigs.release for production
         }
     }
 }
@@ -55,6 +65,10 @@ dependencies {
     implementation 'com.amazonaws:aws-android-sdk-core:2.75.1'
     implementation 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.75.1'
     implementation 'com.amazonaws:aws-android-sdk-cognitoauth:2.75.1'
+    implementation 'com.amazonaws:aws-android-sdk-mobile-client:2.75.1'
+    
+    // HTTP client for API calls
+    implementation 'com.capacitor-community:http:2.0.2'
     
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"

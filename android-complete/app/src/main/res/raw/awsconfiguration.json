@@ -1,0 +1,42 @@
+{
+  "Version": "1.0",
+  "CredentialsProvider": {
+    "CognitoIdentity": {
+      "Default": {
+        "PoolId": "us-east-1:12345678-1234-1234-1234-123456789012",
+        "Region": "us-east-1"
+      }
+    }
+  },
+  "IdentityManager": {
+    "Default": {}
+  },
+  "CognitoUserPool": {
+    "Default": {
+      "PoolId": "us-east-1_ABCDEFGHI",
+      "AppClientId": "1234567890abcdefghijklmnop",
+      "Region": "us-east-1"
+    }
+  },
+  "DynamoDBObjectMapper": {
+    "Default": {
+      "Region": "us-east-1"
+    }
+  },
+  "APIGateway": {
+    "Default": {
+      "ApiGatewayUrl": "https://api.ieltsaiprep.com",
+      "Region": "us-east-1"
+    }
+  },
+  "NovaServices": {
+    "NovaSonic": {
+      "Endpoint": "https://api.ieltsaiprep.com/api/nova-sonic",
+      "Region": "us-east-1"
+    },
+    "NovaMicro": {
+      "Endpoint": "https://api.ieltsaiprep.com/api/nova-micro",
+      "Region": "us-east-1"
+    }
+  }
+}

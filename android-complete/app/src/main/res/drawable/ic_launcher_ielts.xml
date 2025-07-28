@@ -1,0 +1,89 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background gradient -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108"
+                android:type="linear">
+                <item
+                    android:color="#667eea"
+                    android:offset="0.0" />
+                <item
+                    android:color="#764ba2"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    
+    <!-- AI Circuit Pattern Background -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M20,20 L25,20 L25,25 L30,25 L30,30 L35,30 L35,35 L40,35 L40,40 L45,40"/>
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M88,20 L83,20 L83,25 L78,25 L78,30 L73,30 L73,35 L68,35 L68,40 L63,40"/>
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M20,88 L25,88 L25,83 L30,83 L30,78 L35,78 L35,73 L40,73 L40,68 L45,68"/>
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M88,88 L83,88 L83,83 L78,83 L78,78 L73,78 L73,73 L68,73 L68,68 L63,68"/>
+    
+    <!-- Circuit nodes -->
+    <circle android:fillColor="#80FFFFFF" android:cx="25" android:cy="25" android:r="2"/>
+    <circle android:fillColor="#80FFFFFF" android:cx="35" android:cy="35" android:r="2"/>
+    <circle android:fillColor="#80FFFFFF" android:cx="73" android:cy="35" android:r="2"/>
+    <circle android:fillColor="#80FFFFFF" android:cx="83" android:cy="25" android:r="2"/>
+    <circle android:fillColor="#80FFFFFF" android:cx="25" android:cy="83" android:r="2"/>
+    <circle android:fillColor="#80FFFFFF" android:cx="35" android:cy="73" android:r="2"/>
+    <circle android:fillColor="#80FFFFFF" android:cx="73" android:cy="73" android:r="2"/>
+    <circle android:fillColor="#80FFFFFF" android:cx="83" android:cy="83" android:r="2"/>
+    
+    <!-- Main "I" Letter -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M42,30 L66,30 L66,38 L58,38 L58,70 L66,70 L66,78 L42,78 L42,70 L50,70 L50,38 L42,38 Z"/>
+    
+    <!-- AI Enhancement - Neural nodes around the I -->
+    <circle android:fillColor="#E3F2FD" android:cx="38" android:cy="45" android:r="3"/>
+    <circle android:fillColor="#E3F2FD" android:cx="70" android:cy="45" android:r="3"/>
+    <circle android:fillColor="#E3F2FD" android:cx="38" android:cy="63" android:r="3"/>
+    <circle android:fillColor="#E3F2FD" android:cx="70" android:cy="63" android:r="3"/>
+    
+    <!-- Connection lines to neural nodes -->
+    <path
+        android:strokeColor="#E3F2FD"
+        android:strokeWidth="2"
+        android:pathData="M42,45 L38,45"/>
+    <path
+        android:strokeColor="#E3F2FD"
+        android:strokeWidth="2"
+        android:pathData="M66,45 L70,45"/>
+    <path
+        android:strokeColor="#E3F2FD"
+        android:strokeWidth="2"
+        android:pathData="M42,63 L38,63"/>
+    <path
+        android:strokeColor="#E3F2FD"
+        android:strokeWidth="2"
+        android:pathData="M66,63 L70,63"/>
+    
+    <!-- Digital accent lines -->
+    <path
+        android:strokeColor="#60FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M20,54 L88,54"/>
+    <path
+        android:strokeColor="#40FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M54,20 L54,88"/>
+</vector>
