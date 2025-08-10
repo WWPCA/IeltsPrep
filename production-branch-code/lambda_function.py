@@ -1746,18 +1746,89 @@ def handle_terms_of_service():
     }
 
 def handle_robots_txt():
-    """Fixed robots.txt handler - minimal and robust"""
+    """Enhanced robots.txt handler with comprehensive bot support"""
     try:
         robots_content = """User-agent: *
 Allow: /
 
+# AI Training & Research Bots
 User-agent: GPTBot
 Allow: /
 
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: ChatGPT-User
+Allow: /
+
 User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: AnthropicBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: OpenAIBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: SemrushBot
+Allow: /
+
+User-agent: AhrefsBot
+Allow: /
+
+User-agent: MJ12bot
+Allow: /
+
+User-agent: DotBot
 Allow: /
 
 Sitemap: https://www.ieltsaiprep.com/sitemap.xml"""
