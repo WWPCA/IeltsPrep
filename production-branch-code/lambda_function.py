@@ -1746,8 +1746,9 @@ def handle_terms_of_service():
     }
 
 def handle_robots_txt():
-    """Serve robots.txt for AI SEO optimization"""
-    robots_content = """User-agent: *
+    """Fixed robots.txt handler - minimal and robust"""
+    try:
+        robots_content = """User-agent: *
 Allow: /
 
 User-agent: GPTBot
@@ -1760,15 +1761,25 @@ User-agent: Google-Extended
 Allow: /
 
 Sitemap: https://www.ieltsaiprep.com/sitemap.xml"""
-    
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'text/plain',
-            'Cache-Control': 'public, max-age=86400'
-        },
-        'body': robots_content
-    }
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/plain',
+                'Cache-Control': 'public, max-age=86400'
+            },
+            'body': robots_content
+        }
+    except Exception as e:
+        # Fallback in case of any error
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/plain',
+                'Cache-Control': 'public, max-age=86400'
+            },
+            'body': 'User-agent: *\nAllow: /'
+        }
 
 def handle_dashboard_page(headers):
     """Dashboard page with content reporting features"""
