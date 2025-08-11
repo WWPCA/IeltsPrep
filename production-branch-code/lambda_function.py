@@ -1597,12 +1597,7 @@ def handle_privacy_policy():
                     <li><strong>Report Content:</strong> Use in-app reporting for inappropriate AI content</li>
                 </ul>
             </div>
-            
-            <h3>4. Contact Information</h3>
-            <p>For privacy concerns or data rights requests:</p>
-            <p><strong>Data Protection Officer:</strong> privacy@ieltsaiprep.com</p>
-            <p><strong>Content Reports:</strong> Use the in-app reporting feature</p>
-            <p><strong>Response Time:</strong> 30 days maximum</p>
+
         </div>
     </div>
     
@@ -1724,11 +1719,7 @@ def handle_terms_of_service():
                 <li>Submit safety concerns about AI responses</li>
                 <li>Developer review and response within 48 hours</li>
             </ul>
-            
-            <h3>5. Contact Information</h3>
-            <p><strong>Support:</strong> support@ieltsaiprep.com</p>
-            <p><strong>Content Reports:</strong> Use the in-app reporting feature</p>
-            <p><strong>Response Time:</strong> 48 hours for support, 24 hours for content reports</p>
+
         </div>
     </div>
     
