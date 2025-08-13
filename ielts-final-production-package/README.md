@@ -17,6 +17,18 @@ This package contains all the production code and resources for the IELTS GenAI 
 - `aws_mock_config.py` - Development environment AWS service mocking
 - `replit.md` - Project architecture and user preferences documentation
 
+### UI/Design Files
+- `static/` - Static assets (CSS, JavaScript, images, audio files)
+  - `css/` - Stylesheets (main styles, cookie consent, QR modal)
+  - `js/` - JavaScript modules (main, speaking, mobile integration, offline support)
+  - `images/` - UI icons, logos, and graphics
+  - `audio/` - Sample audio files for assessments
+- `templates/` - HTML templates for all pages
+  - Complete page templates for assessments, admin, GDPR compliance
+  - Error pages (404, 500)
+  - User account management templates
+  - Practice assessment templates
+
 ### Assessment Question Banks
 - `Academic Writing Task 2 tests (essays).txt` - Academic writing prompts
 - `General Training Writing Task 2 tests (essays).txt` - General training writing prompts
