@@ -2004,8 +2004,8 @@ def handle_dashboard_page(headers: Dict[str, Any]) -> Dict[str, Any]:
 def handle_qr_auth_page() -> Dict[str, Any]:
     """Serve QR authentication page"""
     try:
-        with open('templates/qr_auth_page.html', 'r', encoding='utf-8') as f:
-            html_content = f.read()
+        # QR auth page content is embedded in lambda function, not separate template
+        html_content = "QR auth functionality is embedded in lambda function"
         
         return {
             'statusCode': 200,

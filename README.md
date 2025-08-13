@@ -1,96 +1,133 @@
-# IELTS GenAI Prep - AI-Powered IELTS Assessment Platform
+# IELTS GenAI Prep - Final Production Package
 
 ## Overview
-Advanced AI-powered IELTS test preparation platform delivering intelligent, secure, and adaptive language assessment experiences through cutting-edge cloud-native technologies.
+This package contains all the production code and resources for the IELTS GenAI Prep platform deployed at https://www.ieltsaiprep.com
 
-## 🚀 Latest Deployment Status (July 19, 2025)
-**PRODUCTION READY** - Mobile-First Workflow Compliance Implemented
+## Architecture
+- **Backend**: AWS Lambda serverless function (lambda_function.py)
+- **Frontend**: Progressive Web App with responsive design
+- **Database**: DynamoDB Global Tables (mocked via aws_mock_config.py for development)
+- **Authentication**: QR code mobile-to-web authentication
+- **AI Services**: Amazon Nova Sonic (speaking) and Nova Micro (writing)
 
-### ✅ Critical Authentication Fixes
-- **Mobile-First Workflow**: Test credentials now follow proper mobile app verification flow
-- **Authentication Compliance**: Users must register/purchase through mobile app → then login to website
-- **Test Credentials**: prodtest@ieltsgenaiprep.com / test123 (mobile workflow compliant)
-- **Purchase Validation**: Website login requires completed mobile app purchase verification
-- **Error Handling**: Proper messages guide non-compliant users to mobile app registration
+## Files Included
 
-### ✅ Core Features Verified
-- **Nova Sonic Integration**: en-GB-feminine voice synthesis for Maya AI examiner
-- **Nova Micro Integration**: IELTS writing assessment with comprehensive band scoring
-- **Maya AI System**: British voice conversation system for speaking assessments
-- **Complete API Suite**: Health check, authentication, voice streaming, assessment processing
-- **90 IELTS Questions**: Comprehensive question database across all assessment types
+### Core Production Code
+- `lambda_function.py` - Main AWS Lambda handler with all routes and templates
+- `aws_mock_config.py` - Development environment AWS service mocking
+- `replit.md` - Project architecture and user preferences documentation
 
-### ✅ Website Templates Verified
-- **AI SEO Optimized**: Home page with GenAI branding and comprehensive meta tags
-- **GDPR Compliant**: Privacy policy with TrueScore®/ClearScore® technology details
-- **Mobile-First**: Login guidance directing users to download mobile app first
-- **Legal Compliance**: Terms of service with $36.49 USD pricing and AI content policy
-- **AI Crawler Ready**: Robots.txt with GPTBot, ClaudeBot, Google-Extended permissions
+### UI/Design Files
+- `static/` - Static assets (CSS, JavaScript, images, audio files)
+  - `css/` - Stylesheets (main styles, cookie consent, QR modal)
+  - `js/` - JavaScript modules (main, speaking, mobile integration, offline support)
+  - `images/` - UI icons, logos, and graphics
+  - `audio/` - Sample audio files for assessments
+- `templates/` - Production-verified HTML templates only
+  - Core pages: index.html, login.html, profile.html, assessment_details.html
+  - Error pages: 404.html, 500.html  
+  - Legal pages: privacy_policy.html, terms_of_service.html
+  - Base template: layout.html
+  - Most content is embedded in lambda_function.py for performance
 
-## 🏗️ Architecture
-- **Backend**: Pure AWS Lambda serverless architecture
-- **AI Services**: Amazon Nova Sonic (voice) + Nova Micro (text processing)
-- **Database**: DynamoDB with global table replication
-- **Frontend**: Progressive Web App with Capacitor mobile integration
-- **Authentication**: Cross-platform mobile-first authentication flow
+### Assessment Question Banks & Knowledge Base
+- `Academic Writing Task 2 tests (essays).txt` - Academic writing prompts
+- `General Training Writing Task 2 tests (essays).txt` - General training writing prompts
+- `IELTS General Training Writing Task 1 letters.txt` - General training letters
+- `General Reading Task 1 Multiple Cho.txt` - Reading comprehension questions
+- `General Test Reading Task 2 True False Not Given.txt` - Reading assessment tasks
+- `IELTS Reading Context File.txt` - Reading passages and contexts
+- `IELTS Speaking Context File.xlsx` - Speaking assessment scenarios
 
-## 📦 Deployment Package
-```
-mobile_workflow_fixed_production_20250719_155258.zip (61.3 KB)
-├── app.py                                    # Complete Lambda handler with mobile workflow validation
-├── aws_mock_config.py                        # Test users with mobile app verification flags
-├── main.py                                   # Flask entry point
-├── working_template_backup_20250714_192410.html # AI SEO optimized templates
-├── test_maya_voice.html                      # Frontend voice verification
-└── PRODUCTION_TEST_CREDENTIALS.md            # Mobile workflow compliance documentation
-```
+### Database & API Documentation
+- `DATABASE_SCHEMA.md` - Complete DynamoDB table schemas and relationships
+- `API_INTEGRATION_GUIDE.md` - AWS Bedrock, DynamoDB, and mobile integration code
+- `API_ENDPOINTS.md` - Complete API endpoint documentation
 
-## 🔧 Key Technologies
-- **AWS Lambda**: Serverless compute
-- **Amazon Bedrock**: Nova Sonic & Nova Micro AI models
-- **DynamoDB**: Global database with multi-region replication
-- **CloudFront**: Global content delivery
-- **Flask**: Python web framework
-- **Bootstrap**: Responsive UI framework
-- **Capacitor**: Mobile app framework
+### Mobile App Configuration
+- `android_play_store_config.json` - Complete Google Play Store submission configuration
+- `capacitor.config.ts` - Mobile app Capacitor configuration
+- `APP_STORE_SUBMISSION_GUIDE.md` - iOS/Android deployment guides
+- `ANDROID_DEPLOYMENT_GUIDE.md` - Android-specific deployment instructions
+- `BUILD_ANDROID_GUIDE.md` - Build process for Android app
 
-## 🌍 Production Environment
-- **Domain**: www.ieltsaiprep.com
-- **Lambda Function**: ielts-genai-prep-api
+### Production Deployment Packages
+- `clean_lambda_with_deps.zip` - Clean Lambda deployment package with dependencies
+- `ai_seo_gdpr_lambda.zip` - SEO-optimized GDPR-compliant Lambda package
+
+## Complete System Components
+
+### Knowledge Base & Question Banks
+- **4,000+ Assessment Questions**: Academic and General Training modules
+- **Reading Passages**: Comprehensive context files for reading assessments  
+- **Speaking Scenarios**: Real IELTS speaking test situations and prompts
+- **Writing Prompts**: Essays, letters, and task-specific content
+- **Assessment Rubrics**: Official IELTS band descriptors integration
+
+### Database Architecture  
+- **7 DynamoDB Tables**: Users, sessions, assessments, questions, purchases, QR-auth, GDPR
+- **Global Secondary Indexes**: Optimized queries for user data and assessment history
+- **TTL Management**: Automatic cleanup of expired sessions and temporary data
+- **Multi-Region**: Global tables across us-east-1, eu-west-1, ap-southeast-1
+
+### API Integration
+- **AWS Bedrock**: Nova Sonic (speaking) and Nova Micro (writing) AI models
+- **Real-Time Processing**: WebSocket connections for live conversations
+- **Purchase Validation**: iOS App Store and Google Play Store receipt verification
+- **Email Services**: AWS SES for welcome emails and account management
+- **Security**: CloudFront-based access control and reCAPTCHA v2
+
+### Production Website (www.ieltsaiprep.com) - Verified Architecture
+- Home page with SEO optimization and FAQ (embedded in lambda)
+- Privacy Policy (GDPR compliant, embedded in lambda)
+- Terms of Service (embedded in lambda)
+- Login system with reCAPTCHA v2 (mobile app users only)
+- Dashboard with assessment access (4 assessment types)
+- Profile management with account deletion
+- QR authentication for cross-platform access
+- Mobile-first registration (no web registration)
+
+### AI Assessment Engine
+- **TrueScore® Writing Assessment**: AI evaluation using Nova Micro
+- **ClearScore® Speaking Assessment**: AI conversation using Nova Sonic
+- Real-time feedback based on official IELTS band descriptors
+- Support for both Academic and General Training modules
+
+### Pricing Structure
+- $36 for 4 assessment attempts per module type
+- Consumable purchase model via mobile app
+- Cross-platform access (mobile app or web)
+
+## Recent Updates (August 2025)
+- Updated FAQ to emphasize official IELTS band descriptors alignment
+- Removed contact information sections from Privacy Policy and Terms of Service
+- Updated all pricing from $49.99 to $36 for consistency
+- Enhanced robots.txt for AI bot SEO optimization
+- Fixed production deployment issues and cache management
+
+## Deployment
+The main production function is deployed as:
+- **AWS Lambda**: ielts-genai-prep-api (us-east-1)
 - **CloudFront Distribution**: E1EPXAU67877FR
-- **Regions**: us-east-1 (primary), eu-west-1, ap-southeast-1
+- **Domain**: www.ieltsaiprep.com
 
-## 📱 Mobile App Integration
-- **iOS**: App Store submission ready
-- **Android**: Google Play submission ready
-- **Bundle ID**: com.ieltsaiprep.app
-- **Pricing**: $36.49 USD per assessment type
+## Environment Variables Required
+- RECAPTCHA_V2_SITE_KEY
+- RECAPTCHA_V2_SECRET_KEY
+- DYNAMODB_TABLE_PREFIX
+- ENVIRONMENT=production
 
-## 🧪 Test Credentials (Mobile Workflow Compliant)
-- **Primary**: prodtest@ieltsgenaiprep.com / test123 ✅
-- **Secondary**: test@ieltsgenaiprep.com / testpassword123 ✅
-- **Workflow Status**: Both configured with mobile_app_verified: True and purchase_status: completed
+## Mobile App Integration
+- Capacitor-based mobile apps for iOS/Android
+- In-app purchase validation
+- QR code authentication for web platform access
+- Native features integration
 
-## 📚 Documentation
-- **Deployment Guide**: PRODUCTION_DEPLOYMENT_GUIDE.md
-- **System Architecture**: replit.md
-- **API Endpoints**: Complete documentation in app.py
+## Security Features
+- Google reCAPTCHA v2 integration
+- PBKDF2-HMAC-SHA256 password hashing
+- CloudFront-based access control
+- GDPR compliance with data export/deletion
+- Content safety measures for AI-generated content
 
-## 🎯 Assessment Types
-1. **Academic Writing**: TrueScore® AI assessment with IELTS band scoring
-2. **General Writing**: TrueScore® AI assessment for General Training module  
-3. **Academic Speaking**: ClearScore® AI with Maya examiner (British voice)
-4. **General Speaking**: ClearScore® AI for General Training speaking
-
-## 🔒 Compliance
-- **GDPR**: Full compliance with European data protection regulations
-- **Google Play**: Complete policy compliance for mobile app stores
-- **AI Safety**: Content safety measures and educational appropriateness
-- **reCAPTCHA**: v2 integration for security validation
-
----
-**Status**: Production deployment ready with mobile-first workflow compliance  
-**Last Updated**: July 19, 2025  
-**Package Size**: 61.3 KB  
-**Test Status**: All validations passed - comprehensive health check completed  
-**Authentication**: Mobile-first workflow implemented ✅
+For technical implementation details, see the individual files and replit.md documentation.
