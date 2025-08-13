@@ -23,11 +23,12 @@ This package contains all the production code and resources for the IELTS GenAI 
   - `js/` - JavaScript modules (main, speaking, mobile integration, offline support)
   - `images/` - UI icons, logos, and graphics
   - `audio/` - Sample audio files for assessments
-- `templates/` - HTML templates for all pages
-  - Complete page templates for assessments, admin, GDPR compliance
-  - Error pages (404, 500)
-  - User account management templates
-  - Practice assessment templates
+- `templates/` - Production-verified HTML templates only
+  - Core pages: index.html, login.html, profile.html, assessment_details.html
+  - Error pages: 404.html, 500.html  
+  - Legal pages: privacy_policy.html, terms_of_service.html
+  - Base template: layout.html
+  - Most content is embedded in lambda_function.py for performance
 
 ### Assessment Question Banks & Knowledge Base
 - `Academic Writing Task 2 tests (essays).txt` - Academic writing prompts
@@ -76,13 +77,15 @@ This package contains all the production code and resources for the IELTS GenAI 
 - **Email Services**: AWS SES for welcome emails and account management
 - **Security**: CloudFront-based access control and reCAPTCHA v2
 
-### Production Website (www.ieltsaiprep.com)
-- Home page with SEO optimization and FAQ
-- Privacy Policy (GDPR compliant)
-- Terms of Service 
-- Login/Registration system with reCAPTCHA v2
-- Dashboard with assessment access
+### Production Website (www.ieltsaiprep.com) - Verified Architecture
+- Home page with SEO optimization and FAQ (embedded in lambda)
+- Privacy Policy (GDPR compliant, embedded in lambda)
+- Terms of Service (embedded in lambda)
+- Login system with reCAPTCHA v2 (mobile app users only)
+- Dashboard with assessment access (4 assessment types)
 - Profile management with account deletion
+- QR authentication for cross-platform access
+- Mobile-first registration (no web registration)
 
 ### AI Assessment Engine
 - **TrueScore® Writing Assessment**: AI evaluation using Nova Micro

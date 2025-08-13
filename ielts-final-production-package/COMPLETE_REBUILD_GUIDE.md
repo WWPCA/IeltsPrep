@@ -60,7 +60,8 @@ for question in questions:
 
 ## Phase 2: Lambda Function Deployment
 
-### 2.1 Create Lambda Function
+### 2.1 Create Lambda Function (Contains Embedded Templates)
+**Note:** Most content is embedded in lambda_function.py rather than separate template files for performance and security.
 ```bash
 # Create Lambda function
 aws lambda create-function \
