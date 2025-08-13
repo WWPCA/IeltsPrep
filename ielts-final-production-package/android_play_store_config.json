@@ -1,0 +1,219 @@
+{
+  "play_store_listing": {
+    "app_title": "IELTS GenAI Prep - AI Assessment",
+    "short_description": "Master IELTS with AI-powered TrueScore® & ClearScore® assessments featuring Maya AI examiner",
+    "full_description": "🎯 TRANSFORM YOUR IELTS PREPARATION\n\nIELTS GenAI Prep is the world's first AI-powered IELTS assessment platform featuring revolutionary TrueScore® Writing Assessment and ClearScore® Speaking Assessment technologies.\n\n✨ KEY FEATURES:\n• AI-Powered Assessment: Authentic IELTS band scoring with detailed feedback\n• Maya AI Examiner: British female voice for realistic speaking practice\n• Cross-Platform Access: Start on mobile, continue on desktop/laptop\n• Instant Results: Real-time feedback with improvement recommendations\n• Official IELTS Alignment: Scoring based on official band descriptors\n\n📝 WRITING ASSESSMENTS:\n• Academic Writing Task 2 Essays\n• General Training Task 1 Letters & Task 2 Essays  \n• TrueScore® AI analysis with band breakdown\n• Detailed feedback on Task Achievement, Coherence, Lexical Resource, Grammar\n\n🎤 SPEAKING ASSESSMENTS:\n• Academic & General Training Speaking\n• 3-Part IELTS structure (Interview, Long Turn, Discussion)\n• Maya AI Examiner with authentic British pronunciation\n• ClearScore® real-time conversation analysis\n\n🔄 SEAMLESS CROSS-PLATFORM EXPERIENCE:\n1. Purchase assessments in mobile app ($36.49 USD each)\n2. Complete assessments directly in app OR\n3. Login to www.ieltsaiprep.com for desktop access\n4. Progress syncs automatically across all devices\n\n🛡️ PRIVACY & SECURITY:\n• Enterprise-grade data protection\n• Voice recordings processed for assessment only\n• No permanent storage of audio data\n• GDPR compliant privacy practices\n\n🚀 HOW IT WORKS:\n• Download app and create account\n• Purchase desired assessment types\n• Complete AI-powered assessments\n• Receive instant detailed feedback\n• Track improvement over time\n\n💡 PERFECT FOR:\n• IELTS test preparation\n• English proficiency improvement\n• Academic writing skill development\n• Speaking confidence building\n• Band score targeting\n\nJoin thousands of users improving their IELTS scores with AI-powered precision. Experience the future of language assessment today!\n\n📧 Support: support@ieltsaiprep.com\n🌐 Website: www.ieltsaiprep.com",
+    "graphics": {
+      "app_icon": "1024x1024 PNG with IELTS GenAI Prep branding",
+      "feature_graphic": "1024x500 banner with TrueScore® and ClearScore® logos",
+      "screenshots": [
+        "Mobile app home screen with assessment options",
+        "Maya AI speaking assessment interface", 
+        "Writing assessment with real-time feedback",
+        "Cross-platform login demonstration",
+        "Assessment results with band scores",
+        "Progress tracking dashboard"
+      ],
+      "video_url": "Optional: Demo video showing mobile-first workflow"
+    }
+  },
+  "store_presence": {
+    "category": "Education", 
+    "tags": ["education", "language learning", "test preparation", "AI", "IELTS"],
+    "content_rating": "Everyone",
+    "target_audience": "Ages 16-65, IELTS test candidates, English language learners",
+    "countries": ["US", "CA", "GB", "AU", "IN", "PK", "BD", "LK", "NP", "MY", "SG", "TH", "VN", "PH", "ID"],
+    "languages": ["English (Primary)", "Chinese (Simplified)", "Arabic", "Spanish", "French"]
+  },
+  "in_app_products": [
+    {
+      "product_id": "academic_writing_assessment",
+      "product_type": "managed_product",
+      "name": "Academic Writing Assessment",
+      "description": "TrueScore® AI-powered Academic Writing assessment with instant band scoring and comprehensive feedback following official IELTS rubrics.",
+      "default_price": "$36.49",
+      "local_prices": {
+        "USD": "$36.49",
+        "CAD": "$49.99", 
+        "GBP": "£28.99",
+        "AUD": "$54.99",
+        "INR": "₹3049",
+        "EUR": "€34.99"
+      }
+    },
+    {
+      "product_id": "general_writing_assessment",
+      "product_type": "managed_product", 
+      "name": "General Writing Assessment",
+      "description": "TrueScore® AI-powered General Training Writing assessment for Task 1 letters and Task 2 essays with detailed improvement recommendations.",
+      "default_price": "$36.49",
+      "local_prices": {
+        "USD": "$36.49",
+        "CAD": "$49.99",
+        "GBP": "£28.99", 
+        "AUD": "$54.99",
+        "INR": "₹3049",
+        "EUR": "€34.99"
+      }
+    },
+    {
+      "product_id": "academic_speaking_assessment",
+      "product_type": "managed_product",
+      "name": "Academic Speaking Assessment", 
+      "description": "ClearScore® AI-powered Academic Speaking assessment with Maya AI examiner featuring authentic British voice and official 3-part IELTS structure.",
+      "default_price": "$36.49",
+      "local_prices": {
+        "USD": "$36.49",
+        "CAD": "$49.99",
+        "GBP": "£28.99",
+        "AUD": "$54.99", 
+        "INR": "₹3049",
+        "EUR": "€34.99"
+      }
+    },
+    {
+      "product_id": "general_speaking_assessment",
+      "product_type": "managed_product",
+      "name": "General Speaking Assessment",
+      "description": "ClearScore® AI-powered General Training Speaking assessment with Maya AI examiner and real-time conversation analysis for authentic IELTS practice.",
+      "default_price": "$36.49",
+      "local_prices": {
+        "USD": "$36.49",
+        "CAD": "$49.99",
+        "GBP": "£28.99",
+        "AUD": "$54.99",
+        "INR": "₹3049", 
+        "EUR": "€34.99"
+      }
+    }
+  ],
+  "data_safety": {
+    "data_collection": {
+      "personal_info": {
+        "email_addresses": {
+          "collected": true,
+          "shared": false,
+          "optional": false,
+          "purpose": "Account functionality and developer communications"
+        }
+      },
+      "messages": {
+        "other_in_app_messages": {
+          "collected": true,
+          "shared": false, 
+          "optional": false,
+          "purpose": "Writing samples for AI assessment and feedback"
+        }
+      },
+      "audio": {
+        "voice_or_sound_recordings": {
+          "collected": true,
+          "shared": false,
+          "optional": false,
+          "purpose": "Speaking assessment with Maya AI examiner - processed immediately and not stored permanently"
+        }
+      },
+      "app_activity": {
+        "app_interactions": {
+          "collected": true,
+          "shared": false,
+          "optional": true,
+          "purpose": "Analytics to improve app functionality and user experience"
+        }
+      },
+      "app_info_and_performance": {
+        "crash_logs": {
+          "collected": true,
+          "shared": false,
+          "optional": true,
+          "purpose": "App stability and performance improvement"
+        },
+        "diagnostics": {
+          "collected": true,
+          "shared": false,
+          "optional": true, 
+          "purpose": "Technical performance monitoring and optimization"
+        }
+      }
+    },
+    "security_practices": {
+      "data_encrypted_in_transit": true,
+      "data_encrypted_at_rest": true,
+      "data_deletion_available": true,
+      "user_controls_data_sharing": true,
+      "data_collection_minimized": true,
+      "independent_security_review": false,
+      "complies_with_play_families_policy": true
+    },
+    "data_sharing": "No user data is shared with third parties",
+    "data_retention": "User account data retained until account deletion requested. Voice recordings processed immediately for assessment and not stored. Writing samples retained for assessment history and progress tracking."
+  },
+  "app_content": {
+    "target_audience": "Primarily for ages 16-65",
+    "content_guidelines_compliance": true,
+    "educational_content": true,
+    "ads_present": false,
+    "in_app_purchases_present": true,
+    "user_generated_content": {
+      "present": true,
+      "type": "Writing samples and voice recordings for assessment",
+      "moderation": "AI-powered content safety validation",
+      "reporting": "Users can report inappropriate content through app settings"
+    }
+  },
+  "technical_details": {
+    "package_name": "com.ieltsaiprep.app",
+    "version_code": 1,
+    "version_name": "1.0.0",
+    "min_sdk_version": 21,
+    "target_sdk_version": 34,
+    "app_size": "~25MB",
+    "permissions": [
+      "android.permission.INTERNET",
+      "android.permission.RECORD_AUDIO", 
+      "android.permission.ACCESS_NETWORK_STATE",
+      "com.android.vending.BILLING"
+    ],
+    "features": [
+      "In-app billing for assessment purchases",
+      "Audio recording for speaking assessments",
+      "Network connectivity for AI processing",
+      "Cross-platform account synchronization"
+    ]
+  },
+  "testing_tracks": {
+    "internal_testing": {
+      "description": "Internal development team testing",
+      "max_testers": 100,
+      "testing_instructions": "Test mobile-first workflow: 1) Create account, 2) Purchase assessment, 3) Complete assessment, 4) Login to www.ieltsaiprep.com with same credentials"
+    },
+    "alpha_testing": {
+      "description": "Closed alpha testing with invited users",
+      "max_testers": 2000,
+      "countries": ["US", "CA", "GB", "AU", "IN"],
+      "testing_focus": "Mobile-first authentication workflow and AI assessment accuracy"
+    },
+    "beta_testing": {
+      "description": "Open beta testing for public feedback",
+      "max_testers": 20000,
+      "countries": "All supported regions", 
+      "testing_focus": "Cross-platform functionality and user experience optimization"
+    }
+  },
+  "release_management": {
+    "staged_rollout": {
+      "enabled": true,
+      "initial_percentage": 1,
+      "rollout_schedule": [
+        {"percentage": 1, "duration_days": 1},
+        {"percentage": 5, "duration_days": 2},
+        {"percentage": 10, "duration_days": 2},
+        {"percentage": 20, "duration_days": 2},
+        {"percentage": 50, "duration_days": 3},
+        {"percentage": 100, "duration_days": 0}
+      ]
+    },
+    "update_priority": "Low",
+    "rollout_monitoring": "Monitor crash rates, ANR rates, and user reviews during staged rollout"
+  }
+}

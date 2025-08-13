@@ -29,7 +29,7 @@ This package contains all the production code and resources for the IELTS GenAI 
   - User account management templates
   - Practice assessment templates
 
-### Assessment Question Banks
+### Assessment Question Banks & Knowledge Base
 - `Academic Writing Task 2 tests (essays).txt` - Academic writing prompts
 - `General Training Writing Task 2 tests (essays).txt` - General training writing prompts
 - `IELTS General Training Writing Task 1 letters.txt` - General training letters
@@ -38,7 +38,43 @@ This package contains all the production code and resources for the IELTS GenAI 
 - `IELTS Reading Context File.txt` - Reading passages and contexts
 - `IELTS Speaking Context File.xlsx` - Speaking assessment scenarios
 
-## Key Features
+### Database & API Documentation
+- `DATABASE_SCHEMA.md` - Complete DynamoDB table schemas and relationships
+- `API_INTEGRATION_GUIDE.md` - AWS Bedrock, DynamoDB, and mobile integration code
+- `API_ENDPOINTS.md` - Complete API endpoint documentation
+
+### Mobile App Configuration
+- `android_play_store_config.json` - Complete Google Play Store submission configuration
+- `capacitor.config.ts` - Mobile app Capacitor configuration
+- `APP_STORE_SUBMISSION_GUIDE.md` - iOS/Android deployment guides
+- `ANDROID_DEPLOYMENT_GUIDE.md` - Android-specific deployment instructions
+- `BUILD_ANDROID_GUIDE.md` - Build process for Android app
+
+### Production Deployment Packages
+- `clean_lambda_with_deps.zip` - Clean Lambda deployment package with dependencies
+- `ai_seo_gdpr_lambda.zip` - SEO-optimized GDPR-compliant Lambda package
+
+## Complete System Components
+
+### Knowledge Base & Question Banks
+- **4,000+ Assessment Questions**: Academic and General Training modules
+- **Reading Passages**: Comprehensive context files for reading assessments  
+- **Speaking Scenarios**: Real IELTS speaking test situations and prompts
+- **Writing Prompts**: Essays, letters, and task-specific content
+- **Assessment Rubrics**: Official IELTS band descriptors integration
+
+### Database Architecture  
+- **7 DynamoDB Tables**: Users, sessions, assessments, questions, purchases, QR-auth, GDPR
+- **Global Secondary Indexes**: Optimized queries for user data and assessment history
+- **TTL Management**: Automatic cleanup of expired sessions and temporary data
+- **Multi-Region**: Global tables across us-east-1, eu-west-1, ap-southeast-1
+
+### API Integration
+- **AWS Bedrock**: Nova Sonic (speaking) and Nova Micro (writing) AI models
+- **Real-Time Processing**: WebSocket connections for live conversations
+- **Purchase Validation**: iOS App Store and Google Play Store receipt verification
+- **Email Services**: AWS SES for welcome emails and account management
+- **Security**: CloudFront-based access control and reCAPTCHA v2
 
 ### Production Website (www.ieltsaiprep.com)
 - Home page with SEO optimization and FAQ
