@@ -60,11 +60,12 @@ IELTS AI Prep provides comprehensive IELTS test preparation using AI technology 
 │   │   ├── speaking.js         # Speaking assessment
 │   │   ├── mobile_*.js         # Mobile integration
 │   │   └── assessment_*.js     # Assessment features
-│   └── assets/                 # Static assets
-│       ├── images/             # UI graphics and logos
-│       ├── icons/              # SVG icons
-│       ├── audio/              # Sample audio files
-│       └── *.txt               # IELTS question banks (4,000+ questions)
+│   ├── assets/                 # Static assets
+│   │   ├── images/             # UI graphics and logos
+│   │   ├── icons/              # SVG icons
+│   │   ├── audio/              # Sample audio files
+│   │   └── *.txt               # IELTS question banks (8,600+ questions)
+│   └── components/             # Future frontend components (currently empty)
 ├── templates/                  # HTML templates (production-verified)
 │   ├── index.html              # Home page
 │   ├── login.html              # Authentication
