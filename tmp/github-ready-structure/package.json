@@ -1,0 +1,55 @@
+{
+  "name": "ielts-ai-prep-web-platform",
+  "version": "1.0.0",
+  "description": "AI-powered IELTS test preparation platform with AWS Nova Sonic speaking assessments and comprehensive evaluation",
+  "main": "src/lambda_function.py",
+  "scripts": {
+    "dev": "python src/main.py",
+    "build": "zip -r lambda-package.zip src/ templates/ requirements-lambda.txt",
+    "deploy": "aws lambda update-function-code --function-name ielts-genai-prep-api --zip-file fileb://lambda-package.zip",
+    "test": "python -m pytest tests/",
+    "lint": "flake8 src/",
+    "mobile:android": "npx cap run android",
+    "mobile:ios": "npx cap run ios",
+    "mobile:build": "npx cap build"
+  },
+  "keywords": [
+    "ielts",
+    "ai",
+    "assessment",
+    "aws",
+    "lambda",
+    "serverless",
+    "education",
+    "nova-sonic",
+    "speaking-test",
+    "writing-assessment"
+  ],
+  "author": "IELTS GenAI Prep Team",
+  "license": "Proprietary",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WWPCA/ReplitRepo.git"
+  },
+  "homepage": "https://www.ieltsaiprep.com",
+  "dependencies": {
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/ios": "^5.0.0"
+  },
+  "devDependencies": {
+    "aws-cli": "^1.32.0",
+    "serverless": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.9.0"
+  },
+  "capacitor": {
+    "appId": "com.ieltsaiprep.app",
+    "appName": "IELTS AI Prep",
+    "webDir": "dist",
+    "bundledWebRuntime": false
+  }
+}
