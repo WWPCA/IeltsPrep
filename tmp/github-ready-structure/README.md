@@ -44,11 +44,13 @@ IELTS AI Prep provides comprehensive IELTS test preparation using AI technology 
 ```
 /
 ├── README.md                    # Project documentation
+├── replit.md                    # Project architecture and configuration
 ├── requirements-lambda.txt      # Python dependencies
 ├── src/                        # Source code
 │   ├── lambda_function.py      # Main AWS Lambda handler (2,067 lines)
 │   ├── main.py                 # Application entry point
 │   ├── app.py                  # Flask application setup
+│   ├── aws_mock_config.py      # Local development AWS mock
 │   ├── css/                    # Stylesheets
 │   │   ├── style.css           # Main application styles
 │   │   ├── qr-purchase-modal.css # QR modal styling
@@ -72,7 +74,10 @@ IELTS AI Prep provides comprehensive IELTS test preparation using AI technology 
 ├── config/                     # Configuration files
 │   ├── capacitor.config.ts     # Mobile app configuration
 │   └── deployment/             # Deployment configurations
-│       └── android_play_store_config.json
+│       ├── android_play_store_config.json
+│       ├── ai_seo_gdpr_lambda.zip
+│       ├── clean_lambda_with_deps.zip
+│       └── BRANCH_COMMIT_COMMANDS.sh
 ├── docs/                       # Documentation
 │   ├── guides/                 # Setup and deployment guides
 │   │   ├── COMPLETE_REBUILD_GUIDE.md
