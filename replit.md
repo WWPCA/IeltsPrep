@@ -7,6 +7,15 @@ IELTS GenAI Prep is an AI-powered IELTS test preparation platform that evolved i
 Preferred communication style: Simple, everyday language.
 
 ## Recent Critical Fixes
+- **September 25, 2025:** PRODUCTION DEPLOYMENT PACKAGE COMPLETED
+  - Fixed Google reCAPTCHA to use production API keys via environment variables (RECAPTCHA_V2_SITE_KEY, RECAPTCHA_V2_SECRET_KEY)
+  - Added complete forgot password workflow with real AWS DynamoDB integration
+  - Implemented all missing handler functions for production deployment
+  - Created final deployment package: ielts-genai-prep-production-final.zip
+  - Updated iOS auth handler to match Web Platform (532 lines) with password reset functionality
+  - Replaced all AWS mock services with real DynamoDB operations
+  - Ready for immediate AWS Lambda deployment with real services
+
 - **August 13, 2025:** Created GitHub-ready project structure with professional organization
   - Reorganized into proper GitHub structure: src/, templates/, config/, docs/
   - Created professional README.md with project overview and getting started guide
