@@ -44,4 +44,4 @@ localPort = 5050
 externalPort = 3000
 
 [agent]
-integrations = ["flask_stripe==1.0.0", "python_log_in_with_replit==1.0.0"]
+integrations = ["flask_stripe:1.0.0", "python_log_in_with_replit:1.0.0", "github:1.0.0"]
