@@ -1,0 +1,748 @@
+[
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_001"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the course coordinator at the community center. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "society"
+    ],
+    "id": "general_writing_task1_002"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to learn",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_003"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_004"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to exercise",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "health"
+    ],
+    "id": "general_writing_task1_005"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_006"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the housing coordinator at your company. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_007"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to relax and work",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "work"
+    ],
+    "id": "general_writing_task1_008"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_009"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the head librarian at the university. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "education"
+    ],
+    "id": "general_writing_task1_010"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to study",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_011"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_012"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the art class organizer at the community center. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "society"
+    ],
+    "id": "general_writing_task1_013"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to focus on your artwork",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "work"
+    ],
+    "id": "general_writing_task1_014"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_015"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the institute’s program director. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_016"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to learn",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_017"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_018"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the fitness center manager. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "health"
+    ],
+    "id": "general_writing_task1_019"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to attend the classes",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_020"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_021"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the community kitchen coordinator. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "society"
+    ],
+    "id": "general_writing_task1_022"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to volunteer",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_023"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_024"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the workshop coordinator at the cultural center. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "work"
+    ],
+    "id": "general_writing_task1_025"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to engage in the workshop",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "work"
+    ],
+    "id": "general_writing_task1_026"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_027"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You have recently joined a book club at your local library, but you are encountering several issues with the meeting space and schedule that make it difficult to participate and enjoy the discussions.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_028"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the library manager. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_029"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to participate in the book club",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_030"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_031"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the wellness center manager. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_032"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to meditate",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_033"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_034"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the community garden organizer. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "society"
+    ],
+    "id": "general_writing_task1_035"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to participate in the gardening club",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_036"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_037"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the recreation center supervisor. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_038"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to practice",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_039"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_040"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the cycling group coordinator. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_041"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to participate",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_042"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_043"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the bootcamp organizer at the tech hub. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_044"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to learn",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_045"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "You should spend about 20 minutes on this task. Write at least 150 words.",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [],
+    "id": "general_writing_task1_046"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "Write a letter to the workshop coordinator at the arts center. In your letter:",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "work"
+    ],
+    "id": "general_writing_task1_047"
+  },
+  {
+    "type": "general_writing_task1",
+    "prompt": "explain your problems and why it is difficult to create your work",
+    "difficulty": "intermediate",
+    "time_limit": 20,
+    "word_count_min": 150,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "work"
+    ],
+    "id": "general_writing_task1_048"
+  }
+]

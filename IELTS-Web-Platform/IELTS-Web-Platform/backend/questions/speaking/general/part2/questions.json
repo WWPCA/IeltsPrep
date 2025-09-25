@@ -1,0 +1,17 @@
+[
+  {
+    "id": "general_speaking_part2_001",
+    "type": "general_speaking_part2",
+    "topic": "Describe a memorable journey",
+    "prompt": "Describe a memorable journey you have taken.",
+    "points_to_cover": [
+      "Where you went",
+      "Who you went with",
+      "What you did there",
+      "Why it was memorable"
+    ],
+    "time_limit": 2,
+    "preparation_time": 1,
+    "difficulty": "intermediate"
+  }
+]

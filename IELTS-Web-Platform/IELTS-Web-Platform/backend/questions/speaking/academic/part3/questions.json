@@ -1,0 +1,15 @@
+[
+  {
+    "id": "academic_speaking_part3_001",
+    "type": "academic_speaking_part3",
+    "topic": "Reading and Literature",
+    "questions": [
+      "Do you think people read less nowadays compared to the past?",
+      "What are the benefits of reading books versus watching movies?",
+      "How important is it for children to develop reading habits?",
+      "What role do libraries play in modern society?"
+    ],
+    "time_limit": 5,
+    "difficulty": "advanced"
+  }
+]

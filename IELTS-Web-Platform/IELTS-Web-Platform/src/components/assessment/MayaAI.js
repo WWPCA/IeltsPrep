@@ -1,0 +1,1 @@
+// MayaAI.js - Component placeholder

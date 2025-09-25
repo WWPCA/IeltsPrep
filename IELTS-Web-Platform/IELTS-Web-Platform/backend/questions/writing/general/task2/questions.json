@@ -1,0 +1,37 @@
+[
+  {
+    "type": "general_writing_task2",
+    "prompt": "14. In many towns and cities, there's ongoing discussion about the best approach to support local businesses. Some favor providing financial grants and subsidies, while others believe in reducing regulations and taxes to foster growth.",
+    "difficulty": "intermediate",
+    "time_limit": 40,
+    "word_count_min": 250,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "work"
+    ],
+    "id": "general_writing_task2_001"
+  },
+  {
+    "type": "general_writing_task2",
+    "prompt": "16. The role of technology in education is a subject of much discussion. Some believe that increased use of digital devices enhances learning, while others worry about potential distractions and a decline in traditional skills.",
+    "difficulty": "intermediate",
+    "time_limit": 40,
+    "word_count_min": 250,
+    "criteria": [
+      "Task Achievement",
+      "Coherence and Cohesion",
+      "Lexical Resource",
+      "Grammatical Range and Accuracy"
+    ],
+    "tags": [
+      "education",
+      "technology"
+    ],
+    "id": "general_writing_task2_002"
+  }
+]

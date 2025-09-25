@@ -1,0 +1,15 @@
+[
+  {
+    "id": "general_speaking_part1_001",
+    "type": "general_speaking_part1",
+    "topic": "Work and Daily Life",
+    "questions": [
+      "What do you do for work?",
+      "Do you enjoy your job?",
+      "What time do you usually start work?",
+      "What do you do in your free time?"
+    ],
+    "time_limit": 5,
+    "difficulty": "beginner"
+  }
+]

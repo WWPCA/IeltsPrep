@@ -1,0 +1,28 @@
+[
+  {
+    "id": "academic_speaking_part1_001",
+    "type": "academic_speaking_part1",
+    "topic": "Studies and Work",
+    "questions": [
+      "What subject are you studying?",
+      "Why did you choose this subject?",
+      "What do you find most interesting about your studies?",
+      "Do you prefer to study alone or with others?"
+    ],
+    "time_limit": 5,
+    "difficulty": "beginner"
+  },
+  {
+    "id": "academic_speaking_part1_002",
+    "type": "academic_speaking_part1",
+    "topic": "Hometown",
+    "questions": [
+      "Where do you come from?",
+      "What do you like about your hometown?",
+      "Has your hometown changed much since you were young?",
+      "Would you recommend your hometown to visitors?"
+    ],
+    "time_limit": 5,
+    "difficulty": "beginner"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "general_speaking_part3_001",
+    "type": "general_speaking_part3",
+    "topic": "Travel and Transportation",
+    "questions": [
+      "How has travel changed in recent years?",
+      "What are the advantages of different types of transportation?",
+      "Do you think people travel too much nowadays?",
+      "How might travel change in the future?"
+    ],
+    "time_limit": 5,
+    "difficulty": "advanced"
+  }
+]

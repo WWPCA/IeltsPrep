@@ -1,0 +1,1 @@
+// PurchaseService.js - Component placeholder

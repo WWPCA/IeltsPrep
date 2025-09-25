@@ -1,0 +1,261 @@
+service: ielts-genai-prep-backend
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 512
+  timeout: 30
+  
+  environment:
+    DYNAMODB_USERS_TABLE: ielts-genai-prep-users
+    DYNAMODB_ASSESSMENTS_TABLE: ielts-genai-prep-assessments
+    DYNAMODB_TOKENS_TABLE: ielts-genai-prep-auth-tokens
+    JWT_SECRET: ${env:JWT_SECRET, 'your-jwt-secret-key-here'}
+    STAGE: ${self:provider.stage}
+  
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/ielts-genai-prep-users
+        - arn:aws:dynamodb:${self:provider.region}:*:table/ielts-genai-prep-assessments
+        - arn:aws:dynamodb:${self:provider.region}:*:table/ielts-genai-prep-auth-tokens
+    
+    - Effect: Allow
+      Action:
+        - bedrock:InvokeModel
+        - bedrock:InvokeModelWithResponseStream
+      Resource:
+        - arn:aws:bedrock:${self:provider.region}::foundation-model/amazon.nova-sonic-v1:0
+        - arn:aws:bedrock:${self:provider.region}::foundation-model/amazon.nova-micro-v1:0
+    
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: arn:aws:logs:${self:provider.region}:*:*
+
+functions:
+  # Authentication Functions
+  authHandler:
+    handler: lambda_functions/auth_handler.lambda_handler
+    timeout: 30
+    events:
+      - http:
+          path: /api/register
+          method: post
+          cors: true
+      - http:
+          path: /api/login
+          method: post
+          cors: true
+      - http:
+          path: /api/mobile-login
+          method: post
+          cors: true
+      - http:
+          path: /api/validate-token
+          method: post
+          cors: true
+      - http:
+          path: /api/account-deletion
+          method: post
+          cors: true
+      - http:
+          path: /api/health
+          method: get
+          cors: true
+
+  # Purchase Verification Functions
+  purchaseHandler:
+    handler: lambda_functions/purchase_handler.lambda_handler
+    timeout: 30
+    events:
+      - http:
+          path: /purchase/verify/google
+          method: post
+          cors: true
+      - http:
+          path: /purchase/verify/apple
+          method: post
+          cors: true
+      - http:
+          path: /api/verify-purchase
+          method: post
+          cors: true
+
+  # Nova AI Functions
+  novaAiHandler:
+    handler: lambda_functions/nova_ai_handler.lambda_handler
+    timeout: 300  # 5 minutes for AI processing
+    memorySize: 1024
+    events:
+      - http:
+          path: /api/nova-sonic-connect
+          method: post
+          cors: true
+      - http:
+          path: /api/nova-sonic-stream
+          method: post
+          cors: true
+      - http:
+          path: /api/nova-micro/writing
+          method: post
+          cors: true
+      - http:
+          path: /api/nova-micro-assessment
+          method: post
+          cors: true
+      - http:
+          path: /api/maya/introduction
+          method: post
+          cors: true
+      - http:
+          path: /api/maya/conversation
+          method: post
+          cors: true
+
+  # Assessment Functions
+  assessmentHandler:
+    handler: lambda_functions/assessment_handler.lambda_handler
+    timeout: 30
+    events:
+      - http:
+          path: /assessment/academic-writing
+          method: get
+          cors: true
+      - http:
+          path: /assessment/general-writing
+          method: get
+          cors: true
+      - http:
+          path: /assessment/academic-speaking
+          method: get
+          cors: true
+      - http:
+          path: /assessment/general-speaking
+          method: get
+          cors: true
+      - http:
+          path: /api/submit-speaking-response
+          method: post
+          cors: true
+      - http:
+          path: /api/get-assessment-result
+          method: get
+          cors: true
+
+  # User Management Functions
+  userHandler:
+    handler: lambda_functions/user_handler.lambda_handler
+    timeout: 30
+    events:
+      - http:
+          path: /dashboard
+          method: get
+          cors: true
+      - http:
+          path: /my-profile
+          method: get
+          cors: true
+      - http:
+          path: /api/user-profile
+          method: get
+          cors: true
+
+  # QR Authentication Functions
+  qrAuthHandler:
+    handler: lambda_functions/qr_auth_handler.lambda_handler
+    timeout: 30
+    events:
+      - http:
+          path: /api/auth/generate-qr
+          method: post
+          cors: true
+      - http:
+          path: /api/auth/verify-qr
+          method: post
+          cors: true
+      - http:
+          path: /api/website/request-qr
+          method: post
+          cors: true
+      - http:
+          path: /api/website/check-auth
+          method: post
+          cors: true
+      - http:
+          path: /api/mobile/scan-qr
+          method: post
+          cors: true
+
+plugins:
+  - serverless-python-requirements
+  - serverless-domain-manager
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+  
+  customDomain:
+    domainName: api.ieltsaiprep.com
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    certificateName: '*.ieltsaiprep.com'
+    
+  # CloudFront configuration for security
+  cloudFront:
+    origins:
+      - DomainName: api.ieltsaiprep.com
+        Id: ApiGatewayOrigin
+        CustomOriginConfig:
+          HTTPPort: 443
+          HTTPSPort: 443
+          OriginProtocolPolicy: https-only
+          OriginSSLProtocols:
+            - TLSv1.2
+    defaultCacheBehavior:
+      TargetOriginId: ApiGatewayOrigin
+      ViewerProtocolPolicy: redirect-to-https
+      AllowedMethods:
+        - GET
+        - HEAD
+        - OPTIONS
+        - PUT
+        - POST
+        - PATCH
+        - DELETE
+      CachedMethods:
+        - GET
+        - HEAD
+        - OPTIONS
+      Compress: true
+      ForwardedValues:
+        QueryString: true
+        Headers:
+          - Authorization
+          - Content-Type
+          - CF-Secret-3140348d
+    priceClass: PriceClass_100
+    enabled: true
+
+package:
+  exclude:
+    - node_modules/**
+    - .git/**
+    - .serverless/**
+    - __pycache__/**
+    - "*.pyc"
+    - tests/**
+    - docs/**

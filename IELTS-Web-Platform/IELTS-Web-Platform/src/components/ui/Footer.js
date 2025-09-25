@@ -1,0 +1,1 @@
+// Footer.js - Component placeholder

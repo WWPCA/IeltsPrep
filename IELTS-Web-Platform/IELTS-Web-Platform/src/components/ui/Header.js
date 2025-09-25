@@ -1,0 +1,1 @@
+// Header.js - Component placeholder

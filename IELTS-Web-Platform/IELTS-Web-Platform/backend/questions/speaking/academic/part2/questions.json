@@ -1,0 +1,17 @@
+[
+  {
+    "id": "academic_speaking_part2_001",
+    "type": "academic_speaking_part2",
+    "topic": "Describe a book you recently read",
+    "prompt": "Describe a book you recently read that you found interesting.",
+    "points_to_cover": [
+      "What the book was about",
+      "When you read it",
+      "Why you chose this book",
+      "Why you found it interesting"
+    ],
+    "time_limit": 2,
+    "preparation_time": 1,
+    "difficulty": "intermediate"
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "name": "ielts-genai-prep",
+  "version": "1.0.0",
+  "description": "IELTS GenAI Prep - AI-Powered Assessment Platform",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Web assets already built'",
+    "sync": "cap sync",
+    "sync:ios": "cap sync ios",
+    "sync:android": "cap sync android",
+    "open:ios": "cap open ios",
+    "open:android": "cap open android",
+    "copy": "cap copy",
+    "copy:ios": "cap copy ios",
+    "copy:android": "cap copy android"
+  },
+  "keywords": [
+    "ielts",
+    "ai",
+    "assessment",
+    "mobile",
+    "capacitor"
+  ],
+  "author": "IELTS AI Prep Team",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.1",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/device": "^6.0.1",
+    "@capacitor/ios": "^6.1.2",
+    "@capacitor/keyboard": "^6.0.2",
+    "@capacitor/network": "^6.0.2",
+    "@capacitor/preferences": "^6.0.2",
+    "@capacitor/splash-screen": "^6.0.2",
+    "@capacitor/status-bar": "^6.0.1",
+    "@capacitor/toast": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "typescript": "^5.9.2"
+  }
+}

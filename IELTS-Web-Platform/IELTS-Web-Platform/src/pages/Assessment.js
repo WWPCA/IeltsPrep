@@ -1,0 +1,1 @@
+// Assessment.js - Component placeholder
