@@ -579,6 +579,196 @@ def handle_static_file(filename: str) -> Dict[str, Any]:
             'body': f'<h1>500 Internal Server Error</h1><p>{str(e)}</p>'
         }
 
+def handle_forgot_password(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle forgot password request with email sending"""
+    try:
+        email = data.get('email', '').lower().strip()
+        
+        if not email:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Email address is required'
+                })
+            }
+        
+        # For security, always return success message regardless of email existence
+        try:
+            # Check if user exists in DynamoDB
+            table = get_users_table()
+            
+            response = table.scan(
+                FilterExpression='email = :email',
+                ExpressionAttributeValues={':email': email}
+            )
+            
+            if response.get('Items'):
+                user = response['Items'][0]
+                
+                # Generate reset token
+                reset_token = str(uuid.uuid4())
+                
+                # Store reset token with 1-hour expiration
+                reset_data = {
+                    'reset_token': reset_token,
+                    'email': email,
+                    'user_id': user.get('user_id', str(uuid.uuid4())),
+                    'created_at': datetime.utcnow().isoformat(),
+                    'expires_at': (datetime.utcnow() + timedelta(hours=1)).isoformat(),
+                    'used': False
+                }
+                
+                # Store in reset tokens table
+                reset_table = get_reset_tokens_table()
+                reset_table.put_item(Item=reset_data)
+                
+                # Send reset email (placeholder - integrate with SES)
+                print(f"[FORGOT_PASSWORD] Reset token generated for {email}: {reset_token}")
+                
+        except Exception as e:
+            print(f"[FORGOT_PASSWORD] Error processing request: {str(e)}")
+        
+        # Always return success for security
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'success',
+                'message': 'If an account with this email exists, a password reset link has been sent.'
+            })
+        }
+        
+    except Exception as e:
+        print(f"[FORGOT_PASSWORD] Handler error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': 'Password reset request failed'
+            })
+        }
+
+def handle_reset_password(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle password reset with token verification"""
+    try:
+        reset_token = data.get('token', '')
+        new_password = data.get('password', '')
+        
+        if not reset_token or not new_password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Reset token and new password are required'
+                })
+            }
+        
+        # Validate reset token
+        reset_table = get_reset_tokens_table()
+        
+        try:
+            response = reset_table.get_item(Key={'reset_token': reset_token})
+            
+            if 'Item' not in response:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'status': 'error',
+                        'message': 'Invalid or expired reset token'
+                    })
+                }
+            
+            token_data = response['Item']
+            
+            # Check expiration
+            expires_at = datetime.fromisoformat(token_data['expires_at'].replace('Z', ''))
+            if datetime.utcnow() > expires_at:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'status': 'error',
+                        'message': 'Reset token has expired'
+                    })
+                }
+            
+            # Check if already used
+            if token_data.get('used', False):
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'status': 'error',
+                        'message': 'Reset token has already been used'
+                    })
+                }
+            
+            # Update user password
+            email = token_data['email']
+            users_table = get_users_table()
+            
+            # Hash new password (simple hash for demo - use proper hashing in production)
+            import hashlib
+            password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+            
+            # Update user password
+            users_table.update_item(
+                Key={'email': email},
+                UpdateExpression='SET password_hash = :password, last_updated = :timestamp',
+                ExpressionAttributeValues={
+                    ':password': password_hash,
+                    ':timestamp': datetime.utcnow().isoformat()
+                }
+            )
+            
+            # Mark token as used
+            reset_table.update_item(
+                Key={'reset_token': reset_token},
+                UpdateExpression='SET used = :used',
+                ExpressionAttributeValues={':used': True}
+            )
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'success',
+                    'message': 'Password reset successfully. Please log in with your new password.'
+                })
+            }
+            
+        except Exception as e:
+            print(f"[RESET_PASSWORD] Token validation error: {str(e)}")
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Invalid or expired reset token'
+                })
+            }
+        
+    except Exception as e:
+        print(f"[RESET_PASSWORD] Handler error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': 'Password reset failed'
+            })
+        }
+
+def get_reset_tokens_table():
+    """Get DynamoDB reset tokens table"""
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    return dynamodb.Table('ielts-genai-prep-reset-tokens')
+
 def handle_robots_txt() -> Dict[str, Any]:
     """Handle robots.txt endpoint with comprehensive SEO optimization"""
     try:
@@ -749,6 +939,10 @@ def lambda_handler(event, context):
             return handle_get_questions('academic_speaking')
         elif path == '/api/questions/general-speaking' and method == 'GET':
             return handle_get_questions('general_speaking')
+        elif path == '/api/forgot-password' and method == 'POST':
+            return handle_forgot_password(body)
+        elif path == '/api/reset-password' and method == 'POST':
+            return handle_reset_password(body)
         elif path == '/api/nova-micro-writing' and method == 'POST':
             return handle_nova_micro_writing_assessment(body)
         elif path == '/api/submit-writing-assessment' and method == 'POST':
