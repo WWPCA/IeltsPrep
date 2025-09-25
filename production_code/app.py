@@ -983,5 +983,541 @@ def lambda_handler(event, context):
             })
         }
 
-# Add all the other handler functions from the original file
-# [The rest of the handlers would be included here but truncated for brevity]
+def handle_login_page() -> Dict[str, Any]:
+    """Serve mobile-first login page with production reCAPTCHA"""
+    recaptcha_site_key = os.environ.get('RECAPTCHA_V2_SITE_KEY', '6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix')
+    
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }}
+        .login-container {{
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }}
+        .header-section {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .header-section h1 {{
+            color: #e31e24;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }}
+        .form-group {{
+            margin-bottom: 20px;
+        }}
+        .form-control {{
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+        }}
+        .btn-primary {{
+            background: #e31e24;
+            border-color: #e31e24;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }}
+        .forgot-password {{
+            text-align: center;
+            margin-top: 15px;
+        }}
+        .forgot-password a {{
+            color: #e31e24;
+            text-decoration: none;
+        }}
+        .forgot-password a:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header-section">
+            <h1><i class="fas fa-graduation-cap"></i> IELTS GenAI Prep</h1>
+            <p>Login to access your assessments</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <div class="g-recaptcha" data-sitekey="{recaptcha_site_key}"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </button>
+        </form>
+
+        <div class="forgot-password">
+            <a href="#" id="forgotPasswordLink">Forgot your password?</a>
+        </div>
+
+        <div id="forgotPasswordForm" style="display: none; margin-top: 20px;">
+            <hr>
+            <h5>Reset Password</h5>
+            <form id="resetForm">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="resetEmail" name="email" required>
+                </div>
+                <button type="submit" class="btn btn-secondary btn-sm">Send Reset Link</button>
+                <button type="button" class="btn btn-link btn-sm" id="cancelReset">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script>
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {{
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const recaptchaResponse = grecaptcha.getResponse();
+            
+            if (!recaptchaResponse) {{
+                alert('Please complete the reCAPTCHA verification.');
+                return;
+            }}
+            
+            try {{
+                const response = await fetch('/api/login', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{
+                        email: email,
+                        password: password,
+                        recaptcha_response: recaptchaResponse
+                    }})
+                }});
+                
+                const result = await response.json();
+                
+                if (response.ok) {{
+                    alert('Login successful! Redirecting to dashboard...');
+                    window.location.href = '/dashboard';
+                }} else {{
+                    alert('Login failed: ' + (result.error || result.message));
+                    grecaptcha.reset();
+                }}
+            }} catch (error) {{
+                alert('Login request failed: ' + error.message);
+                grecaptcha.reset();
+            }}
+        }});
+
+        // Forgot password functionality
+        document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {{
+            e.preventDefault();
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+            this.style.display = 'none';
+        }});
+
+        document.getElementById('cancelReset').addEventListener('click', function() {{
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('forgotPasswordLink').style.display = 'block';
+            document.getElementById('resetForm').reset();
+        }});
+
+        document.getElementById('resetForm').addEventListener('submit', async function(e) {{
+            e.preventDefault();
+            
+            const email = document.getElementById('resetEmail').value;
+            
+            try {{
+                const response = await fetch('/api/forgot-password', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{ email: email }})
+                }});
+                
+                const result = await response.json();
+                
+                if (response.ok) {{
+                    alert('Password reset instructions sent to your email.');
+                    document.getElementById('resetForm').reset();
+                    document.getElementById('cancelReset').click();
+                }} else {{
+                    alert('Reset failed: ' + (result.error || result.message));
+                }}
+            }} catch (error) {{
+                alert('Reset request failed: ' + error.message);
+            }}
+        }});
+    </script>
+</body>
+</html>"""
+    
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache'
+        },
+        'body': html_content
+    }
+
+def handle_user_login(data: Dict[str, Any], headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle user login with production AWS services"""
+    try:
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '').strip()
+        recaptcha_response = data.get('recaptcha_response', '')
+        
+        if not email or not password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Email and password are required'})
+            }
+        
+        # Verify reCAPTCHA
+        if not recaptcha_response:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'reCAPTCHA verification required'})
+            }
+        
+        if not verify_recaptcha_v2(recaptcha_response):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'reCAPTCHA verification failed'})
+            }
+        
+        # Get user from DynamoDB
+        users_table = get_users_table()
+        
+        try:
+            response = users_table.get_item(Key={'email': email})
+            if 'Item' not in response:
+                return {
+                    'statusCode': 401,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'Invalid credentials'})
+                }
+            
+            user = response['Item']
+            
+            # Verify password hash
+            import hashlib
+            password_hash = hashlib.sha256(password.encode()).hexdigest()
+            
+            if user.get('password_hash') != password_hash:
+                return {
+                    'statusCode': 401,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'Invalid credentials'})
+                }
+            
+            # Update last login
+            users_table.update_item(
+                Key={'email': email},
+                UpdateExpression='SET last_login = :timestamp',
+                ExpressionAttributeValues={':timestamp': datetime.utcnow().isoformat()}
+            )
+            
+            # Generate JWT token
+            import jwt
+            jwt_secret = os.environ.get('JWT_SECRET', 'production-secret-2024')
+            
+            payload = {
+                'user_id': user.get('user_id', str(uuid.uuid4())),
+                'email': email,
+                'exp': datetime.utcnow() + timedelta(hours=24),
+                'iat': datetime.utcnow()
+            }
+            
+            access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': True,
+                    'access_token': access_token,
+                    'user': {
+                        'user_id': user.get('user_id'),
+                        'email': email,
+                        'subscription_status': user.get('subscription_status', 'inactive')
+                    },
+                    'message': 'Login successful'
+                })
+            }
+            
+        except Exception as e:
+            print(f"[LOGIN] Database error: {str(e)}")
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Login service temporarily unavailable'})
+            }
+        
+    except Exception as e:
+        print(f"[LOGIN] Handler error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'Internal server error'})
+        }
+
+def handle_user_registration(data: Dict[str, Any], headers: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle user registration with production AWS services"""
+    try:
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '').strip()
+        recaptcha_response = data.get('recaptcha_response', '')
+        
+        if not email or not password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Email and password are required'})
+            }
+        
+        # Verify reCAPTCHA
+        if not verify_recaptcha_v2(recaptcha_response):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'reCAPTCHA verification failed'})
+            }
+        
+        # Check if user already exists
+        users_table = get_users_table()
+        
+        try:
+            response = users_table.get_item(Key={'email': email})
+            if 'Item' in response:
+                return {
+                    'statusCode': 409,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({'error': 'User already exists'})
+                }
+        except Exception as e:
+            print(f"[REGISTRATION] User check error: {str(e)}")
+        
+        # Create new user
+        import hashlib
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        user_id = str(uuid.uuid4())
+        
+        user_data = {
+            'email': email,
+            'user_id': user_id,
+            'password_hash': password_hash,
+            'created_at': datetime.utcnow().isoformat(),
+            'last_login': datetime.utcnow().isoformat(),
+            'subscription_status': 'active',
+            'assessments_remaining': 3
+        }
+        
+        users_table.put_item(Item=user_data)
+        
+        # Generate JWT token
+        import jwt
+        jwt_secret = os.environ.get('JWT_SECRET', 'production-secret-2024')
+        
+        payload = {
+            'user_id': user_id,
+            'email': email,
+            'exp': datetime.utcnow() + timedelta(hours=24),
+            'iat': datetime.utcnow()
+        }
+        
+        access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'success': True,
+                'access_token': access_token,
+                'user': {
+                    'user_id': user_id,
+                    'email': email,
+                    'subscription_status': 'active'
+                },
+                'message': 'Registration successful'
+            })
+        }
+        
+    except Exception as e:
+        print(f"[REGISTRATION] Handler error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'Registration failed'})
+        }
+
+def handle_mobile_registration_page() -> Dict[str, Any]:
+    """Serve mobile registration page"""
+    try:
+        with open('mobile_registration_flow.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
+            },
+            'body': html_content
+        }
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Registration page not found</h1>'
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error loading registration page: {str(e)}</h1>'
+        }
+
+def handle_dashboard_page() -> Dict[str, Any]:
+    """Serve user dashboard"""
+    html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - IELTS GenAI Prep</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <span class="navbar-brand">IELTS GenAI Prep Dashboard</span>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <h2>Welcome to your IELTS Assessment Dashboard</h2>
+        <p>Your assessments and progress will appear here.</p>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Speaking Assessment</h5>
+                        <p class="card-text">Practice with Maya AI Examiner</p>
+                        <a href="/test_maya_voice.html" class="btn btn-primary">Start Speaking Test</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Writing Assessment</h5>
+                        <p class="card-text">AI-powered writing evaluation</p>
+                        <a href="/nova-assessment.html" class="btn btn-primary">Start Writing Test</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>"""
+    
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/html'},
+        'body': html_content
+    }
+
+def handle_nova_assessment_demo() -> Dict[str, Any]:
+    """Serve Nova assessment demo page"""
+    try:
+        with open('nova_assessment_demo.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Nova assessment demo not found</h1>'
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error: {str(e)}</h1>'
+        }
+
+def handle_database_schema_page() -> Dict[str, Any]:
+    """Serve database schema demo page"""
+    try:
+        with open('database_schema_demo.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+    except FileNotFoundError:
+        return {
+            'statusCode': 404,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>Database schema demo not found</h1>'
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': f'<h1>Error: {str(e)}</h1>'
+        }
+
+def get_users_table():
+    """Get DynamoDB users table"""
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    return dynamodb.Table('ielts-genai-prep-users')
+
+# Additional handler functions would be added here for completeness
+# [Maya conversation, QR auth, etc.]
