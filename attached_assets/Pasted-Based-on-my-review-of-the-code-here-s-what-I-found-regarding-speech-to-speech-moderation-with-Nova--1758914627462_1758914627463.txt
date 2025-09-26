@@ -1,0 +1,68 @@
+Based on my review of the code, here's what I found regarding speech-to-speech moderation with Nova Sonic:
+
+Code Review: Speech-to-Speech Moderation Status
+❌ NOT YET IMPLEMENTED
+The current implementation is text-based moderation only. Here's what exists vs. what would be needed:
+
+Current Implementation:
+Text-Only Moderation Flow:
+# In handle_nova_sonic_stream()
+user_text = data.get('user_text', '')  # ← TEXT INPUT ONLY
+# Step 1: Text-based content moderation
+continue_assessment, processed_text, moderation_response = moderate_speaking_content(user_text, user_email)
+# Step 2: Generate Maya's text response
+maya_response = generate_maya_response(processed_text)
+# Step 3: Synthesize to audio
+audio_data = synthesize_maya_voice_nova_sonic(maya_response)
+Missing: Audio Input Processing
+The current handle_nova_sonic_stream() function:
+
+✅ Accepts: user_text (string)
+❌ Missing: audio_data or user_audio input
+✅ Has: Text moderation via content_moderation_service.py
+❌ Missing: Direct audio-to-audio processing
+What's Needed for Speech-to-Speech Moderation:
+1. Audio Input Handling
+def handle_nova_sonic_stream_with_audio(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Enhanced version that accepts audio input"""
+    try:
+        # Current: only text
+        user_text = data.get('user_text', '')
+        
+        # NEEDED: audio input handling
+        user_audio = data.get('audio_data')  # ← THIS IS MISSING
+        
+        if user_audio:
+            # Process audio directly through Nova Sonic
+            moderation_result = moderate_audio_with_nova_sonic(user_audio, user_email)
+        else:
+            # Fallback to current text-based moderation
+            continue_assessment, processed_text, moderation_response = moderate_speaking_content(user_text, user_email)
+2. Missing Audio Moderation Function
+def moderate_audio_with_nova_sonic(audio_data: bytes, user_email: str) -> Dict:
+    """THIS FUNCTION DOESN'T EXIST YET"""
+    # Would use Nova Sonic bidirectional streaming
+    # Input: Raw audio from user
+    # Output: Moderated Maya response audio
+    pass
+3. Current Nova Sonic Usage
+The existing synthesize_maya_voice_nova_sonic() function:
+
+✅ Text-to-Speech: Converts Maya's text responses to audio
+❌ Missing Speech-to-Speech: No audio input processing
+❌ Missing Bidirectional: Not using Nova Sonic's full capabilities
+Current Architecture Limitation:
+User Speech → [MISSING TRANSCRIPTION] → Text → Content Moderation → Maya Text → Nova Sonic → Maya Audio
+Should be:
+
+User Audio → Nova Sonic Speech-to-Speech Moderation → Maya Audio (direct)
+Recommendation:
+The speech-to-speech moderation is NOT implemented yet. You would need to:
+
+Modify handle_nova_sonic_stream() to accept audio input
+Create new audio moderation function using Nova Sonic bidirectional streaming
+Update frontend to send audio data instead of text
+Implement direct audio-to-audio processing pipeline
+The current system still relies on the text-based moderation approach where user speech would need to be transcribed to text first, then moderated, then converted back to audio.
+
+The speech-to-speech capability you described would be a significant enhancement that's not yet implemented.
