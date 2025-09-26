@@ -99,28 +99,28 @@ user_assessments = {
 
 @app.route('/')
 def home():
-    """Serve QR login page"""
-    return render_template('qr_login.html')
+    """Serve main homepage with TrueScore® and ClearScore® branding"""
+    return render_template('index.html')
 
 @app.route('/index')
 def index():
     """Index route for template compatibility"""
-    return redirect(url_for('home'))
+    return render_template('index.html')
 
 @app.route('/assessment-products')
 def assessment_products_page():
-    """Assessment products page for template compatibility"""
-    return redirect(url_for('test_mobile'))
+    """Assessment products page"""
+    return render_template('assessment_products.html')
 
 @app.route('/login')
 def login():
-    """Login route for template compatibility"""
-    return redirect(url_for('home'))
+    """Login page"""
+    return render_template('login.html')
 
 @app.route('/register')
 def register():
-    """Register route for template compatibility"""
-    return redirect(url_for('home'))
+    """Register page"""
+    return render_template('register.html')
 
 @app.route('/about')
 def about():
@@ -129,8 +129,9 @@ def about():
 
 @app.route('/contact')
 def contact():
-    """Contact route for template compatibility"""
-    return redirect(url_for('home'))
+    """Contact page"""
+    return render_template('contact.html')
+
 
 @app.route('/assessment/<assessment_type>/<int:assessment_number>/start')
 def assessment_start(assessment_type, assessment_number):
