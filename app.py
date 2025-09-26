@@ -99,13 +99,17 @@ user_assessments = {
 
 @app.route('/')
 def home():
-    """Serve original homepage with TrueScore® and ClearScore® branding and restored FAQ"""
-    # Provide anonymous user context for template compatibility
-    class AnonymousUser:
-        is_authenticated = False
-        email = None
-        
-    return render_template('index.html', current_user=AnonymousUser())
+    """Serve working template with comprehensive FAQ and all features"""
+    try:
+        with open('working_template.html', 'r') as f:
+            content = f.read()
+        return content
+    except FileNotFoundError:
+        # Fallback to index.html if working template not found
+        class AnonymousUser:
+            is_authenticated = False
+            email = None
+        return render_template('index.html', current_user=AnonymousUser())
 
 @app.route('/original-home')
 def original_home():
