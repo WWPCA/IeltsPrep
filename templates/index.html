@@ -31,7 +31,7 @@
 
 {% block content %}
 <!-- Assessment Access Notice for Logged-in Users -->
-{% if current_user.is_authenticated %}
+{% if current_user is defined and current_user.is_authenticated %}
 <div class="container mt-4">
     <div class="alert alert-success mb-4">
         <div class="d-flex align-items-center">
@@ -40,10 +40,10 @@
             </div>
             <div>
                 <h4 class="alert-heading mb-2"><i class="fas fa-user-check me-2"></i>You have active assessment packages!</h4>
-                <p class="mb-2">Access your purchased GenAI assessments from your <strong><a href="{{ url_for('profile') }}" class="alert-link">Profile Page</a></strong>.</p>
+                <p class="mb-2">Access your purchased GenAI assessments from your <strong><a href="#" onclick="alert('Profile feature')" class="alert-link">Profile Page</a></strong>.</p>
                 <hr class="my-2">
                 <p class="mb-0">
-                    <a href="{{ url_for('profile') }}" class="btn btn-success btn-sm me-2">
+                    <a href="#" onclick="alert('Assessments feature')" class="btn btn-success btn-sm me-2">
                         <i class="fas fa-arrow-right me-1"></i>Go to My Assessments
                     </a>
                     <small class="text-muted">Start your TrueScore® and ClearScore® assessments now!</small>
@@ -134,10 +134,6 @@
     </div>
 </section>
 
-<!-- Ad Container - Removed -->
-
-<!-- GenAI Technology Overview Section removed (duplicate content) -->
-
 <!-- Features Section -->
 <section class="features">
     <div class="container">
@@ -175,7 +171,7 @@
 </section>
 
 <!-- Product Plans Section -->
-{% if not current_user.is_authenticated %}
+{% if not (current_user is defined and current_user.is_authenticated) %}
 <section class="pricing py-5 bg-light">
     <div class="container">
         <h2 class="text-center mb-4">GenAI Assessed IELTS Modules</h2>
@@ -310,8 +306,6 @@
 </section>
 {% endif %}
 
-
-
 <!-- Testimonials Section -->
 <section class="testimonials py-5">
     <div class="container">
@@ -380,8 +374,6 @@
         </div>
     </div>
 </section>
-
-<!-- Ad Container - Removed -->
 
 <!-- CTA Section -->
 <section class="cta py-5 bg-primary text-white">

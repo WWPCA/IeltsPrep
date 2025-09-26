@@ -175,24 +175,24 @@
                 <ul>
                     <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
                     <li><a href="{{ url_for('assessment_products_page') }}"><i class="fas fa-shopping-cart"></i> Assessment Packages</a></li>
-                    {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('academic_speaking_selection') }}">Academic Speaking</a></li>
-                    <li><a href="{{ url_for('general_speaking_selection') }}">General Speaking</a></li>
-                    <li><a href="{{ url_for('academic_writing_selection') }}">Academic Writing</a></li>
-                    <li><a href="{{ url_for('general_writing_selection') }}">General Writing</a></li>
+                    {% if current_user is defined and current_user.is_authenticated %}
+                    <li><a href="#" onclick="alert('Feature available after login')">Academic Speaking</a></li>
+                    <li><a href="#" onclick="alert('Feature available after login')">General Speaking</a></li>
+                    <li><a href="#" onclick="alert('Feature available after login')">Academic Writing</a></li>
+                    <li><a href="#" onclick="alert('Feature available after login')">General Writing</a></li>
                     {% endif %}
 
-                    {% if current_user.is_authenticated %}
-                        <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> My Profile</a></li>
-                        {% if current_user.admin_role %}
+                    {% if current_user is defined and current_user.is_authenticated %}
+                        <li><a href="#" onclick="alert('Feature available after login')"><i class="fas fa-user"></i> My Profile</a></li>
+                        {% if current_user.admin_role is defined and current_user.admin_role %}
                         <li class="admin-menu">
                             <a href="#" class="dropdown-toggle"><i class="fas fa-shield-alt"></i> Admin <i class="fas fa-caret-down"></i></a>
                             <ul class="dropdown-menu">
-                                <li><a href="{{ url_for('assessment_products_page') }}"><i class="fas fa-globe"></i> Assessment Options</a></li>
+                                <li><a href="#" onclick="alert('Admin feature')"><i class="fas fa-globe"></i> Assessment Options</a></li>
                             </ul>
                         </li>
                         {% endif %}
-                        <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        <li><a href="#" onclick="alert('Logout feature')"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     {% else %}
                         <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
                     {% endif %}
@@ -202,15 +202,15 @@
     </header>
     
     <!-- Welcome Banner for Users with Active Assessments -->
-    {% if current_user.is_authenticated and current_user.has_active_assessment_package() %}
+    {% if current_user is defined and current_user.is_authenticated and current_user.has_active_assessment_package is defined and current_user.has_active_assessment_package() %}
     <div class="container-fluid py-2 bg-light border-bottom">
         <div class="container">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-success"><i class="fas fa-check-circle me-2"></i> You have active assessment packages!</span>
-                    <span class="ms-2">Access your purchased GenAI assessments from your <a href="{{ url_for('profile') }}" class="fw-bold text-primary">Profile Page</a>.</span>
+                    <span class="ms-2">Access your purchased GenAI assessments from your <a href="#" onclick="alert('Profile feature')" class="fw-bold text-primary">Profile Page</a>.</span>
                 </div>
-                <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-primary">Go to My Assessments</a>
+                <a href="#" onclick="alert('Assessments feature')" class="btn btn-sm btn-outline-primary">Go to My Assessments</a>
             </div>
         </div>
     </div>
