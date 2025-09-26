@@ -22,8 +22,8 @@ os.environ['REPLIT_ENVIRONMENT'] = 'true'
 # Import AWS mock services
 from aws_mock_config import aws_mock
 
-# Import content moderation service
-from content_moderation_service import moderate_speaking_content, ModerationSeverity
+# Import enhanced content moderation service with audio support
+from content_moderation_service import moderate_speaking_content, ModerationSeverity, ContentModerationService
 
 # Nova Sonic Amy Integration for Maya voice
 def synthesize_maya_voice_nova_sonic(text: str) -> Optional[str]:
@@ -159,22 +159,115 @@ def handle_nova_sonic_connection_test() -> Dict[str, Any]:
         }
 
 def handle_nova_sonic_stream(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle Nova Sonic streaming for Maya conversations with content moderation"""
+    """Enhanced Nova Sonic streaming with bidirectional audio-to-audio content moderation"""
     try:
+        # Support both text and audio input for backwards compatibility
         user_text = data.get('user_text', '')
+        user_audio = data.get('audio_data', '')
         conversation_id = data.get('conversation_id', str(uuid.uuid4()))
         user_email = data.get('user_email', 'anonymous')
         
-        if not user_text:
+        # Prioritize audio input for speech-to-speech processing
+        if user_audio:
+            return handle_bidirectional_audio_conversation(user_audio, conversation_id, user_email)
+        elif user_text:
+            return handle_text_based_conversation(user_text, conversation_id, user_email)
+        else:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({
                     'status': 'error',
-                    'message': 'No user text provided'
+                    'message': 'No user input (text or audio) provided'
+                })
+            }
+            
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': f'Nova Sonic streaming failed: {str(e)}'
+            })
+        }
+
+def handle_bidirectional_audio_conversation(user_audio: str, conversation_id: str, user_email: str) -> Dict[str, Any]:
+    """
+    Handle direct audio-to-audio conversation with real-time content moderation
+    Uses Nova Sonic bidirectional streaming for authentic speech-to-speech processing
+    """
+    try:
+        # Initialize content moderation service
+        moderator = ContentModerationService()
+        
+        # Step 1: Direct audio-to-audio processing with Nova Sonic bidirectional streaming
+        moderation_result = moderator.moderate_audio_with_nova_sonic(user_audio, user_email)
+        
+        if not moderation_result['success']:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Audio processing failed',
+                    'conversation_id': conversation_id
                 })
             }
         
+        # Step 2: Handle assessment continuation based on moderation
+        if not moderation_result['continue_assessment']:
+            # Severe content violation - end assessment with Maya's audio response
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'assessment_terminated',
+                    'conversation_id': conversation_id,
+                    'maya_text': moderation_result['maya_text'],
+                    'maya_audio': moderation_result['maya_audio'],
+                    'voice': 'en-GB-feminine (British Female)',
+                    'provider': 'AWS Nova Sonic Bidirectional',
+                    'terminate_assessment': True,
+                    'processing_type': moderation_result['processing_type']
+                })
+            }
+        
+        # Step 3: Return successful conversation response
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'success',
+                'conversation_id': conversation_id,
+                'maya_text': moderation_result['maya_text'],
+                'maya_audio': moderation_result['maya_audio'],
+                'voice': 'en-GB-feminine (British Female)',
+                'provider': 'AWS Nova Sonic Bidirectional',
+                'user_transcription': moderation_result.get('user_transcription', ''),
+                'moderation_applied': moderation_result['moderation_applied'],
+                'processing_type': moderation_result['processing_type'],
+                'real_time_audio_processing': True
+            })
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': f'Bidirectional audio processing failed: {str(e)}',
+                'conversation_id': conversation_id
+            })
+        }
+
+def handle_text_based_conversation(user_text: str, conversation_id: str, user_email: str) -> Dict[str, Any]:
+    """
+    Fallback text-based conversation handling for backwards compatibility
+    Maintains existing functionality while supporting legacy implementations
+    """
+    try:
         # Step 1: Content moderation - ensure appropriate conversation flow
         continue_assessment, processed_text, moderation_response = moderate_speaking_content(user_text, user_email)
         
@@ -190,8 +283,9 @@ def handle_nova_sonic_stream(data: Dict[str, Any]) -> Dict[str, Any]:
                     'maya_text': moderation_response,
                     'maya_audio': synthesize_maya_voice_nova_sonic(moderation_response),
                     'voice': 'en-GB-feminine (British Female)',
-                    'provider': 'AWS Nova Sonic',
-                    'terminate_assessment': True
+                    'provider': 'AWS Nova Sonic (Text-to-Speech)',
+                    'terminate_assessment': True,
+                    'processing_type': 'text_based_legacy'
                 })
             }
         
@@ -203,7 +297,7 @@ def handle_nova_sonic_stream(data: Dict[str, Any]) -> Dict[str, Any]:
             # Normal conversation flow
             maya_response = generate_maya_response(processed_text)
         
-        # Synthesize Maya's voice using Nova Sonic Amy
+        # Step 4: Synthesize Maya's voice using Nova Sonic Amy
         audio_data = synthesize_maya_voice_nova_sonic(maya_response)
         
         return {

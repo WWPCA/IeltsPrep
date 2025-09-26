@@ -20,19 +20,21 @@ Preferred communication style: Simple, everyday language.
 - QR Code Authentication for seamless transitions between mobile and web.
 
 **AI Services Integration:**
-- Amazon Nova Sonic for bi-directional speech-to-speech conversations with AI examiner Maya (primarily `us-east-1`).
+- Amazon Nova Sonic for true bidirectional speech-to-speech conversations with AI examiner Maya (primarily `us-east-1`).
+- Direct audio-to-audio processing with real-time content moderation during live conversation.
 - Amazon Nova Micro for text processing and assessment evaluation.
 - Real-time streaming via WebSockets for speaking assessments.
+- Advanced content moderation with graduated response system (guidance → redirection → termination).
 
 **Key Components:**
 - **Authentication System:** Mobile-first registration and purchase, cross-platform login, 1-hour web session management, and App Store/Google Play receipt validation.
 - **Assessment Engine:** Supports four assessment types (Academic/General Speaking and Writing) with AI-powered, multi-modal evaluation.
-- **Content Moderation System:** Real-time content filtering during speaking assessments with seamless conversation flow, maintaining authentic IELTS examination experience while ensuring appropriate content standards.
+- **Advanced Speech-to-Speech Content Moderation:** Real-time audio content filtering using Nova Sonic bidirectional streaming, with seamless conversation flow that maintains authentic IELTS examination experience while ensuring appropriate content standards. Features direct audio-to-audio processing without text intermediary.
 - **Mobile App Integration:** In-app purchases ($36 per assessment product), regional API routing, native platform features via Capacitor, and flexible dual-platform access.
 
 **Data Flow:**
 - **Purchase-to-Assessment:** User purchases in mobile app, receipt is validated, and assessment can be completed on mobile or web.
-- **Speech Assessment:** Web-based initiation, WebSocket connection to `us-east-1`, bi-directional audio streaming with Nova Sonic, real-time conversation, transcript generation, and detailed feedback.
+- **Enhanced Speech Assessment:** Web-based initiation, WebSocket connection to `us-east-1`, true bidirectional audio streaming with Nova Sonic, real-time speech-to-speech content moderation, seamless conversation flow with Maya AI examiner, and detailed feedback generation.
 
 **Deployment Strategy:**
 - Multi-Region Serverless Deployment with `us-east-1` as primary and `eu-west-1`, `ap-southeast-1` as secondary regions.
