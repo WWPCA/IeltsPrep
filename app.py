@@ -152,6 +152,100 @@ def contact():
     """Contact page"""
     return render_template('contact.html')
 
+@app.route('/forgot_password')
+def forgot_password():
+    """Forgot password page"""
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('forgot_password.html', current_user=AnonymousUser())
+
+@app.route('/reset_password')
+def reset_password():
+    """Reset password page"""
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+    
+    # Get reset token from query params
+    reset_token = request.args.get('token', '')
+    
+    return render_template('reset_password.html', current_user=AnonymousUser(), reset_token=reset_token)
+
+@app.route('/api/forgot-password', methods=['POST'])
+def api_forgot_password():
+    """Handle forgot password API request"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return jsonify({
+                'status': 'error',
+                'message': 'Email address is required'
+            }), 400
+        
+        # Mock password reset for development
+        print(f"[MOCK_EMAIL] Password reset requested for: {email}")
+        print(f"[MOCK_EMAIL] Reset link: http://localhost:5000/reset_password?token=mock-token-{email}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'If this email is registered, you will receive password reset instructions.'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': 'Unable to process password reset request. Please try again later.'
+        }), 500
+
+@app.route('/api/reset-password', methods=['POST'])
+def api_reset_password():
+    """Handle reset password API request"""
+    try:
+        data = request.get_json()
+        token = data.get('token', '').strip()
+        new_password = data.get('password', '').strip()
+        confirm_password = data.get('confirm_password', '').strip()
+        
+        # Validate inputs
+        if not all([token, new_password, confirm_password]):
+            return jsonify({
+                'status': 'error',
+                'message': 'All fields are required'
+            }), 400
+        
+        if new_password != confirm_password:
+            return jsonify({
+                'status': 'error',
+                'message': 'Passwords do not match'
+            }), 400
+        
+        if len(new_password) < 8:
+            return jsonify({
+                'status': 'error',
+                'message': 'Password must be at least 8 characters long'
+            }), 400
+        
+        # Mock password reset success for development
+        print(f"[MOCK_RESET] Password reset successful for token: {token}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Password reset successful. You can now log in with your new password.',
+            'redirect': '/login'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': 'Unable to reset password. Please try again later.'
+        }), 500
+
 
 
 @app.route('/assessment/<assessment_type>/<int:assessment_number>/start')
