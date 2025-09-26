@@ -12,9 +12,14 @@ import base64
 import urllib.request
 import urllib.parse
 import urllib.error
+import secrets
+import re
+import logging
 from io import BytesIO
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union, List
+from werkzeug.security import generate_password_hash, check_password_hash
+from jinja2 import Environment, FileSystemLoader
 
 # Set environment for .replit testing
 os.environ['REPLIT_ENVIRONMENT'] = 'true'
@@ -499,6 +504,342 @@ def handle_robots_txt() -> Dict[str, Any]:
         'headers': {'Content-Type': 'text/plain'},
         'body': 'User-agent: *\nDisallow: /api/\nDisallow: /admin/'
     }
+
+def handle_forgot_password_page() -> Dict[str, Any]:
+    """Render forgot password page"""
+    try:
+        template = get_template('forgot_password.html')
+        html_content = template.render()
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+    except Exception as e:
+        print(f"[ERROR] Failed to render forgot password page: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>500 Internal Server Error</h1><p>Unable to load forgot password page.</p>'
+        }
+
+def handle_forgot_password_request(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle forgot password request - send reset email"""
+    try:
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Email address is required'
+                })
+            }
+        
+        # Validate email format
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Please enter a valid email address'
+                })
+            }
+        
+        # Check if user exists
+        user = get_user_by_email(email)
+        if not user:
+            # For security, don't reveal if email exists - always return success
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'success',
+                    'message': 'If this email is registered, you will receive password reset instructions.'
+                })
+            }
+        
+        # Generate secure reset token
+        import secrets
+        reset_token = secrets.token_urlsafe(32)
+        expires_at = int(time.time()) + 3600  # 1 hour expiry
+        
+        # Store reset token in database
+        success = store_password_reset_token(user['id'], reset_token, expires_at)
+        if not success:
+            raise Exception("Failed to store reset token")
+        
+        # Send reset email
+        reset_link = f"https://www.ieltsaiprep.com/reset_password?token={reset_token}"
+        email_sent = send_password_reset_email(email, reset_link, user.get('username', 'User'))
+        
+        if not email_sent:
+            raise Exception("Failed to send reset email")
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'success',
+                'message': 'Password reset instructions have been sent to your email address.'
+            })
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Password reset request failed: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': 'Unable to process password reset request. Please try again later.'
+            })
+        }
+
+def handle_password_reset_page(query_params: Dict[str, Any]) -> Dict[str, Any]:
+    """Render password reset page with token validation"""
+    try:
+        token = query_params.get('token', '')
+        
+        if not token:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'text/html'},
+                'body': '<h1>Invalid Reset Link</h1><p>This password reset link is invalid or has expired.</p><a href="/login">Return to Login</a>'
+            }
+        
+        # Validate reset token
+        user_id = validate_password_reset_token(token)
+        if not user_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'text/html'},
+                'body': '<h1>Expired Reset Link</h1><p>This password reset link has expired. Please request a new one.</p><a href="/forgot_password">Request New Reset Link</a>'
+            }
+        
+        template = get_template('reset_password.html')
+        html_content = template.render({'reset_token': token})
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html'},
+            'body': html_content
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to render password reset page: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'text/html'},
+            'body': '<h1>500 Internal Server Error</h1><p>Unable to load password reset page.</p>'
+        }
+
+def handle_password_reset_submit(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle password reset form submission"""
+    try:
+        token = data.get('token', '').strip()
+        new_password = data.get('password', '').strip()
+        confirm_password = data.get('confirm_password', '').strip()
+        
+        # Validate inputs
+        if not all([token, new_password, confirm_password]):
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'All fields are required'
+                })
+            }
+        
+        if new_password != confirm_password:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Passwords do not match'
+                })
+            }
+        
+        # Validate password strength
+        if len(new_password) < 8:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Password must be at least 8 characters long'
+                })
+            }
+        
+        # Validate reset token and get user
+        user_id = validate_password_reset_token(token)
+        if not user_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'error',
+                    'message': 'Invalid or expired reset token'
+                })
+            }
+        
+        # Update user password
+        success = update_user_password(user_id, new_password)
+        if not success:
+            raise Exception("Failed to update password")
+        
+        # Invalidate the reset token
+        invalidate_password_reset_token(token)
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'success',
+                'message': 'Password reset successful. You can now log in with your new password.',
+                'redirect': '/login'
+            })
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Password reset submission failed: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'status': 'error',
+                'message': 'Unable to reset password. Please try again later.'
+            })
+        }
+
+# Password Reset Helper Functions
+def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    """Get user by email address"""
+    try:
+        return aws_mock.get_user_by_email(email)
+    except Exception as e:
+        print(f"[ERROR] Failed to get user by email: {str(e)}")
+        return None
+
+def store_password_reset_token(user_id: str, token: str, expires_at: int) -> bool:
+    """Store password reset token in database"""
+    try:
+        return aws_mock.store_password_reset_token(user_id, token, expires_at)
+    except Exception as e:
+        print(f"[ERROR] Failed to store password reset token: {str(e)}")
+        return False
+
+def validate_password_reset_token(token: str) -> Optional[str]:
+    """Validate password reset token and return user_id if valid"""
+    try:
+        return aws_mock.validate_password_reset_token(token)
+    except Exception as e:
+        print(f"[ERROR] Failed to validate password reset token: {str(e)}")
+        return None
+
+def update_user_password(user_id: str, new_password: str) -> bool:
+    """Update user password with proper hashing"""
+    try:
+        password_hash = generate_password_hash(new_password)
+        return aws_mock.update_user_password(user_id, password_hash)
+    except Exception as e:
+        print(f"[ERROR] Failed to update user password: {str(e)}")
+        return False
+
+def invalidate_password_reset_token(token: str) -> bool:
+    """Invalidate a used password reset token"""
+    try:
+        return aws_mock.invalidate_password_reset_token(token)
+    except Exception as e:
+        print(f"[ERROR] Failed to invalidate password reset token: {str(e)}")
+        return False
+
+def send_password_reset_email(email: str, reset_link: str, username: str) -> bool:
+    """Send password reset email using AWS SES"""
+    try:
+        subject = "IELTS GenAI Prep - Password Reset Request"
+        
+        # HTML email template
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Password Reset - IELTS GenAI Prep</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #6f42c1; margin-bottom: 10px;">IELTS GenAI Prep</h1>
+                    <h2 style="color: #495057; font-weight: normal;">Password Reset Request</h2>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <p>Hello {username},</p>
+                    
+                    <p>We received a request to reset your password for your IELTS GenAI Prep account. 
+                    If you made this request, please click the button below to reset your password:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_link}" 
+                           style="background: #6f42c1; color: white; padding: 12px 30px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;
+                                  font-weight: bold;">Reset My Password</a>
+                    </div>
+                    
+                    <p>This link will expire in 1 hour for security reasons.</p>
+                    
+                    <p>If you didn't request a password reset, please ignore this email. 
+                    Your password will remain unchanged.</p>
+                </div>
+                
+                <div style="border-top: 1px solid #dee2e6; padding-top: 20px; 
+                           font-size: 14px; color: #6c757d;">
+                    <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all;">{reset_link}</p>
+                    
+                    <p style="margin-top: 20px;">
+                        Best regards,<br>
+                        The IELTS GenAI Prep Team
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Plain text version
+        text_body = f"""
+        IELTS GenAI Prep - Password Reset Request
+        
+        Hello {username},
+        
+        We received a request to reset your password for your IELTS GenAI Prep account.
+        
+        To reset your password, please visit this link:
+        {reset_link}
+        
+        This link will expire in 1 hour for security reasons.
+        
+        If you didn't request a password reset, please ignore this email.
+        Your password will remain unchanged.
+        
+        Best regards,
+        The IELTS GenAI Prep Team
+        """
+        
+        return aws_mock.send_email(email, subject, html_body, text_body)
+    except Exception as e:
+        print(f"[ERROR] Failed to send password reset email: {str(e)}")
+        return False
 
 def lambda_handler(event, context):
     """Main AWS Lambda handler for QR authentication"""
