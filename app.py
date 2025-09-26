@@ -100,12 +100,22 @@ user_assessments = {
 @app.route('/')
 def home():
     """Serve main homepage with TrueScore® and ClearScore® branding"""
-    return render_template('index.html')
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('index.html', current_user=AnonymousUser())
 
 @app.route('/index')
 def index():
     """Index route for template compatibility"""
-    return render_template('index.html')
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('index.html', current_user=AnonymousUser())
 
 @app.route('/assessment-products')
 def assessment_products_page():

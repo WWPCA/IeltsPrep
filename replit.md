@@ -27,6 +27,7 @@ Preferred communication style: Simple, everyday language.
 **Key Components:**
 - **Authentication System:** Mobile-first registration and purchase, cross-platform login, 1-hour web session management, and App Store/Google Play receipt validation.
 - **Assessment Engine:** Supports four assessment types (Academic/General Speaking and Writing) with AI-powered, multi-modal evaluation.
+- **Content Moderation System:** Real-time content filtering during speaking assessments with seamless conversation flow, maintaining authentic IELTS examination experience while ensuring appropriate content standards.
 - **Mobile App Integration:** In-app purchases ($36 per assessment product), regional API routing, native platform features via Capacitor, and flexible dual-platform access.
 
 **Data Flow:**
@@ -50,6 +51,12 @@ Preferred communication style: Simple, everyday language.
 - CloudFront-based blocking with custom header validation to prevent direct API Gateway access.
 - Google reCAPTCHA v2 integration for secure authentication.
 - AWS SES email confirmation system for registration and account deletion.
+- Real-time content moderation for speaking assessments with graduated response system (mild guidance, redirection, or assessment termination for severe violations).
+
+**Payment Integration:**
+- **Mobile-Only Purchase Model:** All payments processed exclusively through Apple App Store and Google Play Store ($36 per assessment package).
+- **QR Code Bridge:** Seamless transition from mobile purchase to web platform access via QR code authentication.
+- **No Web Payments:** Zero integration with web-based payment processors - maintaining strict mobile app store compliance.
 
 ### External Dependencies
 
