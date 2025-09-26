@@ -7,9 +7,16 @@ import os
 import json
 import time
 import uuid
-import bcrypt
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
+
+# Make bcrypt optional for AWS Lambda deployment
+try:
+    import bcrypt
+    BCRYPT_AVAILABLE = True
+except ImportError:
+    BCRYPT_AVAILABLE = False
+    print("[WARNING] bcrypt not available, using simple password hashing")
 
 class MockDynamoDBTable:
     """Simulates DynamoDB table with TTL support"""
@@ -393,8 +400,13 @@ class AWSMockServices:
         if not email or not password:
             return False
         
-        # Hash password with bcrypt
-        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        # Hash password with bcrypt or fallback
+        if BCRYPT_AVAILABLE:
+            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        else:
+            # Simple hash for development/testing (not secure for production)
+            import hashlib
+            password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest().encode('utf-8')
         
         user_record = {
             'user_id': str(uuid.uuid4()),
@@ -414,8 +426,15 @@ class AWSMockServices:
         if not user:
             return None
         
-        # Verify password with bcrypt
-        if bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+        # Verify password with bcrypt or fallback
+        if BCRYPT_AVAILABLE:
+            password_valid = bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8'))
+        else:
+            import hashlib
+            password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest().encode('utf-8')
+            password_valid = password_hash == user['password_hash'].encode('utf-8')
+        
+        if password_valid:
             # Update last login
             user['last_login'] = datetime.utcnow().isoformat()
             self.users_table.put_item(user)

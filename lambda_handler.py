@@ -11,6 +11,7 @@ import time
 import base64
 import urllib.request
 import urllib.parse
+import urllib.error
 from io import BytesIO
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
