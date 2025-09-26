@@ -143,6 +143,7 @@ def contact():
     return render_template('contact.html')
 
 
+
 @app.route('/assessment/<assessment_type>/<int:assessment_number>/start')
 def assessment_start(assessment_type, assessment_number):
     """Assessment start route for template compatibility"""
