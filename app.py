@@ -787,6 +787,22 @@ def get_assessments(user_email):
             'error': str(e)
         }), 500
 
+@app.route('/assessment-structure')
+def assessment_structure():
+    """Show IELTS test structure with FAQ section"""
+    ielts_info = "IELTS (International English Language Testing System) is designed to help you work, study, or migrate to a country where English is the native language. This includes countries such as Australia, Canada, New Zealand, the UK, and USA."
+    return render_template('assessment_structure/index.html', ielts_info=ielts_info)
+
+@app.route('/assessment-structure/<assessment_type>')
+def assessment_structure_detail(assessment_type):
+    """Show detailed assessment structure for specific type"""
+    if assessment_type == 'academic':
+        return render_template('assessment_structure/academic.html')
+    elif assessment_type == 'general_training':
+        return render_template('assessment_structure/general_training.html')
+    else:
+        return "Assessment type not found", 404
+
 @app.route('/test-qr-flow')
 def test_qr_flow():
     """Serve QR authentication test page"""
