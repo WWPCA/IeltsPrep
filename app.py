@@ -125,12 +125,22 @@ def assessment_products_page():
 @app.route('/login')
 def login():
     """Login page"""
-    return render_template('login.html')
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('login.html', current_user=AnonymousUser())
 
 @app.route('/register')
 def register():
     """Register page"""
-    return render_template('register.html')
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('register.html', current_user=AnonymousUser())
 
 @app.route('/about')
 def about():
