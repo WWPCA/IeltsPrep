@@ -30,3 +30,46 @@ with app.app_context():
     # import models  # noqa: F401
 
     db.create_all()
+
+# Import routes after app creation
+from flask import render_template
+from flask_wtf.csrf import CSRFProtect
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
+
+# Add template context processors
+@app.context_processor
+def inject_config():
+    return {
+        'config': app.config,
+        'cache_buster': '1.0'
+    }
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+@app.route('/assessment-products')
+def assessment_products():
+    return render_template('assessment_products.html')
+
+@app.route('/qr-auth')
+def qr_auth():
+    return render_template('qr_auth_page.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
