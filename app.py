@@ -99,7 +99,17 @@ user_assessments = {
 
 @app.route('/')
 def home():
-    """Serve main homepage with TrueScore® and ClearScore® branding"""
+    """Serve comprehensive preview of all features"""
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('comprehensive_preview.html', current_user=AnonymousUser())
+
+@app.route('/original-home')
+def original_home():
+    """Serve original homepage with TrueScore® and ClearScore® branding"""
     # Provide anonymous user context for template compatibility
     class AnonymousUser:
         is_authenticated = False
