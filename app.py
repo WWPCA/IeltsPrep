@@ -143,23 +143,128 @@ def assessment_products_page():
 
 @app.route('/login')
 def login():
-    """Login page"""
-    # Provide anonymous user context for template compatibility
-    class AnonymousUser:
-        is_authenticated = False
-        email = None
-        
-    return render_template('login.html', current_user=AnonymousUser())
+    """Login page - maintain consistency with working template design"""
+    try:
+        with open('working_template.html', 'r') as f:
+            content = f.read()
+        # Inject login form into the working template
+        login_section = '''
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-lg">
+                        <div class="card-body p-5">
+                            <h2 class="text-center mb-4">Login to IELTS GenAI Prep</h2>
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="password" required>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                                </div>
+                            </form>
+                            <hr>
+                            <div class="text-center">
+                                <p><a href="/forgot_password">Forgot your password?</a></p>
+                                <p>Don't have an account? <a href="/register">Sign up here</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        '''
+        # Replace the main content section with login form
+        import re
+        content = re.sub(r'<section class="hero">.*?</section>', login_section, content, flags=re.DOTALL)
+        content = re.sub(r'<section class="assessment-sections.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="features">.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="py-5 bg-light" id="faq">.*?</section>', '', content, flags=re.DOTALL)
+        return content
+    except FileNotFoundError:
+        # Fallback to original template
+        class AnonymousUser:
+            is_authenticated = False
+            email = None
+        return render_template('login.html', current_user=AnonymousUser())
 
 @app.route('/register')
 def register():
-    """Register page"""
-    # Provide anonymous user context for template compatibility
-    class AnonymousUser:
-        is_authenticated = False
-        email = None
-        
-    return render_template('register.html', current_user=AnonymousUser())
+    """Register page - maintain consistency with working template design"""
+    try:
+        with open('working_template.html', 'r') as f:
+            content = f.read()
+        # Inject register form into the working template
+        register_section = '''
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card shadow-lg">
+                        <div class="card-body p-5">
+                            <h2 class="text-center mb-4">Join IELTS GenAI Prep</h2>
+                            <form id="registerForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="firstName" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lastName" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="password" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                    <input type="password" class="form-control" id="confirmPassword" required>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                    <label class="form-check-label" for="agreeTerms">I agree to the Terms of Service and Privacy Policy</label>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg">Create Account</button>
+                                </div>
+                            </form>
+                            <hr>
+                            <div class="text-center">
+                                <p>Already have an account? <a href="/login">Sign in here</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        '''
+        # Replace the main content section with register form
+        import re
+        content = re.sub(r'<section class="hero">.*?</section>', register_section, content, flags=re.DOTALL)
+        content = re.sub(r'<section class="assessment-sections.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="features">.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="py-5 bg-light" id="faq">.*?</section>', '', content, flags=re.DOTALL)
+        return content
+    except FileNotFoundError:
+        # Fallback to original template
+        class AnonymousUser:
+            is_authenticated = False
+            email = None
+        return render_template('register.html', current_user=AnonymousUser())
 
 @app.route('/about')
 def about():
