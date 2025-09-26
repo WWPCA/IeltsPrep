@@ -281,7 +281,7 @@ def handle_text_based_conversation(user_text: str, conversation_id: str, user_em
                     'status': 'assessment_terminated',
                     'conversation_id': conversation_id,
                     'maya_text': moderation_response,
-                    'maya_audio': synthesize_maya_voice_nova_sonic(moderation_response),
+                    'maya_audio': synthesize_maya_voice_nova_sonic(moderation_response or "Assessment terminated"),
                     'voice': 'en-GB-feminine (British Female)',
                     'provider': 'AWS Nova Sonic (Text-to-Speech)',
                     'terminate_assessment': True,
@@ -451,6 +451,55 @@ def generate_qr_code(data: str) -> str:
         print("[WARNING] QRCode library not available, using placeholder")
         return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
 
+# Missing function definitions (placeholders for existing functionality)
+def handle_generate_qr(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate QR code for mobile authentication"""
+    return aws_mock.generate_qr_code(data)
+
+def handle_verify_qr(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Verify QR code authentication"""
+    return aws_mock.verify_qr_code(data)
+
+def handle_apple_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Verify Apple App Store purchase receipts"""
+    return aws_mock.verify_apple_purchase(data)
+
+def handle_google_purchase_verification(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Verify Google Play Store purchase receipts"""
+    return aws_mock.verify_google_purchase(data)
+
+def handle_website_qr_request(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle website QR code requests"""
+    return aws_mock.handle_website_qr_request(data)
+
+def handle_website_auth_check(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Check website authentication status"""
+    return aws_mock.check_website_auth(data)
+
+def handle_mobile_qr_scan(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle mobile QR code scanning"""
+    return aws_mock.handle_mobile_qr_scan(data)
+
+def handle_maya_introduction(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle Maya AI introduction"""
+    return aws_mock.maya_introduction(data)
+
+def handle_maya_conversation(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle Maya AI conversation"""
+    return aws_mock.maya_conversation(data)
+
+def handle_nova_micro_submit(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle Nova Micro submissions"""
+    return aws_mock.nova_micro_submit(data)
+
+def handle_robots_txt() -> Dict[str, Any]:
+    """Handle robots.txt requests"""
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'text/plain'},
+        'body': 'User-agent: *\nDisallow: /api/\nDisallow: /admin/'
+    }
+
 def lambda_handler(event, context):
     """Main AWS Lambda handler for QR authentication"""
     try:
@@ -473,6 +522,14 @@ def lambda_handler(event, context):
             return handle_home_page()
         elif path == '/api/health':
             return handle_health_check()
+        elif path == '/forgot_password' and method == 'GET':
+            return handle_forgot_password_page()
+        elif path == '/api/forgot-password' and method == 'POST':
+            return handle_forgot_password_request(data)
+        elif path == '/reset_password' and method == 'GET':
+            return handle_password_reset_page(event.get('queryStringParameters', {}))
+        elif path == '/api/reset-password' and method == 'POST':
+            return handle_password_reset_submit(data)
         elif path == '/api/auth/generate-qr' and method == 'POST':
             return handle_generate_qr(data)
         elif path == '/api/auth/verify-qr' and method == 'POST':

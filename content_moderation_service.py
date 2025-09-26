@@ -157,7 +157,7 @@ class ContentModerationService:
         For IELTS speaking assessments, we maintain professional standards. 
         You may restart the assessment when you're ready to proceed appropriately."""
     
-    def moderate_audio_with_nova_sonic(self, audio_data: Union[str, bytes], user_email: str = "anonymous") -> Dict[str, any]:
+    def moderate_audio_with_nova_sonic(self, audio_data: Union[str, bytes], user_email: str = "anonymous") -> Dict[str, Any]:
         """
         Direct audio-to-audio moderation using Nova Sonic bidirectional streaming
         Processes user speech directly and returns Maya's moderated audio response
@@ -194,7 +194,7 @@ class ContentModerationService:
                 'error': str(e)
             }
     
-    def _mock_audio_moderation(self, audio_bytes: bytes, user_email: str) -> Dict[str, any]:
+    def _mock_audio_moderation(self, audio_bytes: bytes, user_email: str) -> Dict[str, Any]:
         """Mock audio moderation for development environment"""
         # Simulate audio processing with realistic responses
         mock_transcription = "I want to discuss my hobbies and interests for this IELTS assessment."
@@ -220,7 +220,7 @@ class ContentModerationService:
             'processing_type': 'mock_development'
         }
     
-    def _process_audio_with_nova_sonic(self, audio_bytes: bytes, user_email: str) -> Dict[str, any]:
+    def _process_audio_with_nova_sonic(self, audio_bytes: bytes, user_email: str) -> Dict[str, Any]:
         """
         Production audio processing using Nova Sonic bidirectional streaming
         Direct speech-to-speech with real-time content moderation
@@ -305,7 +305,7 @@ class ContentModerationService:
             # Fallback to text-based processing
             return self._fallback_text_moderation(audio_bytes, user_email)
     
-    def _fallback_text_moderation(self, audio_bytes: bytes, user_email: str) -> Dict[str, any]:
+    def _fallback_text_moderation(self, audio_bytes: bytes, user_email: str) -> Dict[str, Any]:
         """Fallback to text-based moderation if audio processing fails"""
         # In a real implementation, this would transcribe the audio first
         fallback_text = "I understand you want to discuss this topic. Let's focus on more appropriate subjects for the IELTS assessment."
@@ -367,7 +367,7 @@ class ContentModerationService:
             
         else:
             # Clean content - proceed with normal IELTS speaking assessment flow
-            return None  # Let normal conversation flow continue
+            return "Continue with normal assessment flow"  # Let normal conversation flow continue
     
     def log_moderation_event(self, user_id: str, content: str, severity: ModerationSeverity, action_taken: str):
         """Log moderation events for compliance and improvement"""
