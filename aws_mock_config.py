@@ -223,6 +223,8 @@ class AWSMockServices:
         self.users_table = MockDynamoDBTable('ielts-genai-prep-users')
         self.assessment_results_table = MockDynamoDBTable('ielts-genai-prep-assessment-results')
         self.assessment_rubrics_table = MockDynamoDBTable('ielts-genai-prep-assessment-rubrics')
+        self.password_reset_table = MockDynamoDBTable('ielts-genai-prep-password-reset')
+        self.emails_table = MockDynamoDBTable('ielts-genai-prep-emails')
         
         # GDPR Compliance Tables
         self.gdpr_consents_table = MockDynamoDBTable('ielts-genai-prep-gdpr-consents')
@@ -441,6 +443,78 @@ class AWSMockServices:
             return user
         
         return None
+    
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Get user by email address"""
+        return self.users_table.get_item(email)
+    
+    def store_password_reset_token(self, user_id: str, token: str, expires_at: int) -> bool:
+        """Store password reset token in database"""
+        reset_token_data = {
+            'token': token,
+            'user_id': user_id,
+            'expires_at': expires_at,
+            'ttl': expires_at,  # DynamoDB TTL field
+            'created_at': time.time(),
+            'used': False
+        }
+        return self.password_reset_table.put_item(reset_token_data)
+    
+    def validate_password_reset_token(self, token: str) -> Optional[str]:
+        """Validate password reset token and return user_id if valid"""
+        token_data = self.password_reset_table.get_item(token)
+        
+        if not token_data:
+            return None
+        
+        # Check if token has expired
+        if time.time() > token_data.get('expires_at', 0):
+            return None
+        
+        # Check if token has been used
+        if token_data.get('used', False):
+            return None
+        
+        return token_data.get('user_id')
+    
+    def update_user_password(self, user_id: str, password_hash: str) -> bool:
+        """Update user password with new hash"""
+        # Find user by user_id
+        users = self.users_table.scan()
+        for user in users:
+            if user.get('user_id') == user_id:
+                user['password_hash'] = password_hash
+                user['password_updated_at'] = datetime.utcnow().isoformat()
+                return self.users_table.put_item(user)
+        return False
+    
+    def invalidate_password_reset_token(self, token: str) -> bool:
+        """Mark password reset token as used"""
+        token_data = self.password_reset_table.get_item(token)
+        if token_data:
+            token_data['used'] = True
+            token_data['used_at'] = time.time()
+            return self.password_reset_table.put_item(token_data)
+        return False
+    
+    def send_email(self, to_email: str, subject: str, html_body: str, text_body: str) -> bool:
+        """Send email using mock AWS SES"""
+        email_data = {
+            'to': to_email,
+            'subject': subject,
+            'html_body': html_body,
+            'text_body': text_body,
+            'sent_at': datetime.utcnow().isoformat(),
+            'status': 'sent'
+        }
+        
+        # In development mode, just log the email
+        print(f"[AWS_SES] Email sent to {to_email}")
+        print(f"[AWS_SES] Subject: {subject}")
+        print(f"[AWS_SES] Text Body: {text_body[:200]}...")
+        
+        # Store email in mock table for testing
+        return self.emails_table.put_item(email_data)
     
     def create_session(self, session_data: Dict[str, Any]) -> bool:
         """Create session in ElastiCache"""
