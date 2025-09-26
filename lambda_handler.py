@@ -22,6 +22,9 @@ os.environ['REPLIT_ENVIRONMENT'] = 'true'
 # Import AWS mock services
 from aws_mock_config import aws_mock
 
+# Import content moderation service
+from content_moderation_service import moderate_speaking_content, ModerationSeverity
+
 # Nova Sonic Amy Integration for Maya voice
 def synthesize_maya_voice_nova_sonic(text: str) -> Optional[str]:
     """
@@ -156,10 +159,11 @@ def handle_nova_sonic_connection_test() -> Dict[str, Any]:
         }
 
 def handle_nova_sonic_stream(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle Nova Sonic streaming for Maya conversations"""
+    """Handle Nova Sonic streaming for Maya conversations with content moderation"""
     try:
         user_text = data.get('user_text', '')
         conversation_id = data.get('conversation_id', str(uuid.uuid4()))
+        user_email = data.get('user_email', 'anonymous')
         
         if not user_text:
             return {
@@ -171,8 +175,33 @@ def handle_nova_sonic_stream(data: Dict[str, Any]) -> Dict[str, Any]:
                 })
             }
         
-        # Generate Maya's response text first
-        maya_response = generate_maya_response(user_text)
+        # Step 1: Content moderation - ensure appropriate conversation flow
+        continue_assessment, processed_text, moderation_response = moderate_speaking_content(user_text, user_email)
+        
+        # Step 2: Handle moderation results seamlessly
+        if not continue_assessment:
+            # Severe content violation - end assessment gracefully
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'status': 'assessment_terminated',
+                    'conversation_id': conversation_id,
+                    'maya_text': moderation_response,
+                    'maya_audio': synthesize_maya_voice_nova_sonic(moderation_response),
+                    'voice': 'en-GB-feminine (British Female)',
+                    'provider': 'AWS Nova Sonic',
+                    'terminate_assessment': True
+                })
+            }
+        
+        # Step 3: Generate Maya's response (incorporating any content guidance)
+        if moderation_response:
+            # Use moderation response (gentle redirection)
+            maya_response = moderation_response
+        else:
+            # Normal conversation flow
+            maya_response = generate_maya_response(processed_text)
         
         # Synthesize Maya's voice using Nova Sonic Amy
         audio_data = synthesize_maya_voice_nova_sonic(maya_response)
@@ -3788,14 +3817,33 @@ def handle_speaking_submission(data: Dict[str, Any], headers: Dict[str, Any]) ->
         # Step 1: Transcribe audio (mock implementation using realistic transcription)
         transcription = transcribe_audio_with_fallback(audio_data, question_id)
         
-        # Step 2: Get IELTS rubric from AWS mock services
+        # Step 2: Content moderation on final transcription
+        continue_assessment, moderated_transcription, moderation_message = moderate_speaking_content(transcription, user_email)
+        
+        if not continue_assessment:
+            # Assessment terminated due to inappropriate content
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'assessment_terminated',
+                    'message': moderation_message,
+                    'reason': 'Content moderation violation'
+                })
+            }
+        
+        # Use moderated transcription for evaluation
+        final_transcription = moderated_transcription
+        
+        # Step 3: Get IELTS rubric from AWS mock services
         rubric = aws_mock.get_assessment_rubric(assessment_type)
         if not rubric:
             # Fallback to hardcoded rubric if DynamoDB is empty
             rubric = get_fallback_speaking_rubric(assessment_type)
         
-        # Step 3: Evaluate with Nova Micro or fallback
-        assessment_result = evaluate_speaking_with_nova_micro(transcription, rubric, assessment_type)
+        # Step 4: Evaluate with Nova Micro or fallback (using moderated transcription)
+        assessment_result = evaluate_speaking_with_nova_micro(final_transcription, rubric, assessment_type)
         
         # Step 4: Structure feedback according to IELTS criteria
         structured_feedback = structure_ielts_speaking_feedback(assessment_result, rubric)
@@ -3807,7 +3855,7 @@ def handle_speaking_submission(data: Dict[str, Any], headers: Dict[str, Any]) ->
             'user_email': user_email,
             'assessment_type': assessment_type,
             'question_id': question_id,
-            'transcription': transcription,
+            'transcription': final_transcription,
             'overall_band': structured_feedback['overall_band'],
             'criteria_scores': structured_feedback['criteria'],
             'detailed_feedback': structured_feedback['detailed_feedback'],
