@@ -120,7 +120,12 @@ def index():
 @app.route('/assessment-products')
 def assessment_products_page():
     """Assessment products page"""
-    return render_template('assessment_products.html')
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('assessment_products.html', current_user=AnonymousUser())
 
 @app.route('/login')
 def login():
@@ -150,7 +155,32 @@ def about():
 @app.route('/contact')
 def contact():
     """Contact page"""
-    return render_template('contact.html')
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('contact.html', current_user=AnonymousUser())
+
+@app.route('/terms_and_payment')
+def terms_and_payment():
+    """Terms and payment page"""
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('gdpr/terms_of_service.html', current_user=AnonymousUser())
+
+@app.route('/privacy_policy')
+def privacy_policy():
+    """Privacy policy page"""
+    # Provide anonymous user context for template compatibility
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+        
+    return render_template('gdpr/privacy_policy.html', current_user=AnonymousUser())
 
 @app.route('/forgot_password')
 def forgot_password():
