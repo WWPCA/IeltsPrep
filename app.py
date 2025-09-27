@@ -35,6 +35,11 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.jinja_env.globals['csrf_token'] = csrf_token
 app.jinja_env.globals['config'] = ProductionConfig()
 
+# Add cache buster for CSS/JS files
+@app.context_processor
+def inject_cache_buster():
+    return dict(cache_buster=str(int(time.time())))
+
 # Initialize AWS DynamoDB connections with fallback to mock for development
 try:
     # Try to use production DynamoDB
