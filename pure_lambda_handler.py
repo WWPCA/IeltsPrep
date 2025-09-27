@@ -216,7 +216,7 @@ def handle_api_request(event: Dict[str, Any], context: Any, path: str, method: s
         return handle_forgot_password(event, context)
     
     elif path == '/api/reset-password' and method == 'POST':
-        return handle_reset_password(data)
+        return handle_reset_password(event, context)
     
     # Mobile API delegation
     elif path.startswith('/api/v1/') and MOBILE_API_AVAILABLE:
@@ -539,17 +539,16 @@ def handle_forgot_password(event: Dict[str, Any], context: Any) -> Dict[str, Any
         if not reset_token:
             raise SecurityError("Token generation failed")
         
-        # Store reset token securely
-        if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
-            # TODO: Store in DynamoDB tokens table with TTL
-            pass
-        else:
-            password_reset_tokens[reset_token] = {
-                'email': email,
-                'created_at': time.time(),
-                'expires_at': time.time() + 3600,
-                'ip': reset_data['ip']
-            }
+        # Store reset token securely using DynamoDB-backed storage
+        storage_success = secure_storage.store_password_reset_token(
+            token=reset_token,
+            data=reset_data,
+            ttl_seconds=3600
+        )
+        
+        if not storage_success:
+            logger.error(f"Failed to store password reset token for email: {email}")
+            raise SecurityError("Failed to process password reset request")
         
         # TODO: Send secure email with reset link
         logger.info(f"Password reset requested for email: {email}")
@@ -578,36 +577,98 @@ def handle_forgot_password(event: Dict[str, Any], context: Any) -> Dict[str, Any
             content_type='application/json'
         )
 
-def handle_reset_password(data: Dict) -> Dict[str, Any]:
-    """Handle password reset"""
-    token = data.get('token')
-    new_password = data.get('password')
-    
-    if not token or not new_password:
+@security_middleware(sensitive_endpoint=True)
+def handle_reset_password(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Handle password reset with comprehensive security validation"""
+    try:
+        # Parse and validate request data
+        body = event.get('body', '')
+        if not body:
+            raise SecurityError("Request body required")
+        
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            raise SecurityError("Invalid JSON format")
+        
+        # Validate request data
+        validated_data = validate_request_data(data, SCHEMAS['reset_password'])
+        token = validated_data.get('token')
+        new_password = validated_data.get('password')
+        
+        # Validate password strength
+        valid_password, password_error = InputValidator.validate_password(new_password)
+        if not valid_password:
+            raise SecurityError(password_error)
+        
+        # Validate and consume reset token atomically
+        token_valid, reset_data = secure_storage.validate_and_consume_password_reset_token(token)
+        if not token_valid:
+            raise SecurityError("Invalid, expired, or already used reset token")
+        
+        # Get user email from token data
+        email = reset_data.get('email')
+        if not email:
+            raise SecurityError("Invalid token data")
+        
+        # Update password in database
+        try:
+            if user_dal:
+                from werkzeug.security import generate_password_hash
+                password_hash = generate_password_hash(new_password)
+                
+                # Update user password
+                user = user_dal.get_user_by_email(email)
+                if not user:
+                    # For security, don't reveal if email exists
+                    logger.warning(f"Password reset attempted for non-existent email: {email}")
+                    raise SecurityError("Invalid reset token")
+                
+                # Update password
+                success = user_dal.update_user_password(email, password_hash)
+                if not success:
+                    raise SecurityError("Failed to update password")
+                
+                logger.info(f"Password successfully reset for email: {email}")
+            else:
+                logger.info(f"Mock password reset for email: {email}")
+        
+        except Exception as e:
+            logger.error(f"Database error during password reset: {e}")
+            raise SecurityError("Failed to update password")
+        
         return create_response(
-            status_code=400,
-            body=json.dumps({'error': 'Token and password required'}),
+            status_code=200,
+            body=json.dumps({
+                'status': 'success',
+                'success': True,
+                'message': 'Your password has been reset successfully. You can now log in with your new password.',
+                'redirect': '/login'
+            }),
             content_type='application/json'
         )
-    
-    if token not in password_reset_tokens:
+        
+    except SecurityError as e:
         return create_response(
-            status_code=400,
-            body=json.dumps({'error': 'Invalid or expired token'}),
+            status_code=e.status_code,
+            body=json.dumps({
+                'status': 'error',
+                'error': e.message,
+                'message': e.message
+            }),
             content_type='application/json'
         )
-    
-    # TODO: Update password in database
-    del password_reset_tokens[token]
-    
-    return create_response(
-        status_code=200,
-        body=json.dumps({
-            'success': True,
-            'message': 'Password reset successful'
-        }),
-        content_type='application/json'
-    )
+    except Exception as e:
+        logger.error(f"Password reset failed: {e}")
+        return create_response(
+            status_code=500,
+            body=json.dumps({
+                'status': 'error',
+                'error': 'Password reset failed',
+                'message': 'An error occurred while resetting your password. Please try again.'
+            }),
+            content_type='application/json'
+        )
 
 @security_middleware(sensitive_endpoint=True, require_recaptcha=True)
 def handle_login(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
