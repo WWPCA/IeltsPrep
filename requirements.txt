@@ -13,3 +13,4 @@ flask-login
 python-dotenv
 qrcode
 pyjwt
+awsgi
