@@ -247,9 +247,9 @@ def login():
                                 <p class="mb-2"><a href="/forgot_password" class="text-decoration-none">
                                     <i class="fas fa-key me-1"></i>Forgot your password?
                                 </a></p>
-                                <p class="mb-0">Don't have an account? <a href="/register" class="fw-bold text-decoration-none">
-                                    <i class="fas fa-user-plus me-1"></i>Sign up here
-                                </a></p>
+                                <p class="mb-0">Don't have an account? <span class="fw-bold text-primary">
+                                    <i class="fas fa-mobile-alt me-1"></i>Download our app from the App Store to register
+                                </span></p>
                             </div>
                         </div>
                     </div>
@@ -299,74 +299,39 @@ def login():
 
 @app.route('/register')
 def register():
-    """Register page - maintain consistency with working template design"""
-    try:
-        with open('working_template.html', 'r') as f:
-            content = f.read()
-        # Inject register form into the working template
-        register_section = '''
-        <div class="container py-5">
-            <div class="row justify-content-center">
-                <div class="col-md-8 col-lg-6">
-                    <div class="card shadow-lg">
-                        <div class="card-body p-5">
-                            <h2 class="text-center mb-4">Join IELTS GenAI Prep</h2>
-                            <form id="registerForm">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="firstName" class="form-label">First Name</label>
-                                        <input type="text" class="form-control" id="firstName" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lastName" class="form-label">Last Name</label>
-                                        <input type="text" class="form-control" id="lastName" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="confirmPassword" required>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
-                                    <label class="form-check-label" for="agreeTerms">I agree to the Terms of Service and Privacy Policy</label>
-                                </div>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-success btn-lg">Create Account</button>
-                                </div>
-                            </form>
-                            <hr>
-                            <div class="text-center">
-                                <p>Already have an account? <a href="/login">Sign in here</a></p>
-                            </div>
+    """Redirect register attempts to app store - registration is app-only"""
+    return '''
+    <html>
+    <head>
+        <title>Registration - IELTS GenAI Prep</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-light">
+        <div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+            <div class="text-center">
+                <div class="card shadow-lg border-0" style="max-width: 500px;">
+                    <div class="card-body p-5">
+                        <i class="fas fa-mobile-alt fa-4x text-primary mb-4"></i>
+                        <h2 class="mb-3">Registration Available in App Only</h2>
+                        <p class="lead mb-4">Create your IELTS GenAI Prep account exclusively through our mobile app for the best experience.</p>
+                        <div class="d-grid gap-2">
+                            <a href="/qr-auth" class="btn btn-primary btn-lg">
+                                <i class="fas fa-download me-2"></i>Download App & Register
+                            </a>
+                            <a href="/login" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Back to Login
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        '''
-        # Replace the main content section with register form using proper regex patterns
-        import re
-        content = re.sub(r'<section class="hero"[^>]*>.*?</section>', register_section, content, flags=re.DOTALL)
-        content = re.sub(r'<section class="assessment-sections[^>]*>.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="features"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="pricing[^>]*>.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="py-5"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="py-5 bg-light"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
-        return content
-    except FileNotFoundError:
-        # Fallback to original template
-        class AnonymousUser:
-            is_authenticated = False
-            email = None
-        return render_template('register.html', current_user=AnonymousUser())
+    </body>
+    </html>
+    '''
 
 @app.route('/about')
 def about():
