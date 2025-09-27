@@ -16,8 +16,60 @@
         background: white;
         border: 1px solid #dee2e6;
         border-radius: 5px;
-        padding: 1rem;
+        padding: 0;
         margin-bottom: 2rem;
+        min-height: 600px;
+    }
+    
+    .exam-layout {
+        display: flex;
+        height: 600px;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    
+    .question-panel {
+        flex: 0 0 45%;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-right: 3px solid #28a745;
+        padding: 2rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .logo-area {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #28a745;
+    }
+    
+    .ielts-logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .response-panel {
+        flex: 1;
+        background: white;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .response-header {
+        background: #28a745;
+        color: white;
+        padding: 1rem;
+        margin: -2rem -2rem 1rem -2rem;
+        text-align: center;
+        font-weight: bold;
     }
     
     .task-display {
@@ -122,75 +174,123 @@
         Total Time: 60:00 | Current Task: 00:00
     </div>
 
-    <!-- Main Writing Interface -->
+    <!-- Main Writing Interface - Divided Screen Format -->
     <div class="writing-interface">
-        <!-- Task 1 Content -->
-        <div id="task1Content">
-            <div class="task-display">
-                <strong>Writing Task 1</strong><br>
-                You should spend about 20 minutes on this task.
-                <br><br>
-                {% if 'academic' in assessment_type %}
-                The chart below shows the percentage of households in owned and rented accommodation in England and Wales between 1918 and 2011.
-                <br><br>
-                <strong>Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</strong>
-                <br><br>
-                Write at least 150 words.
-                {% else %}
-                You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken.
-                <br><br>
-                <strong>Write a letter to the shop manager. In your letter:</strong>
-                <ul style="margin: 10px 0;">
-                    <li>describe the problem with the equipment</li>
-                    <li>explain what happened when you phoned the shop</li>
-                    <li>say what you would like the manager to do</li>
-                </ul>
-                Write at least 150 words.
-                {% endif %}
-            </div>
+        <div class="exam-layout">
+            <!-- Left Panel - Logo + Question -->
+            <div class="question-panel">
+                <!-- IELTS Logo Area -->
+                <div class="logo-area">
+                    <div class="ielts-logo">
+                        <i class="fas fa-pen-nib"></i>
+                        IELTS GenAI Prep
+                    </div>
+                    <div class="text-muted small mt-1">Official Exam Format</div>
+                </div>
 
-            <div class="writing-area">
-                <textarea class="writing-textarea" id="task1Text" placeholder=""></textarea>
-                <div class="word-counter">
-                    Words: <span id="task1WordCount">0</span>
+                <!-- Task Content -->
+                <div class="flex-grow-1">
+                    <!-- Task 1 Content -->
+                    <div id="task1QuestionContent">
+                        <div class="task-display">
+                            <strong>Writing Task 1</strong><br>
+                            <small class="text-muted">Spend about 20 minutes on this task</small>
+                            <hr>
+                            {% if 'academic' in assessment_type %}
+                            <p>The chart below shows the percentage of households in owned and rented accommodation in England and Wales between 1918 and 2011.</p>
+                            
+                            <div class="alert alert-info">
+                                <strong>Instructions:</strong><br>
+                                Summarise the information by selecting and reporting the main features, and make comparisons where relevant.
+                            </div>
+                            
+                            <div class="badge bg-primary">Write at least 150 words</div>
+                            {% else %}
+                            <p>You recently bought a piece of equipment for your kitchen but it did not work. You phoned the shop but no action was taken.</p>
+                            
+                            <div class="alert alert-info">
+                                <strong>Write a letter to the shop manager. In your letter:</strong>
+                                <ul class="mt-2">
+                                    <li>describe the problem with the equipment</li>
+                                    <li>explain what happened when you phoned the shop</li>
+                                    <li>say what you would like the manager to do</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="badge bg-primary">Write at least 150 words</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Task 2 Content -->
+                    <div id="task2QuestionContent" style="display: none;">
+                        <div class="task-display">
+                            <strong>Writing Task 2</strong><br>
+                            <small class="text-muted">Spend about 40 minutes on this task</small>
+                            <hr>
+                            <p>Some people think that universities should provide graduates with the knowledge and skills needed in the workplace. Others think that the true function of a university is to give access to knowledge for its own sake, regardless of whether the course is useful to an employer.</p>
+                            
+                            <div class="alert alert-info">
+                                <strong>Question:</strong><br>
+                                What, in your opinion, should be the main function of a university?<br><br>
+                                Give reasons for your answer and include any relevant examples from your own knowledge or experience.
+                            </div>
+                            
+                            <div class="badge bg-primary">Write at least 250 words</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timer in Question Panel -->
+                <div class="mt-auto pt-3 border-top">
+                    <div class="timer-display" id="timerDisplay">
+                        Total Time: 60:00 | Current Task: 00:00
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Task 2 Content -->
-        <div id="task2Content" style="display: none;">
-            <div class="task-display">
-                <strong>Writing Task 2</strong><br>
-                You should spend about 40 minutes on this task.
-                <br><br>
-                Some people think that universities should provide graduates with the knowledge and skills needed in the workplace. Others think that the true function of a university is to give access to knowledge for its own sake, regardless of whether the course is useful to an employer.
-                <br><br>
-                <strong>What, in your opinion, should be the main function of a university?</strong>
-                <br><br>
-                Give reasons for your answer and include any relevant examples from your own knowledge or experience.
-                <br><br>
-                Write at least 250 words.
-            </div>
+            <!-- Right Panel - Response Area -->
+            <div class="response-panel">
+                <div class="response-header">
+                    <i class="fas fa-edit me-2"></i>
+                    <span id="currentTaskHeader">Task 1 Response</span>
+                </div>
 
-            <div class="writing-area">
-                <textarea class="writing-textarea" id="task2Text" placeholder=""></textarea>
-                <div class="word-counter">
-                    Words: <span id="task2WordCount">0</span>
+                <!-- Task 1 Response -->
+                <div id="task1ResponseContent" class="flex-grow-1">
+                    <textarea class="writing-textarea" id="task1Text" placeholder="Type your Task 1 response here..."></textarea>
+                    <div class="word-counter">
+                        <i class="fas fa-calculator me-2"></i>Words: <span id="task1WordCount">0</span>
+                        <span class="ms-3 text-muted" id="task1Status">150 words needed</span>
+                    </div>
+                </div>
+
+                <!-- Task 2 Response -->
+                <div id="task2ResponseContent" style="display: none;" class="flex-grow-1">
+                    <textarea class="writing-textarea" id="task2Text" placeholder="Type your Task 2 response here..."></textarea>
+                    <div class="word-counter">
+                        <i class="fas fa-calculator me-2"></i>Words: <span id="task2WordCount">0</span>
+                        <span class="ms-3 text-muted" id="task2Status">250 words needed</span>
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="mt-auto pt-3 border-top">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" id="submitBtn">
+                            <i class="fas fa-paper-plane me-2"></i>Submit for Nova Micro Assessment
+                        </button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary flex-fill" id="saveProgressBtn">
+                                <i class="fas fa-save me-2"></i>Save Progress
+                            </button>
+                            <button class="btn btn-outline-danger flex-fill" id="exitBtn">
+                                <i class="fas fa-times me-2"></i>Exit Assessment
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Control Buttons -->
-        <div class="text-center mt-4">
-            <button class="btn btn-outline-secondary me-2" id="saveProgressBtn">
-                <i class="fas fa-save me-2"></i>Save Progress
-            </button>
-            <button class="btn btn-success me-2" id="submitBtn">
-                <i class="fas fa-paper-plane me-2"></i>Submit for Assessment
-            </button>
-            <button class="btn btn-outline-danger" id="exitBtn">
-                <i class="fas fa-times me-2"></i>Exit Assessment
-            </button>
         </div>
     </div>
 </div>
@@ -262,8 +362,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update UI
         document.getElementById('task1Btn').classList.toggle('active', taskNum === 1);
         document.getElementById('task2Btn').classList.toggle('active', taskNum === 2);
-        document.getElementById('task1Content').style.display = taskNum === 1 ? 'block' : 'none';
-        document.getElementById('task2Content').style.display = taskNum === 2 ? 'block' : 'none';
+        
+        // Switch question panel content
+        document.getElementById('task1QuestionContent').style.display = taskNum === 1 ? 'block' : 'none';
+        document.getElementById('task2QuestionContent').style.display = taskNum === 2 ? 'block' : 'none';
+        
+        // Switch response panel content
+        document.getElementById('task1ResponseContent').style.display = taskNum === 1 ? 'flex' : 'none';
+        document.getElementById('task2ResponseContent').style.display = taskNum === 2 ? 'flex' : 'none';
+        
+        // Update header
+        document.getElementById('currentTaskHeader').textContent = `Task ${taskNum} Response`;
     };
     
     // Event listeners for word counting
