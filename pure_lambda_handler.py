@@ -27,6 +27,7 @@ from lambda_security import (
     token_manager
 )
 from secure_token_storage import secure_storage
+from aws_ses_service import email_service
 
 # Configure logging
 logger = logging.getLogger()
@@ -550,8 +551,14 @@ def handle_forgot_password(event: Dict[str, Any], context: Any) -> Dict[str, Any
             logger.error(f"Failed to store password reset token for email: {email}")
             raise SecurityError("Failed to process password reset request")
         
-        # TODO: Send secure email with reset link
-        logger.info(f"Password reset requested for email: {email}")
+        # Send secure password reset email
+        email_sent = email_service.send_password_reset_email(email, reset_token)
+        
+        if not email_sent:
+            logger.error(f"Failed to send password reset email for: {email}")
+            # Continue with success response for security (don't reveal email issues)
+        else:
+            logger.info(f"Password reset email sent successfully for: {email}")
         
         # Always return success for security (don't reveal if email exists)
         return create_response(
@@ -630,6 +637,9 @@ def handle_reset_password(event: Dict[str, Any], context: Any) -> Dict[str, Any]
                     raise SecurityError("Failed to update password")
                 
                 logger.info(f"Password successfully reset for email: {email}")
+                
+                # Send password changed notification email
+                email_service.send_password_changed_notification(email)
             else:
                 logger.info(f"Mock password reset for email: {email}")
         
