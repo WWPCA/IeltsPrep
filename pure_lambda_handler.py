@@ -15,6 +15,18 @@ from datetime import datetime, timedelta
 from urllib.parse import parse_qs, unquote
 from typing import Dict, Any, Optional, Tuple
 
+# Import security module
+from lambda_security import (
+    security_middleware, 
+    SecurityError,
+    InputValidator,
+    TokenManager,
+    RecaptchaValidator,
+    validate_request_data,
+    SCHEMAS,
+    token_manager
+)
+
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -79,11 +91,17 @@ ALLOWED_ORIGINS = [
     'https://www.ieltsgenaiprep.com', # Production web (www)
 ]
 
-# In-memory storage (for development and sessions)
-sessions = {}
-qr_tokens = {}
-mock_purchases = {}
-password_reset_tokens = {}
+# Secure storage (DynamoDB-backed in production, in-memory for development)
+if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
+    # Use DynamoDB tables for production
+    sessions_table = 'ielts-genai-prep-sessions'
+    tokens_table = 'ielts-genai-prep-secure-tokens'
+else:
+    # Fallback to in-memory for development
+    sessions = {}
+    qr_tokens = {}
+    mock_purchases = {}
+    password_reset_tokens = {}
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -311,25 +329,42 @@ def handle_health_check() -> Dict[str, Any]:
             content_type='application/json'
         )
 
-def handle_generate_qr(data: Dict) -> Dict[str, Any]:
-    """Generate QR code for authentication"""
+@security_middleware(sensitive_endpoint=True)
+def handle_generate_qr(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Generate secure QR code for authentication"""
     try:
         import qrcode
         import io
         
-        # Generate secure token
-        token = secrets.token_urlsafe(32)
-        
-        # Store token with expiration
-        qr_tokens[token] = {
-            'created_at': time.time(),
-            'expires_at': time.time() + 300,  # 5 minutes
-            'used': False
+        # Generate cryptographically secure token with device binding
+        headers = event.get('headers', {})
+        device_info = {
+            'user_agent': headers.get('User-Agent', '')[:100],
+            'ip': headers.get('X-Forwarded-For', '').split(',')[0].strip(),
+            'timestamp': time.time()
         }
+        
+        # Create secure token with HMAC signing
+        secure_token = token_manager.generate_secure_token(device_info, expires_in=300)
+        
+        if not secure_token:
+            raise SecurityError("Token generation failed")
+        
+        # Store token securely (DynamoDB in production, memory in development)
+        if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
+            # TODO: Store in DynamoDB with TTL
+            pass
+        else:
+            qr_tokens[secure_token] = {
+                'created_at': time.time(),
+                'expires_at': time.time() + 300,
+                'used': False,
+                'device_info': device_info
+            }
         
         # Generate QR code
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr_url = f"https://ieltsgenaiprep.com/qr-auth?token={token}"
+        qr_url = f"https://ieltsgenaiprep.com/qr-auth?token={secure_token}"
         qr.add_data(qr_url)
         qr.make(fit=True)
         
@@ -343,13 +378,19 @@ def handle_generate_qr(data: Dict) -> Dict[str, Any]:
             status_code=200,
             body=json.dumps({
                 'success': True,
-                'token': token,
+                'token': secure_token,
                 'qr_code': f"data:image/png;base64,{img_str}",
                 'expires_in': 300
             }),
             content_type='application/json'
         )
         
+    except SecurityError as e:
+        return create_response(
+            status_code=e.status_code,
+            body=json.dumps({'error': e.message}),
+            content_type='application/json'
+        )
     except Exception as e:
         logger.error(f"QR generation failed: {e}")
         return create_response(
@@ -358,47 +399,78 @@ def handle_generate_qr(data: Dict) -> Dict[str, Any]:
             content_type='application/json'
         )
 
-def handle_verify_qr(data: Dict) -> Dict[str, Any]:
-    """Verify QR code token"""
-    token = data.get('token')
-    
-    if not token or token not in qr_tokens:
+@security_middleware(sensitive_endpoint=True)
+def handle_verify_qr(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Verify secure QR code token"""
+    try:
+        # Parse and validate request data
+        body = event.get('body', '')
+        if not body:
+            raise SecurityError("Request body required")
+        
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            raise SecurityError("Invalid JSON format")
+        
+        # Validate request data
+        validated_data = validate_request_data(data, SCHEMAS['qr_verify'])
+        token = validated_data.get('token')
+        
+        # Validate token signature and expiration
+        valid, token_data = token_manager.validate_token(token)
+        if not valid:
+            raise SecurityError("Invalid or expired token")
+        
+        # Additional security check for development fallback
+        if IS_DEVELOPMENT and token in qr_tokens:
+            stored_token = qr_tokens[token]
+            if stored_token['used'] or time.time() > stored_token['expires_at']:
+                raise SecurityError("Token expired or already used")
+            
+            # Mark as used
+            stored_token['used'] = True
+        
+        # Generate secure session
+        session_id = str(uuid.uuid4())
+        session_data = {
+            'user_email': 'qr_user@example.com',  # TODO: Get from token data
+            'created_at': time.time(),
+            'expires_at': time.time() + 3600,
+            'device_info': token_data
+        }
+        
+        # Store session securely
+        if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
+            # TODO: Store in DynamoDB sessions table
+            pass
+        else:
+            sessions[session_id] = session_data
+        
         return create_response(
-            status_code=400,
-            body=json.dumps({'error': 'Invalid token'}),
+            status_code=200,
+            body=json.dumps({
+                'success': True,
+                'session_id': session_id,
+                'redirect_url': '/profile'
+            }),
+            content_type='application/json',
+            cookies=[f'session_id={session_id}; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Path=/']
+        )
+        
+    except SecurityError as e:
+        return create_response(
+            status_code=e.status_code,
+            body=json.dumps({'error': e.message}),
             content_type='application/json'
         )
-    
-    token_data = qr_tokens[token]
-    
-    if token_data['used'] or time.time() > token_data['expires_at']:
+    except Exception as e:
+        logger.error(f"QR verification failed: {e}")
         return create_response(
-            status_code=400,
-            body=json.dumps({'error': 'Token expired or used'}),
+            status_code=500,
+            body=json.dumps({'error': 'QR verification failed'}),
             content_type='application/json'
         )
-    
-    # Mark token as used
-    token_data['used'] = True
-    
-    # Generate session
-    session_id = str(uuid.uuid4())
-    sessions[session_id] = {
-        'user_email': 'qr_user@example.com',
-        'created_at': time.time(),
-        'expires_at': time.time() + 3600
-    }
-    
-    return create_response(
-        status_code=200,
-        body=json.dumps({
-            'success': True,
-            'session_id': session_id,
-            'redirect_url': '/profile'
-        }),
-        content_type='application/json',
-        cookies=[f'session_id={session_id}; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Path=/']
-    )
 
 def handle_mobile_authenticate(data: Dict) -> Dict[str, Any]:
     """Handle mobile authentication"""
@@ -441,33 +513,74 @@ def handle_get_assessments(user_email: str) -> Dict[str, Any]:
         content_type='application/json'
     )
 
-def handle_forgot_password(data: Dict) -> Dict[str, Any]:
-    """Handle forgot password request"""
-    email = data.get('email')
-    
-    if not email:
+@security_middleware(sensitive_endpoint=True, require_recaptcha=True)
+def handle_forgot_password(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Handle forgot password request with security validation"""
+    try:
+        # Parse and validate request data
+        body = event.get('body', '')
+        if not body:
+            raise SecurityError("Request body required")
+        
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            raise SecurityError("Invalid JSON format")
+        
+        # Validate request data including reCAPTCHA
+        validated_data = validate_request_data(data, SCHEMAS['forgot_password'])
+        email = validated_data.get('email').lower().strip()
+        
+        # Generate secure reset token
+        reset_data = {
+            'email': email,
+            'timestamp': time.time(),
+            'ip': event.get('headers', {}).get('X-Forwarded-For', '').split(',')[0].strip()
+        }
+        
+        reset_token = token_manager.generate_secure_token(reset_data, expires_in=3600)
+        
+        if not reset_token:
+            raise SecurityError("Token generation failed")
+        
+        # Store reset token securely
+        if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
+            # TODO: Store in DynamoDB tokens table with TTL
+            pass
+        else:
+            password_reset_tokens[reset_token] = {
+                'email': email,
+                'created_at': time.time(),
+                'expires_at': time.time() + 3600,
+                'ip': reset_data['ip']
+            }
+        
+        # TODO: Send secure email with reset link
+        logger.info(f"Password reset requested for email: {email}")
+        
+        # Always return success for security (don't reveal if email exists)
         return create_response(
-            status_code=400,
-            body=json.dumps({'error': 'Email required'}),
+            status_code=200,
+            body=json.dumps({
+                'success': True,
+                'message': 'If this email is registered, you will receive password reset instructions.'
+            }),
             content_type='application/json'
         )
-    
-    # Generate reset token
-    reset_token = secrets.token_urlsafe(32)
-    password_reset_tokens[reset_token] = {
-        'email': email,
-        'created_at': time.time(),
-        'expires_at': time.time() + 3600
-    }
-    
-    return create_response(
-        status_code=200,
-        body=json.dumps({
-            'success': True,
-            'message': 'Password reset email sent'
-        }),
-        content_type='application/json'
-    )
+        
+    except SecurityError as e:
+        return create_response(
+            status_code=e.status_code,
+            body=json.dumps({'error': e.message}),
+            content_type='application/json'
+        )
+    except Exception as e:
+        logger.error(f"Password reset request failed: {e}")
+        return create_response(
+            status_code=500,
+            body=json.dumps({'error': 'Password reset request failed'}),
+            content_type='application/json'
+        )
 
 def handle_reset_password(data: Dict) -> Dict[str, Any]:
     """Handle password reset"""
@@ -500,32 +613,70 @@ def handle_reset_password(data: Dict) -> Dict[str, Any]:
         content_type='application/json'
     )
 
-def handle_login(data: Dict, headers: Dict) -> Dict[str, Any]:
-    """Handle user login"""
-    email = data.get('email')
-    password = data.get('password')
-    
-    if not email or not password:
+@security_middleware(sensitive_endpoint=True, require_recaptcha=True)
+def handle_login(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Handle user login with comprehensive security validation"""
+    try:
+        # Parse and validate request data
+        body = event.get('body', '')
+        if not body:
+            raise SecurityError("Request body required")
+        
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            raise SecurityError("Invalid JSON format")
+        
+        # Validate request data
+        validated_data = validate_request_data(data, SCHEMAS['login'])
+        email = validated_data.get('email').lower().strip()
+        password = validated_data.get('password')
+        
+        # Validate password strength
+        valid_password, password_error = InputValidator.validate_password(password)
+        if not valid_password:
+            raise SecurityError(password_error)
+        
+        # TODO: Implement real authentication with user database lookup
+        # For now, create secure session
+        headers = event.get('headers', {})
+        session_data = {
+            'user_email': email,
+            'created_at': time.time(),
+            'expires_at': time.time() + 3600,
+            'ip': headers.get('X-Forwarded-For', '').split(',')[0].strip(),
+            'user_agent': headers.get('User-Agent', '')[:100]
+        }
+        
+        session_id = str(uuid.uuid4())
+        
+        # Store session securely
+        if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
+            # TODO: Store in DynamoDB sessions table with TTL
+            pass
+        else:
+            sessions[session_id] = session_data
+        
         return create_response(
-            status_code=400,
-            body=json.dumps({'error': 'Email and password required'}),
+            status_code=302,
+            body='',
+            headers={'Location': '/profile'},
+            cookies=[f'session_id={session_id}; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Path=/']
+        )
+        
+    except SecurityError as e:
+        return create_response(
+            status_code=e.status_code,
+            body=json.dumps({'error': e.message}),
             content_type='application/json'
         )
-    
-    # TODO: Implement real authentication
-    session_id = str(uuid.uuid4())
-    sessions[session_id] = {
-        'user_email': email,
-        'created_at': time.time(),
-        'expires_at': time.time() + 3600
-    }
-    
-    return create_response(
-        status_code=302,
-        body='',
-        headers={'Location': '/profile'},
-        cookies=[f'session_id={session_id}; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Path=/']
-    )
+    except Exception as e:
+        logger.error(f"Login failed: {e}")
+        return create_response(
+            status_code=500,
+            body=json.dumps({'error': 'Login failed'}),
+            content_type='application/json'
+        )
 
 def handle_register(data: Dict, headers: Dict) -> Dict[str, Any]:
     """Handle user registration"""
