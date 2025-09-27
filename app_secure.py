@@ -52,6 +52,11 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
 }
 
+# JWT Configuration for mobile authentication
+app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET", "ielts_genai_prep_jwt_secret_dev")
+app.config["JWT_ALGORITHM"] = "HS256"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)  # Short-lived tokens for security
+
 # Initialize extensions
 db.init_app(app)
 
@@ -61,12 +66,18 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# Simple user loader for Flask-Login
+# Import models after db is initialized
+with app.app_context():
+    from models import User
+
+# User loader for Flask-Login (updated to use unified User model)
 @login_manager.user_loader
 def load_user(user_id):
-    # For now, return None since we're using QR authentication
-    # This can be enhanced later when full user login is implemented
-    return None
+    """Load user for Flask-Login sessions"""
+    try:
+        return User.query.get(int(user_id))
+    except (ValueError, TypeError):
+        return None
 
 # Anonymous user class for templates
 class AnonymousUser(AnonymousUserMixin):
