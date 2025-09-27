@@ -1,0 +1,44 @@
+{
+  "name": "ielts-genai-prep-mobile",
+  "version": "1.0.0",
+  "description": "IELTS GenAI Prep Mobile App - AI-powered IELTS assessment platform",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:web",
+    "build:web": "echo 'Web build completed'",
+    "sync": "npx cap sync",
+    "sync:ios": "npx cap sync ios",
+    "sync:android": "npx cap sync android", 
+    "open:ios": "npx cap open ios",
+    "open:android": "npx cap open android",
+    "serve": "npx cap serve",
+    "copy": "npx cap copy",
+    "copy:ios": "npx cap copy ios",
+    "copy:android": "npx cap copy android"
+  },
+  "keywords": [
+    "ielts",
+    "ai",
+    "assessment",
+    "mobile",
+    "education",
+    "language-learning",
+    "capacitor"
+  ],
+  "author": "IELTS GenAI Prep Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "latest"
+  },
+  "dependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/app": "latest", 
+    "@capacitor/core": "latest",
+    "@capacitor/device": "latest",
+    "@capacitor/ios": "latest",
+    "@capacitor/network": "latest",
+    "@capacitor/splash-screen": "latest",
+    "@capacitor/status-bar": "latest",
+    "@capacitor/toast": "latest"
+  }
+}
