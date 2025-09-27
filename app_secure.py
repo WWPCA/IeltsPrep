@@ -69,6 +69,10 @@ login_manager.login_message = 'Please log in to access this page.'
 # Import models after db is initialized
 with app.app_context():
     from models import User
+    
+    # Import and register mobile API blueprint
+    from api_mobile import api_mobile
+    app.register_blueprint(api_mobile)
 
 # User loader for Flask-Login (updated to use unified User model)
 @login_manager.user_loader
