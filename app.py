@@ -183,12 +183,14 @@ def login():
             </div>
         </div>
         '''
-        # Replace the main content section with login form
+        # Replace the main content section with login form using proper regex patterns
         import re
-        content = re.sub(r'<section class="hero">.*?</section>', login_section, content, flags=re.DOTALL)
-        content = re.sub(r'<section class="assessment-sections.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="features">.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="py-5 bg-light" id="faq">.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="hero"[^>]*>.*?</section>', login_section, content, flags=re.DOTALL)
+        content = re.sub(r'<section class="assessment-sections[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="features"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="pricing[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="py-5"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="py-5 bg-light"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
         return content
     except FileNotFoundError:
         # Fallback to original template
@@ -252,12 +254,14 @@ def register():
             </div>
         </div>
         '''
-        # Replace the main content section with register form
+        # Replace the main content section with register form using proper regex patterns
         import re
-        content = re.sub(r'<section class="hero">.*?</section>', register_section, content, flags=re.DOTALL)
-        content = re.sub(r'<section class="assessment-sections.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="features">.*?</section>', '', content, flags=re.DOTALL)
-        content = re.sub(r'<section class="py-5 bg-light" id="faq">.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="hero"[^>]*>.*?</section>', register_section, content, flags=re.DOTALL)
+        content = re.sub(r'<section class="assessment-sections[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="features"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="pricing[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="py-5"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<section class="py-5 bg-light"[^>]*>.*?</section>', '', content, flags=re.DOTALL)
         return content
     except FileNotFoundError:
         # Fallback to original template
