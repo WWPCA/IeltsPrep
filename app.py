@@ -35,10 +35,22 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.jinja_env.globals['csrf_token'] = csrf_token
 app.jinja_env.globals['config'] = ProductionConfig()
 
+# Kill caching for development
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
 # Add cache buster for CSS/JS files
 @app.context_processor
 def inject_cache_buster():
     return dict(cache_buster=str(int(time.time())))
+
+# Add no-cache headers for development
+@app.after_request
+def add_no_cache_headers(response):
+    if response.content_type and 'text/html' in response.content_type:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+    return response
 
 # Initialize AWS DynamoDB connections with fallback to mock for development
 try:
@@ -208,17 +220,12 @@ user_assessments = {
 
 @app.route('/')
 def home():
-    """Serve working template with comprehensive FAQ and all features"""
-    try:
-        with open('working_template.html', 'r') as f:
-            content = f.read()
-        return content
-    except FileNotFoundError:
-        # Fallback to index.html if working template not found
-        class AnonymousUser:
-            is_authenticated = False
-            email = None
-        return render_template('index.html', current_user=AnonymousUser())
+    """Homepage with proper template system and styling"""
+    # Always use template system for proper CSS loading
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+    return render_template('index.html', current_user=AnonymousUser())
 
 @app.route('/original-home')
 def original_home():
