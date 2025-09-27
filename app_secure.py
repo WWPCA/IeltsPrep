@@ -18,6 +18,7 @@ from urllib.parse import urlparse, urljoin
 
 from flask import Flask, send_from_directory, render_template, request, jsonify, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, AnonymousUserMixin, current_user
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -53,6 +54,27 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # Initialize extensions
 db.init_app(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+
+# Simple user loader for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    # For now, return None since we're using QR authentication
+    # This can be enhanced later when full user login is implemented
+    return None
+
+# Anonymous user class for templates
+class AnonymousUser(AnonymousUserMixin):
+    pass
+
+login_manager.anonymous_user = AnonymousUser
+
+# Make Flask-Login current_user available in templates
 app.jinja_env.globals['csrf_token'] = csrf_token
 app.jinja_env.globals['config'] = ProductionConfig()
 
@@ -196,7 +218,7 @@ def home():
         class AnonymousUser:
             is_authenticated = False
             email = None
-        return render_template('index.html', current_user=AnonymousUser())
+        return render_template('index.html')
 
 @app.route('/index')
 def index():
@@ -204,7 +226,7 @@ def index():
     class AnonymousUser:
         is_authenticated = False
         email = None
-    return render_template('index.html', current_user=AnonymousUser())
+    return render_template('index.html')
 
 @app.route('/login')
 def login():
@@ -212,7 +234,7 @@ def login():
     class AnonymousUser:
         is_authenticated = False
         email = None
-    return render_template('login.html', current_user=AnonymousUser())
+    return render_template('login.html')
 
 @app.route('/forgot_password')
 def forgot_password():
@@ -220,7 +242,7 @@ def forgot_password():
     class AnonymousUser:
         is_authenticated = False
         email = None
-    return render_template('forgot_password.html', current_user=AnonymousUser())
+    return render_template('forgot_password.html')
 
 @app.route('/reset_password')
 def reset_password():
@@ -385,7 +407,7 @@ def assessment_products_page():
     class AnonymousUser:
         is_authenticated = False
         email = None
-    return render_template('assessment_products.html', current_user=AnonymousUser())
+    return render_template('assessment_products.html')
 
 @app.route('/qr-auth')
 def qr_auth_page():
