@@ -70,7 +70,7 @@ provider:
 
 functions:
   api:
-    handler: lambda_handler.lambda_handler
+    handler: handler.lambda_handler
     events:
       - http:
           path: /{proxy+}
@@ -82,7 +82,7 @@ functions:
           cors: true
     
   websocket:
-    handler: lambda_handler.websocket_handler
+    handler: handler.websocket_handler
     events:
       - websocket:
           route: $connect
