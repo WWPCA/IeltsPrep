@@ -209,12 +209,18 @@ def index():
 @app.route('/login')
 def login():
     """Login page with enhanced mobile-first design"""
-    return render_template('login.html')
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+    return render_template('login.html', current_user=AnonymousUser())
 
 @app.route('/forgot_password')
 def forgot_password():
     """Forgot password page"""
-    return render_template('forgot_password.html')
+    class AnonymousUser:
+        is_authenticated = False
+        email = None
+    return render_template('forgot_password.html', current_user=AnonymousUser())
 
 @app.route('/reset_password')
 def reset_password():
