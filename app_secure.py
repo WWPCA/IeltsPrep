@@ -397,6 +397,170 @@ def privacy():
     """Privacy policy page"""
     return render_template('privacy.html')
 
+# QR Authentication Security Implementation
+@app.route('/api/qr/generate', methods=['POST'])
+def generate_qr():
+    """Generate secure QR authentication code"""
+    try:
+        browser_session_id = session.get('_id')  # Flask session ID
+        if not browser_session_id:
+            return jsonify({'success': False, 'message': 'Invalid session'}), 400
+        
+        # Create secure QR session
+        qr_session = models.QRSession.create_session(browser_session_id, ttl_seconds=120)
+        
+        return jsonify({
+            'success': True,
+            'code': qr_session.code,
+            'expires_at': qr_session.expires_at.isoformat()
+        })
+        
+    except Exception as e:
+        app.logger.error(f"QR generation error: {e}")
+        return jsonify({'success': False, 'message': 'QR generation failed'}), 500
+
+@app.route('/api/qr/status/<code>')
+def qr_status(code):
+    """Check QR authentication status (long polling)"""
+    try:
+        qr_session = models.QRSession.query.filter_by(code=code).first()
+        if not qr_session:
+            return jsonify({'status': 'invalid'})
+        
+        if qr_session.expires_at < datetime.utcnow():
+            qr_session.status = 'expired'
+            db.session.commit()
+            return jsonify({'status': 'expired'})
+        
+        if qr_session.status == 'claimed':
+            # Log in the user
+            user = models.User.query.get(qr_session.claimed_user_id)
+            if user:
+                session['user_id'] = user.id
+                session['user_email'] = user.email
+                session['logged_in'] = True
+                session.permanent = True
+                return jsonify({'status': 'success', 'redirect': '/dashboard'})
+        
+        return jsonify({'status': qr_session.status})
+        
+    except Exception as e:
+        app.logger.error(f"QR status error: {e}")
+        return jsonify({'status': 'error'})
+
+@app.route('/api/qr/claim', methods=['POST'])
+def claim_qr():
+    """Claim QR code from authenticated mobile session"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('code'):
+            return jsonify({'success': False, 'message': 'QR code required'}), 400
+        
+        # Verify user is logged in on mobile
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+        
+        qr_session = models.QRSession.query.filter_by(code=data['code']).first()
+        if not qr_session:
+            return jsonify({'success': False, 'message': 'Invalid QR code'}), 400
+        
+        if qr_session.expires_at < datetime.utcnow():
+            return jsonify({'success': False, 'message': 'QR code expired'}), 400
+        
+        if qr_session.status != 'pending':
+            return jsonify({'success': False, 'message': 'QR code already used'}), 400
+        
+        # Claim the QR session
+        qr_session.status = 'claimed'
+        qr_session.claimed_user_id = user_id
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'QR authentication successful'})
+        
+    except Exception as e:
+        app.logger.error(f"QR claim error: {e}")
+        return jsonify({'success': False, 'message': 'QR claim failed'}), 500
+
+# Assessment Access Control Implementation
+@app.route('/api/assessment/start', methods=['POST'])
+def start_assessment():
+    """Start assessment with entitlement validation"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('product_id'):
+            return jsonify({'success': False, 'message': 'Product ID required'}), 400
+        
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+        
+        product_id = data['product_id']
+        device_session_id = session.get('_id')
+        
+        # Transactional entitlement check with SELECT FOR UPDATE
+        try:
+            entitlement = models.AssessmentEntitlement.query.filter_by(
+                user_id=user_id, product_id=product_id
+            ).with_for_update().first()
+            
+            if not entitlement or entitlement.remaining_uses <= 0:
+                return jsonify({'success': False, 'message': 'No assessments remaining'}), 403
+            
+            if entitlement.expires_at and entitlement.expires_at < datetime.utcnow():
+                return jsonify({'success': False, 'message': 'Assessment package expired'}), 403
+            
+            # Atomically decrement and create attempt
+            entitlement.remaining_uses -= 1
+            
+            attempt = models.AssessmentAttempt(
+                user_id=user_id,
+                product_id=product_id,
+                device_session_id=device_session_id
+            )
+            db.session.add(attempt)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True, 
+                'attempt_id': attempt.id,
+                'remaining_uses': entitlement.remaining_uses
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            raise e
+        
+    except Exception as e:
+        app.logger.error(f"Assessment start error: {e}")
+        return jsonify({'success': False, 'message': 'Assessment start failed'}), 500
+
+@app.route('/api/assessment/validate/<int:attempt_id>')
+def validate_attempt(attempt_id):
+    """Validate active assessment attempt"""
+    try:
+        user_id = session.get('user_id')
+        device_session_id = session.get('_id')
+        
+        if not user_id:
+            return jsonify({'valid': False, 'message': 'Authentication required'}), 401
+        
+        attempt = models.AssessmentAttempt.query.filter_by(
+            id=attempt_id,
+            user_id=user_id,
+            device_session_id=device_session_id,
+            status='active'
+        ).first()
+        
+        if not attempt:
+            return jsonify({'valid': False, 'message': 'Invalid assessment attempt'})
+        
+        return jsonify({'valid': True, 'product_id': attempt.product_id})
+        
+    except Exception as e:
+        app.logger.error(f"Attempt validation error: {e}")
+        return jsonify({'valid': False, 'message': 'Validation failed'})
+
 @app.route('/terms')
 def terms():
     """Terms of service page"""
@@ -406,6 +570,14 @@ def terms():
 def register():
     """Register page - redirects to mobile app"""
     return render_template('register.html')
+
+# Session hardening and security configuration
+app.config.update(
+    SESSION_COOKIE_SECURE=True,  # HTTPS only
+    SESSION_COOKIE_HTTPONLY=True,  # No JavaScript access
+    SESSION_COOKIE_SAMESITE='Lax',  # CSRF protection
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=24)  # Session expiry
+)
 
 # Error handlers
 @app.errorhandler(404)
