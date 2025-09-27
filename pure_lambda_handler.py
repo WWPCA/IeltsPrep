@@ -33,6 +33,16 @@ from purchase_verification_handlers import (
     handle_get_purchase_status, 
     handle_sync_user_purchases
 )
+from payment_webhook_handlers import (
+    handle_apple_webhook,
+    handle_google_webhook
+)
+from assessment_access_control import get_assessment_controller, require_assessment_access
+from assessment_access_handlers import (
+    handle_get_assessment_access,
+    handle_get_assessment_overview,
+    handle_use_assessment_attempt
+)
 
 # Configure logging
 logger = logging.getLogger()
@@ -233,6 +243,23 @@ def handle_api_request(event: Dict[str, Any], context: Any, path: str, method: s
     
     elif path == '/api/sync-purchases' and method == 'POST':
         return handle_sync_user_purchases(event, context)
+    
+    # Payment Webhooks (no auth required - verified by signature)
+    elif path == '/api/webhooks/apple' and method == 'POST':
+        return handle_apple_webhook(event, context)
+    
+    elif path == '/api/webhooks/google' and method == 'POST':
+        return handle_google_webhook(event, context)
+    
+    # Assessment Access Control
+    elif path == '/api/assessment-access' and method == 'GET':
+        return handle_get_assessment_access(event, context)
+    
+    elif path == '/api/assessment-overview' and method == 'GET':
+        return handle_get_assessment_overview(event, context)
+    
+    elif path == '/api/use-assessment-attempt' and method == 'POST':
+        return handle_use_assessment_attempt(event, context)
     
     # Mobile API delegation
     elif path.startswith('/api/v1/') and MOBILE_API_AVAILABLE:
