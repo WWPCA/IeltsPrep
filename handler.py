@@ -45,8 +45,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Convert Lambda event to WSGI environment
         environ = _build_wsgi_environ(event, context)
         
-        # Create response buffer
-        response_buffer = io.StringIO()
+        # Create response buffer  
+        response_buffer = io.BytesIO()
+        response_buffer.status = None
+        response_buffer.headers = None
         
         # WSGI response handler
         def start_response(status, headers, exc_info=None):
@@ -56,29 +58,56 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Call WSGI application
         response_iter = app(environ, start_response)
-        response_body = ''.join(response_iter)
+        
+        # Build response data properly handling bytes
+        response_data = b''
+        for chunk in response_iter:
+            if isinstance(chunk, bytes):
+                response_data += chunk
+            else:
+                response_data += chunk.encode('utf-8')
         
         # Parse status code
         status_code = int(response_buffer.status.split(' ')[0])
         
-        # Convert headers to dict
-        headers = {}
-        for header_name, header_value in response_buffer.headers:
-            headers[header_name] = header_value
+        # Preserve multi-value headers (critical for Set-Cookie)
+        headers_dict = {}
+        cookies = []
         
-        # Build Lambda response
+        for header_name, header_value in response_buffer.headers:
+            if header_name.lower() == 'set-cookie':
+                cookies.append(header_value)
+            else:
+                # Handle duplicate headers by keeping last value
+                headers_dict[header_name] = header_value
+        
+        # Handle binary vs text content
+        is_base64 = False
+        try:
+            # Try to decode as UTF-8 text
+            response_body = response_data.decode('utf-8')
+            
+            # Check content type for binary content
+            content_type = headers_dict.get('Content-Type', headers_dict.get('content-type', '')).lower()
+            if any(ct in content_type for ct in ['image/', 'audio/', 'video/', 'application/pdf', 'application/octet-stream']):
+                response_body = base64.b64encode(response_data).decode('utf-8')
+                is_base64 = True
+        except UnicodeDecodeError:
+            # Binary content - encode as base64
+            response_body = base64.b64encode(response_data).decode('utf-8')
+            is_base64 = True
+        
+        # Build Lambda response with proper multi-value header support
         response = {
             'statusCode': status_code,
-            'headers': headers,
-            'body': response_body
+            'headers': headers_dict,
+            'body': response_body,
+            'isBase64Encoded': is_base64
         }
         
-        # Handle binary content if needed
-        if any(header.lower() == 'content-type' and 
-               any(ct in headers[header].lower() for ct in ['image/', 'application/pdf', 'application/octet-stream'])
-               for header in headers):
-            response['isBase64Encoded'] = True
-            response['body'] = base64.b64encode(response_body.encode()).decode()
+        # Add multi-value headers for API Gateway v1 format
+        if cookies:
+            response['multiValueHeaders'] = {'Set-Cookie': cookies}
         
         # Log successful response
         logger.info(f"Response status: {response.get('statusCode', 'unknown')}")

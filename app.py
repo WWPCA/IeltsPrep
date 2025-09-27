@@ -100,16 +100,25 @@ def add_security_headers(response):
         'https://www.ieltsgenaiprep.com', # Production web (www)
     ]
     
-    # Check if the origin is allowed or if it's a mobile app request
-    if origin in allowed_origins or origin is None:
-        response.headers['Access-Control-Allow-Origin'] = origin or '*'
+    # CORS headers with proper credential handling
+    if origin and origin in allowed_origins:
+        # For allowlisted origins, echo the origin and allow credentials
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+    elif origin is None:
+        # For requests without origin (mobile apps), allow wildcard but no credentials
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        # Don't set Access-Control-Allow-Credentials for wildcard origins
+    else:
+        # For non-allowlisted origins, deny access
+        response.headers['Access-Control-Allow-Origin'] = 'null'
     
     # Essential CORS headers for mobile app functionality
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With,Accept,Origin,X-API-Key,X-Session-ID,X-Device-ID,X-Platform'
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
     response.headers['Access-Control-Max-Age'] = '86400'  # 24 hours preflight cache
     response.headers['Access-Control-Expose-Headers'] = 'X-Session-ID,X-RateLimit-Remaining,X-RateLimit-Reset'
+    response.headers['Vary'] = 'Origin'  # Important for proper caching
     
     return response
 
