@@ -67,6 +67,35 @@ try:
     print("[INFO] Mobile API endpoints registered at /api/v1/*")
 except ImportError:
     print("[INFO] Mobile API blueprint not available")
+
+# Import receipt validation for endpoints (graceful fallback for development)
+try:
+    from receipt_validation import ReceiptValidationService, PurchaseStatus, validate_app_store_purchase
+    # Only initialize in production when secrets are available
+    if os.environ.get('REPLIT_ENVIRONMENT') != 'true':
+        receipt_service = ReceiptValidationService()
+        print("[INFO] Receipt validation services initialized for production")
+    else:
+        print("[INFO] Receipt validation services available but using dev fallbacks")
+        receipt_service = None  # Use mock validation in development
+except (ImportError, RuntimeError) as e:
+    print(f"[INFO] Receipt validation services not available: {e}")
+    receipt_service = None
+
+# Import and apply security middleware
+try:
+    from security_middleware import InputSanitizer, validate_api_request, apply_rate_limiting
+    # Apply basic security headers to all responses
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
+    print("[INFO] Security middleware applied to all endpoints")
+except ImportError as e:
+    print(f"[INFO] Security middleware not available: {e}")
 # Actual assessment data structure to match existing templates
 user_assessments = {
     "test@ieltsaiprep.com": {
