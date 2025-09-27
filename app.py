@@ -53,12 +53,12 @@ except Exception as e:
     db_connection = aws_mock
     user_dal = None
     use_production = False
-    
-    # Mock storage for development
-    qr_tokens = {}
-    sessions = {}
-    mock_purchases = {}
-    password_reset_tokens = {}
+
+# Always initialize mock storage variables (ensures they exist even if DynamoDB works)
+qr_tokens = {}
+sessions = {}
+mock_purchases = {}
+password_reset_tokens = {}
 
 # Register mobile API blueprint if available
 try:
@@ -68,16 +68,11 @@ try:
 except ImportError:
     print("[INFO] Mobile API blueprint not available")
 
-# Import receipt validation for endpoints (graceful fallback for development)
+# Import receipt validation for endpoints 
 try:
     from receipt_validation import ReceiptValidationService, PurchaseStatus, validate_app_store_purchase
-    # Only initialize in production when secrets are available
-    if os.environ.get('REPLIT_ENVIRONMENT') != 'true':
-        receipt_service = ReceiptValidationService()
-        print("[INFO] Receipt validation services initialized for production")
-    else:
-        print("[INFO] Receipt validation services available but using dev fallbacks")
-        receipt_service = None  # Use mock validation in development
+    receipt_service = ReceiptValidationService()
+    print("[INFO] Receipt validation services initialized")
 except (ImportError, RuntimeError) as e:
     print(f"[INFO] Receipt validation services not available: {e}")
     receipt_service = None
