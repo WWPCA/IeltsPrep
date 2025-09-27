@@ -13,6 +13,7 @@ from assessment_access_control import get_assessment_controller
 from question_bank_dal import get_question_bank_dal
 from maya_conversation_engine import get_maya_engine
 from ielts_band_scoring import get_band_scorer
+from conversation_data_retention import get_retention_manager
 
 logger = logging.getLogger(__name__)
 
@@ -244,6 +245,21 @@ def handle_maya_conversation_turn(event: Dict[str, Any], context: Any) -> Dict[s
                 if evaluation_result['success']:
                     response_data['band_score_report'] = evaluation_result
                     logger.info(f"Assessment completed for session {session_id} - Band score: {evaluation_result.get('overall_band_score')}")
+                    
+                    # Apply data retention policy: cleanup conversation data, preserve score/feedback
+                    retention_manager = get_retention_manager()
+                    cleanup_result = retention_manager.cleanup_after_assessment_completion(
+                        session_id=session_id,
+                        user_email=user_email,
+                        assessment_data=evaluation_result
+                    )
+                    
+                    if cleanup_result['success']:
+                        logger.info(f"Data retention policy applied for session {session_id}: conversation data cleaned, score/feedback preserved for 1 year")
+                        response_data['data_retention_applied'] = True
+                    else:
+                        logger.warning(f"Data retention cleanup had issues: {cleanup_result.get('error')}")
+                        response_data['data_retention_applied'] = False
                 else:
                     logger.warning(f"Failed to generate band score for session {session_id}")
             
@@ -445,13 +461,57 @@ def handle_generate_band_score_report(event: Dict[str, Any], context: Any) -> Di
                 })
             }
         
-        # Get conversation data
-        maya_engine = get_maya_engine()
-        conversation_summary = maya_engine.get_conversation_summary()
-        
-        # Generate band score report
-        band_scorer = get_band_scorer()
-        evaluation_result = band_scorer.evaluate_speaking_assessment(conversation_summary)
+        # Check if conversation data has already been cleaned up
+        if session_details.get('conversation_data_cleaned', False):
+            # Data has been cleaned - get preserved data from user profile
+            retention_manager = get_retention_manager()
+            history_result = retention_manager.get_user_assessment_history(user_email, limit=50)
+            
+            if history_result['success']:
+                # Find the specific assessment record
+                target_assessment = None
+                for record in history_result['assessment_history']:
+                    if record.get('session_id') == session_id:
+                        target_assessment = record
+                        break
+                
+                if target_assessment:
+                    evaluation_result = {
+                        'success': True,
+                        'session_id': session_id,
+                        'overall_band_score': target_assessment.get('overall_band_score'),
+                        'criterion_scores': target_assessment.get('criterion_scores', {}),
+                        'feedback_summary': target_assessment.get('feedback_summary', ''),
+                        'structured_feedback': target_assessment.get('structured_feedback', {}),
+                        'assessment_date': target_assessment.get('assessment_date'),
+                        'data_source': 'user_profile_preserved'
+                    }
+                else:
+                    return {
+                        'statusCode': 404,
+                        'headers': {'Content-Type': 'application/json'},
+                        'body': json.dumps({
+                            'success': False,
+                            'error': 'Assessment data not found in user profile'
+                        })
+                    }
+            else:
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'success': False,
+                        'error': 'Failed to retrieve preserved assessment data'
+                    })
+                }
+        else:
+            # Data not yet cleaned - get from conversation summary
+            maya_engine = get_maya_engine()
+            conversation_summary = maya_engine.get_conversation_summary()
+            
+            # Generate band score report
+            band_scorer = get_band_scorer()
+            evaluation_result = band_scorer.evaluate_speaking_assessment(conversation_summary)
         
         if evaluation_result['success']:
             # Optionally filter detailed feedback

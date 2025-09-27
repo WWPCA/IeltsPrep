@@ -37,18 +37,20 @@ class QuestionBankDAL:
     
     def __init__(self):
         import os
-        self.conn = get_dal().conn  # Use existing DynamoDB connection
+        self.dynamodb = get_dal().dynamodb  # Use existing DynamoDB resource
         stage = os.environ.get('STAGE', 'prod')
         
         # Table names
         self.questions_table_name = f'ielts-questions-{stage}'
         self.sessions_table_name = f'ielts-assessment-sessions-{stage}'
         self.usage_table_name = f'ielts-user-question-usage-{stage}'
+        self.profiles_table_name = f'ielts-user-profiles-{stage}'
         
         # Get tables
-        self.questions_table = self.conn.get_table(self.questions_table_name)
-        self.sessions_table = self.conn.get_table(self.sessions_table_name)
-        self.usage_table = self.conn.get_table(self.usage_table_name)
+        self.questions_table = self.dynamodb.Table(self.questions_table_name)
+        self.sessions_table = self.dynamodb.Table(self.sessions_table_name)
+        self.usage_table = self.dynamodb.Table(self.usage_table_name)
+        self.profiles_table = self.dynamodb.Table(self.profiles_table_name)
         
         # Question requirements per assessment type
         self.question_requirements = {
@@ -174,14 +176,11 @@ class QuestionBankDAL:
                 ExpressionAttributeNames={'#status': 'status'},
                 ExpressionAttributeValues={
                     ':status': 'completed',
-                    ':completed_at': datetime.utcnow().isoformat()
-                },
-                ConditionExpression='user_email = :user_email AND #status = :active_status',
-                ExpressionAttributeValues={
-                    **self.sessions_table.update_item_kwargs.get('ExpressionAttributeValues', {}),
+                    ':completed_at': datetime.utcnow().isoformat(),
                     ':user_email': user_email,
                     ':active_status': 'active'
-                }
+                },
+                ConditionExpression='user_email = :user_email AND #status = :active_status'
             )
             
             logger.info(f"Assessment session completed: {session_id}")
@@ -351,7 +350,7 @@ class QuestionBankDAL:
                         })
             
             # Execute transaction
-            self.conn.meta.client.transact_write_items(
+            self.dynamodb.meta.client.transact_write_items(
                 TransactItems=transaction_items
             )
             
@@ -401,6 +400,75 @@ class QuestionBankDAL:
             return {
                 'success': False,
                 'error': 'Failed to get question statistics'
+            }
+    
+    def get_user_profile(self, user_email: str) -> Dict[str, Any]:
+        """Get user profile data including assessment history"""
+        try:
+            response = self.profiles_table.get_item(
+                Key={'user_email': user_email}
+            )
+            
+            if 'Item' in response:
+                return {
+                    'success': True,
+                    'profile': response['Item']
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': 'Profile not found'
+                }
+        except Exception as e:
+            logger.error(f"Error getting user profile for {user_email}: {e}")
+            return {
+                'success': False,
+                'error': 'Failed to get user profile'
+            }
+    
+    def store_user_profile(self, user_email: str, profile_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Store or update user profile data"""
+        try:
+            # Add metadata
+            profile_data['user_email'] = user_email
+            profile_data['last_updated'] = datetime.utcnow().isoformat()
+            
+            # Store in DynamoDB
+            self.profiles_table.put_item(Item=profile_data)
+            
+            logger.info(f"User profile stored for {user_email}")
+            return {
+                'success': True,
+                'message': 'Profile stored successfully'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error storing user profile for {user_email}: {e}")
+            return {
+                'success': False,
+                'error': 'Failed to store user profile'
+            }
+    
+    def update_assessment_session(self, session_id: str, session_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update assessment session data"""
+        try:
+            # Add update timestamp
+            session_data['last_updated'] = datetime.utcnow().isoformat()
+            
+            # Update in DynamoDB
+            self.sessions_table.put_item(Item=session_data)
+            
+            logger.info(f"Assessment session updated: {session_id}")
+            return {
+                'success': True,
+                'message': 'Session updated successfully'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error updating assessment session {session_id}: {e}")
+            return {
+                'success': False,
+                'error': 'Failed to update assessment session'
             }
 
 # Global instance
