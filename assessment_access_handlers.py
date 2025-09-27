@@ -8,6 +8,7 @@ from typing import Dict, Any
 
 from lambda_security import apply_security
 from assessment_access_control import get_assessment_controller
+from secure_token_storage import secure_storage
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,8 @@ logger = logging.getLogger(__name__)
     rate_limit_per_ip=30,  # Reasonable limit for access checks
     rate_limit_window=300,
     require_recaptcha=False,
-    validate_input=True
+    validate_input=True,
+    require_auth=True  # Require authenticated session
 )
 def handle_get_assessment_access(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -27,20 +29,22 @@ def handle_get_assessment_access(event: Dict[str, Any], context: Any) -> Dict[st
     try:
         query_params = event.get('queryStringParameters', {}) or {}
         
-        user_email = query_params.get('user_email', '').strip().lower()
-        assessment_type = query_params.get('assessment_type', '').strip().lower()
-        auto_refresh = query_params.get('auto_refresh', 'true').lower() == 'true'
+        # Get user email from authenticated session instead of query params
+        session_data = event.get('session_data', {})
+        user_email = session_data.get('user_email')
         
-        # Validate required parameters
         if not user_email:
             return {
-                'statusCode': 400,
+                'statusCode': 401,
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({
                     'success': False,
-                    'error': 'user_email parameter required'
+                    'error': 'Authentication required'
                 })
             }
+        
+        assessment_type = query_params.get('assessment_type', '').strip().lower()
+        auto_refresh = query_params.get('auto_refresh', 'true').lower() == 'true'
         
         if not assessment_type:
             return {
@@ -105,7 +109,8 @@ def handle_get_assessment_access(event: Dict[str, Any], context: Any) -> Dict[st
     rate_limit_per_ip=20,  # Lower limit for comprehensive overviews
     rate_limit_window=300,
     require_recaptcha=False,
-    validate_input=True
+    validate_input=True,
+    require_auth=True  # Require authenticated session
 )
 def handle_get_assessment_overview(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -115,18 +120,17 @@ def handle_get_assessment_overview(event: Dict[str, Any], context: Any) -> Dict[
     ?user_email=user@example.com
     """
     try:
-        query_params = event.get('queryStringParameters', {}) or {}
+        # Get user email from authenticated session instead of query params
+        session_data = event.get('session_data', {})
+        user_email = session_data.get('user_email')
         
-        user_email = query_params.get('user_email', '').strip().lower()
-        
-        # Validate required parameters
         if not user_email:
             return {
-                'statusCode': 400,
+                'statusCode': 401,
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({
                     'success': False,
-                    'error': 'user_email parameter required'
+                    'error': 'Authentication required'
                 })
             }
         
@@ -181,7 +185,8 @@ def handle_get_assessment_overview(event: Dict[str, Any], context: Any) -> Dict[
     rate_limit_per_ip=10,  # Lower limit for attempt usage
     rate_limit_window=300,
     require_recaptcha=False,
-    validate_input=True
+    validate_input=True,
+    require_auth=True  # Require authenticated session
 )
 def handle_use_assessment_attempt(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -197,18 +202,30 @@ def handle_use_assessment_attempt(event: Dict[str, Any], context: Any) -> Dict[s
         # Parse request body
         body = json.loads(event.get('body', '{}'))
         
-        user_email = body.get('user_email', '').strip().lower()
+        # Get user email from authenticated session instead of request body
+        session_data = event.get('session_data', {})
+        user_email = session_data.get('user_email')
+        
+        if not user_email:
+            return {
+                'statusCode': 401,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'success': False,
+                    'error': 'Authentication required'
+                })
+            }
+        
         assessment_type = body.get('assessment_type', '').strip().lower()
         
         # Validate required fields
-        if not user_email or not assessment_type:
+        if not assessment_type:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({
                     'success': False,
-                    'error': 'Missing required fields',
-                    'required_fields': ['user_email', 'assessment_type']
+                    'error': 'Missing required field: assessment_type'
                 })
             }
         
