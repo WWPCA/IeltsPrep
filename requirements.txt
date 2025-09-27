@@ -10,8 +10,6 @@ flask-cors
 pillow
 qrcode
 flask-login
-flask-sqlalchemy
 python-dotenv
 qrcode
-sqlalchemy
 pyjwt

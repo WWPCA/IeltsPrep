@@ -17,19 +17,14 @@ import requests
 from urllib.parse import urlparse, urljoin
 
 from flask import Flask, send_from_directory, render_template, request, jsonify, redirect, url_for, session, flash
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, AnonymousUserMixin, current_user
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
 import boto3
 from botocore.exceptions import ClientError
 
-# Database setup
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
+# Import production DynamoDB connection
+from dynamodb_dal import DynamoDBConnection, UserDAL
 
 # Real CSRF token generation
 def csrf_token():
@@ -45,20 +40,17 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+# DynamoDB configuration
+region = os.environ.get('AWS_REGION', 'us-east-1')
+db_connection = DynamoDBConnection(region=region)
+user_dal = UserDAL(db_connection)
 
 # JWT Configuration for mobile authentication
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET", "ielts_genai_prep_jwt_secret_dev")
 app.config["JWT_ALGORITHM"] = "HS256"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)  # Short-lived tokens for security
 
-# Initialize extensions
-db.init_app(app)
+# Initialize Flask-Login only (no SQLAlchemy needed)
 
 # Initialize Flask-Login
 login_manager = LoginManager()

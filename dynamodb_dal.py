@@ -4,6 +4,7 @@ Replaces SQLAlchemy models with DynamoDB Global Tables for serverless architectu
 """
 import boto3
 import json
+import os
 import secrets
 import hashlib
 from datetime import datetime, timedelta
