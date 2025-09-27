@@ -84,13 +84,20 @@ def handle_start_maya_conversation(event: Dict[str, Any], context: Any) -> Dict[
                 })
             }
         
-        # Initialize Maya conversation
+        # Initialize Maya conversation (async)
+        import asyncio
         maya_engine = get_maya_engine()
-        conversation_result = maya_engine.initialize_session({
-            'session_id': session_id,
-            'assessment_type': assessment_type,
-            'questions': session_details.get('question_ids_by_category', {})
-        })
+        
+        # Run async conversation initialization
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        conversation_result = loop.run_until_complete(
+            maya_engine.initialize_session({
+                'session_id': session_id,
+                'assessment_type': assessment_type,
+                'questions': session_details.get('question_ids_by_category', {})
+            })
+        )
         
         if conversation_result['success']:
             logger.info(f"Maya conversation started for session: {session_id}")
@@ -205,9 +212,16 @@ def handle_maya_conversation_turn(event: Dict[str, Any], context: Any) -> Dict[s
                 })
             }
         
-        # Process conversation turn
+        # Process conversation turn (async)
+        import asyncio
         maya_engine = get_maya_engine()
-        conversation_turn = maya_engine.process_user_response(user_response, audio_duration)
+        
+        # Run async conversation processing
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        conversation_turn = loop.run_until_complete(
+            maya_engine.process_user_response(user_response, audio_duration)
+        )
         
         if conversation_turn['success']:
             # Check if assessment is complete

@@ -296,6 +296,10 @@ Keep the conversation natural and focused on everyday topics."""
             }
             
             try:
+                # Ensure client is initialized
+                if not self.client:
+                    raise Exception("Nova Sonic client not initialized")
+                    
                 # Real Bedrock call to Nova Sonic
                 response = self.client.invoke_model(
                     modelId=self.model_id,
