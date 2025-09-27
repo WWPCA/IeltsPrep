@@ -869,6 +869,11 @@ def assessment_start(assessment_type, assessment_number):
     </body></html>
     """
 
+@app.route('/qr-auth')
+def qr_auth():
+    """Serve QR authentication page"""
+    return render_template('qr_auth_page.html')
+
 @app.route('/qr-login')
 def qr_login():
     """Alternative QR login route - redirects to home"""
