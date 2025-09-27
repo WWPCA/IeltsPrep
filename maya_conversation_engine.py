@@ -157,16 +157,44 @@ class MayaConversationEngine:
                 "evaluation_notes": []
             }
             
-            # Generate initial greeting
+            # Initialize Nova Sonic session for streaming (if available)
+            streaming_context = None
+            try:
+                import asyncio
+                # Attempt to initialize streaming session
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                streaming_result = loop.run_until_complete(
+                    self.nova_sonic.start_maya_conversation(
+                        system_prompt=self.nova_sonic.get_maya_ielts_system_prompt(assessment_type),
+                        voice_id="matthew"
+                    )
+                )
+                
+                if streaming_result.get('success'):
+                    streaming_context = {
+                        'stream': streaming_result.get('stream'),
+                        'session_id': streaming_result.get('session_id'),
+                        'voice_id': streaming_result.get('voice_id'),
+                        'status': streaming_result.get('status')
+                    }
+                    logger.info(f"Nova Sonic streaming session initialized: {streaming_result.get('session_id')}")
+                else:
+                    logger.warning(f"Nova Sonic streaming failed: {streaming_result.get('error', 'Unknown error')}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Nova Sonic streaming: {e}")
+            
+            # Generate initial greeting with voice synthesis
             initial_message = self.get_stage_response(ConversationStage.INITIAL_GREETING)
             
-            return {
-                "success": True,
-                "maya_message": initial_message,
-                "stage": ConversationStage.INITIAL_GREETING.value,
-                "expected_response": "user_greeting",
-                "instructions": "Respond naturally to Maya's greeting. Tell her how you're feeling today."
-            }
+            # Create response with audio synthesis using proper streaming context
+            return self._create_maya_response_with_audio(
+                text=initial_message,
+                stage=ConversationStage.INITIAL_GREETING,
+                expected_response="user_greeting",
+                instructions="Respond naturally to Maya's greeting. Tell her how you're feeling today.",
+                session_context=streaming_context
+            )
             
         except Exception as e:
             logger.error(f"Failed to initialize Maya session: {e}")
@@ -219,6 +247,95 @@ class MayaConversationEngine:
         """Get natural response for conversation stage"""
         responses = self.natural_responses.get(stage, ["Let's continue."])
         return random.choice(responses)
+    
+    def _synthesize_maya_response(self, text: str, session_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Synthesize Maya's text response to audio using Nova Sonic
+        
+        Args:
+            text: Maya's text response
+            session_context: Optional streaming session context
+            
+        Returns:
+            Dict with both text and audio synthesis result
+        """
+        try:
+            # Use Nova Sonic service to synthesize Maya's speech
+            synthesis_result = self.nova_sonic.synthesize_maya_speech(
+                text=text,
+                voice_id="matthew",  # Nova Sonic compatible voice
+                session_context=session_context
+            )
+            
+            if synthesis_result.get('success'):
+                return {
+                    "text": text,
+                    "audio_synthesis": {
+                        "success": True,
+                        "audio_base64": synthesis_result.get('audio_base64', ''),
+                        "format": synthesis_result.get('format', 'audio/lpcm'),
+                        "sample_rate": synthesis_result.get('sample_rate', 24000),
+                        "voice_id": synthesis_result.get('voice_id', 'matthew'),
+                        "duration_ms": synthesis_result.get('duration_ms', 0),
+                        "streaming": synthesis_result.get('streaming', False),
+                        "fallback_mode": synthesis_result.get('fallback_mode', False)
+                    }
+                }
+            else:
+                logger.warning(f"Voice synthesis failed: {synthesis_result.get('error', 'Unknown error')}")
+                return {
+                    "text": text,
+                    "audio_synthesis": {
+                        "success": False,
+                        "error": synthesis_result.get('error', 'Synthesis failed'),
+                        "fallback_text": text
+                    }
+                }
+                
+        except Exception as e:
+            logger.error(f"Maya voice synthesis error: {e}")
+            return {
+                "text": text,
+                "audio_synthesis": {
+                    "success": False,
+                    "error": str(e),
+                    "fallback_text": text
+                }
+            }
+    
+    def _create_maya_response_with_audio(self, 
+                                       text: str, 
+                                       stage: ConversationStage, 
+                                       expected_response: str,
+                                       session_context: Optional[Dict[str, Any]] = None,
+                                       **kwargs) -> Dict[str, Any]:
+        """
+        Create Maya response with both text and audio synthesis
+        
+        Args:
+            text: Maya's text message
+            stage: Current conversation stage
+            expected_response: Expected type of user response
+            session_context: Optional streaming session context
+            **kwargs: Additional response fields
+            
+        Returns:
+            Complete Maya response with text and audio
+        """
+        # Synthesize Maya's speech
+        synthesis_data = self._synthesize_maya_response(text, session_context)
+        
+        # Build complete response
+        response = {
+            "success": True,
+            "maya_message": synthesis_data["text"],
+            "maya_audio": synthesis_data["audio_synthesis"],
+            "stage": stage.value,
+            "expected_response": expected_response,
+            **kwargs
+        }
+        
+        return response
     
     def determine_next_response(self, user_input: str, current_stage: ConversationStage) -> Dict[str, Any]:
         """Determine Maya's next natural response based on conversation flow"""
