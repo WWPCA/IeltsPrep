@@ -70,7 +70,7 @@ provider:
 
 functions:
   api:
-    handler: handler.lambda_handler
+    handler: pure_lambda_handler.lambda_handler
     events:
       - http:
           path: /{proxy+}
