@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from typing import Dict, Any
 
-from lambda_security import apply_security
+from lambda_security import security_middleware
 from assessment_access_control import get_assessment_controller
 from question_bank_dal import get_question_bank_dal
 from maya_conversation_engine import get_maya_engine
@@ -16,13 +16,7 @@ from ielts_band_scoring import get_band_scorer
 
 logger = logging.getLogger(__name__)
 
-@apply_security(
-    rate_limit_per_ip=20,
-    rate_limit_window=300,
-    require_recaptcha=False,
-    validate_input=True,
-    require_auth=True
-)
+@security_middleware(sensitive_endpoint=True, require_recaptcha=False)
 def handle_start_maya_conversation(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Start Maya conversation for speaking assessment
@@ -142,13 +136,7 @@ def handle_start_maya_conversation(event: Dict[str, Any], context: Any) -> Dict[
             })
         }
 
-@apply_security(
-    rate_limit_per_ip=50,  # Higher limit for conversation flow
-    rate_limit_window=300,
-    require_recaptcha=False,
-    validate_input=True,
-    require_auth=True
-)
+@security_middleware(sensitive_endpoint=True, require_recaptcha=False)
 def handle_maya_conversation_turn(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Process user response in Maya conversation
@@ -281,13 +269,7 @@ def handle_maya_conversation_turn(event: Dict[str, Any], context: Any) -> Dict[s
             })
         }
 
-@apply_security(
-    rate_limit_per_ip=10,
-    rate_limit_window=300,
-    require_recaptcha=False,
-    validate_input=True,
-    require_auth=True
-)
+@security_middleware(sensitive_endpoint=True, require_recaptcha=False)
 def handle_get_conversation_summary(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Get conversation summary and current state
@@ -372,13 +354,7 @@ def handle_get_conversation_summary(event: Dict[str, Any], context: Any) -> Dict
             })
         }
 
-@apply_security(
-    rate_limit_per_ip=15,
-    rate_limit_window=300,
-    require_recaptcha=False,
-    validate_input=True,
-    require_auth=True
-)
+@security_middleware(sensitive_endpoint=True, require_recaptcha=False)
 def handle_generate_band_score_report(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Generate detailed IELTS band score report for completed assessment
@@ -514,13 +490,7 @@ def handle_generate_band_score_report(event: Dict[str, Any], context: Any) -> Di
             })
         }
 
-@apply_security(
-    rate_limit_per_ip=30,
-    rate_limit_window=300,
-    require_recaptcha=False,
-    validate_input=True,
-    require_auth=True
-)
+@security_middleware(sensitive_endpoint=True, require_recaptcha=False)
 def handle_get_user_assessment_history(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Get user's assessment history with band scores

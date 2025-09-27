@@ -11,6 +11,8 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 from enum import Enum
 
+from nova_sonic_service import get_nova_sonic_service, NovaSonicService
+
 logger = logging.getLogger(__name__)
 
 class ConversationStage(Enum):
@@ -43,6 +45,9 @@ class MayaConversationEngine:
     """
     
     def __init__(self):
+        # Initialize Nova Sonic service for voice synthesis
+        self.nova_sonic = get_nova_sonic_service()
+        
         # Natural conversational responses
         self.natural_responses = {
             ConversationStage.INITIAL_GREETING: [
