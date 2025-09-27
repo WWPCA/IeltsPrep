@@ -54,7 +54,7 @@ class SecretsManager:
                 return self._get_development_secret(secret_name, return_json)
             
             # Production AWS Secrets Manager
-            response = self.secrets_client.get_secret_value(SecretName=secret_name)
+            response = self.secrets_client.get_secret_value(SecretId=secret_name)
             secret_value = response['SecretString']
             
             if return_json:
@@ -304,5 +304,3 @@ def validate_secrets_configuration():
         logger.info("[SECRETS] All required secrets validated")
     
     return True
-
-from datetime import datetime
