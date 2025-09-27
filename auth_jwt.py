@@ -109,12 +109,21 @@ def jwt_required(f):
         from flask import g
         g.user_id = payload['user_id']
         
-        # Load user object for convenience
+        # Load user object for convenience using DynamoDB UserDAL
         try:
-            g.current_user = User.query.get(payload['user_id'])
-            if not g.current_user or not g.current_user.is_active:
+            from dynamodb_dal import DynamoDBConnection, UserDAL
+            from flask import current_app
+            import os
+            
+            region = os.environ.get('AWS_REGION', 'us-east-1')
+            db_connection = DynamoDBConnection(region=region)
+            user_dal = UserDAL(db_connection)
+            
+            g.current_user = user_dal.get_user_by_id(payload['user_id'])
+            if not g.current_user or not g.current_user.get('is_active', False):
                 return jsonify({'error': 'User account is inactive'}), 401
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to load user {payload['user_id']}: {e}")
             return jsonify({'error': 'User not found'}), 401
         
         return f(*args, **kwargs)
