@@ -58,13 +58,13 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# Import models after db is initialized
-with app.app_context():
-    from models import User
-    
-    # Import and register mobile API blueprint
+# No SQLAlchemy models needed - using DynamoDB
+# Import mobile API blueprint if available
+try:
     from api_mobile import api_mobile
     app.register_blueprint(api_mobile)
+except ImportError:
+    print("[INFO] Mobile API blueprint not available")
 
 # User loader for Flask-Login (updated to use unified User model)
 @login_manager.user_loader

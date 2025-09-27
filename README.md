@@ -68,6 +68,7 @@ Payment Integration:
 - **Purchase-to-Assessment**: Mobile app purchase → receipt validation → web platform access via QR
 - **Speech Assessment**: Web initiation → WebSocket connection → Nova Sonic streaming → real-time feedback
 - **Multi-Region**: DynamoDB Global Tables for cross-region data replication
+- **Data Storage**: AWS DynamoDB replaces PostgreSQL for serverless architecture
 
 ### Deployment Strategy
 - **Multi-Region Serverless Deployment**
@@ -88,10 +89,12 @@ gunicorn --bind 0.0.0.0:5000 main:app
 ```
 
 ### Environment Variables
-- `DATABASE_URL`: PostgreSQL database connection
+- `AWS_REGION`: AWS region for DynamoDB (default: us-east-1)
 - `SESSION_SECRET`: Flask session secret key
 - `RECAPTCHA_V2_SITE_KEY`: Google reCAPTCHA site key
 - `RECAPTCHA_V2_SECRET_KEY`: Google reCAPTCHA secret key
+- `JWT_SECRET`: JWT token secret for mobile authentication
+- `KMS_KEY_ID`: AWS KMS key for encryption
 
 ## Security
 

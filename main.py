@@ -1,4 +1,4 @@
-from app_secure import app  # noqa: F401
+from app import app  # noqa: F401
 
 # For Lambda compatibility
 def lambda_handler(event, context):

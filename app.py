@@ -1,21 +1,9 @@
 """
-QR Authentication Test Server for .replit environment
-Serves frontend and provides local test endpoints that simulate Lambda backend
+IELTS GenAI Prep - Production Flask Application
+Uses AWS DynamoDB for data storage with fallback to mock services for development
 """
 
-from flask import Flask, send_from_directory, render_template, request, jsonify, redirect, url_for
-
-# Mock functions for template compatibility
-def csrf_token():
-    return "mock-csrf-token"
-
-class MockConfig:
-    RECAPTCHA_SITE_KEY = "mock-recaptcha-key"
-
-app = Flask(__name__)
-app.jinja_env.globals['csrf_token'] = csrf_token
-app.jinja_env.globals['config'] = MockConfig()
-app.secret_key = 'dev-secret-key-for-testing'
+from flask import Flask, send_from_directory, render_template, request, jsonify, redirect, url_for, session, flash
 import json
 import uuid
 import time
@@ -28,15 +16,49 @@ from datetime import datetime, timedelta
 import os
 import boto3
 
-app = Flask(__name__)
-app.jinja_env.globals['csrf_token'] = csrf_token
-app.jinja_env.globals['config'] = MockConfig()
+from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# In-memory storage for testing (simulates DynamoDB and ElastiCache)
-qr_tokens = {}  # Simulates AuthTokens DynamoDB table
-sessions = {}   # Simulates ElastiCache session storage
-mock_purchases = {}  # Simulates user purchase records
-password_reset_tokens = {}  # Simulates password reset token storage
+# Real CSRF token generation
+def csrf_token():
+    return secrets.token_urlsafe(32)
+
+# Production configuration
+class ProductionConfig:
+    RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_V2_SITE_KEY", "6LcYOkUqAAAAAK8xH4iJcZv_TfUdJ8TlYS_Ov8Ix")
+    RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_V2_SECRET_KEY")
+
+# Create Flask app
+app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", secrets.token_urlsafe(32))
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.jinja_env.globals['csrf_token'] = csrf_token
+app.jinja_env.globals['config'] = ProductionConfig()
+
+# Initialize AWS DynamoDB connections with fallback to mock for development
+try:
+    # Try to use production DynamoDB
+    from dynamodb_dal import DynamoDBConnection, UserDAL
+    region = os.environ.get('AWS_REGION', 'us-east-1')
+    db_connection = DynamoDBConnection(region=region)
+    user_dal = UserDAL(db_connection)
+    
+    print(f"[PRODUCTION] Connected to DynamoDB in region: {region}")
+    use_production = True
+    
+except Exception as e:
+    print(f"[INFO] DynamoDB unavailable, using mock services: {e}")
+    # Fallback to mock services for development
+    from aws_mock_config import aws_mock
+    db_connection = aws_mock
+    user_dal = None
+    use_production = False
+    
+    # Mock storage for development
+    qr_tokens = {}
+    sessions = {}
+    mock_purchases = {}
+    password_reset_tokens = {}
 # Actual assessment data structure to match existing templates
 user_assessments = {
     "test@ieltsaiprep.com": {
