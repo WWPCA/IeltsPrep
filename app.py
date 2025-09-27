@@ -22,8 +22,11 @@ import time
 import qrcode
 import io
 import base64
+import secrets
+import hashlib
 from datetime import datetime, timedelta
 import os
+import boto3
 
 app = Flask(__name__)
 app.jinja_env.globals['csrf_token'] = csrf_token
@@ -33,6 +36,7 @@ app.jinja_env.globals['config'] = MockConfig()
 qr_tokens = {}  # Simulates AuthTokens DynamoDB table
 sessions = {}   # Simulates ElastiCache session storage
 mock_purchases = {}  # Simulates user purchase records
+password_reset_tokens = {}  # Simulates password reset token storage
 # Actual assessment data structure to match existing templates
 user_assessments = {
     "test@ieltsaiprep.com": {
@@ -458,6 +462,149 @@ def reset_password():
     
     return render_template('reset_password.html', current_user=AnonymousUser(), reset_token=reset_token)
 
+def generate_reset_token(email: str) -> str:
+    """Generate secure password reset token"""
+    # Create a secure random token
+    token = secrets.token_urlsafe(32)
+    
+    # Store token with expiration (1 hour from now)
+    expiry = datetime.utcnow() + timedelta(hours=1)
+    password_reset_tokens[token] = {
+        'email': email,
+        'expiry': expiry,
+        'created_at': datetime.utcnow()
+    }
+    
+    return token
+
+def send_password_reset_email(email: str, reset_token: str) -> bool:
+    """Send password reset email using AWS SES"""
+    try:
+        # Check if running in development mode
+        if os.environ.get('REPLIT_ENVIRONMENT') == 'true':
+            # Development mode - log the email
+            reset_link = f"http://localhost:5000/reset_password?token={reset_token}"
+            print(f"[DEV_MODE] Password reset email for: {email}")
+            print(f"[DEV_MODE] Reset link: {reset_link}")
+            return True
+        
+        # Production mode - use AWS SES
+        ses_client = boto3.client(
+            'ses',
+            region_name=os.environ.get('AWS_REGION', 'us-east-1'),
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+        )
+        
+        # Build reset link
+        base_url = os.environ.get('DOMAIN_URL', 'https://ieltsaiprep.com')
+        reset_link = f"{base_url}/reset_password?token={reset_token}"
+        username = email.split('@')[0].title()
+        
+        subject = "IELTS GenAI Prep - Password Reset Request"
+        
+        # Professional HTML email template matching your brand
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Password Reset - IELTS GenAI Prep</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+                <!-- Header -->
+                <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #6f42c1;">
+                    <h1 style="color: #6f42c1; margin-bottom: 10px; font-size: 28px;">IELTS GenAI Prep</h1>
+                    <p style="color: #6c757d; margin: 0; font-size: 14px;">Powered by TrueScore® & ClearScore® AI Assessment Technology</p>
+                </div>
+                
+                <!-- Main Content -->
+                <div style="background: #f8f9fa; padding: 30px; border-radius: 8px; margin-bottom: 30px;">
+                    <h2 style="color: #495057; font-weight: normal; text-align: center; margin-bottom: 20px;">Password Reset Request</h2>
+                    
+                    <p style="margin-bottom: 20px;">Hello {username},</p>
+                    
+                    <p style="margin-bottom: 20px;">We received a request to reset your password for your IELTS GenAI Prep account. 
+                    If you made this request, please click the button below to reset your password:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_link}" 
+                           style="background: #6f42c1; color: white; padding: 15px 40px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;
+                                  font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(111, 66, 193, 0.3);">
+                            Reset My Password
+                        </a>
+                    </div>
+                    
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; margin: 20px 0;">
+                        <p style="margin: 0; color: #856404; font-size: 14px;">
+                            <strong>Security Notice:</strong> This link will expire in 1 hour for your protection.
+                        </p>
+                    </div>
+                    
+                    <p style="margin-bottom: 0;">If you didn't request a password reset, please ignore this email. 
+                    Your password will remain unchanged and your account is secure.</p>
+                </div>
+                
+                <!-- Footer -->
+                <div style="border-top: 1px solid #dee2e6; padding-top: 20px; font-size: 14px; color: #6c757d;">
+                    <p style="margin-bottom: 15px;">If the button doesn't work, copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 20px;">{reset_link}</p>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <p style="margin-bottom: 5px; font-weight: bold;">Best regards,</p>
+                        <p style="margin-bottom: 15px;">The IELTS GenAI Prep Team</p>
+                        <p style="font-size: 12px; color: #adb5bd;">© 2025 IELTS GenAI Prep. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Text version for email clients that don't support HTML
+        text_body = f"""
+IELTS GenAI Prep - Password Reset Request
+
+Hello {username},
+
+We received a request to reset your password for your IELTS GenAI Prep account.
+
+If you made this request, please copy and paste the following link into your browser to reset your password:
+
+{reset_link}
+
+This link will expire in 1 hour for security reasons.
+
+If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+
+Best regards,
+The IELTS GenAI Prep Team
+
+© 2025 IELTS GenAI Prep. All rights reserved.
+        """
+        
+        # Send email via AWS SES
+        response = ses_client.send_email(
+            Source='noreply@ieltsaiprep.com',
+            Destination={'ToAddresses': [email]},
+            Message={
+                'Subject': {'Data': subject, 'Charset': 'UTF-8'},
+                'Body': {
+                    'Html': {'Data': html_body, 'Charset': 'UTF-8'},
+                    'Text': {'Data': text_body, 'Charset': 'UTF-8'}
+                }
+            }
+        )
+        
+        print(f"[SES] Password reset email sent to {email}: {response['MessageId']}")
+        return True
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to send password reset email: {str(e)}")
+        return False
+
 @app.route('/api/forgot-password', methods=['POST'])
 def api_forgot_password():
     """Handle forgot password API request"""
@@ -471,16 +618,23 @@ def api_forgot_password():
                 'message': 'Email address is required'
             }), 400
         
-        # Mock password reset for development
-        print(f"[MOCK_EMAIL] Password reset requested for: {email}")
-        print(f"[MOCK_EMAIL] Reset link: http://localhost:5000/reset_password?token=mock-token-{email}")
+        # Generate secure reset token
+        reset_token = generate_reset_token(email)
         
-        return jsonify({
-            'status': 'success',
-            'message': 'If this email is registered, you will receive password reset instructions.'
-        })
+        # Send password reset email via AWS SES
+        if send_password_reset_email(email, reset_token):
+            return jsonify({
+                'status': 'success',
+                'message': 'If this email is registered, you will receive password reset instructions.'
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Unable to send password reset email. Please try again later.'
+            }), 500
         
     except Exception as e:
+        print(f"[ERROR] Password reset request failed: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': 'Unable to process password reset request. Please try again later.'
