@@ -14,3 +14,4 @@ flask-sqlalchemy
 python-dotenv
 qrcode
 sqlalchemy
+pyjwt
