@@ -8,7 +8,8 @@ import datetime
 import jwt
 from functools import wraps
 from flask import current_app, request, jsonify, g
-from models import User
+# Using DynamoDB UserDAL instead of SQLAlchemy models
+# from dynamodb_dal import UserDAL  # Import when needed in specific functions
 from aws_secrets_manager import get_jwt_config
 import logging
 

@@ -30,7 +30,7 @@ class ProductionConfig:
 
 # Create Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", secrets.token_urlsafe(32))
+app.secret_key = os.environ.get("SESSION_SECRET")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.jinja_env.globals['csrf_token'] = csrf_token
 app.jinja_env.globals['config'] = ProductionConfig()

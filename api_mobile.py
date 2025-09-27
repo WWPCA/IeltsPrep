@@ -4,7 +4,8 @@ Provides JWT-based authentication and user management for mobile clients
 """
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import check_password_hash
-from models import User, db, AssessmentEntitlement
+# Using DynamoDB UserDAL instead of SQLAlchemy models
+# from dynamodb_dal import UserDAL  # Import when needed in specific functions
 from auth_jwt import generate_jwt_token, jwt_required, create_api_response
 
 # Create API blueprint

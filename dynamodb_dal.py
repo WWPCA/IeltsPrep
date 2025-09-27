@@ -3,6 +3,7 @@ DynamoDB Data Access Layer for IELTS GenAI Prep
 Replaces SQLAlchemy models with DynamoDB Global Tables for serverless architecture
 """
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 import json
 import os
 import secrets
@@ -99,8 +100,7 @@ class UserDAL:
         """Get user by ID - requires scan since user_id is not primary key"""
         try:
             response = self.table.scan(
-                FilterExpression='user_id = :user_id',
-                ExpressionAttributeValues={':user_id': user_id}
+                FilterExpression=Attr('user_id').eq(user_id)
             )
             
             if response['Items']:
@@ -125,8 +125,7 @@ class UserDAL:
         """Get user by username - scan operation (consider adding GSI for performance)"""
         try:
             response = self.table.scan(
-                FilterExpression='username = :username',
-                ExpressionAttributeValues={':username': username}
+                FilterExpression=Attr('username').eq(username)
             )
             
             if response['Items']:
