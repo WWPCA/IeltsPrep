@@ -54,6 +54,13 @@ from assessment_session_handler import (
     handle_get_assessment_session,
     handle_get_user_question_stats
 )
+from maya_assessment_handler import (
+    handle_start_maya_conversation,
+    handle_maya_conversation_turn,
+    handle_get_conversation_summary,
+    handle_generate_band_score_report,
+    handle_get_user_assessment_history
+)
 
 # Configure logging
 logger = logging.getLogger()
@@ -294,6 +301,22 @@ def handle_api_request(event: Dict[str, Any], context: Any, path: str, method: s
     
     elif path == '/api/user-question-stats' and method == 'GET':
         return handle_get_user_question_stats(event, context)
+    
+    # Maya Conversation and Assessment Endpoints
+    elif path == '/api/start-maya-conversation' and method == 'POST':
+        return handle_start_maya_conversation(event, context)
+    
+    elif path == '/api/maya-conversation-turn' and method == 'POST':
+        return handle_maya_conversation_turn(event, context)
+    
+    elif path == '/api/get-conversation-summary' and method == 'GET':
+        return handle_get_conversation_summary(event, context)
+    
+    elif path == '/api/generate-band-score-report' and method == 'POST':
+        return handle_generate_band_score_report(event, context)
+    
+    elif path == '/api/user-assessment-history' and method == 'GET':
+        return handle_get_user_assessment_history(event, context)
     
     # Mobile API delegation
     elif path.startswith('/api/v1/') and MOBILE_API_AVAILABLE:
