@@ -87,13 +87,6 @@
         margin: 1rem 0;
     }
     
-    .word-counter {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 1rem 0;
-        text-align: center;
-    }
     
     .timer-display {
         font-size: 1.5rem;
@@ -142,7 +135,28 @@
         border-top: 1px solid #dee2e6;
         padding: 0.5rem 1rem;
         font-size: 12px;
-        text-align: right;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .exam-layout {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .question-panel {
+            flex: none;
+            height: auto;
+            border-right: none;
+            border-bottom: 3px solid #28a745;
+        }
+        
+        .response-panel {
+            min-height: 400px;
+        }
     }
 </style>
 {% endblock %}
