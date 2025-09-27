@@ -147,41 +147,139 @@ def login():
     try:
         with open('working_template.html', 'r') as f:
             content = f.read()
-        # Inject login form into the working template
+        # Inject enhanced mobile-first login form with QR code option
         login_section = '''
         <div class="container py-5">
             <div class="row justify-content-center">
-                <div class="col-md-6 col-lg-4">
-                    <div class="card shadow-lg">
-                        <div class="card-body p-5">
-                            <h2 class="text-center mb-4">Login to IELTS GenAI Prep</h2>
-                            <form id="loginForm">
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" required>
+                <div class="col-12 col-md-10 col-lg-8">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-body p-4 p-md-5">
+                            <h2 class="text-center mb-4 fw-bold">Login to IELTS GenAI Prep</h2>
+                            
+                            <!-- Mobile-First Tab Navigation -->
+                            <ul class="nav nav-pills justify-content-center mb-4" id="loginTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="email-tab" data-bs-toggle="pill" data-bs-target="#email-login" type="button" role="tab">
+                                        <i class="fas fa-envelope me-2"></i>Email Login
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="qr-tab" data-bs-toggle="pill" data-bs-target="#qr-login" type="button" role="tab">
+                                        <i class="fas fa-qrcode me-2"></i>QR Code
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="loginTabContent">
+                                <!-- Email Login Tab -->
+                                <div class="tab-pane fade show active" id="email-login" role="tabpanel">
+                                    <form id="loginForm">
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email Address</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                                <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Password</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                                            <label class="form-check-label" for="rememberMe">Remember me on this device</label>
+                                        </div>
+                                        <div class="d-grid mb-3">
+                                            <button type="submit" class="btn btn-primary btn-lg">
+                                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Mobile Purchase Option -->
+                                        <div class="text-center mb-3">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-mobile-alt me-2"></i>
+                                                <strong>Mobile Users:</strong> Prefer purchasing assessments directly through our mobile app for the best experience!
+                                            </div>
+                                            <a href="/qr-auth" class="btn btn-success btn-lg w-100 mb-2">
+                                                <i class="fas fa-shopping-cart me-2"></i>Purchase via Mobile App
+                                            </a>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" required>
+
+                                <!-- QR Code Login Tab -->
+                                <div class="tab-pane fade" id="qr-login" role="tabpanel">
+                                    <div class="text-center">
+                                        <h4 class="mb-3">Quick Mobile Login</h4>
+                                        <p class="text-muted mb-4">Scan this QR code with your IELTS GenAI mobile app to login instantly</p>
+                                        
+                                        <div class="qr-container bg-light rounded p-4 mb-4">
+                                            <div class="qr-code mx-auto mb-3" style="width: 200px; height: 200px; border: 2px dashed #007bff; display: flex; align-items: center; justify-content: center; background: white; border-radius: 10px;">
+                                                <div id="qr-placeholder">
+                                                    <i class="fas fa-qrcode fa-4x text-primary mb-2"></i>
+                                                    <p class="small text-muted">QR Code will appear here</p>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-outline-primary" onclick="generateQR()">
+                                                <i class="fas fa-refresh me-2"></i>Generate QR Code
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="alert alert-warning">
+                                            <h6><i class="fas fa-mobile-alt me-2"></i>Don't have the mobile app?</h6>
+                                            <a href="/qr-auth" class="btn btn-warning btn-sm">
+                                                <i class="fas fa-download me-2"></i>Download App & Purchase
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="rememberMe">
-                                    <label class="form-check-label" for="rememberMe">Remember me</label>
-                                </div>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-lg">Login</button>
-                                </div>
-                            </form>
-                            <hr>
+                            </div>
+
+                            <hr class="my-4">
                             <div class="text-center">
-                                <p><a href="/forgot_password">Forgot your password?</a></p>
-                                <p>Don't have an account? <a href="/register">Sign up here</a></p>
+                                <p class="mb-2"><a href="/forgot_password" class="text-decoration-none">
+                                    <i class="fas fa-key me-1"></i>Forgot your password?
+                                </a></p>
+                                <p class="mb-0">Don't have an account? <a href="/register" class="fw-bold text-decoration-none">
+                                    <i class="fas fa-user-plus me-1"></i>Sign up here
+                                </a></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        
+        function generateQR() {
+            const qrPlaceholder = document.getElementById('qr-placeholder');
+            qrPlaceholder.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Generating...</span></div>';
+            
+            // Simulate QR generation
+            setTimeout(() => {
+                qrPlaceholder.innerHTML = '<i class="fas fa-qrcode fa-4x text-success mb-2"></i><p class="small text-success">QR Code Generated!</p><p class="small text-muted">Scan with your mobile app</p>';
+            }, 2000);
+        }
+        </script>
         '''
         # Replace the main content section with login form using proper regex patterns
         import re
