@@ -66,23 +66,6 @@
     
     <!-- Global Styles -->
     <style>
-        /* Ensure white background for all pages */
-        body {
-            background-color: white !important;
-            font-family: 'Roboto', sans-serif;
-        }
-        
-        /* Hide error messages */
-        [style*="position:fixed"] {
-            display: none !important;
-        }
-        
-        /* Hide specific error messages */
-        body::after {
-            content: "";
-            display: block;
-            clear: both;
-        }
         
         .card-header {
             height: 60px !important;
@@ -196,7 +179,7 @@
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <!-- Header -->
     <header class="site-header">
         <div class="container">

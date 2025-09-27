@@ -2,15 +2,7 @@
 
 {% block title %}Conversational Speaking Assessment - ClearScore{% endblock %}
 
-{% block styles %}
-{{ super() }}
-<style>
-    /* Ensure white background */
-    body {
-        background-color: white !important;
-    }
-</style>
-{% endblock %}
+{% block body_class %}bg-white assessment-page{% endblock %}
 
 {% block head %}
 <meta name="csrf-token" content="{{ csrf_token() }}">

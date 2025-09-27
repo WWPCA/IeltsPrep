@@ -1,13 +1,10 @@
 {% extends "layout.html" %}
 
+{% block body_class %}bg-white assessment-page{% endblock %}
+
 {% block styles %}
 {{ super() }}
 <style>
-    /* Ensure white background */
-    body {
-        background-color: white !important;
-    }
-    
     .truescore-header {
         background: linear-gradient(45deg, #28a745, #20c997);
         color: white;
