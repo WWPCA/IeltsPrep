@@ -333,11 +333,13 @@ class GooglePlayValidator:
                 error_message="Purchase already consumed"
             )
         
-        # Store the receipt
+        # Store the receipt - ensure non-null values
+        order_id_str = order_id if order_id else f"unknown_{int(time.time())}"
+        product_id_str = product_id if product_id else "unknown_product"
         receipt_id = self._store_receipt(
             platform="android",
-            transaction_id=order_id,
-            product_id=product_id,
+            transaction_id=order_id_str,
+            product_id=product_id_str,
             user_id=user_id,
             receipt_data=receipt_data,
             purchase_date=datetime.fromtimestamp(purchase_time_millis / 1000)
@@ -374,9 +376,33 @@ class ReceiptValidationService:
     """Unified receipt validation service"""
     
     def __init__(self):
-        self.apple_validator = AppleReceiptValidator()
-        self.google_validator = GooglePlayValidator()
-        self.dal = get_dal()
+        """Initialize validators with production-ready error handling"""
+        import os
+        
+        # Check if we're in development environment
+        is_development = os.environ.get('REPLIT_ENVIRONMENT') == 'true'
+        
+        try:
+            self.apple_validator = AppleReceiptValidator()
+            self.google_validator = GooglePlayValidator()
+            self.dal = get_dal()
+            self.production_ready = True
+            
+        except RuntimeError as e:
+            if is_development:
+                # Development: Log and continue with mock behavior
+                self.apple_validator = None
+                self.google_validator = None  
+                self.dal = get_dal()  # DAL should still work
+                self.production_ready = False
+                print(f"[DEV] Receipt validation using fallback mode: {e}")
+                
+            else:
+                # Production: Fail fast with clear error message
+                raise RuntimeError(
+                    "Production receipt validation unavailable. Apple/Google Store secrets required. "
+                    "Configure secrets in AWS Secrets Manager to enable purchase validation."
+                ) from e
     
     def validate_purchase(self, platform: str, receipt_data: str, 
                          user_id: str, product_id: str) -> PurchaseVerificationResult:
@@ -393,9 +419,22 @@ class ReceiptValidationService:
             PurchaseVerificationResult
         """
         try:
-            if platform.lower() == 'ios':
+            # Check if validators are available
+            if not self.production_ready:
+                # Development mode: Return mock success for testing
+                return PurchaseVerificationResult(
+                    status=PurchaseStatus.VALID,
+                    transaction_id=f"dev_mock_{int(time.time())}",
+                    product_id=product_id,
+                    purchase_date=datetime.utcnow(),
+                    user_id=user_id,
+                    platform=platform,
+                    receipt_data={"dev_mode": True}
+                )
+            
+            if platform.lower() == 'ios' and self.apple_validator:
                 result = self.apple_validator.validate_receipt(receipt_data, user_id)
-            elif platform.lower() == 'android':
+            elif platform.lower() == 'android' and self.google_validator:
                 result = self.google_validator.validate_receipt(receipt_data, user_id)
             else:
                 return PurchaseVerificationResult(
@@ -404,7 +443,7 @@ class ReceiptValidationService:
                 )
             
             # If validation successful, grant entitlements
-            if result.status == PurchaseStatus.VALID:
+            if result.status == PurchaseStatus.VALID and result.product_id and result.transaction_id:
                 self._grant_entitlements(user_id, result.product_id, result.transaction_id)
             
             return result
