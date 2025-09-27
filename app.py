@@ -220,12 +220,17 @@ user_assessments = {
 
 @app.route('/')
 def home():
-    """Homepage with proper template system and styling"""
-    # Always use template system for proper CSS loading
-    class AnonymousUser:
-        is_authenticated = False
-        email = None
-    return render_template('index.html', current_user=AnonymousUser())
+    """Serve working template with comprehensive FAQ and all features plus CSS"""
+    try:
+        with open('working_template.html', 'r') as f:
+            content = f.read()
+        return content
+    except FileNotFoundError:
+        # Fallback to index.html if working template not found
+        class AnonymousUser:
+            is_authenticated = False
+            email = None
+        return render_template('index.html', current_user=AnonymousUser())
 
 @app.route('/original-home')
 def original_home():
