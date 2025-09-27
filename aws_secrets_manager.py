@@ -6,6 +6,7 @@ import os
 import json
 import boto3
 import logging
+from datetime import datetime
 from typing import Dict, Any, Optional
 from botocore.exceptions import ClientError
 from functools import lru_cache
@@ -29,10 +30,9 @@ class SecretsManager:
         else:
             logger.info(f"[SECRETS] Initialized for region: {self.region}")
     
-    @lru_cache(maxsize=20)
     def get_secret(self, secret_name: str, return_json: bool = True) -> Optional[Any]:
         """
-        Retrieve secret from AWS Secrets Manager with caching
+        Retrieve secret from AWS Secrets Manager with TTL caching
         
         Args:
             secret_name: Name of the secret in AWS Secrets Manager
@@ -41,7 +41,7 @@ class SecretsManager:
         Returns:
             Secret value or None if not found
         """
-        # Check cache first
+        # Check cache first with TTL
         cache_key = f"{secret_name}:{return_json}"
         if cache_key in self.cache:
             cached_time, cached_value = self.cache[cache_key]

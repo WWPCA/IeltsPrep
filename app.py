@@ -59,6 +59,14 @@ except Exception as e:
     sessions = {}
     mock_purchases = {}
     password_reset_tokens = {}
+
+# Register mobile API blueprint if available
+try:
+    from api_mobile import api_mobile
+    app.register_blueprint(api_mobile)
+    print("[INFO] Mobile API endpoints registered at /api/v1/*")
+except ImportError:
+    print("[INFO] Mobile API blueprint not available")
 # Actual assessment data structure to match existing templates
 user_assessments = {
     "test@ieltsaiprep.com": {
