@@ -9,6 +9,28 @@ provider:
   memorySize: 1024
   timeout: 30
   
+  # API Gateway configuration for security
+  apiGateway:
+    restApiId: ${opt:restApiId, ''}
+    restApiRootResourceId: ${opt:restApiRootResourceId, ''}
+    # Request/Response validation
+    requestValidators:
+      bodyAndParams:
+        validateRequestBody: true
+        validateRequestParameters: true
+    # Throttling configuration
+    throttle:
+      burstLimit: 200
+      rateLimit: 100
+    # Usage plan for API key management
+    usagePlan:
+      quota:
+        limit: 10000
+        period: DAY
+      throttle:
+        burstLimit: 200
+        rateLimit: 100
+  
   environment:
     DYNAMODB_USERS_TABLE: ${self:service}-users-${self:provider.stage}
     DYNAMODB_ASSESSMENTS_TABLE: ${self:service}-assessments-${self:provider.stage}

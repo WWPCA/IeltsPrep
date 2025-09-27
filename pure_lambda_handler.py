@@ -42,12 +42,14 @@ try:
         region = os.environ.get('AWS_REGION', 'us-east-1')
         db_connection = DynamoDBConnection(region=region)
         user_dal = UserDAL(db_connection)
+        DYNAMODB_AVAILABLE = True
         logger.info(f"[PRODUCTION] DynamoDB connected - region: {region}")
     else:
         # Development - use mock services
         from aws_mock_config import aws_mock
         db_connection = aws_mock
         user_dal = None
+        DYNAMODB_AVAILABLE = False
         logger.info("[DEVELOPMENT] Using mock services")
         
 except Exception as e:
@@ -56,6 +58,7 @@ except Exception as e:
     db_connection = aws_mock
     user_dal = None
     IS_DEVELOPMENT = True
+    DYNAMODB_AVAILABLE = False
 
 # Initialize additional services
 try:
@@ -149,9 +152,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return create_cors_response(headers.get('Origin'))
         
         # Route request
-        response = route_request(path, method, headers, query_params, request_data, context)
+        response = route_request(event, context, path, method, headers, query_params, request_data)
         
         # Add security headers and CORS
+        response['request_path'] = path  # Add path for CORS logic
         response = add_security_headers(response, headers.get('Origin'))
         
         return response
@@ -168,8 +172,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             content_type='application/json'
         )
 
-def route_request(path: str, method: str, headers: Dict, query_params: Dict,
-                  data: Dict, context: Any) -> Dict[str, Any]:
+def route_request(event: Dict[str, Any], context: Any, path: str, method: str, headers: Dict, query_params: Dict,
+                  data: Dict) -> Dict[str, Any]:
     """Route requests to appropriate handlers"""
     
     # Normalize path
@@ -183,25 +187,25 @@ def route_request(path: str, method: str, headers: Dict, query_params: Dict,
     
     # API Routes
     if path.startswith('/api/'):
-        return handle_api_request(path, method, headers, query_params, data, context)
+        return handle_api_request(event, context, path, method, headers, query_params, data)
     
     # Web Pages
-    return handle_web_request(path, method, headers, query_params, data)
+    return handle_web_request(event, context, path, method, headers, query_params, data)
 
-def handle_api_request(path: str, method: str, headers: Dict, query_params: Dict,
-                       data: Dict, context: Any) -> Dict[str, Any]:
+def handle_api_request(event: Dict[str, Any], context: Any, path: str, method: str, headers: Dict, query_params: Dict,
+                       data: Dict) -> Dict[str, Any]:
     """Handle API endpoints with maximum performance"""
     
     # Health check
     if path == '/api/health':
         return handle_health_check()
     
-    # QR Authentication
+    # QR Authentication (security-wrapped functions)
     elif path == '/api/auth/generate-qr' and method == 'POST':
-        return handle_generate_qr(data)
+        return handle_generate_qr(event, context)
     
     elif path == '/api/auth/verify-qr' and method == 'POST':
-        return handle_verify_qr(data)
+        return handle_verify_qr(event, context)
     
     # Mobile Authentication
     elif path == '/api/mobile-authenticate' and method == 'POST':
@@ -212,9 +216,9 @@ def handle_api_request(path: str, method: str, headers: Dict, query_params: Dict
         user_email = path.split('/')[-1]
         return handle_get_assessments(user_email)
     
-    # Password Reset
+    # Password Reset (security-wrapped functions)
     elif path == '/api/forgot-password' and method == 'POST':
-        return handle_forgot_password(data)
+        return handle_forgot_password(event, context)
     
     elif path == '/api/reset-password' and method == 'POST':
         return handle_reset_password(data)
@@ -231,7 +235,7 @@ def handle_api_request(path: str, method: str, headers: Dict, query_params: Dict
             content_type='application/json'
         )
 
-def handle_web_request(path: str, method: str, headers: Dict, query_params: Dict,
+def handle_web_request(event: Dict[str, Any], context: Any, path: str, method: str, headers: Dict, query_params: Dict,
                        data: Dict) -> Dict[str, Any]:
     """Handle web page requests"""
     
@@ -244,7 +248,7 @@ def handle_web_request(path: str, method: str, headers: Dict, query_params: Dict
         if method == 'GET':
             return render_html_page('login', 'Login - IELTS GenAI Prep')
         elif method == 'POST':
-            return handle_login(data, headers)
+            return handle_login(event, context)
     
     elif path == '/register':
         if method == 'GET':
@@ -859,7 +863,7 @@ def create_cors_response(origin: Optional[str]) -> Dict[str, Any]:
     )
 
 def add_security_headers(response: Dict[str, Any], origin: Optional[str]) -> Dict[str, Any]:
-    """Add security headers and CORS"""
+    """Add security headers and strict CORS enforcement"""
     headers = response.get('headers', {})
     
     # Security headers
@@ -868,17 +872,27 @@ def add_security_headers(response: Dict[str, Any], origin: Optional[str]) -> Dic
         'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '1; mode=block',
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-        'Content-Security-Policy': "default-src 'self'",
+        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.ieltsgenaiprep.com",
         'Vary': 'Origin'
     })
     
-    # CORS headers
+    # Strict CORS enforcement - only allow specific origins for auth endpoints
+    request_path = response.get('request_path', '')
+    is_auth_endpoint = any(auth_path in request_path for auth_path in ['/api/auth/', '/api/mobile-authenticate', '/login', '/register'])
+    
     if origin and origin in ALLOWED_ORIGINS:
+        # For allowlisted origins
         headers['Access-Control-Allow-Origin'] = origin
-        headers['Access-Control-Allow-Credentials'] = 'true'
+        if not is_auth_endpoint:  # Only allow credentials for non-auth endpoints
+            headers['Access-Control-Allow-Credentials'] = 'true'
+    elif is_auth_endpoint:
+        # For auth endpoints, deny unknown origins
+        headers['Access-Control-Allow-Origin'] = 'null'
     elif origin is None:
+        # For requests without origin (mobile apps on non-auth endpoints)
         headers['Access-Control-Allow-Origin'] = '*'
     else:
+        # For non-allowlisted origins on non-auth endpoints
         headers['Access-Control-Allow-Origin'] = 'null'
     
     headers.update({
