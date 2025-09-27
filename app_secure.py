@@ -230,11 +230,8 @@ def index():
 
 @app.route('/login')
 def login():
-    """Login page with enhanced mobile-first design"""
-    class AnonymousUser:
-        is_authenticated = False
-        email = None
-    return render_template('login.html')
+    """QR code login page for mobile authentication"""
+    return render_template('qr_auth_page.html')
 
 @app.route('/forgot_password')
 def forgot_password():
