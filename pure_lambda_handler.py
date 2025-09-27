@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from urllib.parse import parse_qs, unquote
 from typing import Dict, Any, Optional, Tuple
 
-# Import security module
+# Import security modules
 from lambda_security import (
     security_middleware, 
     SecurityError,
@@ -26,6 +26,7 @@ from lambda_security import (
     SCHEMAS,
     token_manager
 )
+from secure_token_storage import secure_storage
 
 # Configure logging
 logger = logging.getLogger()
@@ -94,17 +95,11 @@ ALLOWED_ORIGINS = [
     'https://www.ieltsgenaiprep.com', # Production web (www)
 ]
 
-# Secure storage (DynamoDB-backed in production, in-memory for development)
-if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
-    # Use DynamoDB tables for production
-    sessions_table = 'ielts-genai-prep-sessions'
-    tokens_table = 'ielts-genai-prep-secure-tokens'
-else:
-    # Fallback to in-memory for development
-    sessions = {}
-    qr_tokens = {}
-    mock_purchases = {}
-    password_reset_tokens = {}
+# Secure storage (DynamoDB-backed in production and development)
+# Using secure_token_storage module for all token/session management
+
+# Legacy fallback for mock purchases (to be replaced with proper order management)
+mock_purchases = {}
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -354,17 +349,15 @@ def handle_generate_qr(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not secure_token:
             raise SecurityError("Token generation failed")
         
-        # Store token securely (DynamoDB in production, memory in development)
-        if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
-            # TODO: Store in DynamoDB with TTL
-            pass
-        else:
-            qr_tokens[secure_token] = {
-                'created_at': time.time(),
-                'expires_at': time.time() + 300,
-                'used': False,
-                'device_info': device_info
-            }
+        # Store token securely using DynamoDB-backed storage
+        storage_success = secure_storage.store_qr_token(
+            token=secure_token,
+            data=device_info,
+            ttl_seconds=300
+        )
+        
+        if not storage_success:
+            raise SecurityError("Failed to store QR token securely")
         
         # Generate QR code
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -426,14 +419,10 @@ def handle_verify_qr(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not valid:
             raise SecurityError("Invalid or expired token")
         
-        # Additional security check for development fallback
-        if IS_DEVELOPMENT and token in qr_tokens:
-            stored_token = qr_tokens[token]
-            if stored_token['used'] or time.time() > stored_token['expires_at']:
-                raise SecurityError("Token expired or already used")
-            
-            # Mark as used
-            stored_token['used'] = True
+        # Validate and consume QR token atomically (prevents replay attacks)
+        token_valid, stored_data = secure_storage.validate_and_consume_qr_token(token)
+        if not token_valid:
+            raise SecurityError("QR token expired, already used, or invalid")
         
         # Generate secure session
         session_id = str(uuid.uuid4())
@@ -444,12 +433,15 @@ def handle_verify_qr(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'device_info': token_data
         }
         
-        # Store session securely
-        if not IS_DEVELOPMENT and DYNAMODB_AVAILABLE:
-            # TODO: Store in DynamoDB sessions table
-            pass
-        else:
-            sessions[session_id] = session_data
+        # Store session securely using DynamoDB-backed storage
+        session_stored = secure_storage.store_session(
+            session_id=session_id,
+            data=session_data,
+            ttl_seconds=3600
+        )
+        
+        if not session_stored:
+            logger.warning(f"Failed to store session securely: {session_id}")
         
         return create_response(
             status_code=200,

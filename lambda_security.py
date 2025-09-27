@@ -83,25 +83,38 @@ class RateLimiter:
         """Generate rate limit key for identifier + endpoint"""
         return f"{identifier}#{endpoint}"
     
-    def _get_identifier(self, headers: Dict, path: str) -> str:
-        """Get unique identifier for rate limiting (IP + User-Agent + Path hash)"""
-        ip = headers.get('X-Forwarded-For', '').split(',')[0].strip()
-        if not ip:
-            ip = headers.get('X-Real-IP', 'unknown')
+    def _get_identifier(self, event: Dict, path: str) -> str:
+        """Get unique identifier for rate limiting using secure API Gateway IP source"""
+        # Use secure API Gateway source IP (not spoofable client headers)
+        request_context = event.get('requestContext', {})
         
-        user_agent = headers.get('User-Agent', '')[:50]  # Truncate UA
+        # For REST APIs
+        identity = request_context.get('identity', {})
+        ip = identity.get('sourceIp')
+        
+        # For HTTP APIs (v2)
+        if not ip:
+            http_context = request_context.get('http', {})
+            ip = http_context.get('sourceIp')
+        
+        # Fallback for development (should not happen in production)
+        if not ip:
+            logger.warning("No sourceIp found in requestContext - using fallback")
+            ip = 'unknown'
+        
+        user_agent = event.get('headers', {}).get('User-Agent', '')[:50]
         path_hash = hashlib.md5(path.encode()).hexdigest()[:8]
         
         return f"{ip}:{path_hash}:{hashlib.md5(user_agent.encode()).hexdigest()[:8]}"
     
-    def check_rate_limit(self, headers: Dict, path: str) -> Tuple[bool, Dict[str, Any]]:
+    def check_rate_limit(self, event: Dict, path: str) -> Tuple[bool, Dict[str, Any]]:
         """Check if request is within rate limits"""
         try:
             # Determine rate limit category
             limit_category = SENSITIVE_ENDPOINTS.get(path, 'default')
             limits = RATE_LIMITS[limit_category]
             
-            identifier = self._get_identifier(headers, path)
+            identifier = self._get_identifier(event, path)
             key = self._get_rate_limit_key(identifier, path)
             
             current_time = int(time.time())
@@ -309,8 +322,12 @@ class TokenManager:
     def __init__(self):
         self.secret_key = os.environ.get('JWT_SECRET') or os.environ.get('SESSION_SECRET')
         if not self.secret_key:
-            logger.warning("No secret key found for token signing")
-            self.secret_key = 'dev-secret-key-not-for-production'
+            # CRITICAL: Never use fallback secrets in production
+            if not IS_DEVELOPMENT:
+                raise RuntimeError("CRITICAL: No JWT_SECRET or SESSION_SECRET found in production environment. Security cannot be guaranteed without proper secret keys.")
+            else:
+                logger.warning("Development mode: Using temporary secret key")
+                self.secret_key = 'dev-secret-key-not-for-production'
     
     def generate_secure_token(self, data: Dict, expires_in: int = 300) -> str:
         """Generate HMAC-signed token with expiration"""
@@ -456,7 +473,7 @@ def security_middleware(sensitive_endpoint: bool = False, require_recaptcha: boo
                 # 3. Rate limiting for sensitive endpoints
                 if sensitive_endpoint or path in SENSITIVE_ENDPOINTS:
                     rate_limiter = RateLimiter()
-                    allowed, rate_info = rate_limiter.check_rate_limit(headers, path)
+                    allowed, rate_info = rate_limiter.check_rate_limit(event, path)
                     
                     if not allowed:
                         return {
