@@ -321,9 +321,16 @@ Keep the conversation natural and focused on everyday topics."""
                 
             except Exception as bedrock_error:
                 logger.warning(f"Bedrock Nova Sonic call failed: {bedrock_error}")
-                # Try Amazon Polly as fallback TTS service
-                logger.info("Falling back to Amazon Polly for text-to-speech")
-                return self._synthesize_with_polly(text, voice_id, str(bedrock_error))
+                # Nova Sonic unavailable - return clear error
+                logger.error(f"Nova Sonic synthesis failed: {bedrock_error}")
+                return {
+                    "success": False,
+                    "error": f"Nova Sonic synthesis failed: {bedrock_error}",
+                    "text": text,
+                    "voice_id": voice_id,
+                    "service": "nova_sonic",
+                    "bedrock_error": str(bedrock_error)
+                }
                 
         except Exception as e:
             logger.error(f"Direct synthesis system error: {e}")
@@ -332,78 +339,6 @@ Keep the conversation natural and focused on everyday topics."""
                 "error": str(e),
                 "text": text
             }
-    
-    def _synthesize_with_polly(self, text: str, voice_id: str, nova_error: str) -> Dict[str, Any]:
-        """Fallback synthesis using Amazon Polly"""
-        try:
-            # Initialize Polly client
-            polly_client = boto3.client('polly', region_name=self.region)
-            
-            # Map Nova Sonic voice to Polly voice
-            voice_mapping = {
-                'matthew': 'Matthew',  # British male
-                'ruth': 'Emma',       # British female (Ruth not available in Polly)
-                'default': 'Matthew'
-            }
-            polly_voice = voice_mapping.get(voice_id.lower(), 'Matthew')
-            
-            # Synthesize speech with Polly
-            response = polly_client.synthesize_speech(
-                Text=text,
-                OutputFormat='pcm',
-                VoiceId=polly_voice,
-                SampleRate='24000'
-            )
-            
-            # Read audio stream and encode to base64
-            audio_stream = response['AudioStream'].read()
-            audio_base64 = base64.b64encode(audio_stream).decode('utf-8')
-            
-            return {
-                "success": True,
-                "audio_base64": audio_base64,
-                "text": text,
-                "voice_id": polly_voice,
-                "format": "audio/pcm",
-                "sample_rate": 24000,
-                "duration_ms": len(audio_stream) // 48,  # Rough estimate for 24kHz 16-bit
-                "fallback_service": "amazon_polly",
-                "nova_error": nova_error
-            }
-            
-        except Exception as polly_error:
-            logger.error(f"Polly fallback failed: {polly_error}")
-            
-            # Final fallback - development placeholder only if explicitly enabled
-            if os.environ.get('ALLOW_MOCK_AUDIO', 'false').lower() == 'true':
-                logger.warning("Using mock audio - set ALLOW_MOCK_AUDIO=false to disable")
-                estimated_duration = max(1000, len(text) * 100)
-                mock_data = base64.b64encode(f"mock_audio_{hash(text)%1000:03d}".encode()).decode()
-                
-                return {
-                    "success": False,  # Mark as failed even with mock data
-                    "audio_base64": mock_data,
-                    "text": text,
-                    "voice_id": voice_id,
-                    "format": "audio/pcm",
-                    "sample_rate": 24000,
-                    "duration_ms": estimated_duration,
-                    "mock_mode": True,
-                    "nova_error": nova_error,
-                    "polly_error": str(polly_error)
-                }
-            else:
-                # No fallback allowed - return clear failure
-                return {
-                    "success": False,
-                    "error": f"All TTS services failed. Nova: {nova_error}, Polly: {polly_error}",
-                    "text": text,
-                    "voice_id": voice_id,
-                    "service_failures": {
-                        "nova_sonic": nova_error,
-                        "amazon_polly": str(polly_error)
-                    }
-                }
 
 # Global Nova Sonic service instance
 nova_sonic_service = None
