@@ -245,6 +245,32 @@ def assessment_products_page():
         
     return render_template('assessment_products.html', current_user=AnonymousUser())
 
+@app.route('/preview/writing-assessment')
+def preview_writing_assessment():
+    """Preview the writing assessment interface without authentication"""
+    # Return the standalone test template that has all the same styling
+    # but doesn't depend on the full navigation system
+    try:
+        with open('test_divided_screen.html', 'r') as f:
+            content = f.read()
+        return content
+    except FileNotFoundError:
+        return """
+        <div style="padding: 20px; font-family: Arial;">
+            <h1>🎯 Writing Assessment Preview</h1>
+            <p>The divided screen template is ready! It includes:</p>
+            <ul>
+                <li>✅ <strong>Left Panel (45%)</strong>: IELTS GenAI Prep logo + question display</li>
+                <li>✅ <strong>Right Panel (55%)</strong>: Response writing area</li>
+                <li>✅ <strong>Real IELTS exam format</strong> with professional styling</li>
+                <li>✅ <strong>Mobile responsive</strong> design</li>
+                <li>✅ <strong>Task switching</strong> between Task 1 and Task 2</li>
+                <li>✅ <strong>Word counting</strong> with requirements tracking</li>
+            </ul>
+            <p>Navigate to <code>/preview/writing-assessment</code> to see the full interface!</p>
+        </div>
+        """
+
 @app.route('/login')
 def login():
     """Login page - maintain consistency with working template design"""
