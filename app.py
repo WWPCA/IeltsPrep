@@ -82,20 +82,16 @@ except (ImportError, RuntimeError) as e:
     print(f"[INFO] Receipt validation services not available: {e}")
     receipt_service = None
 
-# Import and apply security middleware
-try:
-    from security_middleware import InputSanitizer, validate_api_request, apply_rate_limiting
-    # Apply basic security headers to all responses
-    @app.after_request
-    def add_security_headers(response):
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        return response
-    print("[INFO] Security middleware applied to all endpoints")
-except ImportError as e:
-    print(f"[INFO] Security middleware not available: {e}")
+# Apply basic security headers to all responses
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    return response
+print("[INFO] Security headers applied to all endpoints")
 # Actual assessment data structure to match existing templates
 user_assessments = {
     "test@ieltsaiprep.com": {
