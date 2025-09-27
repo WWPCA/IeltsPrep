@@ -380,7 +380,8 @@ class ReceiptValidationService:
         import os
         
         # Check if we're in development environment
-        is_development = os.environ.get('REPLIT_ENVIRONMENT') == 'true'
+        from environment_utils import is_development
+        is_development = is_development()
         
         try:
             self.apple_validator = AppleReceiptValidator()

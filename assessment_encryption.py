@@ -47,8 +47,9 @@ class AssessmentEncryption:
         self.config = get_kms_config()
         self.dal = get_dal()
         
-        # Development mode check
-        self.is_development = os.environ.get('REPLIT_ENVIRONMENT') == 'true'
+        # Development mode check - using centralized environment detection
+        from environment_utils import is_development
+        self.is_development = is_development()
         
         if self.is_development:
             logger.warning("[ENCRYPTION] Running in development mode - using mock encryption")

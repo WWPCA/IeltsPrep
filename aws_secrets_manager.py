@@ -22,8 +22,9 @@ class SecretsManager:
         self.cache = {}
         self.cache_ttl = 300  # 5 minutes
         
-        # Development mode check
-        self.is_development = os.environ.get('REPLIT_ENVIRONMENT') == 'true'
+        # Development mode check - using centralized environment detection
+        from environment_utils import is_development
+        self.is_development = is_development()
         
         if self.is_development:
             logger.info("[SECRETS] Running in development mode with local fallbacks")
