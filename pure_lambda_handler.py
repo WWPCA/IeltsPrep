@@ -48,6 +48,12 @@ from repurchase_handler import (
     handle_process_repurchase,
     handle_get_repurchase_history
 )
+from assessment_session_handler import (
+    handle_start_assessment_session,
+    handle_complete_assessment_session,
+    handle_get_assessment_session,
+    handle_get_user_question_stats
+)
 
 # Configure logging
 logger = logging.getLogger()
@@ -275,6 +281,19 @@ def handle_api_request(event: Dict[str, Any], context: Any, path: str, method: s
     
     elif path == '/api/repurchase-history' and method == 'GET':
         return handle_get_repurchase_history(event, context)
+    
+    # Assessment Session Management
+    elif path == '/api/start-assessment-session' and method == 'POST':
+        return handle_start_assessment_session(event, context)
+    
+    elif path == '/api/complete-assessment-session' and method == 'POST':
+        return handle_complete_assessment_session(event, context)
+    
+    elif path == '/api/get-assessment-session' and method == 'GET':
+        return handle_get_assessment_session(event, context)
+    
+    elif path == '/api/user-question-stats' and method == 'GET':
+        return handle_get_user_question_stats(event, context)
     
     # Mobile API delegation
     elif path.startswith('/api/v1/') and MOBILE_API_AVAILABLE:
