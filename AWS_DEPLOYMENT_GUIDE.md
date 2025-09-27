@@ -1,6 +1,36 @@
-# AWS Deployment Guide - IELTS GenAI Prep
+# AWS Lambda Deployment Guide - IELTS GenAI Prep Platform
 
-Complete guide for deploying the mobile-first authentication system to AWS with Nova AI integration.
+## 🎯 Overview
+
+This guide provides step-by-step instructions for deploying the IELTS GenAI Prep platform to AWS Lambda with full production readiness, including API Gateway, DynamoDB, Secrets Manager, and mobile app support.
+
+## ✅ CRITICAL FIXES COMPLETED
+
+1. **AWS Secrets Manager Bug Fixed** ✅
+   - Fixed SecretName → SecretId parameter
+   - All secrets API calls now work correctly
+
+2. **AWS Lambda Handler Created** ✅
+   - Custom WSGI adapter for Flask app
+   - Handles API Gateway REST and HTTP events
+   - WebSocket support for Nova Sonic streaming
+
+3. **Environment Detection Enhanced** ✅
+   - Centralized environment_utils.py module
+   - Detects AWS Lambda, Replit, and local environments
+   - Proper production vs development behavior
+
+4. **CORS Configuration Added** ✅
+   - Mobile app support (Capacitor iOS/Android)
+   - Cross-origin request handling
+   - Preflight OPTIONS support
+
+5. **Serverless Configuration Ready** ✅
+   - DynamoDB tables with proper indexes
+   - IAM permissions for all AWS services
+   - Multi-region deployment support
+
+## 🚀 **PRODUCTION DEPLOYMENT STATUS: READY** 🚀
 
 ## Prerequisites
 

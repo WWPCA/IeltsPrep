@@ -77,14 +77,55 @@ except (ImportError, RuntimeError) as e:
     print(f"[INFO] Receipt validation services not available: {e}")
     receipt_service = None
 
-# Apply basic security headers to all responses
+# Apply security headers and CORS for mobile app support
 @app.after_request
 def add_security_headers(response):
+    # Security headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     response.headers['Content-Security-Policy'] = "default-src 'self'"
+    
+    # CORS headers for mobile app and web client support
+    origin = request.headers.get('Origin')
+    allowed_origins = [
+        'capacitor://localhost',  # Capacitor iOS
+        'http://localhost',       # Capacitor Android  
+        'https://localhost',      # Capacitor Android (HTTPS)
+        'ionic://localhost',      # Ionic specific
+        'http://localhost:3000',  # Local web development
+        'http://localhost:8100',  # Ionic serve
+        'https://ieltsgenaiprep.com',    # Production web
+        'https://www.ieltsgenaiprep.com', # Production web (www)
+    ]
+    
+    # Check if the origin is allowed or if it's a mobile app request
+    if origin in allowed_origins or origin is None:
+        response.headers['Access-Control-Allow-Origin'] = origin or '*'
+    
+    # Essential CORS headers for mobile app functionality
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With,Accept,Origin,X-API-Key,X-Session-ID,X-Device-ID,X-Platform'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Max-Age'] = '86400'  # 24 hours preflight cache
+    response.headers['Access-Control-Expose-Headers'] = 'X-Session-ID,X-RateLimit-Remaining,X-RateLimit-Reset'
+    
+    return response
+
+# Handle preflight OPTIONS requests for CORS
+from flask import make_response
+@app.route('/<path:path>', methods=['OPTIONS'])
+@app.route('/', methods=['OPTIONS'])
+def handle_preflight(path=None):
+    """Handle CORS preflight requests for all routes"""
+    response = make_response()
+    origin = request.headers.get('Origin')
+    response.headers['Access-Control-Allow-Origin'] = origin or '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With,Accept,Origin,X-API-Key,X-Session-ID,X-Device-ID,X-Platform'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Max-Age'] = '86400'
     return response
 print("[INFO] Security headers applied to all endpoints")
 # Actual assessment data structure to match existing templates
