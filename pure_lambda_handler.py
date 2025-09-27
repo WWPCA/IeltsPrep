@@ -28,6 +28,11 @@ from lambda_security import (
 )
 from secure_token_storage import secure_storage
 from aws_ses_service import email_service
+from purchase_verification_handlers import (
+    handle_verify_purchase, 
+    handle_get_purchase_status, 
+    handle_sync_user_purchases
+)
 
 # Configure logging
 logger = logging.getLogger()
@@ -218,6 +223,16 @@ def handle_api_request(event: Dict[str, Any], context: Any, path: str, method: s
     
     elif path == '/api/reset-password' and method == 'POST':
         return handle_reset_password(event, context)
+    
+    # Purchase Verification (security-wrapped functions)
+    elif path == '/api/verify-purchase' and method == 'POST':
+        return handle_verify_purchase(event, context)
+    
+    elif path == '/api/purchase-status' and method == 'GET':
+        return handle_get_purchase_status(event, context)
+    
+    elif path == '/api/sync-purchases' and method == 'POST':
+        return handle_sync_user_purchases(event, context)
     
     # Mobile API delegation
     elif path.startswith('/api/v1/') and MOBILE_API_AVAILABLE:
