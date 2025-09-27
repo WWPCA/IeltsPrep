@@ -44,7 +44,10 @@ class UserDAL:
     
     def __init__(self, connection: DynamoDBConnection):
         self.conn = connection
-        self.table = connection.get_table('ielts-genai-users')
+        # Use existing table names from serverless.yml
+        stage = os.environ.get('STAGE', 'prod')
+        table_name = f'ielts-genai-prep-users-{stage}'
+        self.table = connection.get_table(table_name)
     
     def create_user(self, username: str, email: str, password: str, 
                    full_name: str = None, **kwargs) -> Dict[str, Any]:
@@ -54,9 +57,9 @@ class UserDAL:
         
         now = datetime.utcnow().isoformat()
         user_item = {
+            'email': email.lower(),  # Primary key as per serverless.yml
             'user_id': user_id,
             'username': username,
-            'email': email.lower(),
             'password_hash': password_hash,
             'full_name': full_name,
             'profile_picture': None,
@@ -72,9 +75,7 @@ class UserDAL:
             'subscription_status': 'none',
             'subscription_expiry': None,
             'preferred_language': 'en',
-            'preferences': '{}',
-            'GSI1PK': f'EMAIL#{email.lower()}',  # For email lookups
-            'GSI1SK': f'USER#{user_id}'
+            'preferences': '{}'
         }
         
         try:
@@ -94,27 +95,26 @@ class UserDAL:
             raise
     
     def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """Get user by ID"""
+        """Get user by ID - requires scan since user_id is not primary key"""
         try:
-            response = self.table.get_item(Key={'user_id': user_id})
-            if 'Item' in response:
-                return self._format_user_response(response['Item'])
+            response = self.table.scan(
+                FilterExpression='user_id = :user_id',
+                ExpressionAttributeValues={':user_id': user_id}
+            )
+            
+            if response['Items']:
+                return self._format_user_response(response['Items'][0])
             return None
         except ClientError as e:
             logger.error(f"Failed to get user by ID {user_id}: {e}")
             return None
     
     def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
-        """Get user by email using GSI"""
+        """Get user by email - primary key lookup"""
         try:
-            response = self.table.query(
-                IndexName='GSI1',
-                KeyConditionExpression='GSI1PK = :pk',
-                ExpressionAttributeValues={':pk': f'EMAIL#{email.lower()}'}
-            )
-            
-            if response['Items']:
-                return self._format_user_response(response['Items'][0])
+            response = self.table.get_item(Key={'email': email.lower()})
+            if 'Item' in response:
+                return self._format_user_response(response['Item'])
             return None
         except ClientError as e:
             logger.error(f"Failed to get user by email {email}: {e}")
@@ -135,8 +135,8 @@ class UserDAL:
             logger.error(f"Failed to get user by username {username}: {e}")
             return None
     
-    def update_user(self, user_id: str, **kwargs) -> bool:
-        """Update user fields"""
+    def update_user(self, email: str, **kwargs) -> bool:
+        """Update user fields by email (primary key)"""
         if not kwargs:
             return True
         
@@ -146,7 +146,7 @@ class UserDAL:
         expr_attr_names = {}
         
         for key, value in kwargs.items():
-            if key in ['user_id']:  # Skip primary key
+            if key in ['email']:  # Skip primary key
                 continue
             
             attr_name = f"#{key}"
@@ -160,14 +160,14 @@ class UserDAL:
         
         try:
             self.table.update_item(
-                Key={'user_id': user_id},
+                Key={'email': email.lower()},
                 UpdateExpression=update_expr,
                 ExpressionAttributeNames=expr_attr_names,
                 ExpressionAttributeValues=expr_attr_values
             )
             return True
         except ClientError as e:
-            logger.error(f"Failed to update user {user_id}: {e}")
+            logger.error(f"Failed to update user {email}: {e}")
             return False
     
     def check_password(self, user_id: str, password: str) -> bool:
@@ -441,7 +441,9 @@ class AssessmentEntitlementDAL:
     
     def __init__(self, connection: DynamoDBConnection):
         self.conn = connection
-        self.table = connection.get_table('ielts-genai-entitlements')
+        stage = os.environ.get('STAGE', 'prod')
+        table_name = f'ielts-genai-prep-entitlements-{stage}'
+        self.table = connection.get_table(table_name)
     
     def create_entitlement(self, user_id: str, product_id: str, remaining_uses: int,
                           expires_at: Optional[datetime] = None, 

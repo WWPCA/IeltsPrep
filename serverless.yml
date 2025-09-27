@@ -13,8 +13,14 @@ provider:
     DYNAMODB_USERS_TABLE: ${self:service}-users-${self:provider.stage}
     DYNAMODB_ASSESSMENTS_TABLE: ${self:service}-assessments-${self:provider.stage}
     DYNAMODB_SESSIONS_TABLE: ${self:service}-sessions-${self:provider.stage}
+    DYNAMODB_QR_TOKENS_TABLE: ${self:service}-qr-tokens-${self:provider.stage}
+    DYNAMODB_ENTITLEMENTS_TABLE: ${self:service}-entitlements-${self:provider.stage}
+    DYNAMODB_PURCHASE_RECEIPTS_TABLE: ${self:service}-purchase-receipts-${self:provider.stage}
     APPLE_SHARED_SECRET: ${env:APPLE_SHARED_SECRET}
     GOOGLE_SERVICE_ACCOUNT_JSON: ${env:GOOGLE_SERVICE_ACCOUNT_JSON}
+    JWT_SECRET: ${env:JWT_SECRET}
+    QR_ENCRYPTION_KEY: ${env:QR_ENCRYPTION_KEY}
+    KMS_KEY_ID: ${env:KMS_KEY_ID}
     
   iam:
     role:
@@ -31,6 +37,10 @@ provider:
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_USERS_TABLE}"
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_ASSESSMENTS_TABLE}"
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_SESSIONS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_QR_TOKENS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_ENTITLEMENTS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_PURCHASE_RECEIPTS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:index/*"
         - Effect: Allow
           Action:
             - bedrock:InvokeModel
@@ -43,6 +53,20 @@ provider:
             - execute-api:ManageConnections
           Resource:
             - "arn:aws:execute-api:${self:provider.region}:*:*/*/*"
+        - Effect: Allow
+          Action:
+            - kms:GenerateDataKey
+            - kms:Decrypt
+            - kms:Encrypt
+            - kms:DescribeKey
+          Resource:
+            - "arn:aws:kms:${self:provider.region}:*:key/*"
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+            - secretsmanager:DescribeSecret
+          Resource:
+            - "arn:aws:secretsmanager:${self:provider.region}:*:secret:ielts-genai-prep/*"
 
 functions:
   api:
@@ -82,10 +106,10 @@ resources:
         BillingMode: PAY_PER_REQUEST
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
-        GlobalTables:
-          - Region: us-east-1
-          - Region: eu-west-1
-          - Region: ap-southeast-1
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
     
     AssessmentsTable:
       Type: AWS::DynamoDB::Table
@@ -107,10 +131,10 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
-        GlobalTables:
-          - Region: us-east-1
-          - Region: eu-west-1
-          - Region: ap-southeast-1
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
     
     SessionsTable:
       Type: AWS::DynamoDB::Table
@@ -126,6 +150,79 @@ resources:
         TimeToLiveSpecification:
           AttributeName: expires_at
           Enabled: true
+    
+    QRTokensTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-qr-tokens-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: token_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: token_id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+    
+    EntitlementsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-entitlements-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: entitlement_id
+            AttributeType: S
+          - AttributeName: user_id
+            AttributeType: S
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: entitlement_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserProductIndex
+            KeySchema:
+              - AttributeName: user_id
+                KeyType: HASH
+              - AttributeName: product_id
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+    
+    PurchaseReceiptsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-purchase-receipts-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: receipt_id
+            AttributeType: S
+          - AttributeName: transaction_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: receipt_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: TransactionIndex
+            KeySchema:
+              - AttributeName: transaction_id
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
 
 plugins:
   - serverless-python-requirements

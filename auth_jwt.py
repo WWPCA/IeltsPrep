@@ -1,19 +1,23 @@
 """
 JWT Authentication utilities for IELTS GenAI Prep
 Provides JWT token generation and verification for mobile API clients
-Integrates with unified User model and Flask app configuration
+Integrates with unified User model and AWS Secrets Manager
 """
 import json
 import datetime
 import jwt
 from functools import wraps
-from flask import current_app, request, jsonify
+from flask import current_app, request, jsonify, g
 from models import User
+from aws_secrets_manager import get_jwt_config
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def generate_jwt_token(user_id):
     """
-    Generate a JWT token for the given user ID using app configuration
+    Generate a JWT token for the given user ID using AWS Secrets Manager
     
     Args:
         user_id: The ID of the user
@@ -21,25 +25,34 @@ def generate_jwt_token(user_id):
     Returns:
         str: JWT token
     """
-    payload = {
-        'user_id': user_id,
-        'iat': datetime.datetime.utcnow(),
-        'exp': datetime.datetime.utcnow() + current_app.config["JWT_ACCESS_TOKEN_EXPIRES"],
-        'iss': 'ielts-genai-prep',  # Issuer
-        'aud': 'mobile-app'  # Audience
-    }
-    
-    token = jwt.encode(
-        payload, 
-        current_app.config["JWT_SECRET_KEY"], 
-        current_app.config["JWT_ALGORITHM"]
-    )
-    return token
+    try:
+        jwt_config = get_jwt_config()
+        
+        payload = {
+            'user_id': user_id,
+            'iat': datetime.datetime.utcnow(),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(
+                minutes=jwt_config['ACCESS_TOKEN_EXPIRES_MINUTES']
+            ),
+            'iss': 'ielts-genai-prep',  # Issuer
+            'aud': 'mobile-app'  # Audience
+        }
+        
+        token = jwt.encode(
+            payload, 
+            jwt_config['SECRET_KEY'], 
+            jwt_config['ALGORITHM']
+        )
+        return token
+        
+    except Exception as e:
+        logger.error(f"Failed to generate JWT token: {e}")
+        raise RuntimeError("Token generation failed")
 
 
 def verify_jwt_token(token):
     """
-    Verify a JWT token using app configuration
+    Verify a JWT token using AWS Secrets Manager configuration
     
     Args:
         token: JWT token to verify
@@ -48,19 +61,24 @@ def verify_jwt_token(token):
         dict: Token payload if valid, None otherwise
     """
     try:
+        jwt_config = get_jwt_config()
+        
         payload = jwt.decode(
             token, 
-            current_app.config["JWT_SECRET_KEY"], 
-            algorithms=[current_app.config["JWT_ALGORITHM"]],
+            jwt_config['SECRET_KEY'], 
+            algorithms=[jwt_config['ALGORITHM']],
             audience='mobile-app',
             issuer='ielts-genai-prep'
         )
         return payload
     except jwt.ExpiredSignatureError:
-        # Token has expired
+        logger.error("JWT token has expired")
         return None
     except jwt.InvalidTokenError:
-        # Invalid token (including audience/issuer mismatch)
+        logger.error("Invalid JWT token")
+        return None
+    except Exception as e:
+        logger.error(f"JWT verification failed: {e}")
         return None
 
 
