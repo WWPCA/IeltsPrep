@@ -43,6 +43,11 @@ from assessment_access_handlers import (
     handle_get_assessment_overview,
     handle_use_assessment_attempt
 )
+from repurchase_handler import (
+    handle_check_repurchase_eligibility,
+    handle_process_repurchase,
+    handle_get_repurchase_history
+)
 
 # Configure logging
 logger = logging.getLogger()
@@ -260,6 +265,16 @@ def handle_api_request(event: Dict[str, Any], context: Any, path: str, method: s
     
     elif path == '/api/use-assessment-attempt' and method == 'POST':
         return handle_use_assessment_attempt(event, context)
+    
+    # Repurchase Management
+    elif path == '/api/repurchase-eligibility' and method == 'GET':
+        return handle_check_repurchase_eligibility(event, context)
+    
+    elif path == '/api/process-repurchase' and method == 'POST':
+        return handle_process_repurchase(event, context)
+    
+    elif path == '/api/repurchase-history' and method == 'GET':
+        return handle_get_repurchase_history(event, context)
     
     # Mobile API delegation
     elif path.startswith('/api/v1/') and MOBILE_API_AVAILABLE:

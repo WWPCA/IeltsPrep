@@ -59,8 +59,9 @@ Preferred communication style: Simple, everyday language.
 
 **Payment Integration:**
 - **Mobile-Only Purchase Model:** All payments processed exclusively through Apple App Store and Google Play Store ($36 per assessment package).
-- **QR Code Bridge:** Seamless transition from mobile purchase to web platform access via QR code authentication.
+- **QR Code Bridge:** Seamless transition from mobile purchase to web platform access via QR code authentication.  
 - **No Web Payments:** Zero integration with web-based payment processors - maintaining strict mobile app store compliance.
+- **Repurchase Workflow:** Full support for users to repurchase assessments after completion or purchase additional attempts during active assessments, with automatic eligibility checking and purchase history tracking.
 
 ### External Dependencies
 

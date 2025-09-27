@@ -68,7 +68,8 @@ class PaymentSyncService:
         }
     
     def confirm_purchase_and_sync_user(self, user_email: str, platform: str, 
-                                      receipt_data: str, device_id: str = None) -> Dict[str, Any]:
+                                      receipt_data: str, device_id: str = None, 
+                                      allow_duplicate: bool = False) -> Dict[str, Any]:
         """
         Confirm purchase with app store and sync user access in DynamoDB
         
@@ -77,6 +78,7 @@ class PaymentSyncService:
             platform: 'apple' or 'google'
             receipt_data: Receipt data from app store
             device_id: Optional device identifier
+            allow_duplicate: Allow duplicate transactions for repurchases
             
         Returns:
             Dict with success status and purchase details
@@ -141,7 +143,7 @@ class PaymentSyncService:
             )
             
             # Update user's purchase records in DynamoDB
-            sync_result = self._sync_purchase_to_database(user, purchase_record)
+            sync_result = self._sync_purchase_to_database(user, purchase_record, allow_duplicate)
             if not sync_result['success']:
                 logger.error(f"Failed to sync purchase for {user_email}")
                 return sync_result
@@ -291,19 +293,21 @@ class PaymentSyncService:
         )
     
     def _sync_purchase_to_database(self, user: Dict[str, Any], 
-                                  purchase_record: UserPurchaseRecord) -> Dict[str, Any]:
+                                  purchase_record: UserPurchaseRecord,
+                                  allow_duplicate: bool = False) -> Dict[str, Any]:
         """Sync purchase record to DynamoDB"""
         try:
-            # Check for duplicate transactions
-            existing_purchases = user.get('purchases', [])
-            for existing in existing_purchases:
-                if existing.get('transaction_id') == purchase_record.transaction_id:
-                    logger.warning(f"Duplicate transaction {purchase_record.transaction_id} for {purchase_record.user_email}")
-                    return {
-                        'success': False,
-                        'error': 'Duplicate transaction',
-                        'transaction_id': purchase_record.transaction_id
-                    }
+            # Check for duplicate transactions (unless explicitly allowed for repurchases)
+            if not allow_duplicate:
+                existing_purchases = user.get('purchases', [])
+                for existing in existing_purchases:
+                    if existing.get('transaction_id') == purchase_record.transaction_id:
+                        logger.warning(f"Duplicate transaction {purchase_record.transaction_id} for {purchase_record.user_email}")
+                        return {
+                            'success': False,
+                            'error': 'Duplicate transaction',
+                            'transaction_id': purchase_record.transaction_id
+                        }
             
             # Add new purchase record
             purchase_data = {
