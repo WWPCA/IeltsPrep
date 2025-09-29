@@ -1,0 +1,50 @@
+Microsoft Windows [Version 10.0.26100.5074]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Roheny>cd %USERPROFILE%
+
+C:\Users\Roheny>mkdir keystore
+A subdirectory or file keystore already exists.
+
+C:\Users\Roheny>cd keystore
+
+C:\Users\Roheny\keystore>java -version
+java version "21.0.8" 2025-07-15 LTS
+Java(TM) SE Runtime Environment (build 21.0.8+12-LTS-250)
+Java HotSpot(TM) 64-Bit Server VM (build 21.0.8+12-LTS-250, mixed mode, sharing)
+
+C:\Users\Roheny\keystore>dir "C:\Program Files\Eclipse Adoptium\jdk*\bin\keytook.exe"
+The system cannot find the path specified.
+
+C:\Users\Roheny\keystore>dir "C:\Program Files\Java\jdk*\bin\keytool.exe"
+The filename, directory name, or volume label syntax is incorrect.
+
+C:\Users\Roheny\keystore>keytool -help
+Key and Certificate Management Tool
+
+Commands:
+
+ -certreq            Generates a certificate request
+ -changealias        Changes an entry's alias
+ -delete             Deletes an entry
+ -exportcert         Exports certificate
+ -genkeypair         Generates a key pair
+ -genseckey          Generates a secret key
+ -gencert            Generates certificate from a certificate request
+ -importcert         Imports a certificate or a certificate chain
+ -importpass         Imports a password
+ -importkeystore     Imports one or all entries from another keystore
+ -keypasswd          Changes the key password of an entry
+ -list               Lists entries in a keystore
+ -printcert          Prints the content of a certificate
+ -printcertreq       Prints the content of a certificate request
+ -printcrl           Prints the content of a CRL file
+ -storepasswd        Changes the store password of a keystore
+ -showinfo           Displays security-related information
+ -version            Prints the program version
+
+Use "keytool -?, -h, or --help" for this help message
+Use "keytool -command_name --help" for usage of command_name.
+Use the -conf <url> option to specify a pre-configured options file.
+
+C:\Users\Roheny\keystore>

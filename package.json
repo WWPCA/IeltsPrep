@@ -20,6 +20,7 @@
     "@capacitor/splash-screen": "^7.0.1",
     "@capacitor/status-bar": "^7.0.1",
     "@capacitor/toast": "^7.0.1",
+    "@octokit/rest": "^22.0.0",
     "serverless": "^4.19.1",
     "serverless-python-requirements": "^6.1.2"
   }

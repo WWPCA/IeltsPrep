@@ -1,5 +1,7 @@
 {pkgs}: {
   deps = [
+    pkgs.zulu11
+    pkgs.openjdk17
     pkgs.zip
     pkgs.awscli
     pkgs.unzip
