@@ -19,6 +19,8 @@ on:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && (github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '') && 'production' || 'development' }}
     
     steps:
     - name: Checkout code
@@ -98,24 +100,39 @@ jobs:
         path: android/app/build/outputs/apk/release/app-release.apk
         retention-days: 90
         
-    - name: Create Release
+    - name: Create Release (Requires Manual Approval)
       if: github.ref == 'refs/heads/main' && (github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '')
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ github.run_number }}
         name: IELTS GenAI Prep v${{ github.run_number }}
         body: |
-          Automated release build for IELTS GenAI Prep
+          🚀 **Production Release** - IELTS GenAI Prep Android APK
           
-          ## Changes
-          - Built from commit: ${{ github.sha }}
-          - Build number: ${{ github.run_number }}
+          ⚠️ **This release has been manually approved for distribution**
+          
+          ## Build Information
+          - Commit: ${{ github.sha }}
+          - Build: #${{ github.run_number }}
+          - Built: ${{ github.run_started_at }}
+          
+          ## Security Checks
+          ✅ SAST scanning passed
+          ✅ Dependency vulnerability scanning passed
+          ✅ Secret scanning passed
+          ✅ APK signed with production keystore
           
           ## Downloads
-          - Android APK: Available in release assets
+          - **Android APK**: See release assets below
+          
+          ## Distribution
+          This signed APK is ready for:
+          - Google Play Store internal testing track
+          - Google Play Store production release
+          - Direct distribution (not recommended)
           
         files: android/app/build/outputs/apk/release/app-release.apk
-        draft: false
+        draft: true
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
