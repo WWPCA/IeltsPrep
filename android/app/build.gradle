@@ -53,6 +53,9 @@ android {
 }
 
 repositories {
+    google()
+    mavenCentral()
+    // Keep flatDir for Capacitor Cordova plugins compatibility, but add proper repos first
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
