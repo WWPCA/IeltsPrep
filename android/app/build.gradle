@@ -3,12 +3,6 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.ieltsaiprep.app"
     compileSdk rootProject.ext.compileSdkVersion
-    
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-    
     defaultConfig {
         applicationId "com.ieltsaiprep.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -77,6 +71,14 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// Override Capacitor's Java 21 with Java 17 for compatibility
+android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')
