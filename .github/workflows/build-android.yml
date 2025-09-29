@@ -44,10 +44,17 @@ jobs:
       
     - name: Build web assets
       run: |
-        # Copy static files to ensure web assets are ready
+        # Ensure web assets directory exists and contains required files
         mkdir -p static
+        # Copy templates to static (this is the web build for this Flask app)
         cp -r templates/* static/ 2>/dev/null || true
-        cp -r static/* static/ 2>/dev/null || true
+        # Verify we have an index.html or main entry point
+        if [ ! -f static/index.html ] && [ -f templates/index.html ]; then
+          cp templates/index.html static/
+        fi
+        # List contents to verify
+        echo "Web assets prepared:"
+        ls -la static/
         
     - name: Sync Capacitor
       run: |
