@@ -27,7 +27,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: Setup Java JDK
@@ -44,19 +44,20 @@ jobs:
       
     - name: Build web assets
       run: |
-        # Copy static files to ensure web assets are ready
+        # Ensure web assets directory exists and copy templates (Flask app to Capacitor web)
         mkdir -p static
         cp -r templates/* static/ 2>/dev/null || true
-        cp -r static/* static/ 2>/dev/null || true
+        echo "Web assets prepared for Android:"
+        ls -la static/
         
     - name: Sync Capacitor
       run: |
         npx cap sync android
         
-    - name: Setup Android signing (Release only)
+    - name: Setup Android Release Signing
       if: github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main'
       run: |
-        # Create keystore from secrets
+        # Create keystore from user's secure secrets
         echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
         
         # Create signing config
@@ -72,14 +73,14 @@ jobs:
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --info --stacktrace
         
     - name: Build Android Release APK
       if: github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main'
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleRelease
+        ./gradlew assembleRelease --info --stacktrace
         
     - name: Upload Debug APK
       if: github.event.inputs.build_type == 'debug' || github.ref != 'refs/heads/main'

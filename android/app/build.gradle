@@ -53,6 +53,9 @@ android {
 }
 
 repositories {
+    google()
+    mavenCentral()
+    // Keep flatDir for Capacitor Cordova plugins compatibility, but add proper repos first
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
@@ -71,6 +74,20 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// Override Capacitor's Java 21 with Java 17 for compatibility
+android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// Force all JavaCompile tasks in this module to use Java 17
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 try {
     def servicesJSON = file('google-services.json')
