@@ -44,6 +44,14 @@ Preferred communication style: Simple, everyday language.
 - Development environment integrates Replit with AWS mock services and pure Lambda handler testing.
 - **Optimized Cold Start Performance** - Pure Lambda handlers eliminate framework initialization overhead, reducing cold start latency by ~200-400ms compared to Flask+Gunicorn setup.
 
+**CI/CD Pipeline:**
+- **Comprehensive Testing**: Integration tests with AWS LocalStack (DynamoDB, Bedrock, Secrets Manager)
+- **Security Scanning**: SAST (Bandit), dependency scanning (pip-audit, npm audit), secret scanning (TruffleHog)
+- **Test Coverage**: User lifecycle, Nova AI services (Sonic/Micro), WebSocket streaming, receipt validation, multi-region configuration
+- **Automated Builds**: Android APK and iOS IPA with production signing
+- **Release Approval**: Manual approval gates with GitHub Environments for production releases (draft-by-default)
+- **Compliance**: Security checks before release, artifact retention policies, audit trail
+
 **UI/UX Decisions:**
 - Professional, clean interface with simplified user messages (e.g., "Maya" as examiner, no technical AWS references).
 - Responsive design with professional Bootstrap styling, purple gradient backgrounds, and modern card layouts.
