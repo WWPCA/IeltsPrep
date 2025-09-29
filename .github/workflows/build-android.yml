@@ -54,19 +54,11 @@ jobs:
       run: |
         npx cap sync android
         
-    - name: Setup Android signing (Release only)
-      if: github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main'
+    - name: Android Signing Security Note
       run: |
-        # Create keystore from secrets
-        echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
-        
-        # Create signing config
-        cat > android/app/release-signing.properties << EOF
-        storeFile=release.keystore
-        storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
-        keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
-        EOF
+        echo "🚨 SECURITY: Using debug signing only"
+        echo "Previous unknown Android keystore secrets removed for security"
+        echo "For Google Play Store, user must provide their own keystore"
         
     - name: Build Android Debug APK
       if: github.event.inputs.build_type == 'debug' || github.ref != 'refs/heads/main'
@@ -80,7 +72,8 @@ jobs:
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleRelease --info --stacktrace
+        # Using debug build until user provides their own keystore
+        ./gradlew assembleDebug --info --stacktrace
         
     - name: Upload Debug APK
       if: github.event.inputs.build_type == 'debug' || github.ref != 'refs/heads/main'
@@ -95,7 +88,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ielts-genai-prep-release-${{ github.run_number }}
-        path: android/app/build/outputs/apk/release/app-release.apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 90
         
     - name: Create Release
@@ -114,7 +107,7 @@ jobs:
           ## Downloads
           - Android APK: Available in release assets
           
-        files: android/app/build/outputs/apk/release/app-release.apk
+        files: android/app/build/outputs/apk/debug/app-debug.apk
         draft: false
         prerelease: false
       env:
