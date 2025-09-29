@@ -1,0 +1,42 @@
+The job failed due to missing Apple developer account and provisioning profile configuration:
+
+1. No Accounts: “Add a new account in Accounts settings.”  
+2. No profiles for 'com.ieltsaiprep.app': “Xcode couldn't find any iOS App Development provisioning profiles matching 'com.ieltsaiprep.app'.”
+
+## Solution
+
+1. **Add an Apple Developer Account**
+   - In Xcode, go to `Preferences > Accounts`.
+   - Add your Apple ID for the developer account.
+
+2. **Create/Download a Provisioning Profile**
+   - Visit the [Apple Developer portal](https://developer.apple.com/account/resources/profiles/list).
+   - Create or download a development provisioning profile for the App ID `com.ieltsaiprep.app`.
+   - Ensure the profile includes the correct device or is set up for automatic signing.
+
+3. **Configure Xcode Project for Code Signing**
+   - Open `App.xcodeproj`.
+   - Select the target: `App`.
+   - In `Signing & Capabilities`, set the correct Team and select the downloaded provisioning profile.
+
+4. **Commit Provisioning Profile and Update Workflow**
+   - If building on CI (GitHub Actions), ensure the provisioning profile and signing certificate are securely added to the build agent, often via encrypted secrets and environment variables.
+     - Example:
+       ```yaml
+       # .github/workflows/build-ios.yml
+       steps:
+         - name: Install provisioning profile
+           run: |
+             mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+             echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+       ```
+   - Store the profile as a base64-encoded secret in your repository’s settings.
+
+## Summary
+
+- Add your Apple developer account in Xcode on the runner.
+- Create/download and configure the necessary provisioning profile for `com.ieltsaiprep.app`.
+- Ensure code-signing settings are correct in `App.xcodeproj`.
+- Update the CI workflow to install the provisioning profile during build.
+
+If you need code snippets or assistance updating the workflow file, let me know your signing method (manual or automatic) for more tailored instructions.
