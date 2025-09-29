@@ -72,14 +72,14 @@ jobs:
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --info
+        ./gradlew assembleDebug --info --stacktrace
         
     - name: Build Android Release APK
       if: github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main'
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleRelease --info
+        ./gradlew assembleRelease --info --stacktrace
         
     - name: Upload Debug APK
       if: github.event.inputs.build_type == 'debug' || github.ref != 'refs/heads/main'
