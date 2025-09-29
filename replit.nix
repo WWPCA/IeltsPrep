@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.openjdk17
     pkgs.zip
     pkgs.awscli
     pkgs.unzip
