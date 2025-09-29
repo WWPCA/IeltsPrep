@@ -38,10 +38,11 @@ jobs:
       
     - name: Build web assets
       run: |
-        # Copy static files to ensure web assets are ready
+        # Ensure web assets directory exists and copy templates (Flask app to Capacitor web)
         mkdir -p static
         cp -r templates/* static/ 2>/dev/null || true
-        cp -r static/* static/ 2>/dev/null || true
+        echo "Web assets prepared for iOS:"
+        ls -la static/
         
     - name: Sync Capacitor
       run: |
