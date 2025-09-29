@@ -39,6 +39,7 @@ subprojects { p ->
                 }
             }
         }
+        // Force ALL JavaCompile tasks to use Java 17, including auto-generated ones
         tasks.withType(JavaCompile).configureEach {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
@@ -46,6 +47,19 @@ subprojects { p ->
         }
         tasks.matching { it.name.contains('Kotlin') }.configureEach {
             if (hasProperty('kotlinOptions')) kotlinOptions.jvmTarget = '17'
+        }
+    }
+}
+
+// Additional aggressive override for Capacitor generated modules
+gradle.projectsEvaluated {
+    subprojects.each { subproject ->
+        if (subproject.name.contains('capacitor') || subproject.name.contains('cordova')) {
+            subproject.tasks.withType(JavaCompile).configureEach {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+                options.release = 17
+            }
         }
     }
 }
